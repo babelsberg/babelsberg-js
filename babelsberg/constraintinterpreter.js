@@ -270,18 +270,18 @@ Object.subclass('ConstrainedVariable', {
         newGetter.isConstraintAccessor = true;
     },
     ensureExternalVariableFor: function(solver) {
-        var value = this.obj[this.ivarname],
-            ivarname = this.ivarname,
-            eVar = this.externalVariables(solver);
+        var eVar = this.externalVariables(solver),
+            value = this.obj[this.ivarname];
+
         if (!eVar && eVar !== null) { // don't try to create an external variable twice
-            this.externalVariables(solver, solver.constraintVariableFor(value, ivarname));
+            this.externalVariables(solver, solver.constraintVariableFor(value, this.ivarname));
             this.updateReadonlyConstraints();
         }
     },
     updateReadonlyConstraints: function() {
         var defVar = this.definingExternalVariable;
         this.eachExternalVariableDo(function (eVar) {
-            if (eVar && eVar !== defVar) {
+            if (eVar !== defVar) {
                 eVar.setReadonly(true);
             }
         });
@@ -299,29 +299,35 @@ Object.subclass('ConstrainedVariable', {
 
     suggestValue: function(value) {
         if (this.isSolveable()) {
-            var defVar = this.definingExternalVariable;
-            defVar.suggestValue(value);
-            var value = this.externalValue;
-            this.eachExternalVariableDo(function (ea) {
-                if (ea !== defVar) {
-                    ea.setReadonly(false);
-                    ea.suggestValue(value);
-                    ea.setReadonly(true);
-                }
-            })
-            return value;
+            this.definingExternalVariable.suggestValue(value);
+            value = this.externalValue; // triggers downstream update
         } else {
-            this.setValue(value);
-            this.recalculatePath();
-            return value;
+            this.updateDownstreamVariables(value);
         }
+        return value;
     },
-    recalculatePath: function() {
-        // the variable has been reassigned. we need to re-evaluate the predicates that use it
-        this._constraints.invoke("recalculate");
+    updateDownstreamVariables: function(value) {
+        var defVar = this.definingExternalVariable;
+        this.eachExternalVariableDo(function (ea) {
+            if (ea !== defVar) {
+                ea.setReadonly(false);
+                ea.suggestValue(value);
+                ea.setReadonly(true);
+            }
+        });
+
+        this.setValue(value);
+        // recalc
+        this._constraints.each(function (c) {
+            var eVar = this.externalVariables(c.solver);
+            if (!eVar) {
+                c.recalculate();
+            }
+        }.bind(this));
     },
+
+
     addToConstraint: function(constraint) {
-        if (!this._constraints) this._constraints = [];
         if (!this._constraints.include(constraint)) {
             this._constraints.push(constraint);
         }
@@ -351,13 +357,23 @@ Object.subclass('ConstrainedVariable', {
         return !!this.externalVariable;
     },
 
-    get externalValue() {
-        if (typeof(this.externalVariable.value) == "function") {
-            return this.externalVariable.value();
-        } else {
-            return this.externalVariable.value;
-        }
+    get storedValue() {
+        return this.obj[this.newIvarname];
     },
+    get externalValue() {
+        var value;
+        if (typeof(this.externalVariable.value) == "function") {
+            value = this.externalVariable.value();
+        } else {
+            value = this.externalVariable.value;
+        }
+
+        if (value !== this.storedValue && Properties.values(this._externalVariables).length > 1) {
+            this.updateDownstreamVariables(value);
+        }
+        return value;
+    }
+
 
     setValue: function(value) {
         this.obj[this.newIvarname] = value;
@@ -366,15 +382,15 @@ Object.subclass('ConstrainedVariable', {
         func.bind(this);
         for (key in this._externalVariables) {
             var eVar = this._externalVariables[key];
-            func(eVar, key);
+            if (eVar) { func(eVar, key); }
         }
     },
 
     getValue: function() {
         if (this.isSolveable()) {
-            return this.externalValue
+            return this.externalValue;
         } else {
-            return this.obj[this.newIvarname];
+            return this.storedValue;
         }
     },
 

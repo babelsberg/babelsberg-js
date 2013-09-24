@@ -291,7 +291,6 @@ TestCase.subclass('InteractionTest', {
                 }
             });
         }, {o: o});
-        debugger
         this.assert(!o.a, "deltablue is downstream from cassowary and has to change a");
         this.assert(o.b === 11, "deltablue is downstream from cassowary and has to change a");
 
@@ -299,5 +298,34 @@ TestCase.subclass('InteractionTest', {
         this.assert(o.a, "deltablue changed a");
         this.assert(o.b === 20, "cassowary updated this");
     },
-});
+    testInteractionAssignmentIndirect: function () {
+        var o = {a: true,
+                 b: 10,
+                 c: 5};
+
+        (function () { return o.b + o.c >= 20 }).shouldBeTrue({o: o});
+        this.assert(o.a, "a unchanged");
+        this.assert(o.b === 15, "b fixed " + o.b);
+
+        (function () {
+            return o.a == (o.b > 15)
+        }).shouldBeSatisfiedWith(function () {
+            o.a.formula([o.b], function (b, a) { return b > 15 });
+            o.b.formula([o.a], function (a, b) {
+                if (a && b <= 15) {
+                    return 16;
+                } else if (!a && b > 15) {
+                    return 15;
+                } else {
+                    return b;
+                }
+            });
+        }, {o: o});
+        this.assert(!o.a, "deltablue is downstream from cassowary and has to change a to " + o.a);
+        this.assert(o.b === 15, "deltablue is downstream from cassowary and has to change a");
+
+        o.c = 1;
+        this.assert(o.b === 19, "cassowary updated this");
+        this.assert(o.a, "deltablue changed a");
+    },});
 }) // end of module
