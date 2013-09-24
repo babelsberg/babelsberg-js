@@ -225,7 +225,7 @@ Object.subclass('ConstrainedVariable', {
         this.obj = obj;
         dbgOn(ivarname.match(/v\d/))
         this.ivarname = ivarname;
-        this.newIvarname = "$$" + ivarname;
+        this.newIvarname = "$1$1" + ivarname;
         this._constraints = [];
         this._externalVariables = {};
 
@@ -298,14 +298,28 @@ Object.subclass('ConstrainedVariable', {
 
 
     suggestValue: function(value) {
-        if (this.isSolveable()) {
-            this.definingExternalVariable.suggestValue(value);
-            value = this.externalValue; // triggers downstream update
-        } else {
-            this.updateDownstreamVariables(value);
+        if (value !== this.storedValue) {
+            if (this.isSolveable()) {
+                this.definingExternalVariable.suggestValue(value);
+                value = this.externalValue;
+            }
+            if (value !== this.storedValue) {
+                this.setValue(value);
+                this.updateDownstreamVariables(value);
+                this.updateConnectedVariables();
+            }
         }
         return value;
     },
+    updateConnectedVariables: function() {
+        // so slow :(
+        this._constraints.collect(function (c) {
+            return c.constraintvariables;
+        }).flatten().uniqueElements().each(function (cvar) {
+            cvar.updateConnectedVariables() // will store if needed
+        });
+    },
+
     updateDownstreamVariables: function(value) {
         var defVar = this.definingExternalVariable;
         this.eachExternalVariableDo(function (ea) {
@@ -366,10 +380,6 @@ Object.subclass('ConstrainedVariable', {
             value = this.externalVariable.value();
         } else {
             value = this.externalVariable.value;
-        }
-
-        if (value !== this.storedValue && Properties.values(this._externalVariables).length > 1) {
-            this.updateDownstreamVariables(value);
         }
         return value;
     },
