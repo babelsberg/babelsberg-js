@@ -232,11 +232,8 @@ Object.subclass('ConstrainedVariable', {
         var value = obj[ivarname],
             solver = this.currentSolver;
 
-        if (solver) {
-            this.externalVariables(solver, solver.constraintVariableFor(value, ivarname));
-        } else {
-            debugger
-        }
+        dbgOn(!solver)
+        this.ensureExternalVariableFor(solver);
 
         var existingSetter = obj.__lookupSetter__(this.ivarname),
             existingGetter = obj.__lookupGetter__(this.ivarname);
@@ -272,6 +269,15 @@ Object.subclass('ConstrainedVariable', {
         newSetter.isConstraintAccessor = true;
         newGetter.isConstraintAccessor = true;
     },
+    ensureExternalVariableFor: function(solver) {
+        var value = this.obj[this.ivarname],
+            ivarname = this.ivarname,
+            eVar = this.externalVariables(solver);
+        if (!eVar && eVar !== null) { // don't try to create an external variable twice
+            this.externalVariables(solver, solver.constraintVariableFor(value, ivarname));
+        }
+    },
+
     get currentSolver() {
         if (Constraint.current) {
             return Constraint.current.solver;
@@ -349,7 +355,7 @@ Object.subclass('ConstrainedVariable', {
         if (arguments.length === 1) {
             return this._externalVariables[solver.__uuid__];
         } else {
-            this._externalVariables[solver.__uuid__] = value;
+            this._externalVariables[solver.__uuid__] = value || null;
         }
     }
 })
@@ -458,7 +464,10 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
         }
 
         cvar = ConstrainedVariable.newConstraintVariableFor(obj, name);
-        cvar.addToConstraint(Constraint.current);
+        if (Constraint.current) {
+            cvar.ensureExternalVariableFor(Constraint.current.solver);
+            cvar.addToConstraint(Constraint.current);
+        }
         if (cvar && cvar.isSolveable()) {
             return cvar.externalVariable;
         } else {
