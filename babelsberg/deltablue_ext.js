@@ -1,0 +1,139 @@
+module('users.timfelgentreff.babelsberg.deltablue_ext').requires('users.timfelgentreff.deltablue.deltablue').toRun(function() {
+
+Function.addMethods({
+    shouldBeSatisfiedWith: function(priority, methods, ctx) {
+        // method for deltablue constraint (for now)
+        if (!ctx) {
+            ctx = methods;
+            methods = priority;
+            priority = DBStrength.required;
+        }
+        this.varMapping = ctx;
+        var planner = DBPlanner.getInstance();
+
+        methods.varMapping = ctx;
+        var formulas = new Constraint(methods, planner).constraintvariables.collect(function (v) {
+            var v = v.externalVariables(planner);
+            return v ? v.removeFormula() : null;
+        }).compact();
+
+        var constraint = new UserDBConstraint(priority, function (c) {
+            formulas.each(function (m) {
+                c.formula(m.output, m.inputs, m.func);
+            });
+        }, planner);
+        constraint.priority = priority;
+        constraint.enable();
+        return constraint;
+    }
+});
+
+DBPlanner.addMethods({
+    isConstraintObject: function() {
+        return true;
+    },
+    constraintVariableFor: function(value, ivarname) {
+        return new DBVariable(ivarname, value, this);
+    },
+    get strength() {
+        return DBStrength;
+    },
+
+    weight: 100,
+})
+
+Object.extend(DBPlanner, {
+    getInstance: function() {
+        if (!this["$$instance"]) {
+            this["$$instance"] = new DBPlanner();
+        }
+        return this["$$instance"];
+    },
+
+    resetInstance: function() {
+        this["$$instance"] = undefined;
+    }
+});
+
+Object.extend(DBStrength, {
+    required: DBStrength.REQUIRED,
+    strong: DBStrength.STRONG_DEFAULT,
+    medium: DBStrength.NORMAL,
+    weak: DBStrength.WEAK_DEFAULT
+});
+
+DBVariable.addMethods({
+    isConstraintObject: function() {
+        return true;
+    },
+
+    stay: function(strength) {
+        var cn = new StayDBConstraint(this, strength || DBStrength.WEAK_DEFAULT, this.planner);
+        cn.enable();
+        this._stayConstraint = cn;
+        return cn;
+    },
+    formula: function (inputs, func) {
+        if (!Constraint.current) {
+            throw "invalid outside constraint construction"
+        }
+        // var constraint = new Constraint(func, Constraint.current.solver),
+        //     inputs = constraint.constraintvariables
+        if (this.__formula__) {
+            throw "two formulas for the same variable " + this;
+        }
+        this.__formula__ = {output: this, inputs: inputs, func: func};
+    },
+
+
+    removeFormula: function () {
+        var f = this.__formula__;
+        this.__formula__ = undefined;
+        return f;
+    },
+
+    removeStay: function() {
+        if (this._stayConstraint) {
+            try {
+                this.planner.removeConstraint(this._stayConstraint);
+            } catch(_) {
+                this._stayConstraint = null;
+            }
+        }
+    },
+
+    suggestValue: function(value) {
+        this.assignValue(value);
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+})
+
+
+DBConstraint.addMethods({
+    isConstraintObject: function () {
+        return true;
+    },
+
+    enable: function (priority) {
+        this.strength = priority || this.strength;
+        this.addDBConstraint()
+    },
+
+    disable: function () {
+        this.destroyDBConstraint()
+    }
+});
+}) // end of module
