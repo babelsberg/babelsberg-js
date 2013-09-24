@@ -1,6 +1,6 @@
 module('users.timfelgentreff.babelsberg.tests').requires('lively.TestFramework', 'users.timfelgentreff.babelsberg.constraintinterpreter').toRun(function() {
 
-TestCase.subclass('ConstraintTest', {
+TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
     testSimple: function () {
         ClSimplexSolver.resetInstance();
         var obj = {a: 2, b: 3};
@@ -202,7 +202,7 @@ TestCase.subclass('ConstraintTest', {
 })
 
 
-TestCase.subclass('PropagationTest', {
+TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
     testSimplePropagation: function() {
         var o = {string: "0",
                  number: 0};
@@ -268,7 +268,7 @@ TestCase.subclass('PropagationTest', {
 
 
 });
-TestCase.subclass('InteractionTest', {
+TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
     testInteractionAssignment: function () {
         var o = {a: true,
                  b: 10};
@@ -327,5 +327,6 @@ TestCase.subclass('InteractionTest', {
         o.c = 1;
         this.assert(o.b === 19, "cassowary updated this");
         this.assert(o.a, "deltablue changed a");
-    },});
+    },
+});
 }) // end of module

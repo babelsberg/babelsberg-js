@@ -372,7 +372,7 @@ Object.subclass('ConstrainedVariable', {
             this.updateDownstreamVariables(value);
         }
         return value;
-    }
+    },
 
 
     setValue: function(value) {
