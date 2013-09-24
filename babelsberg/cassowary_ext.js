@@ -78,6 +78,18 @@ ClAbstractVariable.addMethods({
         s.solve();
         s.removeConstraint(c);
     },
+    setReadonly: function(bool) {
+        if (bool && !this.readonlyConstraint) {
+            var cn = new ClStayConstraint(this, ClStrength.required, 1.0);
+            ClSimplexSolver.getInstance().addConstraint(cn);
+            this.readonlyConstraint = cn;
+            return cn;
+        } else if (!bool && this.readonlyConstraint) {
+            ClSimplexSolver.getInstance().removeConstraint(this.readonlyConstraint);
+            this.readonlyConstraint = undefined;
+        }
+    },
+
 
     plus: function(value) {
         return new ClLinearExpression(this).plus(value);

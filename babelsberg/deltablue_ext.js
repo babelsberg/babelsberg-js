@@ -73,6 +73,18 @@ DBVariable.addMethods({
         this._stayConstraint = cn;
         return cn;
     },
+    setReadonly: function(bool) {
+        if (bool && !this.readonlyConstraint) {
+            var cn = new StayDBConstraint(this, DBStrength.required, this.planner);
+            cn.enable();
+            this.readonlyConstraint = cn;
+            return cn;
+        } else if (!bool && this.readonlyConstraint) {
+            this.readonlyConstraint.disable();
+            this.readonlyConstraint = undefined;
+        }
+    },
+
     formula: function (inputs, func) {
         if (!Constraint.current) {
             throw "invalid outside constraint construction"

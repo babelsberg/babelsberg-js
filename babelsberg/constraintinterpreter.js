@@ -275,8 +275,18 @@ Object.subclass('ConstrainedVariable', {
             eVar = this.externalVariables(solver);
         if (!eVar && eVar !== null) { // don't try to create an external variable twice
             this.externalVariables(solver, solver.constraintVariableFor(value, ivarname));
+            this.updateReadonlyConstraints();
         }
     },
+    updateReadonlyConstraints: function() {
+        var defVar = this.definingExternalVariable;
+        this.eachExternalVariableDo(function (eVar) {
+            if (eVar && eVar !== defVar) {
+                eVar.setReadonly(true);
+            }
+        });
+    },
+
 
     get currentSolver() {
         if (Constraint.current) {
@@ -289,8 +299,17 @@ Object.subclass('ConstrainedVariable', {
 
     suggestValue: function(value) {
         if (this.isSolveable()) {
-            this.externalVariable.suggestValue(value);
-            return this.externalValue;
+            var defVar = this.definingExternalVariable;
+            defVar.suggestValue(value);
+            var value = this.externalValue;
+            this.eachExternalVariableDo(function (ea) {
+                if (ea !== defVar) {
+                    ea.setReadonly(false);
+                    ea.suggestValue(value);
+                    ea.setReadonly(true);
+                }
+            })
+            return value;
         } else {
             this.setValue(value);
             this.recalculatePath();
@@ -308,6 +327,23 @@ Object.subclass('ConstrainedVariable', {
         }
         constraint.addConstraintVariable(this);
     },
+    get definingSolver() {
+        var solver = {weight: -1000};
+        this.eachExternalVariableDo(function (eVar) {
+            if (eVar) {
+                var s = eVar.__solver__;
+                if (s.weight > solver.weight) {
+                    solver = s;
+                }
+            }
+        });
+        return solver;
+    },
+    get definingExternalVariable() {
+        return this.externalVariables(this.definingSolver);
+    },
+
+
 
 
 
@@ -326,6 +362,14 @@ Object.subclass('ConstrainedVariable', {
     setValue: function(value) {
         this.obj[this.newIvarname] = value;
     },
+    eachExternalVariableDo: function(func) {
+        func.bind(this);
+        for (key in this._externalVariables) {
+            var eVar = this._externalVariables[key];
+            func(eVar, key);
+        }
+    },
+
     getValue: function() {
         if (this.isSolveable()) {
             return this.externalValue
@@ -339,13 +383,7 @@ Object.subclass('ConstrainedVariable', {
         if (this.currentSolver) {
             return this.externalVariables(this.currentSolver);
         } else {
-            debugger
-            for (key in this._externalVariables) {
-                if (this._externalVariables[key]) {
-                    return this._externalVariables[key];
-                }
-            }
-            return null;
+            return this.definingExternalVariable;
         }
     },
     externalVariables: function(solver, value) {
@@ -355,6 +393,9 @@ Object.subclass('ConstrainedVariable', {
         if (arguments.length === 1) {
             return this._externalVariables[solver.__uuid__];
         } else {
+            if (value) {
+                value.__solver__ = value.__solver__ || solver;
+            }
             this._externalVariables[solver.__uuid__] = value || null;
         }
     }
@@ -476,7 +517,6 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
     },
 
     shouldInterpret: function(frame, func) {
-        debugger
         return (!(this.isNative(func) ||
                  lively.Class.isClass(func))) &&
                  typeof(func.forInterpretation) == "function"
