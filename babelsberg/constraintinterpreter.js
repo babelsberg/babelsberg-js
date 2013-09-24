@@ -316,7 +316,7 @@ Object.subclass('ConstrainedVariable', {
         this._constraints.collect(function (c) {
             return c.constraintvariables;
         }).flatten().uniqueElements().each(function (cvar) {
-            cvar.updateConnectedVariables() // will store if needed
+            cvar.suggestValue(cvar.getValue()) // will store and recurse only if needed
         });
     },
 

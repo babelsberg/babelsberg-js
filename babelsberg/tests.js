@@ -325,8 +325,8 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
         this.assert(o.b === 15, "deltablue is downstream from cassowary and has to change a");
 
         o.c = 1;
-        this.assert(o.b === 19, "cassowary updated this");
         this.assert(o.a, "deltablue changed a");
+        this.assert(o.b === 19, "cassowary updated this");
     },
 });
 }) // end of module
