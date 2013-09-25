@@ -439,26 +439,54 @@ DBConstraint.subclass('UserDBConstraint', {
     /**
      * Constraints that use a custom function to map multiple inputs to one output
      */
-    initialize: function ($super, strength, formulas, planner) {
-        if (formulas === undefined) {
-            // 1-arg, only formulas
-            formulas = strength;
-            strength = DBStrength.required;
-        } else if (planner === undefined) {
-            // 2-args
-            if (typeof(formulas) != "function") {
-                assert(typeof(strength) == "function")
-                planner = formulas;
-                formulas = strength;
-                strength = DBStrength.required;
+    initialize: function ($super, strengthOrPredicateOrFormulas, predicateOrFormulasOrPlanner, formulasOrPlanner, planner) {
+        var strength, formulas, predicate;
+        if (planner) { // 4-args
+            strength = strengthOrPredicateOrFormulas;
+            predicate = predicateOrFormulasOrPlanner;
+            formulas = formulasOrPlanner;
+        } else if (formulasOrPlanner) {
+            // 3-args
+            if (typeof(formulasOrPlanner) == "function") {
+                strength = strengthOrPredicateOrFormulas;
+                predicate = predicateOrFormulasOrPlanner;
+                formulas = formulasOrPlanner;
+            } else {
+                planner = formulasOrPlanner;
+                if (typeof(strengthOrPredicateOrFormulas) == "function") {
+                    predicate = strengthOrPredicateOrFormulas;
+                    formulas = predicateOrFormulasOrPlanner;
+                } else {
+                    strength = strengthOrPredicateOrFormulas;
+                    formulas = predicateOrFormulasOrPlanner;
+                }
             }
+        } else if (predicateOrFormulasOrPlanner) {
+            // 2-args
+            if (typeof(strengthOrPredicateOrFormulas) == "function") {
+                if (typeof(predicateOrFormulasOrPlanner) == "function") {
+                    predicate = strengthOrPredicateOrFormulas;
+                    formulas = predicateOrFormulasOrPlanner;
+                } else {
+                    formulas = strengthOrPredicateOrFormulas;
+                    planner = predicateOrFormulasOrPlanner;
+                }
+            } else {
+                strength = strengthOrPredicateOrFormulas;
+                formulas = predicateOrFormulasOrPlanner;
+            }
+        } else {
+            // 1-arg
+            formulas = strengthOrPredicateOrFormulas;
         }
+        strength = strength || DBStrength.required;
 
-	$super(strength, planner);
-	this.formulas = [];
-	this.outputs = [];
-	this.inputs = [];
-	this.satisfied = false;
+        $super(strength, planner);
+        this.predicate = predicate;
+        this.formulas = [];
+        this.outputs = [];
+        this.inputs = [];
+        this.satisfied = false;
         formulas(this);
     },
     formula: function(output, inputs, func) {
@@ -522,11 +550,11 @@ DBConstraint.subclass('UserDBConstraint', {
      */
     markInputs: function (mark) {
         var out = this.out;
-	this.inputs.each(function (ea) {
-	    if (ea !== out) {
-	       ea.mark = mark;
-	   }
-	});
+        this.inputs.each(function (ea) {
+            if (ea !== out) {
+               ea.mark = mark;
+            }
+        });
     },
 
     /**
@@ -540,8 +568,8 @@ DBConstraint.subclass('UserDBConstraint', {
         this.inputs.each(function (ea) {
             out.walkDBStrength = DBStrength.weakestOf(out.walkDBStrength, ea.walkDBStrength);
         });
-	out.stay = this.inputs.all(function (ea) { return ea.stay });
-	if (out.stay) this.execute();
+        out.stay = this.inputs.all(function (ea) { return ea.stay });
+        if (out.stay) this.execute();
     },
 
     /**
@@ -566,12 +594,14 @@ DBConstraint.subclass('UserDBConstraint', {
 	this.satisfied = false;
     },
     execute: function () {
-        var formula = this.formulas[this.outputs.indexOf(this.out)],
-            func = formula.func,
-            inputs = formula.inputs;
-        this.out.value = func.apply(null, inputs.collect(function (ea) {
-            return ea.value;
-        }).concat([this.out.value]));
+        if (!this.predicate || !this.predicate()) {
+            var formula = this.formulas[this.outputs.indexOf(this.out)],
+                func = formula.func,
+                inputs = formula.inputs;
+            this.out.value = func.apply(null, inputs.collect(function (ea) {
+                return ea.value;
+            }).concat([this.out.value]));
+        }
     },
     output: function() {
         return this.out

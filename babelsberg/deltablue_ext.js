@@ -17,7 +17,7 @@ Function.addMethods({
             return v ? v.removeFormula() : null;
         }).compact();
 
-        var constraint = new UserDBConstraint(priority, function (c) {
+        var constraint = new UserDBConstraint(priority, this, function (c) {
             formulas.each(function (m) {
                 c.formula(m.output, m.inputs, m.func);
             });

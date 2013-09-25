@@ -220,11 +220,33 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
         o.number = 12
         this.assert(o.string === "12");
     },
+    testBoolPropagation: function () {
+        var o = {a: true,
+                 b: 10};
+
+        (function () {
+            return o.a == (o.b > 15)
+        }).shouldBeSatisfiedWith(function () {
+            o.a.formula([o.b], function (b, a) { return b > 15 });
+            o.b.formula([o.a], function (a, b) { return a ? 16 : 15 });
+        }, {o: o});
+
+        this.assert(!o.a, "deltablue changed a");
+        o.b = 20;
+        this.assert(o.a, "deltablue changed a");
+        o.a = false;
+        this.assert(o.b === 15, "deltablue changed b");
+        o.b = 20;
+        this.assert(o.a, "deltablue changed a");
+        o.a = true;
+        this.assert(o.b === 20, "deltablue didn't change b, because the predicate was satisfied");
+    },
+
     testArithmetic: function() {
         var o = {x: 0, y: 0, z: 0};
 
         (function () {
-            return x + y == z;
+            return o.x + o.y == o.z;
         }).shouldBeSatisfiedWith(function () {
             o.x.formula([o.y, o.z], function (y, z) { debugger; return z - y });
             o.y.formula([o.x, o.z], function (x, z) { debugger; return z - x });
@@ -281,15 +303,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
             return o.a == (o.b > 15)
         }).shouldBeSatisfiedWith(function () {
             o.a.formula([o.b], function (b, a) { return b > 15 });
-            o.b.formula([o.a], function (a, b) {
-                if (a && b <= 15) {
-                    return 16;
-                } else if (!a && b > 15) {
-                    return 15;
-                } else {
-                    return b;
-                }
-            });
+            o.b.formula([o.a], function (a, b) { return a ? 16 : 15 });
         }, {o: o});
         this.assert(!o.a, "deltablue is downstream from cassowary and has to change a");
         this.assert(o.b === 11, "deltablue is downstream from cassowary and has to change a");
@@ -311,15 +325,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
             return o.a == (o.b > 15)
         }).shouldBeSatisfiedWith(function () {
             o.a.formula([o.b], function (b, a) { return b > 15 });
-            o.b.formula([o.a], function (a, b) {
-                if (a && b <= 15) {
-                    return 16;
-                } else if (!a && b > 15) {
-                    return 15;
-                } else {
-                    return b;
-                }
-            });
+            o.b.formula([o.a], function (a, b) { return a ? 16 : 15 });
         }, {o: o});
         this.assert(!o.a, "deltablue is downstream from cassowary and has to change a to " + o.a);
         this.assert(o.b === 15, "deltablue is downstream from cassowary and has to change a");
