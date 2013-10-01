@@ -298,22 +298,20 @@ Object.subclass('ConstrainedVariable', {
 
 
     suggestValue: function(value) {
-        if (!ConstrainedVariable.isSuggestingValue) {
-            try {
-                ConstrainedVariable.isSuggestingValue = true;
-                if (value !== this.storedValue) {
-                    if (this.isSolveable()) {
-                        this.definingExternalVariable.suggestValue(value);
-                        value = this.externalValue;
-                    }
-                    if (value !== this.storedValue) {
-                        this.setValue(value);
-                        this.updateDownstreamVariables(value);
-                        this.updateConnectedVariables();
-                    }
+        if (value !== this.storedValue) {
+            if (this.isSolveable() && !ConstrainedVariable.isSuggestingValue) {
+                try {
+                    ConstrainedVariable.isSuggestingValue = true;
+                    this.definingExternalVariable.suggestValue(value);
+                    value = this.externalValue;
+                } finally {
+                    ConstrainedVariable.isSuggestingValue = false;
                 }
-            } finally {
-                ConstrainedVariable.isSuggestingValue = false;
+            }
+            if (value !== this.storedValue) {
+                this.setValue(value);
+                this.updateDownstreamVariables(value);
+                this.updateConnectedVariables();
             }
         }
         return value;
