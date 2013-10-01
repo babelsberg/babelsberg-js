@@ -298,15 +298,22 @@ Object.subclass('ConstrainedVariable', {
 
 
     suggestValue: function(value) {
-        if (value !== this.storedValue) {
-            if (this.isSolveable()) {
-                this.definingExternalVariable.suggestValue(value);
-                value = this.externalValue;
-            }
-            if (value !== this.storedValue) {
-                this.setValue(value);
-                this.updateDownstreamVariables(value);
-                this.updateConnectedVariables();
+        if (!ConstrainedVariable.isSuggestingValue) {
+            try {
+                ConstrainedVariable.isSuggestingValue = true;
+                if (value !== this.storedValue) {
+                    if (this.isSolveable()) {
+                        this.definingExternalVariable.suggestValue(value);
+                        value = this.externalValue;
+                    }
+                    if (value !== this.storedValue) {
+                        this.setValue(value);
+                        this.updateDownstreamVariables(value);
+                        this.updateConnectedVariables();
+                    }
+                }
+            } finally {
+                ConstrainedVariable.isSuggestingValue = false;
             }
         }
         return value;
@@ -568,7 +575,9 @@ Object.extend(ConstrainedVariable, {
             obj[ConstrainedVariable.AttrName][ivarname] = cvar;
         }
         return cvar;
-    }
+    },
+
+    isSuggestingValue: false,
 })
 
 ObjectLinearizerPlugin.subclass('DoNotSerializeConstraintPlugin',
