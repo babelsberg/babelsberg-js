@@ -601,6 +601,8 @@ DBConstraint.subclass('UserDBConstraint', {
             this.out.value = func.apply(null, inputs.collect(function (ea) {
                 return ea.value;
             }).concat([this.out.value]));
+        } else {
+            debugger;
         }
     },
     output: function() {
@@ -729,7 +731,7 @@ Object.subclass('DBVariable', {
 	if (this.determinedBy == c) this.determinedBy = null;
     },
     assignValue: function(newValue) {
-        var edit = new EditDBConstraint(this, DBStrength.PREFERRED, this.planner),
+        var edit = new EditDBConstraint(this, DBStrength.REQUIRED, this.planner),
             edits = new DBOrderedCollection();
         edit.addDBConstraint();
         edits.add(edit);
