@@ -452,15 +452,28 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
         return $super(node);
     },
     invoke: function($super, node, recv, func, argValues) {
+        if (!func) { debugger };
         if (recv && recv.isConstraintObject) {
-            var forInterpretation = func.forInterpretation;
-            func.forInterpretation = undefined;
-            try {
-                return cop.withoutLayers([ConstraintConstructionLayer], function() {
-                    return $super(node, recv, func, argValues);
-                });
-            } finally {
-                func.forInterpretation = forInterpretation;
+            if (func) {
+                var forInterpretation = func.forInterpretation;
+                func.forInterpretation = undefined;
+                try {
+                    return cop.withoutLayers([ConstraintConstructionLayer], function() {
+                        return $super(node, recv, func, argValues);
+                    });
+                } finally {
+                    func.forInterpretation = forInterpretation;
+                }
+            } else {
+                // XXX: tried to call a function on this that this constraintobject does not understand.
+                //      we'll just forward to the value, I guess?
+                debugger
+                var value = recv.value;
+                if (typeof(value) == "function") {
+                    value = value();
+                }
+                var prop = this.visit(node.property);
+                return this.invoke(node, value, value[prop], argValues);
             }
         } else if (recv === lively.Class || lively.Class.isClass(func)) {
             return cop.withoutLayers([ConstraintConstructionLayer], function() {
