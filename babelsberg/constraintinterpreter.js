@@ -223,7 +223,6 @@ Object.extend(Constraint, {
 Object.subclass('ConstrainedVariable', {
     initialize: function(obj, ivarname) {
         this.obj = obj;
-        dbgOn(ivarname.match(/v\d/))
         this.ivarname = ivarname;
         this.newIvarname = "$1$1" + ivarname;
         this._constraints = [];
@@ -446,6 +445,15 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
     visitThis: function($super, node) {
         return $super(node);
     },
+    getConstraintObjectValue: function(o) {
+        var value = o.value;
+        if (typeof(o) == "function") {
+            return value();
+        } else {
+            return value;
+        }
+    },
+
     visitVariable: function($super, node) {
         return $super(node);
     },
@@ -454,10 +462,7 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
             val = this.visit(node.expr);
         if (val && val.isConstraintObject) {
             // TODO: check if this always does what we want
-            val = val.value;
-            if (typeof(val) == "function") {
-                val = val();
-            }
+            val = this.getConstraintObjectValue(val);
         }
         // Below copied from InterpreterVisitor
         switch (node.name) {
@@ -491,10 +496,7 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
                 // XXX: tried to call a function on this that this constraintobject does not understand.
                 //      we'll just forward to the value, I guess?
                 debugger
-                var value = recv.value;
-                if (typeof(value) == "function") {
-                    value = value();
-                }
+                var value = this.getConstraintObjectValue(recv);
                 var prop = this.visit(node.property);
                 return this.invoke(node, value, value[prop], argValues);
             }
@@ -571,6 +573,9 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
             cvar;
         if (obj === Global || (obj instanceof lively.Module)) {
             return obj[name];
+        }
+        if (obj && obj.isConstraintObject) {
+            obj = this.getConstraintObjectValue(obj);
         }
 
         cvar = ConstrainedVariable.newConstraintVariableFor(obj, name);
