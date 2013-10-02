@@ -601,8 +601,6 @@ DBConstraint.subclass('UserDBConstraint', {
             this.out.value = func.apply(null, inputs.collect(function (ea) {
                 return ea.value;
             }).concat([this.out.value]));
-        } else {
-            debugger;
         }
     },
     output: function() {

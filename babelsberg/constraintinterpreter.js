@@ -449,6 +449,31 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
     visitVariable: function($super, node) {
         return $super(node);
     },
+    visitUnaryOp: function($super, node) {
+        var frame = this.currentFrame,
+            val = this.visit(node.expr);
+        if (val && val.isConstraintObject) {
+            // TODO: check if this always does what we want
+            val = val.value;
+            if (typeof(val) == "function") {
+                val = val();
+            }
+        }
+        // Below copied from InterpreterVisitor
+        switch (node.name) {
+            case '-':
+              return -val;
+            case '!':
+              return !val;
+            case '~':
+              return~val;
+            case 'typeof':
+              return typeof val;
+            default:
+              throw new Error('No semantics for unary op ' + node.name)
+        }
+    },
+
     invoke: function($super, node, recv, func, argValues) {
         if (!func) { debugger };
         if (recv && recv.isConstraintObject) {
