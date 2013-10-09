@@ -487,10 +487,9 @@ Object.subclass('ClLinearExpression', 'default category', {
       return (this.clone()).multiplyMe(x);
     } else {
       if (this.isConstant()) {
-        expr = x;
-        return expr.times(this._constant);
-      } else if (expr.isConstant()) {
-        return this.times(expr._constant);
+        return x.times(this._constant);
+      } else if (x.isConstant()) {
+        return this.times(x._constant);
       } else {
         throw new ExCLNonlinearExpression();
       }
