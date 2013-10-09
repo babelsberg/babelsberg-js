@@ -152,6 +152,23 @@ ClLinearExpression.addMethods({
         throw "Not supported: plus with " + expr;
     }
   },
+  times: function(x) {
+    if (typeof(x) == 'number') {
+      return (this.clone()).multiplyMe(x);
+    } else if (typeof(x) == 'string') {
+      // XXX: Basically, we make numbers in strings readonly here
+      return (this.clone()).multiplyMe(parseFloat(x));
+    } else {
+      if (this.isConstant()) {
+        return x.times(this._constant);
+      } else if (x.isConstant()) {
+        return this.times(x._constant);
+      } else {
+        throw new ExCLNonlinearExpression();
+      }
+    }
+  },
+
 
   minus: function(expr /*ClLinearExpression*/) {
     if (expr instanceof ClLinearExpression) {
