@@ -457,6 +457,20 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
     visitVariable: function($super, node) {
         return $super(node);
     },
+    visitSend: function($super, node) {
+        return $super(node);
+    },
+
+    visitCond: function($super, node) {
+        var frame = this.currentFrame,
+            condVal = this.visit(node.condExpr);
+        if (condVal.isConstraintObject) {
+            debugger
+            condVal = this.getConstraintObjectValue(condVal);
+        }
+        return condVal ? this.visit(node.trueExpr) : this.visit(node.falseExpr);
+    },
+
     visitUnaryOp: function($super, node) {
         var frame = this.currentFrame,
             val = this.visit(node.expr);
@@ -513,7 +527,9 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
     visitBinaryOp: function($super, node) {
         if (node.name.match(/[\*\+\/\-]|==|<=|>=|&&/)) {
             var leftVal = this.visit(node.left),
-                rightVal = this.visit(node.right);
+                rightVal = this.visit(node.right),
+                rLeftVal = leftVal.isConstraintObject ? this.getConstraintObjectValue(leftVal) : leftVal,
+                rRightVal = rightVal.isConstraintObject ? this.getConstraintObjectValue(rightVal) : rightVal;                    
             switch (node.name) {
                case '&&':
                     Constraint.current.addPrimitiveConstraint(leftVal);
@@ -523,43 +539,43 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
                     if (leftVal.isConstraintObject && leftVal.plus) {
                         return leftVal.plus(rightVal);
                     } else {
-                        return leftVal + rightVal;
+                        return rLeftVal + rRightVal;
                     };
                 case '-':
                     if (leftVal.isConstraintObject && leftVal.minus) {
                         return leftVal.minus(rightVal);
                     } else {
-                        return leftVal + rightVal;
+                        return rLeftVal - rRightVal;
                     };
                 case '*':
                     if (leftVal.isConstraintObject && leftVal.times) {
                         return leftVal.times(rightVal);
                     } else {
-                        return leftVal * rightVal;
+                        return rLeftVal * rRightVal;
                     };
                 case '/':
                     if (leftVal.isConstraintObject && leftVal.divide) {
                         return leftVal.divide(rightVal);
                     } else {
-                        return leftVal / rightVal;
+                        return rLeftVal / rRightVal;
                     };
                 case '<=':
                     if (leftVal.isConstraintObject && leftVal.cnLeq) {
                         return leftVal.cnLeq(rightVal);
                     } else {
-                        return leftVal <= rightVal;
+                        return rLeftVal <= rRightVal;
                     };
                 case '>=':
                     if (leftVal.isConstraintObject && leftVal.cnGeq) {
                         return leftVal.cnGeq(rightVal);
                     } else {
-                        return leftVal >= rightVal;
+                        return rLeftVal >= rRightVal;
                     };
                 case '==':
                     if (leftVal.isConstraintObject && leftVal.cnEquals) {
                         return leftVal.cnEquals(rightVal);
                     } else {
-                        return leftVal == rightVal;
+                        return rLeftVal == rRightVal;
                     };
             }
         }
