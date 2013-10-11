@@ -126,10 +126,18 @@ ClLinearExpression.addMethods({
     },
 
     cnGeq: function(value) {
+        if (typeof(value) == 'string') {
+            // XXX: Basically, we make numbers in strings readonly here
+            value = parseFloat(value);
+        }
         return new ClLinearInequality(this.minus(value));
     },
 
     cnLeq: function(value) {
+        if (typeof(value) == 'string') {
+            // XXX: Basically, we make numbers in strings readonly here
+            value = parseFloat(value);
+        }
         if (!(value instanceof ClLinearExpression)) {
             value = new ClLinearExpression(value);
         }
@@ -138,10 +146,19 @@ ClLinearExpression.addMethods({
     },
 
     cnEquals: function(value) {
+        if (typeof(value) == 'string') {
+            // XXX: Basically, we make numbers in strings readonly here
+            value = parseFloat(value);
+        }
         return new ClLinearEquation(this, value);
     },
     
-    plus: function(expr /*ClLinearExpression*/) {
+  plus: function(expr /*ClLinearExpression*/) {
+    if (typeof(expr) == 'string') {
+        // XXX: Basically, we make numbers in strings readonly here
+        expr = parseFloat(expr);
+    }
+
     if (expr instanceof ClLinearExpression) {
       return this.clone().addExpression(expr, 1.0);
     } else if (expr instanceof ClVariable) {
@@ -153,11 +170,13 @@ ClLinearExpression.addMethods({
     }
   },
   times: function(x) {
+    if (typeof(x) == 'string') {
+        // XXX: Basically, we make numbers in strings readonly here
+        x = parseFloat(x);
+    }
+    
     if (typeof(x) == 'number') {
       return (this.clone()).multiplyMe(x);
-    } else if (typeof(x) == 'string') {
-      // XXX: Basically, we make numbers in strings readonly here
-      return (this.clone()).multiplyMe(parseFloat(x));
     } else {
       if (this.isConstant()) {
         return x.times(this._constant);
@@ -171,6 +190,11 @@ ClLinearExpression.addMethods({
 
 
   minus: function(expr /*ClLinearExpression*/) {
+    if (typeof(expr) == 'string') {
+        // XXX: Basically, we make numbers in strings readonly here
+        expr = parseFloat(expr);
+    }
+  
     if (expr instanceof ClLinearExpression) {
       return this.clone().addExpression(expr, -1.0);
     } else if (expr instanceof ClVariable) {
@@ -184,6 +208,11 @@ ClLinearExpression.addMethods({
 
 
   divide: function(x) {
+    if (typeof(x) == 'string') {
+        // XXX: Basically, we make numbers in strings readonly here
+        x = parseFloat(x);
+    }
+    
     if (typeof(x) == 'number') {
       if (CL.approx(x, 0.0)) {
         throw new ExCLNonlinearExpression();

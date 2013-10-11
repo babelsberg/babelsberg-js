@@ -60,6 +60,23 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         obj.centigrade = 121;
         this.assert(CL.approx(obj.fahrenheit - 32, obj.centigrade * 1.8));
     },
+    testRecalculateForTextInput: function() {
+        var obj = {
+                txt: new lively.morphic.Text(),
+                a: 10
+            };
+        obj.txt.setTextString("5");
+
+        (function () {
+            return obj.a == obj.txt.getTextString();
+        }).shouldBeTrue({obj: obj});
+        this.assert(obj.a == obj.txt.getTextString());
+        
+        obj.txt.setTextString("15");
+        this.assert(obj.a == obj.txt.getTextString());
+        this.assert(obj.a === 15)
+    },
+
 
 
 
