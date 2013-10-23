@@ -48,7 +48,7 @@ Object.extend(bbb, {
             ClSimplexSolver.getInstance().addEditVar(
                 new Constraint((function() {
                     return extVars[accessor]; // should be a solveable var
-                }).varMap({extVars: extVars, accessor: accessor})).value
+                }).varMap({extVars: extVars, accessor: accessor}), ClSimplexSolver.getInstance()).value
             );
         });
 
