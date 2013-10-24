@@ -35,6 +35,7 @@ module('users.timfelgentreff.babelsberg.src_transform').requires().toRun(functio
                     }
                     lastAlwaysFunc.body = node.transform(thisToSelfTransformer).body;
                     ast.enclosed.each(function (ea) {
+			if (ea.name == "always") return; // skip always symbol, it isn't defined
                         lastAlwaysCtx.properties.push(new UglifyJS.AST_ObjectKeyVal({
                             start: node.start,
                             end: node.end,
