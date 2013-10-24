@@ -1,4 +1,4 @@
-module('users.timfelgentreff.babelsberg.src_transform').requires().toRun(function() {
+module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "lively.ide.CodeEditor", "lively.morphic.Halos").toRun(function() {
     JSLoader.loadJs(module('users.timfelgentreff.babelsberg.uglify').uri())
     
     Object.subclass("BabelsbergSrcTransform", {});
@@ -98,7 +98,16 @@ module('users.timfelgentreff.babelsberg.src_transform').requires().toRun(functio
     
     cop.create("ConstraintSyntaxLayer").refineClass(lively.morphic.CodeEditor, {
         boundEval: function (code) {
-            return cop.proceed(BabelsbergSrcTransform.transform(code));
+            var result = cop.proceed(BabelsbergSrcTransform.transform(code));
+            debugger
+            if (Object.isFunction(result)) {
+                // var funcCode = code.replace(/this.addScript\(/, "")
+                //                     .replace(/\).tag\(\[.*\]\);/, "");
+                // result.toString = function () {
+                //     return funcCode;
+                // }
+            }
+            return result;
         }
     });
 
