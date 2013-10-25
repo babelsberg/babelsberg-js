@@ -55,7 +55,13 @@ Object.extend(bbb, {
         ClSimplexSolver.getInstance().solve();
         ClSimplexSolver.getInstance().beginEdit();
         return callback;
+    },
+    always: function(opts, func) {
+        var solver = opts.solver;
+        if (!solver) throw "Must explicitely pass a solver for now";
+        return solver.always(opts, func);
     }
+
 });
 
 cop.create("ConstraintConstructionLayer").refineObject(lively.ast, {

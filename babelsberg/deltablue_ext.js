@@ -8,23 +8,11 @@ Function.addMethods({
             methods = priority;
             priority = DBStrength.required;
         }
-        this.varMapping = ctx;
-        var planner = DBPlanner.getInstance();
-
-        methods.varMapping = ctx;
-        var formulas = new Constraint(methods, planner).constraintvariables.collect(function (v) {
-            var v = v.externalVariables(planner);
-            return v ? v.removeFormula() : null;
-        }).compact();
-
-        var constraint = new UserDBConstraint(priority, this, function (c) {
-            formulas.each(function (m) {
-                c.formula(m.output, m.inputs, m.func);
-            });
-        }, planner);
-        constraint.priority = priority;
-        constraint.enable();
-        return constraint;
+        return DBPlanner.getInstance().always({
+            priority: priority,
+            methods: methods,
+            ctx: ctx
+        }, this);
     }
 });
 
@@ -38,6 +26,29 @@ DBPlanner.addMethods({
     get strength() {
         return DBStrength;
     },
+    always: function(opts, func) {
+        var planner = this,
+            ctx = opts.ctx,
+            priority = opts.priority,
+            methods = opts.methods;
+
+        func.varMapping = ctx;
+        methods.varMapping = ctx;
+        var formulas = new Constraint(methods, planner).constraintvariables.collect(function (v) {
+            var v = v.externalVariables(planner);
+            return v ? v.removeFormula() : null;
+        }).compact();
+
+        var constraint = new UserDBConstraint(priority, func, function (c) {
+            formulas.each(function (m) {
+                c.formula(m.output, m.inputs, m.func);
+            });
+        }, planner);
+        constraint.priority = priority;
+        constraint.enable();
+        return constraint;
+    },
+
 
     weight: 100,
 })

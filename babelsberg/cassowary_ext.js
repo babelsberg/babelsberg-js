@@ -6,11 +6,7 @@ Function.addMethods({
             ctx = priority;
             priority = undefined;
         }
-        this.varMapping = ctx;
-        var constraint = new Constraint(this, ClSimplexSolver.getInstance());
-        constraint.priority = priority;
-        constraint.enable();
-        return constraint;
+        return ClSimplexSolver.getInstance().always({priority: priority, ctx: ctx}, this);
     }
 })
 
@@ -31,6 +27,15 @@ ClSimplexSolver.addMethods({
         return ClStrength;
     },
     weight: 1000,
+    always: function (opts, func) {
+        var ctx = opts.ctx,
+            priority = opts.priority;
+        func.varMapping = ctx;
+        var constraint = new Constraint(func, this);
+        constraint.priority = priority;
+        constraint.enable();
+        return constraint;
+    }
 });
 
 Object.extend(ClSimplexSolver, {
