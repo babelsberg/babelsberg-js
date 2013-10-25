@@ -1,4 +1,4 @@
-module('users.timfelgentreff.babelsberg.constraintinterpreter').requires('lively.ast.Interpreter', 'cop.Layers', 'users.timfelgentreff.babelsberg.cassowary_ext', 'users.timfelgentreff.babelsberg.deltablue_ext', 'users.timfelgentreff.babelsberg.core_ext').toRun(function() {
+module('users.timfelgentreff.babelsberg.constraintinterpreter').requires('lively.ast.Interpreter', 'cop.Layers', 'users.timfelgentreff.babelsberg.cassowary_ext', 'users.timfelgentreff.babelsberg.deltablue_ext', 'users.timfelgentreff.babelsberg.core_ext', 'users.timfelgentreff.babelsberg.src_transform').toRun(function() {
 
 // branched from 198617
 
