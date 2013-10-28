@@ -4,13 +4,16 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
     Object.subclass("BabelsbergSrcTransform", {
         isAlways: function (node) {
             return ((node instanceof UglifyJS.AST_Call) &&
+                    (node.expression && node.expression.expression &&
                     (node.expression.expression.name === "bbb") &&
-                    (node.expression.property === "always"));
+                    (node.expression.property === "always")));
         },
         
         getThisToSelfTransformer: function() {
+            var self = this;
             return new UglifyJS.TreeTransformer(null, function (node) {
                 if (node instanceof UglifyJS.AST_This) {
+                    self.isTransformed = true;
                     return new UglifyJS.AST_SymbolRef({
                         start: node.start,
                         end: node.end,
@@ -88,6 +91,7 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
                         throw SyntaxError("call to `always' must have 1..2 arguments");
                     }
                     self.ensureContextFor(ast, node);
+                    self.isTransformed = true;
                     return node;
                 }
             });
@@ -98,8 +102,12 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
             ast.figure_out_scope();
             var transformedAst = ast.transform(this.getContextTransformerFor(ast)),
                 stream = UglifyJS.OutputStream({beautify: true});
-            transformedAst.print(stream);
-            return stream.toString();
+            if (this.isTransformed) {
+                transformedAst.print(stream);
+                return stream.toString();
+            } else {
+                return code;
+            }
         }
 });
     
@@ -111,24 +119,9 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
 
     cop.create("ConstraintEditorHaloLayer").refineClass(lively.morphic.ScriptEditorHalo, {
         clickAction: function(evt) {
-            if (evt.isShiftDown()) {
-                this.targetMorph.removeHalos();
-                var editor = this.targetMorph.world().openObjectEditorFor(this.targetMorph, evt);
-                editor.setWithLayers(editor.getWithLayers().concat([ConstraintSyntaxLayer]));
-            } else {
-                return cop.proceed(evt);
-            }
-        },
-
-        get style() {
-            var style = {
-                fill: Color.gray.lighter(2),
-                enableDragging: false,
-                enableGrabbing: false,
-                toolTip: 'open script editor'
-            }; // XXX: Copied style
-            style.toolTip += " (shift+click for constraint script editor)";
-            return style;
+            this.targetMorph.removeHalos();
+            var editor = this.targetMorph.world().openObjectEditorFor(this.targetMorph, evt);
+            editor.setWithLayers(editor.getWithLayers().concat([ConstraintSyntaxLayer]));
         }
     });
     ConstraintEditorHaloLayer.beGlobal();
