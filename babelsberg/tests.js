@@ -60,6 +60,16 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         obj.centigrade = 121;
         this.assert(CL.approx(obj.fahrenheit - 32, obj.centigrade * 1.8));
     },
+    testUndefinedVariables: function() {
+        var obj = {};
+        bbb.always({
+            solver: ClSimplexSolver.getInstance(),
+            ctx: {obj: obj}
+        }, function () {
+            return obj.a + obj.b == obj.c;
+        })
+    },
+
     testRecalculateForTextInput: function() {
         var obj = {
                 txt: new lively.morphic.Text(),

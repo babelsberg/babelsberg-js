@@ -531,16 +531,22 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
         }
     },
     visitBinaryOp: function($super, node) {
-        if (node.name.match(/[\*\+\/\-]|==|<=|>=|&&/)) {
+        if (node.name === "&&") {
             var leftVal = this.visit(node.left),
-                rightVal = this.visit(node.right),
-                rLeftVal = leftVal.isConstraintObject ? this.getConstraintObjectValue(leftVal) : leftVal,
+                rightVal = this.visit(node.right);
+            Constraint.current.addPrimitiveConstraint(leftVal);
+            dbgOn(typeof(leftVal) != "object")
+            return rightVal;
+        } else if (node.name.match(/[\*\+\/\-]|==|<=|>=/)) {
+            var leftVal = this.visit(node.left),
+                rightVal = this.visit(node.right);
+            
+            if (leftVal === undefined) leftVal = 0;
+            if (rightVal === undefined) rightVal = 0;
+            
+            var rLeftVal = leftVal.isConstraintObject ? this.getConstraintObjectValue(leftVal) : leftVal,
                 rRightVal = rightVal.isConstraintObject ? this.getConstraintObjectValue(rightVal) : rightVal;                    
             switch (node.name) {
-               case '&&':
-                    Constraint.current.addPrimitiveConstraint(leftVal);
-                    dbgOn(typeof(leftVal) != "object")
-                    return rightVal;
                case '+':
                     if (leftVal.isConstraintObject && leftVal.plus) {
                         return leftVal.plus(rightVal);
