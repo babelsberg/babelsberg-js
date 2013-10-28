@@ -33,11 +33,13 @@ DBPlanner.addMethods({
             methods = opts.methods;
 
         func.varMapping = ctx;
-        methods.varMapping = ctx;
-        var formulas = new Constraint(methods, planner).constraintvariables.collect(function (v) {
-            var v = v.externalVariables(planner);
-            return v ? v.removeFormula() : null;
-        }).compact();
+        if (methods) {
+            methods.varMapping = ctx;
+            var formulas = new Constraint(methods, planner).constraintvariables.collect(function (v) {
+                var v = v.externalVariables(planner);
+                return v ? v.removeFormula() : null;
+            }).compact();
+        }
 
         var constraint = new UserDBConstraint(priority, func, function (c) {
             formulas.each(function (m) {
