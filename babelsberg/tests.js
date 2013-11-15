@@ -200,6 +200,59 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         this.assert(obj.p.equals(obj.p2.scaleBy(2)));
         this.assert(obj.p2.equals(pt(50, 50)));
     },
+    testSimpleReadonly: function() {
+        var obj = {
+            a: 10,
+            b: 0
+        };
+        bbb.always({
+            solver: ClSimplexSolver.getInstance(),
+            ctx: {
+                obj: obj,
+                r: bbb.readonly
+            }
+        }, function() {
+            return r(obj.a) == obj.b;
+        });
+        this.assert(obj.a == 10);
+        this.assert(obj.b == 10);
+        
+        ClSimplexSolver.resetInstance();
+        var obj2 = {
+            a: 10,
+            b: 0
+        };
+        bbb.always({
+            solver: ClSimplexSolver.getInstance(),
+            ctx: {
+                obj2: obj2,
+                r: bbb.readonly
+            }
+        }, function() {
+            return obj2.a == r(obj2.b);
+        });
+        this.assert(obj2.a == 0);
+        this.assert(obj2.b == 0);
+
+        ClSimplexSolver.resetInstance();
+        var obj3 = {
+            a: 10,
+            b: 0
+        };
+        try {
+            bbb.always({
+                solver: ClSimplexSolver.getInstance(),
+                ctx: {
+                        obj3: obj3,
+                        r: bbb.readonly
+                }
+            }, function() {
+                    return r(obj3.a) == r(obj3.b);
+            });
+            this.assert(false, "this constraint should throw an exception, because both variables are readonly");
+        } catch(e) {}
+    },
+
 
 
 

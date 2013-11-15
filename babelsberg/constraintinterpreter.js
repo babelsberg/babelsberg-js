@@ -56,6 +56,11 @@ Object.extend(bbb, {
         ClSimplexSolver.getInstance().beginEdit();
         return callback;
     },
+    readonly: function(externalVariable) {
+        externalVariable.setReadonly(true);
+        return externalVariable;
+    },
+
     always: function(opts, func) {
         var solver = opts.solver;
         if (!solver) throw "Must explicitely pass a solver for now";

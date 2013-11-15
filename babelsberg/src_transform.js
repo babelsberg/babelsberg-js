@@ -6,7 +6,7 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
             return ((node instanceof UglifyJS.AST_Call) &&
                     (node.expression && node.expression.expression &&
                     (node.expression.expression.name === "bbb") &&
-                    (node.expression.property === "always")));
+                    (node.expression.property === "always")))
         },
         
         getThisToSelfTransformer: function() {
@@ -37,8 +37,8 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
         },
         
         createContextFor: function(ast, alwaysNode) {
-            debugger
-            var enclosed = ast.enclosed;
+            var enclosed = ast.enclosed,
+                self = this;
             if (alwaysNode.args.last() instanceof UglifyJS.AST_Function) {
                 enclosed = alwaysNode.args.last().enclosed;
                 // var func = node.args.pop();
@@ -55,7 +55,7 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
                         value: new UglifyJS.AST_SymbolRef({
                             start: alwaysNode.start,
                             end: alwaysNode.end,
-                            name: ea.name
+                            name: self.contextMap(ea.name)
                         })
                     })
                 })
@@ -108,7 +108,14 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
             } else {
                 return code;
             }
-        }
+        },
+    contextMap: function(name) {
+        // map some custom shortnames to bbb functions
+        return {
+            r: "bbb.readonly"
+        }[name] || name;
+    }
+
 });
     
     cop.create("ConstraintSyntaxLayer").refineClass(lively.morphic.CodeEditor, {
