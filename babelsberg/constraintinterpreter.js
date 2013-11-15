@@ -550,18 +550,24 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
                case '+':
                     if (leftVal.isConstraintObject && leftVal.plus) {
                         return leftVal.plus(rightVal);
+                    } else if (rightVal.isConstraintObject && rightVal.plus) {
+                        return rightVal.plus(leftVal);
                     } else {
                         return rLeftVal + rRightVal;
                     };
                 case '-':
                     if (leftVal.isConstraintObject && leftVal.minus) {
                         return leftVal.minus(rightVal);
+                    } else if (rightVal.isConstraintObject && rightVal.plus && Object.isNumber(leftVal)) {
+                        return rightVal.plus(-leftVal);
                     } else {
                         return rLeftVal - rRightVal;
                     };
                 case '*':
                     if (leftVal.isConstraintObject && leftVal.times) {
                         return leftVal.times(rightVal);
+                    } else if (rightVal.isConstraintObject && rightVal.times) {
+                        return rightVal.times(leftVal);
                     } else {
                         return rLeftVal * rRightVal;
                     };
@@ -574,18 +580,24 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
                 case '<=':
                     if (leftVal.isConstraintObject && leftVal.cnLeq) {
                         return leftVal.cnLeq(rightVal);
+                    } else if (rightVal.isConstraintObject && rightVal.cnGeq) {
+                        return rightVal.cnGeq(leftVal);
                     } else {
                         return rLeftVal <= rRightVal;
                     };
                 case '>=':
                     if (leftVal.isConstraintObject && leftVal.cnGeq) {
                         return leftVal.cnGeq(rightVal);
+                    } else if (rightVal.isConstraintObject && rightVal.cnLeq) {
+                        return rightVal.cnLeq(leftVal);
                     } else {
                         return rLeftVal >= rRightVal;
                     };
                 case '==':
                     if (leftVal.isConstraintObject && leftVal.cnEquals) {
                         return leftVal.cnEquals(rightVal);
+                    } else if (rightVal.isConstraintObject && rightVal.cnEquals) {
+                        return rightVal.cnEquals(leftVal);
                     } else {
                         return rLeftVal == rRightVal;
                     };
