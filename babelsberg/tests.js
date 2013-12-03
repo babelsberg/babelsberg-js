@@ -325,7 +325,92 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
 })
 
 
-TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
+TestCase.subclass('users.timfelgentreff.babelsberg.tests.PerformanceTests', {
+    Iterations: 1,
+    testImperativeDragSimulation: function () {
+        var mouse = {},
+            mercury = {},
+            thermometer = {},
+            temperature = 0,
+            gray = {},
+            white = {},
+            display = {};
+        
+        for (var i = 0; i < this.Iterations; i++) {
+            mouse.location_y = i
+            var old = mercury.top
+            mercury.top = mouse.location_y
+            if (mercury.top > thermometer.top) {
+                mercury.top = thermometer.top
+            }
+            temperature = mercury.top
+            if (old < mercury.top) {
+                // moves upwards (draws over the white)
+                gray.top = mercury.top
+            } else {
+                // moves downwards (draws over the gray)
+                white.bottom = mercury.top
+            }
+            display.number = temperature
+        }
+    },
+    
+    testDeclarativeDragSimulation: function () {
+        var ctx = {
+                mouse: {location_y: 0},
+                mercury: {top: 0, bottom: 0},
+                thermometer: {top: 0, bottom: 0},
+                temperature: {c: 0},
+                gray: {top: 0, bottom: 0},
+                white: {top: 0, bottom: 0},
+                display: {number: 0}},
+            solver = new ClSimplexSolver();
+        solver.setAutosolve(false);
+        
+        bbb.always({solver: solver, ctx: ctx}, function () { return temperature.c == mercury.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return white.top == thermometer.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return white.bottom == mercury.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return gray.top == mercury.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return gray.bottom == mercury.bottom });
+        bbb.always({solver: solver, ctx: ctx}, function () { return display.number == temperature.c });
+        bbb.always({solver: solver, ctx: ctx}, function () { return mercury.top == mouse.location_y });
+        bbb.always({solver: solver, ctx: ctx}, function () { return mercury.top <= thermometer.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return mercury.bottom == thermometer.bottom });
+
+        for (var i = 0; i < this.Iterations; i++) {
+            ctx.mouse.location_y = i
+        }
+    },
+    
+    testEditDragSimulation: function () {
+        var ctx = {
+                mouse: {location_y: 0},
+                mercury: {top: 0, bottom: 0},
+                thermometer: {top: 0, bottom: 0},
+                temperature: {c: 0},
+                gray: {top: 0, bottom: 0},
+                white: {top: 0, bottom: 0},
+                display: {number: 0}};
+        ClSimplexSolver.resetInstance();
+        var solver = ClSimplexSolver.getInstance();
+        
+        bbb.always({solver: solver, ctx: ctx}, function () { return temperature.c == mercury.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return white.top == thermometer.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return white.bottom == mercury.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return gray.top == mercury.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return gray.bottom == mercury.bottom });
+        bbb.always({solver: solver, ctx: ctx}, function () { return display.number == temperature.c });
+        bbb.always({solver: solver, ctx: ctx}, function () { return mercury.top == mouse.location_y });
+        bbb.always({solver: solver, ctx: ctx}, function () { return mercury.top <= thermometer.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return mercury.bottom == thermometer.bottom });
+
+        var cb = bbb.edit(ctx.mouse, ["location_y"]);
+        for (var i = 0; i < this.Iterations; i++) {
+            cb(i);
+        }
+        // cb();
+    }
+});TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
     testSimplePropagation: function() {
         var o = {string: "0",
                  number: 0};
