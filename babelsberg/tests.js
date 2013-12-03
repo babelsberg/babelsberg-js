@@ -252,6 +252,49 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
             this.assert(false, "this constraint should throw an exception, because both variables are readonly");
         } catch(e) {}
     },
+    testItemReadonly: function() {
+        var i = {
+                time: 1,
+                value: 2,
+                sum: 0,
+            },
+            i2 = {
+                time: 2,
+                value: 3,
+                sum: 0,
+            },
+            solver = new ClSimplexSolver();
+        solver.setAutosolve(false);
+        bbb.always({solver: solver, ctx: {i: i, r: bbb.readonly}}, function () {
+            return i.sum >= 0;
+        });
+        bbb.always({solver: solver, ctx: {i: i2, r: bbb.readonly}}, function () {
+            return i.sum >= 0;
+        });
+        
+        bbb.always({solver: solver, ctx: {i: i, r: bbb.readonly}}, function () {
+            if (i.prev) {
+                return i.sum == r(i.value) + i.prev.sum;
+            } else {
+                return i.sum == r(i.value);
+            }
+        });
+        bbb.always({solver: solver, ctx: {i: i2, r: bbb.readonly}}, function () {
+            if (i.prev) {
+                return i.sum == r(i.value) + i.prev.sum;
+            } else {
+                return i.sum == r(i.value);
+            }
+        });
+        this.assert(i.sum == 2, "expected sum to equal 2, got " + i.sum);
+        this.assert(i2.sum == 3, "expected sum to equal 3, got " + i2.sum);
+        i2.prev = i;
+        this.assert(i.sum == 2, "expected sum to equal 2, got " + i.sum);
+        this.assert(i2.sum == 5, "expected sum to equal 5, got " + i2.sum);
+        i2.prev = {sum: 100}
+        this.assert(i2.sum == 103, "expected sum to equal 103, got " + i2.sum);
+    },
+
 
 
 
