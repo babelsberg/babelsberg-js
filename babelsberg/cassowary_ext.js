@@ -17,8 +17,8 @@ ClSimplexSolver.addMethods({
     constraintVariableFor: function(value, ivarname) {
         if ((typeof(value) == "number") || (value === null) || (value instanceof Number)) {
             var v = new ClVariable(value + 0 /* coerce back into primitive */);
-            v.stay();
             v.solver = this;
+            v.stay();
             return v;
         } else {
             return null;
@@ -60,14 +60,14 @@ ClAbstractVariable.addMethods({
 
     stay: function(strength) {
         var cn = new ClStayConstraint(this, strength || ClStrength.weak, 1.0);
-        ClSimplexSolver.getInstance().addConstraint(cn);
+        this.solver.addConstraint(cn);
         this.stayConstraint = cn;
         return cn;
     },
     removeStay: function() {
         if (this.stayConstraint) {
             try {
-                ClSimplexSolver.getInstance().removeConstraint(this.stayConstraint);
+                this.solver.removeConstraint(this.stayConstraint);
             } catch(_) {
                 this.stayConstraint = null;
             }
@@ -79,7 +79,7 @@ ClAbstractVariable.addMethods({
 
     suggestValue: function(value) {
         var c = this.cnEquals(value),
-            s = ClSimplexSolver.getInstance();
+            s = this.solver;
         s.addConstraint(c);
         s.solve();
         s.removeConstraint(c);
@@ -87,11 +87,11 @@ ClAbstractVariable.addMethods({
     setReadonly: function(bool) {
         if (bool && !this.readonlyConstraint) {
             var cn = new ClStayConstraint(this, ClStrength.required, 1.0);
-            ClSimplexSolver.getInstance().addConstraint(cn);
+            this.solver.addConstraint(cn);
             this.readonlyConstraint = cn;
             return cn;
         } else if (!bool && this.readonlyConstraint) {
-            ClSimplexSolver.getInstance().removeConstraint(this.readonlyConstraint);
+            this.solver.removeConstraint(this.readonlyConstraint);
             this.readonlyConstraint = undefined;
         }
     },
