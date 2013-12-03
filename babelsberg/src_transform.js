@@ -1,4 +1,5 @@
-module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "lively.ide.CodeEditor", "lively.morphic.Halos").toRun(function() {
+module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "lively.morphic.Halos").toRun(function() {
+    // , "lively.ide.CodeEditor", 
     JSLoader.loadJs(module('users.timfelgentreff.babelsberg.uglify').uri())
     
     Object.subclass("BabelsbergSrcTransform", {
@@ -101,7 +102,7 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
             var ast = UglifyJS.parse(code);
             ast.figure_out_scope();
             var transformedAst = ast.transform(this.getContextTransformerFor(ast)),
-                stream = UglifyJS.OutputStream({beautify: true});
+                stream = UglifyJS.OutputStream({beautify: true, comments: true});
             if (this.isTransformed) {
                 transformedAst.print(stream);
                 return stream.toString();
@@ -117,15 +118,17 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
     }
 
 });
-    
-    cop.create("ConstraintSyntaxLayer").refineClass(lively.morphic.CodeEditor, {
-        boundEval: function (code) {
-            return cop.proceed(new BabelsbergSrcTransform().transform(code));
-        }
-    });
 
     cop.create("ConstraintEditorHaloLayer").refineClass(lively.morphic.ScriptEditorHalo, {
         clickAction: function(evt) {
+            if (!ConstraintSyntaxLayer) {
+                module("lively.ide.CodeEditor").load(true);
+                cop.create("ConstraintSyntaxLayer").refineClass(lively.morphic.CodeEditor, {
+                    boundEval: function (code) {
+                        return cop.proceed(new BabelsbergSrcTransform().transform(code));
+                    }
+                });
+            }
             this.targetMorph.removeHalos();
             var editor = this.targetMorph.world().openObjectEditorFor(this.targetMorph, evt);
             editor.setWithLayers(editor.getWithLayers().concat([ConstraintSyntaxLayer]));
