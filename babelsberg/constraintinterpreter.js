@@ -148,6 +148,8 @@ Object.subclass('Constraint', {
         } else if (!obj.enable) {
             throw "Error: Constraint expression returned an object that does not respond to #enable";
         } else {
+            obj.solver = this.solver; // XXX: Bit of a hack, should really write it so
+                                      // this gets passed through from the variables
             obj.enable(this._priority);
         }
     },
@@ -164,6 +166,7 @@ Object.subclass('Constraint', {
     recalculate: function() {
         var enabled = this._enabled,
             cvars = this.constraintvariables,
+            self = this,
             assignments;
         if (enabled) {
             this.disable();
@@ -188,7 +191,8 @@ Object.subclass('Constraint', {
 
             // first, try to enable the assignments, some may be completely invalid
             assignments.each(function (ea) {
-                try { ea.enable(); } catch(_) { ea.enable(this.solver.strength.strong); }
+                dbgOn(!self.solver)
+                try { ea.enable(); } catch(_) { ea.enable(self.solver.strength.strong); }
             });
 
             try {
@@ -310,11 +314,16 @@ Object.subclass('ConstrainedVariable', {
     suggestValue: function(value) {
         if (value !== this.storedValue) {
             if (this.isSolveable() && !ConstrainedVariable.isSuggestingValue) {
+                var wasReadonly = false,
+                    eVar = this.definingExternalVariable;
                 try {
                     ConstrainedVariable.isSuggestingValue = true;
-                    this.definingExternalVariable.suggestValue(value);
+                    wasReadonly = eVar.isReadonly();
+                    eVar.setReadonly(false);
+                    eVar.suggestValue(value);
                     value = this.externalValue;
                 } finally {
+                    eVar.setReadonly(wasReadonly);
                     ConstrainedVariable.isSuggestingValue = false;
                 }
             }
@@ -475,7 +484,7 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
     visitCond: function($super, node) {
         var frame = this.currentFrame,
             condVal = this.visit(node.condExpr);
-        if (condVal.isConstraintObject) {
+        if (condVal && condVal.isConstraintObject) {
             debugger
             condVal = this.getConstraintObjectValue(condVal);
         }

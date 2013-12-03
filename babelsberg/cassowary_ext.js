@@ -18,6 +18,7 @@ ClSimplexSolver.addMethods({
         if ((typeof(value) == "number") || (value === null) || (value instanceof Number)) {
             var v = new ClVariable(value + 0 /* coerce back into primitive */);
             v.stay();
+            v.solver = this;
             return v;
         } else {
             return null;
@@ -94,6 +95,10 @@ ClAbstractVariable.addMethods({
             this.readonlyConstraint = undefined;
         }
     },
+    isReadonly: function() {
+        return !!this.readonlyConstraint;
+    },
+
 
 
     plus: function(value) {
@@ -243,12 +248,19 @@ ClConstraint.addMethods({
         if (strength) {
             this.setStrength(strength);
         }
-        ClSimplexSolver.getInstance().addConstraint(this);
+        this.solver.addConstraint(this);
     },
     disable: function() {
-        ClSimplexSolver.getInstance().removeConstraint(this);
+        this.solver.removeConstraint(this);
+    },
+    
+    get solver() {
+        return this._solver || ClSimplexSolver.getInstance()
+    },
+    
+    set solver(value) {
+        this._solver = value;
     }
-
 });
 
 }) // end of module

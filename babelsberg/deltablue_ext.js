@@ -97,6 +97,10 @@ DBVariable.addMethods({
             this.readonlyConstraint = undefined;
         }
     },
+    isReadonly: function() {
+        return !!this.readonlyConstraint;
+    },
+
 
     formula: function (inputs, func) {
         if (!Constraint.current) {
