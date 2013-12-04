@@ -10,7 +10,6 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         this.assert(obj.a + obj.b == 3, "Solver failed")
     },
 
-
     testInequality: function() {
         var obj = {a: 8};
         (function () {
@@ -87,10 +86,6 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         this.assert(obj.a === 15)
     },
 
-
-
-
-
     testSimpleAssign: function () {
         ClSimplexSolver.resetInstance();
         var obj = {a: 2, b: 3};
@@ -101,6 +96,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         obj.a = -5;
         this.assert(obj.a + obj.b == 3, "Constraint violated after assignment");
     },
+
     testAssignStay: function() {
         var obj = {a: 2, b: 3};
         (function () {
@@ -120,6 +116,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         }).shouldBeTrue({pt1: pt1, pt2: pt2});
         this.assert(pt1.equals(pt2));
     },
+
     testPointAddition: function() {
         var pt1 = pt(10, 10),
             pt2 = pt(20, 20),
@@ -130,6 +127,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
 
         this.assert(pt1.addPt(pt2).equals(pt3));
     },
+
     testPointAssignment: function() {
         var obj = {p: pt(10, 10)};
         (function () {
@@ -146,6 +144,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         this.assert(pt(100, 100).leqPt(obj.p));
         this.assert(obj.p.x === 150, "point assignment failed to keep the new point intact");
     },
+
     testPointAssignmentComplex: function() {
         var obj = {p: pt(10, 10), p2: pt(20, 20)};
         (function () {
@@ -170,6 +169,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         this.assert(obj.p.equals(obj.p2), "Expected " + obj.p + " to equal " + obj.p2);
         this.assert(obj.p.equals(pt(200, 200)), "Expected " + obj.p + " to equal 200@200");
     },
+
     testPointAssignmentComplexScaled: function() {
         var obj = {p: pt(10, 10), p2: pt(20, 20)};
         (function () {
@@ -200,6 +200,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         this.assert(obj.p.equals(obj.p2.scaleBy(2)));
         this.assert(obj.p2.equals(pt(50, 50)));
     },
+
     testSimpleReadonly: function() {
         var obj = {
             a: 10,
@@ -252,6 +253,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
             this.assert(false, "this constraint should throw an exception, because both variables are readonly");
         } catch(e) {}
     },
+
     testItemReadonly: function() {
         var i = {
                 time: 1,
@@ -295,16 +297,6 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         this.assert(i2.sum == 103, "expected sum to equal 103, got " + i2.sum);
     },
 
-
-
-
-
-
-
-    exampleThermometer: function() {
-        // enter comment here
-    },
-
     testConjunction: function() {
         var ctx = {a: 10, b: 100, c: 1000, d: 10000},
             constraint = (function () {
@@ -316,17 +308,13 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         this.assert(constraint.constraintobjects.length == 2);
     },
 
-
     setUp: function() {
         ClSimplexSolver.resetInstance();
     }
-
-
-})
-
+});
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.PerformanceTests', {
-    Iterations: 1,
+    Iterations: 100,
     testImperativeDragSimulation: function () {
         var mouse = {},
             mercury = {},
@@ -354,6 +342,68 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PerformanceTests', {
             display.number = temperature
         }
     },
+    setUp: function() {
+        this.thermometer = lively.PartsBin.getPart("Thermometer", "users/timfelgentreff/PartsBin/");
+        this.thermometer.remove();
+    },
+
+    testThermometer: function() {
+        var c = this.thermometer.get("Celsius");
+        for(var i = 0; i < 100; i++) {
+            try {
+                c.value = (i % 30) / 100.0;
+            } catch(e) {} // ignore
+        }
+    },
+    testMidpointEdit: function() {
+        var cassowary = new ClSimplexSolver(),
+            deltablue = new DBPlanner();
+        cassowary.setAutosolve(false);
+        hand = $world.firstHand();
+        
+        pos = hand.getPosition().addPt(pt(200, 0));
+        start = $part('Rectangle', 'PartsBin/Basic').openInWorld(pos);
+        end = $part('Rectangle', 'PartsBin/Basic').openInWorld(pos.addXY(100,100));
+        [start,end].invoke('applyStyle', {extent: pt(10,10)});
+        midP = $part('Ellipse', 'PartsBin/Basic').openInWorld(pos);
+        midP.setExtent(pt(20,20));
+        
+        // ugly: we need a script to force render refresh
+        midP.addScript(function update() {
+            this.setPosition(this.getPosition());
+            start.setPosition(start.getPosition());
+        });
+        midP.startStepping(100, 'update') // this can be solved with an additional DeltaBlue constraint
+                                          // see the C/F converter label update for code -- Tim
+        
+        // constraint
+        (function () {
+            var center = start.getPosition().addPt(end.getPosition()).scaleBy(0.5);
+            return midP.getPosition().eqPt(center);
+        }).shouldBeTrue({midP: midP, start: start, end: end});
+        
+        // start editing.
+        // first argument is the object to be edited, the second a list of accessors or fields
+        // note that in the JavaScript implementation, the accessor methods have to return a single value
+        // the Ruby version does not have this limitation (so we could write
+        //      bbb.edit(start, ["getPosition"])
+        // ), but I haven't ported that, yet.
+        editCallback = bbb.edit(start.getPosition(), ["x", "y"]);
+        this.onMouseMove = function (evt) {
+            editCallback(evt.getPosition().addPt(pt(20, 20)));
+        }
+        
+        // end edit by calling callback without values
+        editCallback();
+        editCallback = null;
+        
+        // cleanup
+        this.onMouseMove = function (evt) {};
+        [start,end,midP].invoke('remove');
+        start = end = midP = hand = null;
+    },
+
+
     
     testDeclarativeDragSimulation: function () {
         var ctx = {
@@ -409,8 +459,11 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PerformanceTests', {
             cb(i);
         }
         // cb();
-    }
-});TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
+    },
+});
+
+
+TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
     testSimplePropagation: function() {
         var o = {string: "0",
                  number: 0};
