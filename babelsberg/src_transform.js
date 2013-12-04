@@ -121,7 +121,7 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
 
     cop.create("ConstraintEditorHaloLayer").refineClass(lively.morphic.ScriptEditorHalo, {
         clickAction: function(evt) {
-            if (!ConstraintSyntaxLayer) {
+            if (!Global["ConstraintSyntaxLayer"]) {
                 module("lively.ide.CodeEditor").load(true);
                 cop.create("ConstraintSyntaxLayer").refineClass(lively.morphic.CodeEditor, {
                     boundEval: function (code) {
