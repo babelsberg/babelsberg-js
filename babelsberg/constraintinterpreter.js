@@ -30,6 +30,9 @@ Object.extend(bbb, {
                         return newObj[accessor];
                     });
                     ClSimplexSolver.getInstance().resolveArray(newEditConstants);
+                    accessors.each(function (a) {
+                        extVars[a] = extVars[a]; // set the value, propagates change
+                    })
                 }
             };
 
