@@ -595,5 +595,45 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
         this.assert(o.a, "deltablue changed a");
         this.assert(o.b === 19, "cassowary updated this");
     },
+    testEdit: function() {
+        var obj = {a: 0, b: 1, c: "2"},
+            cassowary = new ClSimplexSolver(),
+            deltablue = new DBPlanner();
+        cassowary.setAutosolve(false);
+
+        bbb.always({solver: cassowary, ctx: {obj: obj}}, function () {
+            return obj.a == obj.b;
+        });
+        bbb.always({solver: deltablue, ctx: {obj: obj}, methods: function () {
+            obj.b.formula([obj.c], function(c) { return parseInt(c); })
+            obj.c.formula([obj.b], function(b) { return b + ""; })
+        }}, function () {
+            return obj.b == obj.c;
+        });
+        
+        this.assert(obj.a === obj.b);
+        this.assert(obj.c == obj.b);
+        this.assert(obj.c !== obj.b);
+        
+        obj.a = 10;
+        this.assert(obj.a === 10);
+        this.assert(obj.a === obj.b);
+        this.assert(obj.c == obj.b);
+        this.assert(obj.c !== obj.b);
+        
+        var cb = bbb.edit(obj, ["b"]);
+        cb([5]);
+        debugger
+        this.assert(obj.b === 5);
+        this.assert(obj.a === obj.b);
+        this.assert(obj.c == obj.b);
+        this.assert(obj.c !== obj.b);
+        cb([11])
+        this.assert(obj.b === 11);
+        this.assert(obj.a === obj.b);
+        this.assert(obj.c == obj.b);
+        this.assert(obj.c !== obj.b);
+    }
+
 });
 }) // end of module

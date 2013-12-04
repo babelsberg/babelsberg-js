@@ -128,6 +128,14 @@ ClAbstractVariable.addMethods({
     cnEquals: function(value) {
         return new ClLinearExpression(this).cnEquals(value);
     },
+    
+    prepareEdit: function() {
+        this.solver.addEditVar(this);
+    },
+    
+    finishEdit: function() {
+        // do nothing
+    },
 });
 
 ClLinearExpression.addMethods({

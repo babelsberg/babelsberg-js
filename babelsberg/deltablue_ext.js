@@ -31,8 +31,8 @@ DBPlanner.addMethods({
             ctx = opts.ctx,
             priority = opts.priority,
             methods = opts.methods;
-
         func.varMapping = ctx;
+
         if (methods) {
             methods.varMapping = ctx;
             var formulas = new Constraint(methods, planner).constraintvariables.collect(function (v) {
@@ -43,7 +43,11 @@ DBPlanner.addMethods({
 
         var constraint = new UserDBConstraint(priority, func, function (c) {
             formulas.each(function (m) {
-                c.formula(m.output, m.inputs, m.func);
+                var inputs = m.inputs.select(function (input) {
+                    return input instanceof DBVariable
+                });
+                dbgOn(inputs.length !== m.inputs.length);
+                c.formula(m.output, inputs, m.func);
             });
         }, planner);
         constraint.priority = priority;
@@ -53,6 +57,41 @@ DBPlanner.addMethods({
 
 
     weight: 100,
+    addEditVar: function(v) {
+        if (!this.currentEdits) {
+            this.currentEdits = new DBOrderedCollection();
+        }
+        var edit = new EditDBConstraint(v, DBStrength.REQUIRED, this);
+        this.currentEdits.add(edit);
+        return edit;
+    },
+
+    beginEdit: function() {
+        if (this.currentEditPlan) {
+            throw "Trying to run nested edits - this isn't supported"
+        }
+        if (!this.currentEdits) {
+            throw "No edit variables - cannot beginEdit"
+        }
+        this.currentEditPlan = this.extractDBPlanFromDBConstraints(this.currentEdits);
+    },
+    endEdit: function() {
+        if (this.currentEdits && this.currentEdits.length !== 0) {
+            this.currentEdits.each(function (edit) {
+                edit.destroyDBConstraint();
+            })
+        }
+        this.currentEditPlan = null;
+    },
+    resolveArray: function(newValues) {
+        if (!this.currentEdits) {
+            throw "resolveArray only valid in edit"
+        }
+        this.currentEdits.elms.each(function (edit, idx) {
+            edit.myOutput.value = newValues[idx];
+        })
+        this.currentEditPlan.execute();
+    }
 })
 
 Object.extend(DBPlanner, {
@@ -134,20 +173,18 @@ DBVariable.addMethods({
     suggestValue: function(value) {
         this.assignValue(value);
     },
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
+    prepareEdit: function() {
+        if (this.editConstraint) {
+            // ignore?
+        } else {
+            this.editConstraint = this.planner.addEditVar(this);
+        }
+    },
+    
+    finishEdit: function() {
+        this.editConstraint = null;
+    },
 })
 
 

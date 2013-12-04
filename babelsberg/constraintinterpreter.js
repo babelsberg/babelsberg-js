@@ -7,56 +7,50 @@ Object.extend(bbb, {
     edit: function (obj, accessors) {
         var extVars = {},
             extConstraints = [],
+            solvers = [],
             callback = function (newObj) {
                 if (!newObj) { // end-of-edit
-                    ClSimplexSolver.getInstance().endEdit();
-                    extConstraints.invoke("disable");
-                    var constrainedVars = extVars[ConstrainedVariable.AttrName];
-                    for (key in constrainedVars) {
-                        constrainedVars[key].externalVariable.removeStay();
-                    };
-                    // FIXME: this next part ensures we don't leak stays, but
-                    //        also leads to bad effects in interaction
-                    // extConstraints.each(function (ec) {
-                        // ec.disable();
-                        // ec.constraintvariables.select(function (ea) {
-                            // return ea.isSolveable();
-                        // }.bind(this)).each(function (ea) {
-                            // return ea.externalVariable.removeStay();
-                        // });
-                    // });
+                    for (var prop in extVars) {
+                        extVars[prop].each(function (evar) {
+                            evar.finishEdit();
+                        });
+                    }
+                    solvers.invoke("endEdit");
                 } else {
-                    var newEditConstants = accessors.map(function (accessor) {
-                        return newObj[accessor];
-                    });
-                    ClSimplexSolver.getInstance().resolveArray(newEditConstants);
+                    var newEditConstants = newObj;
+                    if (!Object.isArray(newObj)) {
+                        newEditConstants = accessors.map(function (accessor) {
+                            return newObj[accessor];
+                        });
+                    }
+                    solvers.invoke("resolveArray", newEditConstants);
                     accessors.each(function (a) {
-                        extVars[a] = extVars[a]; // set the value, propagates change
+                        extVars[a] = extVars[a]; // set the value,
+                                                 // propagates change to other property accessors
                     })
                 }
             };
 
         accessors.each(function (accessor) {
-            extVars[accessor] = 0;
-            if (typeof(obj[accessor]) == "function") {
-                extConstraints.push((function () {
-                    return extVars[accessor] == obj[accessor]();
-                }).shouldBeTrue({obj: obj, extVars: extVars, accessor: accessor}));
-            } else {
-                extConstraints.push((function () {
-                    return extVars[accessor] == obj[accessor];
-                }).shouldBeTrue({obj: obj, extVars: extVars, accessor: accessor}));
+            var cvar = ConstrainedVariable.findConstraintVariableFor(obj, accessor);
+            if (!cvar) {
+                throw "Cannot edit " + obj + '["' + accessor + '"], because it isn\'t constrained'
             }
-
-            ClSimplexSolver.getInstance().addEditVar(
-                new Constraint((function() {
-                    return extVars[accessor]; // should be a solveable var
-                }).varMap({extVars: extVars, accessor: accessor}), ClSimplexSolver.getInstance()).value
-            );
+            var evars = Properties.values(cvar._externalVariables);
+            if (evars.compact().length < evars.length) {
+                throw "Cannot edit " + obj + '["' + accessor + '"], because it is in a recalculate relation'
+            }
+            if (cvar.solvers.any(function (s) { return !Object.isFunction(s.beginEdit) })) {
+                throw "Cannot edit " + obj + '["' + accessor + '"], because it is in a no-edit solver'
+            }
+            extVars[accessor] = evars;
+            solvers = solvers.concat(cvar.solvers).uniq();
+            evars.each(function (evar) {
+                evar.prepareEdit();
+            });
         });
 
-        ClSimplexSolver.getInstance().solve();
-        ClSimplexSolver.getInstance().beginEdit();
+        solvers.invoke("beginEdit");
         return callback;
     },
     readonly: function(externalVariable) {
@@ -385,6 +379,16 @@ Object.subclass('ConstrainedVariable', {
             }
         });
         return solver;
+    },
+    get solvers() {
+        var solvers = [];
+        this.eachExternalVariableDo(function (eVar) {
+            if (eVar) {
+                var s = eVar.__solver__;
+                solvers.push(s)
+            }
+        });
+        return solvers;
     },
     get definingExternalVariable() {
         return this.externalVariables(this.definingSolver);

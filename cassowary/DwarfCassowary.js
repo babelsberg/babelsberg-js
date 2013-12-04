@@ -1278,6 +1278,7 @@ ClTableau.subclass('ClSimplexSolver', 'default category', {
     return this;
   },
   beginEdit: function() {
+    this.solve();
     CL.Assert(this._editVarMap.size() > 0, "_editVarMap.size() > 0");
     this._infeasibleRows.clear();
     this.resetStayConstants();
