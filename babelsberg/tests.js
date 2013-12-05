@@ -547,9 +547,30 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
     },
     setUp: function() {
         DBPlanner.resetInstance()
-    }
-
-
+    },
+    testNoPredicate: function () {
+        var db = new DBPlanner(),
+            element = {color: "red", celsius: 50};
+            
+        bbb.always({solver: db, ctx: {e: element}}, function() {
+            e.color.formula([e.celsius],
+                function(c) {
+                    return c > 50 ? "red" : "blue";
+                });
+            }
+        );
+        
+        this.assert(element.color === "blue", "should have changed to blue");
+        this.assert(element.celsius === 50);
+        
+        element.celsius = 70
+        this.assert(element.color === "red", "should have changed to red");
+        this.assert(element.celsius === 70);
+        
+        element.celsius = 30
+        this.assert(element.color === "blue", "should have changed to blue");
+        this.assert(element.celsius === 30);
+    },
 });
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
     testInteractionAssignment: function () {

@@ -32,6 +32,8 @@ DBPlanner.addMethods({
             priority = opts.priority,
             methods = opts.methods;
         func.varMapping = ctx;
+        if (!methods) methods = func;
+        func = undefined;
 
         if (methods) {
             methods.varMapping = ctx;
