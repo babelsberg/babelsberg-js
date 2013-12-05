@@ -4,6 +4,31 @@ module('users.timfelgentreff.babelsberg.constraintinterpreter').requires('lively
 
 bbb = {};
 Object.extend(bbb, {
+    unconstrain: function (obj, accessor) {
+        var cvar = ConstrainedVariable.findConstraintVariableFor(obj, accessor);
+        if (!cvar) return;
+        var cGetter = obj.__lookupSetter__(accessor),
+            cSetter = obj.__lookupSetter__(accessor);
+        if (!cGetter.isConstraintAccessor || !cSetter.isConstraintAccessor) {
+            throw "too many accessors - unconstrain only works for the very simple case now"
+        }
+        ConstrainedVariable.deleteConstraintVariableFor(obj, accessor);
+        var newName = cvar.newIvarname;
+        var existingSetter = obj.__lookupSetter__(newName),
+            existingGetter = obj.__lookupGetter__(newName);
+        if (existingGetter) {
+            obj.__defineGetter__(this.accessor, existingGetter);
+        }
+        if (existingSetter) {
+            obj.__defineSetter__(this.accessor, existingSetter);
+        }
+        if (!existingSetter || !existingGetter) {
+            delete obj[accessor];
+        }
+        obj[accessor] = obj[newName];
+        delete obj[newName]
+    },
+    
     edit: function (obj, accessors) {
         var extVars = {},
             extConstraints = [],
@@ -677,6 +702,13 @@ Object.extend(ConstrainedVariable, {
             obj[ConstrainedVariable.AttrName][ivarname] = cvar;
         }
         return cvar;
+    },
+    
+    deleteConstraintVariableFor: function(obj, ivarname) {
+        var l = obj[ConstrainedVariable.AttrName ];
+        if (l && l[ivarname]) {
+            delete l[ivarname];
+        }
     },
 
     isSuggestingValue: false,
