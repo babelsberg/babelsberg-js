@@ -314,7 +314,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
 });
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.PerformanceTests', {
-    Iterations: 100,
+    Iterations: 1000,
     testImperativeDragSimulation: function () {
         var mouse = {},
             mercury = {},
@@ -345,6 +345,15 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PerformanceTests', {
     setUp: function() {
         this.thermometer = lively.PartsBin.getPart("Thermometer", "users/timfelgentreff/PartsBin/");
         this.thermometer.remove();
+        this.sumObj = {a: 1, b: 1, c:1, d:1, e:1};
+        this.constrainedSumObj = {a: 1, b: 1, c:1, d:1, e:1};
+        this.constraint = bbb.always({solver: new ClSimplexSolver(), ctx: {self: this}}, function () {
+            return self.constrainedSumObj.a == 1 &&
+                    self.constrainedSumObj.b == 1 &&
+                    self.constrainedSumObj.c == 1 &&
+                    self.constrainedSumObj.d == 1 &&
+                    self.constrainedSumObj.e == 1
+        });
     },
 
     testThermometer: function() {
@@ -460,7 +469,37 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PerformanceTests', {
         }
         // cb();
     },
-});
+    
+    testReadAccessPerformance: function() {
+        for (var i = 0; i < this.Iterations; i++) {
+            this.sumObj.a + this.sumObj.b + this.sumObj.c + this.sumObj.d + this.sumObj.e
+        }
+    },
+    
+    testReadAccessConstrainedPerformance: function() {
+        for (var i = 0; i < this.Iterations; i++) {
+            this.constrainedSumObj.a + this.constrainedSumObj.b +
+                this.constrainedSumObj.c + this.constrainedSumObj.d +
+                this.constrainedSumObj.e
+        }
+    },
+    testReadAccessConstraintDisabledPerformance: function() {
+        this.constraint.disable()
+        for (var i = 0; i < this.Iterations; i++) {
+            this.constrainedSumObj.a + this.constrainedSumObj.b +
+                this.constrainedSumObj.c + this.constrainedSumObj.d +
+                this.constrainedSumObj.e
+        }
+    },
+    testReadAccessUnconstrainedPerformance: function() {
+        this.constraint.disable()
+        bbb.unconstrain(this.constrainedSumObj);
+        for (var i = 0; i < this.Iterations; i++) {
+            this.constrainedSumObj.a + this.constrainedSumObj.b +
+                this.constrainedSumObj.c + this.constrainedSumObj.d +
+                this.constrainedSumObj.e
+        }
+    },});
 
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
