@@ -79,7 +79,7 @@ DBPlanner.addMethods({
     },
     endEdit: function() {
         if (this.currentEdits && this.currentEdits.length !== 0) {
-            this.currentEdits.each(function (edit) {
+            this.currentEdits.elms.each(function (edit) {
                 edit.destroyDBConstraint();
             })
         }
