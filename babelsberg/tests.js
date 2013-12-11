@@ -314,7 +314,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
 });
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.PerformanceTests', {
-    Iterations: 1000,
+    Iterations: 10000,
     testImperativeDragSimulation: function () {
         var mouse = {},
             mercury = {},
@@ -345,7 +345,15 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PerformanceTests', {
     setUp: function() {
         this.thermometer = lively.PartsBin.getPart("Thermometer", "users/timfelgentreff/PartsBin/");
         this.thermometer.remove();
-        this.sumObj = {a: 1, b: 1, c:1, d:1, e:1};
+        var sumObj = {a: 1, b: 1, c:1, d:1, e:1};
+        this.sumObj = sumObj;
+        this.sumObj2 = {
+            get a() { return this.$$a }, $$a: 0,
+            get b() { return this.$$b }, $$b: 0,
+            get c() { return this.$$c }, $$c: 0,
+            get d() { return this.$$d }, $$d: 0,
+            get e() { return this.$$e }, $$e: 0,
+        }
         this.constrainedSumObj = {a: 1, b: 1, c:1, d:1, e:1};
         this.constraint = bbb.always({solver: new ClSimplexSolver(), ctx: {self: this}}, function () {
             return self.constrainedSumObj.a == 1 &&
@@ -469,12 +477,74 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PerformanceTests', {
         }
         // cb();
     },
+    testLibraryEditDragSimulation: function () {
+        var ctx = {
+                mouse: {location_y: 0},
+                mercury: {top: 0, bottom: 0},
+                thermometer: {top: 0, bottom: 0},
+                temperature: {c: 0},
+                gray: {top: 0, bottom: 0},
+                white: {top: 0, bottom: 0},
+                display: {number: 0}};
+        var solver = new ClSimplexSolver();
+        solver.setAutosolve(false);
+        
+        var cctx = {
+            mouse_loc_y: new ClVariable(),
+            mercury_top: new ClVariable(),
+            mercury_bottom: new ClVariable(),
+            thermometer_top: new ClVariable(),
+            thermometer_bottom: new ClVariable(),
+            temperature_c: new ClVariable(),
+            gray_top: new ClVariable(),
+            gray_bottom: new ClVariable(),
+            white_top: new ClVariable(),
+            white_bottom: new ClVariable(),
+            display_number: new ClVariable(),
+        };
+        
+        solver.addConstraint(cctx.mercury_top.cnEquals(cctx.temperature_c));
+        solver.addConstraint(cctx.white_top.cnEquals(cctx.thermometer_top));
+        solver.addConstraint(cctx.white_bottom.cnEquals(cctx.mercury_top));
+        solver.addConstraint(cctx.gray_top.cnEquals(cctx.mercury_top));
+        solver.addConstraint(cctx.gray_bottom.cnEquals(cctx.mercury_bottom));
+        solver.addConstraint(cctx.display_number.cnEquals(cctx.temperature_c));
+        solver.addConstraint(cctx.mercury_top.cnEquals(cctx.mouse_loc_y));
+        solver.addConstraint(cctx.mercury_top.cnEquals(cctx.thermometer_top));
+        solver.addConstraint(cctx.mercury_bottom.cnEquals(cctx.thermometer_bottom));
+
+        solver.addEditVar(cctx.mouse_loc_y);
+        solver.beginEdit();
+        for (var i = 0; i < this.Iterations; i++) {
+            solver.resolveArray([i]);
+            ctx.mouse.location_y = cctx.mouse_loc_y.value()
+            ctx.mercury.top = cctx.mercury_top.value()
+            ctx.mercury.bottom = cctx.mercury_bottom.value()
+            ctx.thermometer.top = cctx.thermometer_top.value()
+            ctx.thermometer.bottom = cctx.thermometer_bottom.value()
+            ctx.temperature.c = cctx.temperature_c.value()
+            ctx.gray.top = cctx.gray_top.value()
+            ctx.gray.bottom = cctx.gray_bottom.value()
+            ctx.white.top = cctx.white_top.value()
+            ctx.white.bottom = cctx.white_bottom.value()
+            ctx.display.number = cctx.display_number.value()
+        }
+        solver.endEdit();
+    },
+
     
     testReadAccessPerformance: function() {
         for (var i = 0; i < this.Iterations; i++) {
             this.sumObj.a + this.sumObj.b + this.sumObj.c + this.sumObj.d + this.sumObj.e
         }
     },
+    testReadAccessPerformanceWithProperties: function() {
+        var sum = 0;
+        for (var i = 0; i < this.Iterations; i++) {
+            sum += this.sumObj2.a + this.sumObj2.b + this.sumObj2.c + this.sumObj2.d + this.sumObj2.e
+        }
+    },
+
     
     testReadAccessConstrainedPerformance: function() {
         for (var i = 0; i < this.Iterations; i++) {

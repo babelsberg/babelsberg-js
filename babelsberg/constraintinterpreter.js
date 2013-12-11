@@ -309,6 +309,8 @@ Object.subclass('ConstrainedVariable', {
         var eVar = this.externalVariables(solver),
             value = this.obj[this.ivarname];
 
+        this.cachedDefiningSolver = null;
+        this.cachedDefiningVar = null;
         if (!eVar && eVar !== null) { // don't try to create an external variable twice
             this.externalVariables(solver, solver.constraintVariableFor(value, this.ivarname));
             this.updateReadonlyConstraints();
@@ -394,16 +396,19 @@ Object.subclass('ConstrainedVariable', {
         constraint.addConstraintVariable(this);
     },
     get definingSolver() {
-        var solver = {weight: -1000};
-        this.eachExternalVariableDo(function (eVar) {
-            if (eVar) {
-                var s = eVar.__solver__;
-                if (s.weight > solver.weight) {
-                    solver = s;
+        if (!this.cachedDefiningSolver) {
+            var solver = {weight: -1000};
+            this.eachExternalVariableDo(function (eVar) {
+                if (eVar) {
+                    var s = eVar.__solver__;
+                    if (s.weight > solver.weight) {
+                        solver = s;
+                    }
                 }
-            }
-        });
-        return solver;
+            });
+            this.cachedDefiningSolver = solver;
+        }
+        return this.cachedDefiningSolver;
     },
     get solvers() {
         var solvers = [];
@@ -416,7 +421,10 @@ Object.subclass('ConstrainedVariable', {
         return solvers;
     },
     get definingExternalVariable() {
-        return this.externalVariables(this.definingSolver);
+        if (!this.cachedDefiningVar) { 
+            this.cachedDefiningVar = this.externalVariables(this.definingSolver);
+        }
+        return this.cachedDefiningVar;
     },
 
 
