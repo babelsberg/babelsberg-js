@@ -81,8 +81,11 @@ ClAbstractVariable.addMethods({
         var c = this.cnEquals(value),
             s = this.solver;
         s.addConstraint(c);
-        s.solve();
-        s.removeConstraint(c);
+        try {
+            s.solve();
+        } finally {
+            s.removeConstraint(c);
+        }
     },
     setReadonly: function(bool) {
         if (bool && !this.readonlyConstraint) {

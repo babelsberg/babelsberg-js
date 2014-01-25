@@ -735,8 +735,11 @@ Object.subclass('DBVariable', {
         edits.add(edit);
         var plan = this.planner.extractDBPlanFromDBConstraints(edits);
         this.value = newValue;
-        plan.execute();
-        edit.destroyDBConstraint();
+        try {
+            plan.execute();
+        } finally {
+            edit.destroyDBConstraint();
+        }
     }
 });
 
