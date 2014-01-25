@@ -186,6 +186,7 @@ Object.subclass('Constraint', {
     },
 
     recalculate: function() {
+        // TODO: Fix this so it uses the split-stay result, i.e. just increase the stay for the newly assigned value
         var enabled = this._enabled,
             cvars = this.constraintvariables,
             self = this,
