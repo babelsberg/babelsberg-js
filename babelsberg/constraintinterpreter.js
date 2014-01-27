@@ -84,7 +84,7 @@ Object.extend(bbb, {
     },
 
     always: function(opts, func) {
-        var solver = opts.solver;
+        var solver = opts.solver || this.defaultSolver;
         if (!solver) throw "Must explicitely pass a solver for now";
         return solver.always(opts, func);
     }
@@ -504,6 +504,7 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
     },
 
     visitThis: function($super, node) {
+        debugger
         return $super(node);
     },
     getConstraintObjectValue: function(o) {

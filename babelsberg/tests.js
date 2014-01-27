@@ -766,4 +766,27 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
     }
 
 });
+
+TestCase.subclass('users.timfelgentreff.babelsberg.src_transform.TransformTest', {
+    testObjectEditorTransform1: function () {
+        var src = "always: {a < b}";
+        var result = new BabelsbergSrcTransform().transform(src);
+        result = result.replace(/[ \n\r\t]/g,"");
+        this.assert(result === "bbb.always({ctx:{}},function(){returna<b});", result);
+    },
+    testObjectEditorTransform2: function () {
+        var src = "always: {solver: cassowary; priority: 'high'; a < b}";
+        var result = new BabelsbergSrcTransform().transform(src);
+        result = result.replace(/[ \n\r\t]/g,"");
+        this.assert(result === "bbb.always({solver:cassowary,priority:\"high\",ctx:{}},function(){returna<b});", result);
+    },
+    testConvertAddScript: function() {
+        var src = "this.addScript(function () { foo })";
+        var result = new BabelsbergSrcTransform().transformAddScript(src);
+        result = result.replace(/[ \n\r\t]/g,"");
+        this.assert(result === "this.addScript(function(){foo},\"function(){foo}\");", result);
+    }
+});
+
+
 }) // end of module

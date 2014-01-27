@@ -39,6 +39,12 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
                 self = this;
             if (alwaysNode.args.last() instanceof UglifyJS.AST_Function) {
                 enclosed = alwaysNode.args.last().enclosed || [];
+                // TODO: Check if this is correct. This should remove symbols
+                // that are not defined yet from the passed ctx
+                enclosed = enclosed.reject(function (ea) {
+                    return ea.init && (ea.init.start.pos > alwaysNode.start.pos);
+                });
+                debugger
                 enclosed.push({name: "_$_self"}); // always include this
             }
             var ctx = new UglifyJS.AST_Object({
@@ -97,7 +103,7 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
             var ast = UglifyJS.parse(code);
             ast.figure_out_scope();
             var transformedAst = ast.transform(this.getContextTransformerFor(ast)),
-                stream = UglifyJS.OutputStream({beautify: false, comments: false});
+                stream = UglifyJS.OutputStream({beautify: true, comments: true});
             if (this.isTransformed) {
                 transformedAst.print(stream);
                 return stream.toString();
@@ -107,7 +113,8 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
         },
     transformAddScript: function(code) {
         var ast = UglifyJS.parse(code);
-            ast.figure_out_scope();
+            ast.figure_out_scope(),
+            transformed = false;
         var transformedAst = ast.transform(new UglifyJS.TreeTransformer(null, function (node) {
                 if (node instanceof UglifyJS.AST_Call &&
                     node.expression instanceof UglifyJS.AST_Dot &&
@@ -115,12 +122,17 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
                     node.expression.expression instanceof UglifyJS.AST_This) {
                     assert(node.args.length === 1);
                     node.args.push(new UglifyJS.AST_String({value: code.slice(node.args[0].start.pos, node.args[0].end.endpos)}))
+                    transformed = true;
                     return node;
                 }
             })),
-            stream = UglifyJS.OutputStream({beautify: false, comments: false});
-        transformedAst.print(stream);
-        return stream.toString();
+            stream = UglifyJS.OutputStream({beautify: true, comments: true});
+        if (transformed) {
+            transformedAst.print(stream);
+            return stream.toString();
+        } else {
+            return code;
+        }
     },
 
     ensureReturnIn: function(body) {
@@ -219,7 +231,7 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
         if (name === "ro") {
             name = "bbb.readonly";
         }
-        return new UglifyJS.AST_SymbolRef({name: "bbb.readonly"});
+        return new UglifyJS.AST_SymbolRef({name: name});
     }
 
 });
@@ -243,25 +255,5 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
     });
     ConstraintSyntaxLayer.beGlobal();
     
-    TestCase.subclass('users.timfelgentreff.babelsberg.src_transform.TransformTest', {
-    testObjectEditorTransform1: function () {
-        var src = "always: {a < b}";
-        var result = new BabelsbergSrcTransform().transform(src);
-        result = result.replace(/[ \n\r\t]/g,"");
-        this.assert(result === "bbb.always({ctx:{}},function(){returna<b});", result);
-    },
-    testObjectEditorTransform2: function () {
-        var src = "always: {solver: cassowary; priority: 'high'; a < b}";
-        var result = new BabelsbergSrcTransform().transform(src);
-        result = result.replace(/[ \n\r\t]/g,"");
-        this.assert(result === "bbb.always({solver:cassowary,priority:\"high\",ctx:{}},function(){returna<b});", result);
-    },
-    testConvertAddScript: function() {
-        var src = "this.addScript(function () { foo })";
-        var result = new BabelsbergSrcTransform().transformAddScript(src);
-        result = result.replace(/[ \n\r\t]/g,"");
-        this.assert(result === "this.addScript(function(){foo},\"function(){foo}\");", result);
-    }
-});
-
+    
 }) // end of module
