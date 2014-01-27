@@ -40,6 +40,7 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
             var enclosed = ast.enclosed,
                 self = this;
             if (alwaysNode.args.last() instanceof UglifyJS.AST_Function) {
+                debugger
                 enclosed = alwaysNode.args.last().enclosed || [];
                 // always include this and readonly?
                 // enclosed.push({name: "self"});
@@ -89,7 +90,6 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
         getContextTransformerFor: function(ast) {
             var self = this;
             return new UglifyJS.TreeTransformer(null, function (node) {
-                debugger
                 if (self.isAlways(node)) {
                     var node = self.createCallFor(node);
                     self.ensureContextFor(ast, node);
@@ -115,6 +115,24 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
                 return code;
             }
         },
+    transformAddScript: function(code) {
+        var ast = UglifyJS.parse(code);
+            ast.figure_out_scope();
+        var transformedAst = ast.transform(new UglifyJS.TreeTransformer(null, function (node) {
+                if (node instanceof UglifyJS.AST_Call &&
+                    node.expression instanceof UglifyJS.AST_Dot &&
+                    node.expression.property === "addScript" &&
+                    node.expression.expression instanceof UglifyJS.AST_This) {
+                    assert(node.args.length === 1);
+                    node.args.push(new UglifyJS.AST_String({value: code.slice(node.args[0].start.pos, node.args[0].end.endpos)}))
+                    return node;
+                }
+            })),
+            stream = UglifyJS.OutputStream({beautify: false, comments: false});
+        transformedAst.print(stream);
+        return stream.toString();
+    },
+
     ensureReturnIn: function(body) {
         var lastStatement = body.last();
 	    if (!(lastStatement.body instanceof UglifyJS.AST_Return)) {
@@ -183,6 +201,7 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
         			start: alwaysNode.body.start,
         			end: alwaysNode.body.end,
         			body: body,
+        			enclosed: alwaysNode.label.scope.enclosed,
         			argnames: [],
     		    })])
     		})
@@ -204,52 +223,7 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
     cop.create("ConstraintEditorHaloLayer").refineClass(lively.morphic.ScriptEditorHalo, {
         clickAction: function(evt) {
             if (!Global["ConstraintSyntaxLayer"]) {
-                module("lively.ide.CodeEditor").load(true);
-                cop.create("ConstraintSyntaxLayer").refineClass(lively.morphic.CodeEditor, {
-                    boundEval: function (code) {
-                        return cop.proceed(new BabelsbergSrcTransform().transform(code));
-                    },
-                });
-            }
-            
-            if (!Global["CustomSyntaxLayer"]) {
-                module("lively.ide.CodeEditor").load(true);
-                cop.create("CustomSyntaxLayer").refineClass(lively.morphic.CodeEditor, {
-                    getSourceStatements: function () {
-                        return !!this.owner.target.sourceTransform  
-                    },
-                    
-                    addScript: function (string) {
-                        var originalString = string;
-                        if (this.usesSourceTransform()) {
-                            var originalString = string;
-                            var string = this.owner.target.sourceTransform(string);
-                        }
-                        var result = cop.proceed(string);
-                        result.setOriginalSource(originalString);
-                        return result;
-                    },
-                    
-                    boundEval: function (code) {
-                        if (this.usesSourceTransform()) {
-                            // XXX: We only support single scripts for now
-                            var scriptStr = "this.addScript(";
-                            var index = code.indexOf(scriptStr);
-                            if (code.indexOf(scriptStr, index + scriptStr.length) !== -1) {
-                                throw "Cannot transform - we only support single addScript evals for now";
-                            }
-                        }
-                        return cop.proceed(new BabelsbergSrcTransform().transform(code));
-                    },
-                }).refineObject(Function.prototype, {
-                    getOriginalSource: function () {
-                        return this.getOriginal().originalSource || this.getOriginal().toString();
-                    },
-                    
-                    setOriginalSource: function (str) {
-                        this.getOriginal().originalSource = str;
-                    }
-                });
+                module("users.timfelgentreff.babelsberg.constraint_syntax").load(true);
             }
             
             this.targetMorph.removeHalos();
@@ -271,6 +245,13 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
         var result = new BabelsbergSrcTransform().transform(src);
         result = result.replace(/[ \n\r\t]/g,"");
         this.assert(result === "bbb.always({solver:cassowary,priority:\"high\",ctx:{}},function(){returna<b});", result);
-    },});
+    },
+    testConvertAddScript: function() {
+        var src = "this.addScript(function () { foo })";
+        var result = new BabelsbergSrcTransform().transformAddScript(src);
+        result = result.replace(/[ \n\r\t]/g,"");
+        this.assert(result === "this.addScript(function(){foo},\"function(){foo}\");", result);
+    }
+});
 
 }) // end of module
