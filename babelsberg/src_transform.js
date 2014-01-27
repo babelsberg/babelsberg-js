@@ -1,5 +1,4 @@
-module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "lively.morphic.Halos").toRun(function() {
-    // , "lively.ide.CodeEditor", 
+module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "lively.morphic.Halos", "lively.ide.CodeEditor").toRun(function() {
     JSLoader.loadJs(module('users.timfelgentreff.babelsberg.uglify').uri())
     
     Object.subclass("BabelsbergSrcTransform", {
@@ -9,18 +8,17 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
                     (node.body instanceof UglifyJS.AST_BlockStatement))
         },
         
-        getThisToSelfTransformer: function() {
-            var self = this;
-            return new UglifyJS.TreeTransformer(null, function (node) {
+        ensureThisToSelfIn: function(ast) {
+            var tr = new UglifyJS.TreeTransformer(function (node) {
                 if (node instanceof UglifyJS.AST_This) {
-                    self.isTransformed = true;
                     return new UglifyJS.AST_SymbolRef({
                         start: node.start,
                         end: node.end,
-                        name: "self"
+                        name: "_$_self"
                     })
                 }
-            })
+            }, null);
+            ast.transform(tr);
         },
         
         hasContextInArgs: function(alwaysNode) {
@@ -40,13 +38,8 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
             var enclosed = ast.enclosed,
                 self = this;
             if (alwaysNode.args.last() instanceof UglifyJS.AST_Function) {
-                debugger
                 enclosed = alwaysNode.args.last().enclosed || [];
-                // always include this and readonly?
-                // enclosed.push({name: "self"});
-                // enclosed.push({name: "ro"});
-                // var func = node.args.pop();
-                // node.args.push(node.transform(this.getThisToSelfTransformer()));
+                enclosed.push({name: "_$_self"}); // always include this
             }
             var ctx = new UglifyJS.AST_Object({
                 start: alwaysNode.start,
@@ -56,14 +49,11 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
                         start: alwaysNode.start,
                         end: alwaysNode.end,
                         key: ea.name,
-                        value: new UglifyJS.AST_SymbolRef({
-                            start: alwaysNode.start,
-                            end: alwaysNode.end,
-                            name: self.contextMap(ea.name)
-                        })
+                        value: self.contextMap(ea.name)
                     })
                 })
             });
+            
             var ctxkeyval = new UglifyJS.AST_ObjectKeyVal({
                 start: alwaysNode.start,
                 end: alwaysNode.end,
@@ -178,8 +168,13 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
 	createCallFor: function(alwaysNode) {
 	    var splitBodyAndArgs = this.extractArgumentsFrom(alwaysNode),
 	        body = splitBodyAndArgs.body,
-	        args = splitBodyAndArgs.args;
+	        args = splitBodyAndArgs.args,
+	        self = this;
 	    this.ensureReturnIn(body);
+	    debugger
+	    body.each(function (ea) {
+	        self.ensureThisToSelfIn(ea);
+	    });
 	    
 	    return new UglifyJS.AST_SimpleStatement({
     		start: alwaysNode.start,
@@ -210,28 +205,43 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
 
     contextMap: function(name) {
         // map some custom shortnames to bbb functions
-        return {
-            "this": "this",
-            "self": "this",
-            r: "bbb.readonly",
-            ro: "bbb.readonly"
-        }[name] || name;
+        if (name === "_$_self") {
+            return new UglifyJS.AST_Binary({
+                operator: "||",
+                left: new UglifyJS.AST_Dot({
+                    expression: new UglifyJS.AST_This({}),
+                    property: "doitContext"
+                }),
+                right: new UglifyJS.AST_This({})
+            });
+        }
+        
+        if (name === "ro") {
+            name = "bbb.readonly";
+        }
+        return new UglifyJS.AST_SymbolRef({name: "bbb.readonly"});
     }
 
 });
 
-    cop.create("ConstraintEditorHaloLayer").refineClass(lively.morphic.ScriptEditorHalo, {
-        clickAction: function(evt) {
-            if (!Global["ConstraintSyntaxLayer"]) {
-                module("users.timfelgentreff.babelsberg.constraint_syntax").load(true);
-            }
-            
-            this.targetMorph.removeHalos();
-            var editor = this.targetMorph.world().openObjectEditorFor(this.targetMorph, evt);
-            editor.setWithLayers(editor.getWithLayers().concat([ConstraintSyntaxLayer]));
+    cop.create("ConstraintSyntaxLayer").refineClass(lively.morphic.Morph, {
+        addScript: function (funcOrString, origSource) {
+            var result = cop.proceed.apply(this, [funcOrString]);
+            result.getOriginal().originalSource = origSource;
+            return result;
+        },
+    }).refineClass(lively.morphic.CodeEditor, {
+        boundEval: function (code) {
+            var t = new BabelsbergSrcTransform(),
+                addScriptWithOrigCode = t.transformAddScript(code),
+                constraintCode = t.transform(addScriptWithOrigCode);
+            return cop.withLayers([ConstraintSyntaxLayer], function() {
+                // If this layer is not global but only on the morph, make sure we use it here
+                return cop.proceed.apply(this, [constraintCode]);
+            });
         }
     });
-    ConstraintEditorHaloLayer.beGlobal();
+    ConstraintSyntaxLayer.beGlobal();
     
     TestCase.subclass('users.timfelgentreff.babelsberg.src_transform.TransformTest', {
     testObjectEditorTransform1: function () {
