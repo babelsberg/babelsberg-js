@@ -44,7 +44,6 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
                 enclosed = enclosed.reject(function (ea) {
                     return ea.init && (ea.init.start.pos > alwaysNode.start.pos);
                 });
-                debugger
                 enclosed.push({name: "_$_self"}); // always include this
             }
             var ctx = new UglifyJS.AST_Object({
@@ -183,7 +182,6 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
 	        args = splitBodyAndArgs.args,
 	        self = this;
 	    this.ensureReturnIn(body);
-	    debugger
 	    body.each(function (ea) {
 	        self.ensureThisToSelfIn(ea);
 	    });
@@ -243,6 +241,43 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
             return result;
         },
     }).refineClass(lively.morphic.CodeEditor, {
+        doSave: function () {
+            if (this.owner instanceof lively.ide.BrowserPanel) {
+                // XXX: Ad-hoc fragment search
+                var t = new BabelsbergSrcTransform(),
+                    idx = this.textString.indexOf("always:"),
+                    endIdx = this.textString.indexOf("}", idx + 1),
+                    fragments = [];
+                while (idx !== -1 && endIdx !== -1) {
+                    try {
+                        var str = t.transform(this.textString.slice(idx, endIdx + 1));
+                        fragments.push([idx, endIdx, str]);
+                        idx = this.textString.indexOf("always:", idx + 1);
+                        endIdx = this.textString.indexOf("}", idx + 1);
+                    } catch(e) {
+                        // parsing exception
+                        endIdx = this.textString.indexOf("}", endIdx + 1);
+                    }
+                }
+
+                if (fragments.length !== 0) {
+                    var textPos = 0;
+                    var newTextString = fragments.inject("", function (memo, fragment) {
+                        var r = this.textString.slice(textPos, fragment[0]) + fragment[2];
+                        textPos = fragment[1] + 1;
+                        return memo + r;
+                    }.bind(this));
+                    newTextString += this.textString.slice(textPos);
+                    this.textString = newTextString;
+                }
+                return cop.withoutLayers([ConstraintSyntaxLayer], function () {
+                    return cop.proceed();
+                })
+            } else {
+                return cop.proceed();
+            }
+        },
+        
         boundEval: function (code) {
             var t = new BabelsbergSrcTransform(),
                 addScriptWithOrigCode = t.transformAddScript(code),
