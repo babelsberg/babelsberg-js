@@ -91,10 +91,37 @@ Object.extend(bbb, {
 
 });
 
+lively.ast.Send.addMethods({
+    get args() {
+        return this._$args || []
+    },
+    
+    set args(value) {
+        this._$args = value
+    }
+});
+
 cop.create("ConstraintConstructionLayer").refineObject(lively.ast, {
     get InterpreterVisitor() {
         return ConstraintInterpreterVisitor;
     }
+}).refineClass(lively.ast.Send, {
+    asFunction: function(optFunc) {
+        var initializer = optFunc.prototype.initialize.ast().asFunction();
+        initializer.original = optFunc;
+        return initializer;
+    }
+}).refineClass(lively.ast.GetSlot, {
+    set: function(value, frame, interpreter) {
+        // copied from GetSlot extension in Interpreter.js
+        var slot = interpreter.getSlotContents(this.obj, this.slotName);
+        debugger
+        if (slot.value.isConstraintObject) {
+            Constraint.current.addPrimitiveConstraint(slot.value.cnEquals(value));
+        } else {
+            slot.object[slot.property] = value;
+        }
+    },
 });
 
 Object.subclass('Constraint', {
@@ -494,17 +521,10 @@ Object.subclass('ConstrainedVariable', {
 
 lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
 
-    visitModifyingSet: function($super, node) {
-        // TODO: equality constraints for set
-        return $super(node);
-    },
-    visitSet: function($super, node) {
-        // TODO: equality constraints for set
-        return $super(node);
-    },
+
+
 
     visitThis: function($super, node) {
-        debugger
         return $super(node);
     },
     getConstraintObjectValue: function(o) {
@@ -556,7 +576,11 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
     },
 
     invoke: function($super, node, recv, func, argValues) {
-        if (!func) { debugger };
+        if (!func) {
+            var error = "No such method: " + recv + "." +  (node.property && node.property.value)
+            alert(error)
+            throw error
+        };
         if (recv && recv.isConstraintObject) {
             if (func) {
                 var forInterpretation = func.forInterpretation;
@@ -576,10 +600,6 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
                 var prop = this.visit(node.property);
                 return this.invoke(node, value, value[prop], argValues);
             }
-        } else if (recv === lively.Class || lively.Class.isClass(func)) {
-            return cop.withoutLayers([ConstraintConstructionLayer], function() {
-                return $super(node, recv, func, argValues);
-            });
         } else {
             return cop.withLayers([ConstraintConstructionLayer], function() {
                 return $super(node, recv, func, argValues);
@@ -687,10 +707,18 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
     },
 
     shouldInterpret: function(frame, func) {
-        return (!(this.isNative(func) ||
-                 lively.Class.isClass(func))) &&
+        var nativeClass = lively.Class.isClass(func) && func.superclass === undefined;
+        return (!(this.isNative(func) || nativeClass)) &&
                  typeof(func.forInterpretation) == "function"
     },
+    newObject: function($super, func) {
+        if (func.original) {
+            return $super(func.original);
+        } else {
+            return $super(func);
+        }
+    },
+
 })
 
 ConstrainedVariable.AttrName = "__constrainedVariables__";
