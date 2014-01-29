@@ -4,6 +4,10 @@ module('users.timfelgentreff.babelsberg.constraintinterpreter').requires('lively
 
 bbb = {};
 Object.extend(bbb, {
+    isConstraintObject: function () {
+        return true;
+    },
+    
     unconstrain: function (obj, accessor) {
         var cvar = ConstrainedVariable.findConstraintVariableFor(obj, accessor);
         if (!cvar) return;
@@ -113,13 +117,23 @@ cop.create("ConstraintConstructionLayer").refineObject(lively.ast, {
     }
 }).refineClass(lively.ast.GetSlot, {
     set: function(value, frame, interpreter) {
-        // copied from GetSlot extension in Interpreter.js
-        var slot = interpreter.getSlotContents(this.obj, this.slotName);
-        debugger
-        if (slot.value.isConstraintObject) {
-            Constraint.current.addPrimitiveConstraint(slot.value.cnEquals(value));
-        } else {
-            slot.object[slot.property] = value;
+        var obj = interpreter.visit(this.obj),
+            name = interpreter.visit(this.slotName);
+        if (obj === Global || (obj instanceof lively.Module)) {
+            return obj[name] = value;
+        }
+        if (obj && obj.isConstraintObject) {
+            obj = this.getConstraintObjectValue(obj);
+        }
+        
+        obj[name] = value;
+        cvar = ConstrainedVariable.newConstraintVariableFor(obj, name);
+        if (Constraint.current) {
+            cvar.ensureExternalVariableFor(Constraint.current.solver);
+            cvar.addToConstraint(Constraint.current);
+            if (cvar.isSolveable()) {
+                Constraint.current.addPrimitiveConstraint(cvar.externalVariable.cnEquals(value));
+            }
         }
     },
 });
@@ -705,6 +719,8 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
             return obj[name];
         }
     },
+
+
 
     shouldInterpret: function(frame, func) {
         var nativeClass = lively.Class.isClass(func) && func.superclass === undefined;

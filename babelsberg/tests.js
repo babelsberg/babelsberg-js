@@ -107,6 +107,32 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         this.assert(obj.a + obj.b == 3, "Constraint violated after assignment");
         this.assert(obj.a == -5, "Assignment without effect");
     },
+   testEqualityComplexObject: function() {
+        var solver = new ClSimplexSolver(),
+            assignmentFailed = false;
+            point = pt();
+        bbb.always({
+            solver: solver,
+            ctx: {
+                solver: solver,
+                point: point,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return point.equals(pt(10, 10).addPt(pt(11, 11)));;
+        });
+        
+        this.assert(point.equals(pt(21, 21)), "changed invisible point!");
+        try {
+            point.x = 100;
+        } catch(e) {
+            assignmentFailed = true;
+        }
+        this.assert(point.equals(pt(21, 21)) && assignmentFailed, "changed x!");
+        this.assert(point.equals(pt(21, 21)), "changed x!");
+    },
+
 
     testPointEquals: function() {
         var pt1 = pt(10, 10),
@@ -772,20 +798,22 @@ TestCase.subclass('users.timfelgentreff.babelsberg.src_transform.TransformTest',
         var src = "always: {a < b}";
         var result = new BabelsbergSrcTransform().transform(src);
         result = result.replace(/[ \n\r\t]/g,"");
-        this.assert(result === "bbb.always({ctx:{}},function(){returna<b});", result);
+        this.assert(result === "bbb.always({ctx:{a:a,b:b,_$_self:this.doitContext||this}},function(){returna<b;;});", result);
     },
     testObjectEditorTransform2: function () {
         var src = "always: {solver: cassowary; priority: 'high'; a < b}";
         var result = new BabelsbergSrcTransform().transform(src);
         result = result.replace(/[ \n\r\t]/g,"");
-        this.assert(result === "bbb.always({solver:cassowary,priority:\"high\",ctx:{}},function(){returna<b});", result);
+        this.assert(result === "bbb.always({solver:cassowary,priority:\"high\",ctx:{cassowary:cassowary,a:a,b:b,_$_self:this.doitContext||this}},function(){returna<b;;});", result);
     },
     testConvertAddScript: function() {
         var src = "this.addScript(function () { foo })";
         var result = new BabelsbergSrcTransform().transformAddScript(src);
         result = result.replace(/[ \n\r\t]/g,"");
-        this.assert(result === "this.addScript(function(){foo},\"function(){foo}\");", result);
+        this.assert(result === "this.addScript(function(){foo;},\"function(){foo}\");", result);
     }
+});
+TestCase.subclass('TimedConstraints', {
 });
 
 

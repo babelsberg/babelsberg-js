@@ -15,7 +15,7 @@ ClSimplexSolver.addMethods({
         return true;
     },
     constraintVariableFor: function(value, ivarname) {
-        if ((typeof(value) == "number") || (value === null) || (value === undefined) || (value instanceof Number)) {
+        if ((typeof(value) == "number") || (value === null) || (value instanceof Number)) {
             var v = new ClVariable(value + 0 /* coerce back into primitive */);
             v.solver = this;
             v.stay();
