@@ -2,8 +2,7 @@ module('users.timfelgentreff.babelsberg.constraintinterpreter').requires('lively
 
 // branched from 198617
 
-bbb = {};
-Object.extend(bbb, {
+Object.subclass("Babelsberg", {
     isConstraintObject: function () {
         return true;
     },
@@ -82,9 +81,22 @@ Object.extend(bbb, {
         solvers.invoke("beginEdit");
         return callback;
     },
-    readonly: function(externalVariable) {
-        externalVariable.setReadonly(true);
-        return externalVariable;
+    readonly: function(obj) {
+        if (obj.isConstraintObject) {
+            obj.setReadonly(true);
+        } else {
+            if (Constraint.current && Constraint.current.solver) {
+                Properties.own(obj).each(function (ea) {
+                    var cvar = ConstrainedVariable.newConstraintVariableFor(obj, ea);
+                    cvar.addToConstraint(Constraint.current);
+                    cvar.ensureExternalVariableFor(Constraint.current.solver);
+                    if (cvar.isSolveable()) {
+                        bbb.readonly(cvar.externalVariables(Constraint.current.solver))
+                    }
+                });
+            }
+        }
+        return obj;
     },
 
     always: function(opts, func) {
@@ -93,6 +105,9 @@ Object.extend(bbb, {
         return solver.always(opts, func);
     }
 
+});
+Object.extend(Global, {
+    bbb: new Babelsberg()
 });
 
 lively.ast.Send.addMethods({
@@ -538,9 +553,6 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
 
 
 
-    visitThis: function($super, node) {
-        return $super(node);
-    },
     getConstraintObjectValue: function(o) {
         var value = o.value;
         if (typeof(o) == "function") {
@@ -551,9 +563,6 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
     },
 
     visitVariable: function($super, node) {
-        return $super(node);
-    },
-    visitSend: function($super, node) {
         return $super(node);
     },
 
@@ -723,6 +732,12 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
 
 
     shouldInterpret: function(frame, func) {
+        if (func.sourceModule === Global.users.timfelgentreff.babelsberg.constraintinterpreter) {
+            return false;
+        }
+        if (func.declaredClass === "Babelsberg") {
+            return false
+        }
         var nativeClass = lively.Class.isClass(func) && func.superclass === undefined;
         return (!(this.isNative(func) || nativeClass)) &&
                  typeof(func.forInterpretation) == "function"

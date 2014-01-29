@@ -322,6 +322,33 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         i2.prev = {sum: 100}
         this.assert(i2.sum == 103, "expected sum to equal 103, got " + i2.sum);
     },
+    test1LvlReadonly: function() {
+        var solver = new ClSimplexSolver(),
+            pt1 = lively.pt(0, 0),
+            pt2 = lively.pt(10, 10);
+        
+        // always; { mrect.bottomRight().equals(ro(corner)) }
+        bbb.always({
+            solver: solver,
+            ctx: {
+                pt1: pt1,
+                pt2: pt2,
+                ro: bbb.readonly,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt1.equals(ro(pt2));
+        });
+        
+        this.assert(pt1.equals(pt(10,10)))
+        this.assert(pt2.equals(pt(10,10)))
+        var failed = false;
+        try { pt1.x = 5 } catch(e) { failed = true }
+        this.assert(failed);
+        this.assert(pt1.equals(pt(10,10)))
+        this.assert(pt2.equals(pt(10,10)))
+    },
+
 
     testConjunction: function() {
         var ctx = {a: 10, b: 100, c: 1000, d: 10000},
@@ -761,8 +788,8 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
             return obj.a == obj.b;
         });
         bbb.always({solver: deltablue, ctx: {obj: obj}, methods: function () {
-            obj.b.formula([obj.c], function(c) { return parseInt(c); })
-            obj.c.formula([obj.b], function(b) { return b + ""; })
+            obj.b.formula([obj.c], function (c) { return parseInt(c); });
+            obj.c.formula([obj.b], function (b) { return b + ""; })
         }}, function () {
             return obj.b == obj.c;
         });
@@ -779,7 +806,6 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
         
         var cb = bbb.edit(obj, ["b"]);
         cb([5]);
-        debugger
         this.assert(obj.b === 5);
         this.assert(obj.a === obj.b);
         this.assert(obj.c == obj.b);
