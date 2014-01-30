@@ -120,7 +120,8 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
                     node.expression.property === "addScript" &&
                     node.expression.expression instanceof UglifyJS.AST_This) {
                     assert(node.args.length === 1);
-                    node.args.push(new UglifyJS.AST_String({value: code.slice(node.args[0].start.pos, node.args[0].end.endpos)}))
+                    node.args.push(new UglifyJS.AST_String({value: code.slice(node.args[0].start.pos, node.args[0].end.endpos)}));
+                    node.args.push(new UglifyJS.AST_True({}));
                     transformed = true;
                     return node;
                 }
@@ -235,10 +236,16 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
 });
 
     cop.create("ConstraintSyntaxLayer").refineClass(lively.morphic.Morph, {
-        addScript: function (funcOrString, origSource) {
-            var result = cop.proceed.apply(this, [funcOrString]);
-            result.getOriginal().originalSource = origSource;
-            return result;
+        addScript: function (funcOrString, origSource, calledFromSrcTransform) {
+            var originalFunction;
+            if (calledFromSrcTransform) {
+                originalFunction = cop.proceed.apply(this, [origSource]);
+                var result = cop.proceed.apply(this, [funcOrString]);
+                result.getOriginal().originalFunction = originalFunction;
+                return result;
+            } else {
+                cop.proceed.apply(this, $A(arguments));
+            }
         },
     }).refineClass(lively.morphic.CodeEditor, {
         doSave: function () {
