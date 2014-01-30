@@ -678,6 +678,28 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
         this.assert(obj.a === obj.b, "");
         obj.b = pt(10,10);
     },
+    testIdentity2: function() {
+        var db = new DBPlanner(),
+            color = Color.rgb(200,0,0),
+            color2 = Color.rgb(0,0,200);
+        bbb.always({
+            solver: db,
+            ctx: {
+                db: db,
+                color: color,
+                color2: color2,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return color.equals(color2);
+        });
+        this.assert(color.equals(color2));
+        color.r = 0.1;
+        color2.g = 0.7;
+        this.assert(color.equals(color2));
+        this.assert(color2.r === 0.1);
+        this.assert(color.g === 0.7);
+    },
     testBoolPropagation: function () {
         var o = {a: true,
                  b: 10};

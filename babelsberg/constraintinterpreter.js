@@ -599,7 +599,7 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
     },
 
     invoke: function($super, node, recv, func, argValues) {
-        if (!func) {
+        if (!func && (!recv || !recv.isConstraintObject)) {
             var error = "No such method: " + recv + "." +  (node.property && node.property.value)
             alert(error)
             throw error
