@@ -128,6 +128,10 @@ ClAbstractVariable.addMethods({
         return new ClLinearExpression(this).cnLeq(value);
     },
 
+
+    cnEquals: function(value) {
+        return new ClLinearExpression(this).cnEquals(value);
+    },
     cnIdentical: function(value) {
         return this.cnEquals(value); // the same for numbers
     },
