@@ -173,7 +173,7 @@ Object.subclass('Constraint', {
         this.addPrimitiveConstraint(constraintObject);
     },
     addPrimitiveConstraint: function(obj) {
-        if (!this.constraintobjects.include(obj)) {
+        if (obj && !this.constraintobjects.include(obj)) {
             this.constraintobjects.push(obj);
         }
     },
@@ -636,7 +636,7 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
             Constraint.current.addPrimitiveConstraint(leftVal);
             dbgOn(typeof(leftVal) != "object")
             return rightVal;
-        } else if (node.name.match(/[\*\+\/\-]|==|<=|>=/)) {
+        } else if (node.name.match(/[\*\+\/\-]|==|<=|>=|===/)) {
             var leftVal = this.visit(node.left),
                 rightVal = this.visit(node.right);
             
@@ -699,6 +699,14 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
                         return rightVal.cnEquals(leftVal);
                     } else {
                         return rLeftVal == rRightVal;
+                    };
+                case '===':
+                    if (leftVal.isConstraintObject && leftVal.cnIdentical) {
+                        return leftVal.cnIdentical(rightVal);
+                    } else if (rightVal.isConstraintObject && rightVal.cnIdentical) {
+                        return rightVal.cnIdentical(leftVal);
+                    } else {
+                        return rLeftVal === rRightVal;
                     };
             }
         }

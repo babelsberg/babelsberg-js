@@ -36,26 +36,28 @@ DBPlanner.addMethods({
             methods = func;
             func = undefined;
         }
+        
+        methods.varMapping = ctx;
+        var cobj = new Constraint(methods, planner);
+        var formulas = cobj.constraintvariables.collect(function (v) {
+            var v = v.externalVariables(planner);
+            return v ? v.removeFormula() : null;
+        }).compact();
 
-        if (methods) {
-            methods.varMapping = ctx;
-            var formulas = new Constraint(methods, planner).constraintvariables.collect(function (v) {
-                var v = v.externalVariables(planner);
-                return v ? v.removeFormula() : null;
-            }).compact();
-        }
-
-        var constraint = new UserDBConstraint(priority, func, function (c) {
-            formulas.each(function (m) {
-                var inputs = m.inputs.select(function (input) {
-                    return input instanceof DBVariable
+        if (formulas.length > 0) {
+            var constraint = new UserDBConstraint(priority, func, function (c) {
+                formulas.each(function (m) {
+                    var inputs = m.inputs.select(function (input) {
+                        return input instanceof DBVariable
+                    });
+                    dbgOn(inputs.length !== m.inputs.length);
+                    c.formula(m.output, inputs, m.func);
                 });
-                dbgOn(inputs.length !== m.inputs.length);
-                c.formula(m.output, inputs, m.func);
-            });
-        }, planner);
-        constraint.priority = priority;
-        constraint.enable();
+            }, planner);
+            cobj.addPrimitiveConstraint(constraint);
+        };
+        cobj.priority = priority;
+        cobj.enable();
         return constraint;
     },
 
@@ -68,6 +70,9 @@ DBPlanner.addMethods({
         var edit = new EditDBConstraint(v, DBStrength.REQUIRED, this);
         this.currentEdits.add(edit);
         return edit;
+    },
+    solve: function() {
+        // not required
     },
 
     beginEdit: function() {
@@ -188,6 +193,9 @@ DBVariable.addMethods({
     
     finishEdit: function() {
         this.editConstraint = null;
+    },
+    cnIdentical: function(other) {
+        return new EqualityDBConstraint(this, other, DBStrength.required, Constraint.current.solver);
     },
 })
 

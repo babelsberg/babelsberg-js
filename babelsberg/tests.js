@@ -643,6 +643,41 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
         o.number = 12
         this.assert(o.string === "12");
     },
+    testJustEquality: function() {
+        var db = new DBPlanner(),
+            obj = {a: pt(0,0), b: pt(1,1)};
+        bbb.always({
+            solver: db,
+            ctx: {
+                db: db,
+                obj: obj,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return obj.a.equals(obj.b);
+        });
+        
+        this.assert(obj.a.equals(bj.b), "");
+    },
+    testIdentity: function() {
+        var db = new DBPlanner(),
+            obj = {a: pt(0,0), b: pt(1,1)};
+        bbb.always({
+            solver: db,
+            ctx: {
+                db: db,
+                obj: obj,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return obj.a === obj.b;
+        });
+        
+        this.assert(obj.a === obj.b, "");
+        obj.a = pt(10,10);
+        this.assert(obj.a === obj.b, "");
+        obj.b = pt(10,10);
+    },
     testBoolPropagation: function () {
         var o = {a: true,
                  b: 10};
