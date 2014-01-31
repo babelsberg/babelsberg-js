@@ -197,6 +197,26 @@ DBVariable.addMethods({
     cnIdentical: function(other) {
         return new EqualityDBConstraint(this, other, DBStrength.required, Constraint.current.solver);
     },
+    cnEquals: function(other) {
+        var self = this;
+        cloneFunc = function (fromObj) {
+            debugger
+            if (fromObj.clone) {
+                return fromObj.clone();
+            } else if (fromObj.copy) {
+                return fromObj.copy();
+            } else {
+                return fromObj; // regress to identity constraint
+            }
+        }
+        return new UserDBConstraint(
+            function (c) {
+                c.formula(self, [other], cloneFunc);
+                c.formula(other, [self], cloneFunc);
+            },
+            Constraint.current.solver
+        );
+    },
 })
 
 

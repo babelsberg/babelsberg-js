@@ -654,10 +654,11 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
                 _$_self: this.doitContext || this
             }
         }, function() {
-            return obj.a.equals(obj.b);
+            return obj.a == obj.b;
         });
-        
-        this.assert(obj.a.equals(bj.b), "");
+
+        this.assert(obj.a.equals(obj.b));
+        this.assert(obj.a !== obj.b);
     },
     testIdentity: function() {
         var db = new DBPlanner(),
