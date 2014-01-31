@@ -121,7 +121,6 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
                     node.expression.expression instanceof UglifyJS.AST_This) {
                     assert(node.args.length === 1);
                     node.args.push(new UglifyJS.AST_String({value: code.slice(node.args[0].start.pos, node.args[0].end.endpos)}));
-                    node.args.push(new UglifyJS.AST_True({}));
                     transformed = true;
                     return node;
                 }
@@ -235,19 +234,17 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
 
 });
 
-    cop.create("ConstraintSyntaxLayer").refineClass(lively.morphic.Morph, {
-        addScript: function (funcOrString, origSource, calledFromSrcTransform) {
+    cop.create("AddScriptWithFakeOriginalLayer").refineClass(lively.morphic.Morph, {
+        addScript: function (funcOrString, origSource) {
             var originalFunction;
-            if (calledFromSrcTransform) {
-                originalFunction = cop.proceed.apply(this, [origSource]);
-                var result = cop.proceed.apply(this, [funcOrString]);
-                result.getOriginal().originalFunction = originalFunction;
-                return result;
-            } else {
-                cop.proceed.apply(this, $A(arguments));
-            }
+            originalFunction = cop.proceed.apply(this, [origSource]);
+            var result = cop.proceed.apply(this, [funcOrString]);
+            result.getOriginal().originalFunction = originalFunction;
+            return result;
         },
-    }).refineClass(lively.morphic.CodeEditor, {
+    });
+
+    cop.create("ConstraintSyntaxLayer").refineClass(lively.morphic.CodeEditor, {
         doSave: function () {
             if (this.owner instanceof lively.ide.BrowserPanel) {
                 // XXX: Ad-hoc fragment search
@@ -289,10 +286,15 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
             var t = new BabelsbergSrcTransform(),
                 addScriptWithOrigCode = t.transformAddScript(code),
                 constraintCode = t.transform(addScriptWithOrigCode);
-            return cop.withLayers([ConstraintSyntaxLayer], function() {
-                // If this layer is not global but only on the morph, make sure we use it here
-                return cop.proceed.apply(this, [constraintCode]);
-            });
+            if (addScriptWithOrigCode === constraintCode) {
+                // no constraints in code
+                return cop.proceed.apply(this, [code]);
+            } else {
+                return cop.withLayers([AddScriptWithFakeOriginalLayer], function() {
+                    // If this layer is not global but only on the morph, make sure we use it here
+                    return cop.proceed.apply(this, [constraintCode]);
+                });
+            }
         }
     });
     ConstraintSyntaxLayer.beGlobal();
