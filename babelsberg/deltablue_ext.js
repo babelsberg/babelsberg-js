@@ -58,7 +58,7 @@ DBPlanner.addMethods({
         };
         cobj.priority = priority;
         cobj.enable();
-        return constraint;
+        return cobj;
     },
 
 
@@ -166,7 +166,14 @@ DBVariable.addMethods({
     removeFormula: function () {
         var f = this.__formula__;
         this.__formula__ = undefined;
+        if (!f) {
+            f = this.deriveFormula();
+        }
         return f;
+    },
+    deriveFormula: function() {
+        // TODO
+        return;
     },
 
     removeStay: function() {
@@ -200,7 +207,6 @@ DBVariable.addMethods({
     cnEquals: function(other) {
         var self = this;
         cloneFunc = function (fromObj) {
-            debugger
             if (fromObj.clone) {
                 return fromObj.clone();
             } else if (fromObj.copy) {
@@ -209,6 +215,7 @@ DBVariable.addMethods({
                 return fromObj; // regress to identity constraint
             }
         }
+        
         return new UserDBConstraint(
             function (c) {
                 c.formula(self, [other], cloneFunc);
@@ -237,4 +244,14 @@ DBConstraint.addMethods({
         this.destroyDBConstraint()
     }
 });
-}) // end of module
+EqualityDBConstraint.addMethods({
+    setExecuteFunction: function (func) {
+        var orig = this.execute.$originalFunction || this.execute;
+        func.$originalFunction = orig;
+        this.execute = func;
+    },
+    
+    unsetExecuteFunction: function () {
+        this.execute = this.execute.$originalFunction || this.execute;
+    }
+});}) // end of module
