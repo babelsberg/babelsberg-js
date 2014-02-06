@@ -660,6 +660,44 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
         this.assert(obj.a.equals(obj.b));
         this.assert(obj.a !== obj.b);
     },
+    testJustEquality2: function() {
+        var db = new DBPlanner(),
+            obj = {a: pt(0,0), b: pt(1,1)};
+        bbb.always({
+            solver: db,
+            ctx: {
+                db: db,
+                obj: obj,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return obj.a.equals(obj.b);
+        });
+
+        this.assert(obj.a.equals(obj.b));
+        this.assert(obj.a !== obj.b);
+    },
+
+    testAutomaticSetterInference: function() {
+        var solver = new DBPlanner(),
+            r1 = lively.morphic.Morph.makeRectangle(0,0,100,100),
+            r2 = lively.morphic.Morph.makeRectangle(10,10,200,200);
+        
+        bbb.always({
+            solver: solver,
+            ctx: {
+                solver: solver,
+                r1: r1,
+                r2: r2,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return r1.getPosition().equals(r2.getPosition());;
+        });
+        
+        this.assert(r1.getPosition().equals(r2.getPosition()));
+        r2.setPosition(pt(5,5));
+    },
     testIdentity: function() {
         var db = new DBPlanner(),
             obj = {a: pt(0,0), b: pt(1,1)};

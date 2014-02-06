@@ -217,6 +217,9 @@ DBVariable.addMethods({
             Constraint.current.solver
         );
     },
+    equals: function(argument) {
+        return this.cnEquals(argument);
+    },
 })
 
 
