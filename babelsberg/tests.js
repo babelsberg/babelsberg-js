@@ -681,9 +681,21 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
     testAutomaticSetterInference: function() {
         var solver = new DBPlanner(),
             r1 = lively.morphic.Morph.makeRectangle(0,0,100,100),
-            r2 = lively.morphic.Morph.makeRectangle(10,10,200,200);
+            r2 = lively.morphic.Morph.makeRectangle(10,10,200,200),
+            r1setPositionValue, r2setPositionValue;
         
-        bbb.always({
+        r1.setPosition = r1.setPosition.wrap(function (proceed, value) {
+            debugger
+            r1setPositionValue = value;
+            return proceed(value);
+        })
+        r2.setPosition = r2.setPosition.wrap(function (proceed, value) {
+            debugger
+            r2setPositionValue = value;
+            return proceed(value);
+        })
+        
+        var c = bbb.always({
             solver: solver,
             ctx: {
                 solver: solver,
@@ -694,9 +706,11 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
         }, function() {
             return r1.getPosition().equals(r2.getPosition());;
         });
-        
         this.assert(r1.getPosition().equals(r2.getPosition()));
         r2.setPosition(pt(5,5));
+        this.assert(r1.getPosition().equals(r2.getPosition()));
+        this.assert(r1.getPosition().equals(pt(5,5)));
+        this.assert(r1setPositionValue.equals(pt(5,5)));
     },
     testIdentity: function() {
         var db = new DBPlanner(),

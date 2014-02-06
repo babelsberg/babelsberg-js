@@ -315,10 +315,11 @@ Object.extend(Constraint, {
 
 });
 Object.subclass('ConstrainedVariable', {
-    initialize: function(obj, ivarname) {
+    initialize: function(obj, ivarname, optParentCVar) {
         this.obj = obj;
         this.ivarname = ivarname;
         this.newIvarname = "$1$1" + ivarname;
+        this.parentConstrainedVariable = optParentCVar;
         this._constraints = [];
         this._externalVariables = {};
 
@@ -408,16 +409,53 @@ Object.subclass('ConstrainedVariable', {
                     ConstrainedVariable.isSuggestingValue = false;
                 }
             }
-            if (value !== this.storedValue) {
-                this.setValue(value);
-                this.updateDownstreamVariables(value);
-                this.updateConnectedVariables();
+            if (value !== this.storedValue && !this.isStoringValue) {
+                this.isStoringValue = true;
+                try {
+                    this.setValue(value);
+                    this.callOptionalSetter(value);
+                    this.updateDownstreamVariables(value);
+                    this.updateConnectedVariables();
+                } finally {
+                    this.isStoringValue = false;
+                }
             }
         }
         return value;
     },
+    callOptionalSetter: function(value) {
+        debugger
+        if (this.setter) {
+            this.recv[this.setter](value);
+        }
+    },
+    get getter() {
+        return this.$getter;
+    },
+    get recv() {
+        return this.$recv;
+    },
+    set getter(value) {
+        this.$getter = value;
+        if (this.recv) {
+            var setter = value.replace("get", "set");
+            if (Object.isFunction(this.recv[setter])) {
+                this.setter = setter;
+            }
+        }
+    },
+    set recv(value) {
+        this.$recv = value;
+        if (this.getter) {
+            var setter = this.getter.replace("get", "set");
+            if (Object.isFunction(value[setter])) {
+                this.setter = setter;
+            }
+        }
+    },
     updateConnectedVariables: function() {
         // so slow :(
+        var self = this;
         this._constraints.collect(function (c) {
             return c.constraintvariables;
         }).flatten().uniqueElements().each(function (cvar) {
@@ -542,6 +580,10 @@ Object.subclass('ConstrainedVariable', {
         } else {
             if (value) {
                 value.__solver__ = value.__solver__ || solver;
+                if (value.__cvar__ && !(value.__cvar__ === this)) {
+                    throw "Inconsistent external variable. This should not happen!";
+                }
+                value.__cvar__ = this;
             }
             this._externalVariables[solver.__uuid__] = value || null;
         }
@@ -717,15 +759,17 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
     visitGetSlot: function(node) {
         var obj = this.visit(node.obj),
             name = this.visit(node.slotName),
+            cobj = undefined,
             cvar;
         if (obj === Global || (obj instanceof lively.Module)) {
             return obj[name];
         }
         if (obj && obj.isConstraintObject) {
+            cobj = obj;
             obj = this.getConstraintObjectValue(obj);
         }
 
-        cvar = ConstrainedVariable.newConstraintVariableFor(obj, name);
+        cvar = ConstrainedVariable.newConstraintVariableFor(obj, name, cobj);
         if (Constraint.current) {
             cvar.ensureExternalVariableFor(Constraint.current.solver);
             cvar.addToConstraint(Constraint.current);
@@ -735,6 +779,17 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
         } else {
             return obj[name];
         }
+    },
+    visitReturn: function($super, node) {
+        var retVal = $super(node);
+        if (retVal && retVal.isConstraintObject && retVal.__cvar__) {
+            var parentFunc = node.parentFunction();
+            if (parentFunc) {
+                retVal.__cvar__.getter = parentFunc.name();
+                retVal.__cvar__.recv = this.currentFrame.mapping["this"];
+            }
+        }
+        return retVal;
     },
 
 
