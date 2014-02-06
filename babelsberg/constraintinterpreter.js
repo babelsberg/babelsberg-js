@@ -423,10 +423,18 @@ Object.subclass('ConstrainedVariable', {
         }
         return value;
     },
-    callOptionalSetter: function(value) {
-        debugger
-        if (this.setter) {
-            this.recv[this.setter](value);
+    callOptionalSetter: function(value, force) {
+        if (this.isSolveable() || force) {
+            if (this.setter) {
+                this.recv[this.setter](value);
+            } else {
+                if (this.parentConstrainedVariable) {
+                    this.parentConstrainedVariable.callOptionalSetter(
+                        this.parentConstrainedVariable.getValue(),
+                        true
+                    );
+                }
+            }
         }
     },
     get getter() {
@@ -759,13 +767,13 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
     visitGetSlot: function(node) {
         var obj = this.visit(node.obj),
             name = this.visit(node.slotName),
-            cobj = undefined,
+            cobj = (obj ? obj[ConstrainedVariable.ThisAttrName] : undefined),
             cvar;
         if (obj === Global || (obj instanceof lively.Module)) {
             return obj[name];
         }
         if (obj && obj.isConstraintObject) {
-            cobj = obj;
+            cobj = obj.__cvar__;
             obj = this.getConstraintObjectValue(obj);
         }
 
@@ -777,16 +785,26 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
         if (cvar && cvar.isSolveable()) {
             return cvar.externalVariable;
         } else {
-            return obj[name];
+            var retval = obj[name];
+            if (retval) {
+                retval[ConstrainedVariable.ThisAttrName] = cvar;
+            }
+            return retval;
         }
     },
     visitReturn: function($super, node) {
         var retVal = $super(node);
-        if (retVal && retVal.isConstraintObject && retVal.__cvar__) {
-            var parentFunc = node.parentFunction();
-            if (parentFunc) {
-                retVal.__cvar__.getter = parentFunc.name();
-                retVal.__cvar__.recv = this.currentFrame.mapping["this"];
+        if (retVal) {
+            var cvar = retVal[ConstrainedVariable.ThisAttrName];
+            if (retVal.isConstraintObject) {
+                cvar = retVal.__cvar__;
+            }
+            if (cvar) {
+                var parentFunc = node.parentFunction();
+                if (parentFunc) {
+                    cvar.getter = parentFunc.name();
+                    cvar.recv = this.currentFrame.mapping["this"];
+                }
             }
         }
         return retVal;
@@ -816,6 +834,7 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
 })
 
 ConstrainedVariable.AttrName = "__constrainedVariables__";
+ConstrainedVariable.ThisAttrName = "__lastConstrainedVariableForThis__";
 Object.extend(ConstrainedVariable, {
     findConstraintVariableFor: function(obj, ivarname) {
         var l = obj[ConstrainedVariable.AttrName ];
@@ -826,10 +845,10 @@ Object.extend(ConstrainedVariable, {
         }
     },
 
-    newConstraintVariableFor: function(obj, ivarname) {
+    newConstraintVariableFor: function(obj, ivarname, cobj) {
         var cvar = this.findConstraintVariableFor(obj, ivarname);
         if (!cvar) {
-            cvar = new ConstrainedVariable(obj, ivarname);
+            cvar = new ConstrainedVariable(obj, ivarname, cobj);
             obj[ConstrainedVariable.AttrName] = obj[ConstrainedVariable.AttrName] || {};
             obj[ConstrainedVariable.AttrName][ivarname] = cvar;
         }
@@ -849,7 +868,9 @@ Object.extend(ConstrainedVariable, {
 ObjectLinearizerPlugin.subclass('DoNotSerializeConstraintPlugin',
 'plugin interface', {
     ignoreProp: function (obj, key, value) {
-        return key === ConstrainedVariable.AttrName || (value instanceof Constraint)
+        return (key === ConstrainedVariable.AttrName ||
+                key === ConstrainedVariable.ThisAttrName ||
+                (value instanceof Constraint))
     },
 });
 lively.persistence.pluginsForLively.push(DoNotSerializeConstraintPlugin);
