@@ -394,49 +394,66 @@ Object.subclass('ConstrainedVariable', {
 
 
     suggestValue: function(value) {
+        if (ConstrainedVariable.$$callingSetters) {
+	    if (value !== this.storedValue) throw "Should not happen!";
+	    return value;
+        }
+
         if (value !== this.storedValue) {
-            if (this.isSolveable() && !ConstrainedVariable.isSuggestingValue) {
-                var wasReadonly = false,
-                    eVar = this.definingExternalVariable;
-                try {
-                    ConstrainedVariable.isSuggestingValue = true;
-                    wasReadonly = eVar.isReadonly();
-                    eVar.setReadonly(false);
-                    eVar.suggestValue(value);
-                    value = this.externalValue;
-                } finally {
-                    eVar.setReadonly(wasReadonly);
-                    ConstrainedVariable.isSuggestingValue = false;
-                }
-            }
-            if (value !== this.storedValue && !this.isStoringValue) {
-                this.isStoringValue = true;
-                try {
-                    this.setValue(value);
-                    this.callOptionalSetter(value);
-                    this.updateDownstreamVariables(value);
-                    this.updateConnectedVariables();
-                } finally {
-                    this.isStoringValue = false;
-                }
+	    var callSetters = !!ConstrainedVariable.$$optionalSetters;
+	    ConstrainedVariable.$$optionalSetters = ConstrainedVariable.$$optionalSetters || [];
+	    try {
+	            if (this.isSolveable() && !ConstrainedVariable.isSuggestingValue) {
+	                var wasReadonly = false,
+	                    eVar = this.definingExternalVariable;
+	                try {
+	                    ConstrainedVariable.isSuggestingValue = true;
+	                    wasReadonly = eVar.isReadonly();
+	                    eVar.setReadonly(false);
+	                    eVar.suggestValue(value);
+	                    value = this.externalValue;
+	                } finally {
+	                    eVar.setReadonly(wasReadonly);
+	                    ConstrainedVariable.isSuggestingValue = false;
+	                }
+	            }
+	            if (value !== this.storedValue) {
+		        if (this.isSolveable()) {
+	                    var getterSetterPair = this.findOptionalSetter();
+	                    if (getterSetterPair) {
+			        ConstrainedVariable.$$optionalSetters.push();
+	                    }
+			}
+		        this.setValue(value);
+	                this.updateDownstreamVariables(value);
+	                this.updateConnectedVariables();
+	            }
+		    if (callSetters) {
+		        ConstrainedVariable.$$callingSetters = true;
+			ConstrainedVariable.$$optionalSetters.uniq().each(function (ea) {
+			    try { ea[1](ea[0]()); } catch(e) { alert(e); };
+			});
+			ConstrainedVariable.$$callingSetters = false;
+		    }
+	    } finally {
+	        if (callSetters) {
+		    ConstrainedVariable.$$optionalSetters = null;
+		}
             }
         }
         return value;
     },
-    callOptionalSetter: function(value, force) {
-        if (this.isSolveable() || force) {
-            if (this.setter) {
-                this.recv[this.setter](value);
-            } else {
-                if (this.parentConstrainedVariable) {
-                    this.parentConstrainedVariable.callOptionalSetter(
-                        this.parentConstrainedVariable.getValue(),
-                        true
-                    );
-                }
+
+    findOptionalSetter: function() {
+        if (this.setter) {
+            return [this.recv[this.getter], this.recv[this.setter]];
+        } else {
+            if (this.parentConstrainedVariable) {
+                return this.parentConstrainedVariable.findOptionalSetter()
             }
         }
     },
+
     get getter() {
         return this.$getter;
     },
