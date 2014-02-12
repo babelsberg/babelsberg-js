@@ -178,7 +178,7 @@ Object.subclass('Constraint', {
         }
     },
     addConstraintVariable: function(v) {
-        if (!this.constraintvariables.include(v)) {
+        if (v && !this.constraintvariables.include(v)) {
             this.constraintvariables.push(v);
         }
     },
@@ -218,7 +218,7 @@ Object.subclass('Constraint', {
         }
     },
 
-    enableConstraintObject: function(obj) {
+    enableConstraintObject: function(obj, optPriority) {
         if (obj === true) {
             alertOK("Warning: Constraint expression returned true. Re-running whenever the value changes");
         } else if (obj === false) {
@@ -228,7 +228,7 @@ Object.subclass('Constraint', {
         } else {
             obj.solver = this.solver; // XXX: Bit of a hack, should really write it so
                                       // this gets passed through from the variables
-            obj.enable(this._priority);
+            obj.enable(optPriority || this._priority);
         }
     },
 
@@ -253,6 +253,7 @@ Object.subclass('Constraint', {
         this.initialize(this.predicate, this.solver);
 
         cvars.select(function (ea) {
+            // all the cvars that are not in this constraint anymore
             return !this.constraintvariables.include(ea) && ea.isSolveable();
         }.bind(this)).each(function (ea) {
             return ea.externalVariable.removeStay();
@@ -260,18 +261,22 @@ Object.subclass('Constraint', {
 
         if (enabled) {
             assignments = this.constraintvariables.select(function (ea) {
+                // all the cvars that are new after this recalculation
                 return !cvars.include(ea) && ea.isSolveable();
             }).collect(function (ea) {
                 // add a required constraint for the new variable
                 // to keep its new value, to have the same semantics
                 // as for direct assignment
-                return ea.externalVariable.cnEquals(ea.getValue());
+                return ea.externalVariable.cnIdentical(ea.getValue());
             });
 
-            // first, try to enable the assignments, some may be completely invalid
             assignments.each(function (ea) {
                 dbgOn(!self.solver)
-                try { ea.enable(); } catch(_) { ea.enable(self.solver.strength.strong); }
+                try {
+                    self.enableConstraintObject(ea);
+                } catch(_) { // if the assignment cannot be completely satisfied, make it strong
+                    self.enableConstraintObject(ea, self.solver.strength.strong);
+                }
             });
 
             try {
@@ -395,50 +400,69 @@ Object.subclass('ConstrainedVariable', {
 
     suggestValue: function(value) {
         if (ConstrainedVariable.$$callingSetters) {
-	    if (value !== this.storedValue) throw "Should not happen!";
-	    return value;
+	        return value;
         }
 
         if (value !== this.storedValue) {
-	    var callSetters = !!ConstrainedVariable.$$optionalSetters;
-	    ConstrainedVariable.$$optionalSetters = ConstrainedVariable.$$optionalSetters || [];
-	    try {
-	            if (this.isSolveable() && !ConstrainedVariable.isSuggestingValue) {
-	                var wasReadonly = false,
-	                    eVar = this.definingExternalVariable;
-	                try {
-	                    ConstrainedVariable.isSuggestingValue = true;
-	                    wasReadonly = eVar.isReadonly();
-	                    eVar.setReadonly(false);
-	                    eVar.suggestValue(value);
-	                    value = this.externalValue;
-	                } finally {
-	                    eVar.setReadonly(wasReadonly);
-	                    ConstrainedVariable.isSuggestingValue = false;
-	                }
-	            }
-	            if (value !== this.storedValue) {
-		        if (this.isSolveable()) {
-	                    var getterSetterPair = this.findOptionalSetter();
-	                    if (getterSetterPair) {
-			        ConstrainedVariable.$$optionalSetters.push();
-	                    }
-			}
-		        this.setValue(value);
-	                this.updateDownstreamVariables(value);
-	                this.updateConnectedVariables();
-	            }
-		    if (callSetters) {
-		        ConstrainedVariable.$$callingSetters = true;
-			ConstrainedVariable.$$optionalSetters.uniq().each(function (ea) {
-			    try { ea[1](ea[0]()); } catch(e) { alert(e); };
-			});
-			ConstrainedVariable.$$callingSetters = false;
-		    }
-	    } finally {
-	        if (callSetters) {
-		    ConstrainedVariable.$$optionalSetters = null;
-		}
+            var callSetters = !ConstrainedVariable.$$optionalSetters;
+            ConstrainedVariable.$$optionalSetters = ConstrainedVariable.$$optionalSetters || [];
+            try {
+                if (this.isSolveable() && !ConstrainedVariable.isSuggestingValue) {
+                    var wasReadonly = false,
+                        eVar = this.definingExternalVariable;
+                    try {
+                        ConstrainedVariable.isSuggestingValue = true;
+                        wasReadonly = eVar.isReadonly();
+                        eVar.setReadonly(false);
+                        eVar.suggestValue(value);
+                        value = this.externalValue;
+                    } finally {
+                        eVar.setReadonly(wasReadonly);
+                        ConstrainedVariable.isSuggestingValue = false;
+                    }
+                }
+                if (value !== this.storedValue && !this.$$isStoring) {
+                    this.$$isStoring = true;
+                    try {
+                        if (this.isSolveable()) {
+                            var getterSetterPair = this.findOptionalSetter();
+                            if (getterSetterPair) {
+                                ConstrainedVariable.$$optionalSetters.push(getterSetterPair);
+                            }
+                        }
+                        this.setValue(value);
+                        this.updateDownstreamVariables(value);
+                        this.updateConnectedVariables();
+                    } finally {
+                        this.$$isStoring = false;
+                    }
+                }
+                if (callSetters) {
+                    ConstrainedVariable.$$callingSetters = true;
+                    var recvs = [],
+                        setters = [];
+                    ConstrainedVariable.$$optionalSetters.each(function (ea) {
+                        var recvIdx = recvs.indexOf(ea.recv);
+                        if (recvIdx === -1) {
+                            recvIdx = recvs.length;
+                            recvs.push(ea.recv);
+                        }
+                        setters[recvIdx] = setters[recvIdx] || [];
+                        // If we have already called this setter for this recv, skip
+                        if (setters[recvIdx].indexOf(ea.setter) !== -1) return;
+                        setters[recvIdx].push(ea.setter);
+                        try {
+                            ea.recv[ea.setter](ea.recv[ea.getter]());
+                        } catch(e) {
+                            alert(e);
+                        };
+                    });
+                    ConstrainedVariable.$$callingSetters = false;
+                }
+            } finally {
+                if (callSetters) {
+                    ConstrainedVariable.$$optionalSetters = null;
+                }
             }
         }
         return value;
@@ -446,7 +470,7 @@ Object.subclass('ConstrainedVariable', {
 
     findOptionalSetter: function() {
         if (this.setter) {
-            return [this.recv[this.getter], this.recv[this.setter]];
+            return {recv: this.recv, getter: this.getter, setter: this.setter};
         } else {
             if (this.parentConstrainedVariable) {
                 return this.parentConstrainedVariable.findOptionalSetter()

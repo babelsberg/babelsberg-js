@@ -711,6 +711,10 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
         this.assert(r1.getPosition().equals(r2.getPosition()));
         this.assert(r1.getPosition().equals(pt(5,5)));
         this.assert(r1setPositionValue.equals(pt(5,5)));
+        r1.setPosition(pt(100,100));
+        this.assert(r1.getPosition().equals(r2.getPosition()));
+        this.assert(r2.getPosition().equals(pt(100,100)));
+        this.assert(r2setPositionValue.equals(pt(100,100)));
     },
     testAutomaticSetterInferenceDeep: function() {
         var solver = new ClSimplexSolver(),
@@ -748,7 +752,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
         
         this.assert(r2setPositionCalls === 1); // once above
         // XXX: Optimize this!
-        this.assert(r1setPositionCalls === 2); // once for each coordinate
+        this.assert(r1setPositionCalls === 1); // call each setter just once per satisfaction
         this.assert(r1setPositionValue.equals(pt(5,5)));
     },
     testIdentity: function() {
