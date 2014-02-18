@@ -532,10 +532,10 @@ DBConstraint.subclass('UserDBConstraint', {
      */
     addToGraph: function () {
         var that = this;
-	this.variables.each(function (ea) {
-	    ea.addDBConstraint(that);
-	});
-	this.satisfied = false;
+    	this.variables.each(function (ea) {
+    	    ea.addDBConstraint(that);
+    	});
+    	this.satisfied = false;
     },
 
     /**
