@@ -12,6 +12,9 @@ Object.subclass("Babelsberg", {
         if (!cvar) return;
         var cGetter = obj.__lookupSetter__(accessor),
             cSetter = obj.__lookupSetter__(accessor);
+        if (!cGetter && !cSetter) {
+            return;
+        }
         if (!cGetter.isConstraintAccessor || !cSetter.isConstraintAccessor) {
             throw "too many accessors - unconstrain only works for the very simple case now"
         }
@@ -117,6 +120,25 @@ lively.ast.Send.addMethods({
     
     set args(value) {
         this._$args = value
+    }
+});
+cop.create('MorphSetConstrainedPositionLayer').refineClass(lively.morphic.Morph, {
+    setPosition: function(newPos) {
+        if (this.editCb) {
+            this.editCb(newPos);
+            return this.renderContextDispatch('setPosition', newPos);
+        } else {
+            return cop.proceed(newPos);
+        }
+    },
+}).refineClass(lively.morphic.DragHalo, {
+    dragStartAction: function() {
+        this.targetMorph.editCb = bbb.edit(this.targetMorph.getPosition(), ["x", "y"]);
+        return cop.proceed.apply(this, arguments);
+    },
+    dragEndAction: function() {
+        this.targetMorph.editCb();
+        return cop.proceed.apply(this, arguments);
     }
 });
 
@@ -242,6 +264,7 @@ Object.subclass('Constraint', {
     },
 
     recalculate: function() {
+        debugger
         // TODO: Fix this so it uses the split-stay result, i.e. just increase the stay for the newly assigned value
         var enabled = this._enabled,
             cvars = this.constraintvariables,
@@ -269,7 +292,7 @@ Object.subclass('Constraint', {
                 // as for direct assignment
                 return ea.externalVariable.cnIdentical(ea.getValue());
             });
-
+            debugger
             assignments.each(function (ea) {
                 dbgOn(!self.solver)
                 try {
@@ -662,7 +685,15 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
             condVal = this.visit(node.condExpr);
         if (condVal && condVal.isConstraintObject) {
             debugger
+            var self = this;
             condVal = this.getConstraintObjectValue(condVal);
+            if (!condVal) {
+                condVal = cop.withoutLayers([ConstraintConstructionLayer], function() {
+                    // XXX: this will cause GetSlot to call $super, so we don't get constrainded vars
+                    return self.visit(node.condExpr);
+                });
+                debugger
+            }
         }
         return condVal ? this.visit(node.trueExpr) : this.visit(node.falseExpr);
     },
@@ -805,7 +836,12 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
     },
 
 
-    visitGetSlot: function(node) {
+    visitGetSlot: function($super, node) {
+        if (cop.currentLayers().indexOf(ConstraintConstructionLayer) === -1) {
+            // XXX: See visitCond
+            return $super(node);
+        }
+        
         var obj = this.visit(node.obj),
             name = this.visit(node.slotName),
             cobj = (obj ? obj[ConstrainedVariable.ThisAttrName] : undefined),
@@ -916,4 +952,4 @@ ObjectLinearizerPlugin.subclass('DoNotSerializeConstraintPlugin',
 });
 lively.persistence.pluginsForLively.push(DoNotSerializeConstraintPlugin);
 
-}) // end of module
+})
