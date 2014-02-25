@@ -398,7 +398,7 @@ Object.subclass('ConstrainedVariable', {
         this.cachedDefiningSolver = null;
         this.cachedDefiningVar = null;
         if (!eVar && eVar !== null) { // don't try to create an external variable twice
-            this.externalVariables(solver, solver.constraintVariableFor(value, this.ivarname));
+            this.externalVariables(solver, solver.constraintVariableFor(value, this.ivarname, this));
             this.updateReadonlyConstraints();
         }
     },
