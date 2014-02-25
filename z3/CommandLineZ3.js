@@ -6,32 +6,35 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
     evalFloat: function(arg) {
         if (arg.match(/\//)) {
             var nomden = arg.split("/")
-            return parseFloat(nomden[0])/parseFloat(nomden[1])
+            return parseFloat(nomden[0])/parseFloat(nomden[1]);
         } else {
-            return parseFloat(arg)
+            return parseFloat(arg);
         }
     },
     postMessage: function (string) {
-        string += ("\n(check-sat)\n(get-value (" + this.variables.inject("", function (acc, v) {
-            return acc + v.name + " "
-        }) + "))");
-        console.log(string);
-        var commandString = CommandLineZ3.z3Path + ' -smt2 -in',
+        debugger
+        string = "(set-option :pp.decimal true)\n" +
+            string +
+            ("\n(check-sat)\n(get-value (" + this.variables.inject("", function (acc, v) {
+                return acc + v.name + " "
+            }) + "))");
+        // console.log(string);
+        var commandString = CommandLineZ3.z3Path + ' -T:4 -smt2 -in',
             self = this;
         
-        lively.ide.CommandLineInterface.run(
+        
+        var r = lively.ide.CommandLineInterface.run(
             commandString,
-            {sync: true, stdin: string},
-            function (r) {
-                this.applyResult(r.getStdout());
-            }.bind(this)
+            {sync: true, stdin: string}
         );
+        debugger
+        this.applyResult(r.getStdout() + r.getStderr());
     },
     initialize: function($super) {
         $super();
     },
     applyResult: function(result) {
-        console.log(result);
+        // console.log(result);
         if (result.startsWith("sat")) {
             result = result.slice("sat".length, result.length - 1);
             // remove outer parens
@@ -48,9 +51,9 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
             }.bind(this));
             assignments.each(function (a) {
                 this.varsByName[a.name].value = a.value;
-                this.cvarsByName[a.name].suggestValue(a.value);
             }.bind(this));
         } else if (result.startsWith("unsat")) {
+            debugger
             throw "Unsatisfiable constraint system";
         } else {
             throw "Z3 failed to solve this system";
@@ -59,7 +62,6 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
     parseAndEvalSexpr: function(sexp) {
         var fl = parseFloat(sexp);
         if (!isNaN(fl)) return fl;
-        
         var atomEnd = [' ', '"', "'", ')', '(', '\x0b', '\n', '\r', '\x0c', '\t']
 
         var stack = [],
@@ -127,8 +129,10 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
                 return args[0] * args[1]
             case "/":
                 return args[0] / args[1]
-            case "**":
+            case "^":
                 return Math.pow(args[0], args[1])
+            case "root-obj":
+                return args[0];
             default:
                 throw op + ' in sexprs returned from Z3'
         }

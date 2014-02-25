@@ -127,7 +127,6 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
             return acc + "\n" + "(assert " + c.print() + ")";
         });
         this.postMessage(decls + constraints);
-        console.log(decls + constraints);
         return decls + constraints;
     },
 });
@@ -156,6 +155,12 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
     times: function (r) {
         return new NaCLZ3BinaryExpression("*", this, r, this.solver);
     },
+    sin: function() {
+        return new NaCLZ3UnaryExpression("sin", this, this.solver);
+    },
+    cos: function() {
+        return new NaCLZ3UnaryExpression("cos", this, this.solver);
+    },
     minus: function (r) {
         return new NaCLZ3BinaryExpression("-", this, r, this.solver);
     },
@@ -183,9 +188,12 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
         throw "stay constraints not implemented for Z3 (yet)"
     },
     removeStay: function() {
-        throw "stay constraints not implemented for Z3 (yet)"
+        // throw "stay constraints not implemented for Z3 (yet)"
+        // pass
     },
     suggestValue: function(value) {
+        if (value === this.value) return;
+
         var c = this.cnEquals(value),
             s = this.solver;
         s.addConstraint(c);
@@ -267,6 +275,17 @@ NaCLZ3Constraint.subclass('NaCLZ3BinaryExpression', {
     },
     print: function () {
         return "(" + this.op + " " + this.left.print() + " " + this.right.print() + ")"
+    }
+});
+
+NaCLZ3Constraint.subclass('NaCLZ3UnaryExpression', {
+    initialize: function (op, arg,  solver) {
+        this.solver = solver;
+        this.op = op;
+        this.arg = arg;
+    },
+    print: function () {
+        return "(" + this.op + " " + this.arg.print() + ")"
     }
 });
 }) // end of module

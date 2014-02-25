@@ -8,6 +8,7 @@ Object.subclass("Babelsberg", {
     },
     
     unconstrain: function (obj, accessor) {
+        if (!obj) return;
         var cvar = ConstrainedVariable.findConstraintVariableFor(obj, accessor);
         if (!cvar) return;
         var cGetter = obj.__lookupSetter__(accessor),
@@ -264,7 +265,6 @@ Object.subclass('Constraint', {
     },
 
     recalculate: function() {
-        debugger
         // TODO: Fix this so it uses the split-stay result, i.e. just increase the stay for the newly assigned value
         var enabled = this._enabled,
             cvars = this.constraintvariables,
@@ -292,9 +292,8 @@ Object.subclass('Constraint', {
                 // as for direct assignment
                 return ea.externalVariable.cnIdentical(ea.getValue());
             });
-            debugger
+
             assignments.each(function (ea) {
-                dbgOn(!self.solver)
                 try {
                     self.enableConstraintObject(ea);
                 } catch(_) { // if the assignment cannot be completely satisfied, make it strong
