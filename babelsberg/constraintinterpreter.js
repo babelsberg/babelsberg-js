@@ -744,6 +744,22 @@ lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
                 var prop = this.visit(node.property);
                 return this.invoke(node, value, value[prop], argValues);
             }
+        } else if (recv === Math) {
+            if (func === Math.sqrt && argValues[0].pow || argValues[0].sqrt) {
+                if (argValues[0].pow) {
+                    return this.invoke(node, argValues[0], argValues[0].pow, [0.5]);
+                } else {
+                    return this.invoke(node, argValues[0], argValues[0].sqrt, []);
+                }
+            } else if (func === Math.pow && argValues[0].pow) {
+                return this.invoke(node, argValues[0], argValues[0].pow, [argValues[1]]);
+            } else if (func === Math.sin && argValues[0].sin) {
+                return this.invoke(node, argValues[0], argValues[0].sin, []);
+            } else if (func === Math.cos && argValues[0].cos) {
+                return this.invoke(node, argValues[0], argValues[0].cos, []);
+            } else {
+                return $super(node, recv, func, argValues);
+            }
         } else {
             return cop.withLayers([ConstraintConstructionLayer], function() {
                 return $super(node, recv, func, argValues);
