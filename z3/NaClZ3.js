@@ -17,7 +17,9 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
                 src="' + this.url + '/z3.nmf"\
                 type="application/x-nacl" />\
         </div>');
+        this.embedMorph.name = "Z3Module";
         this.embedMorph.openInWorld();
+        this.embedMorph.module = this;
         var listener = document.getElementById(this.uuid);
         listener.addEventListener('load', this.moduleDidLoad.bind(this), true);
         listener.addEventListener('message', this.handleMessage.bind(this), true);
@@ -38,6 +40,7 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
     },
     
     handleMessage: function (message) {
+        console.log(message.data)
         this.applyResults(message.data);
     },
     applyResults: function(rawData) {
@@ -48,21 +51,110 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
         } else if (response.error) {
             throw response.error;
         } else if (response.result) {
-            assignments = response.result.split(",").map(function (str) {
+            var assignments = response.result.split(",").map(function (str) {
                 var both = str.split("->");
                 if (both.length !== 2) return;
                 
-                name = both[0].trim();
-                value = parseFloat(both[1].trim());
-                if (value === NaN) {
+                var name = both[0].trim();
+                var value = this.parseAndEvalSexpr(both[1].trim());
+                debugger
+                if (isNaN(value)) {
                     throw "Error assigning result " + both[1].trim();
                 }
                 return {name: name, value: value};
-            });
+            }.bind(this)).compact();
             assignments.each(function (a) {
+                debugger
                 this.varsByName[a.name].value = a.value;
                 this.cvarsByName[a.name].suggestValue(a.value);
             }.bind(this));
+        }
+    },
+    parseAndEvalSexpr: function(sexp) {
+        var fl = parseFloat(sexp);
+        if (!isNaN(fl)) return fl;
+        var atomEnd = [' ', '"', "'", ')', '(', '\x0b', '\n', '\r', '\x0c', '\t']
+
+        var stack = [],
+            atom = [],
+            i = 0,
+            length = sexp.length;
+        while (i < length) {
+            var c = sexp[i]
+            var reading_tuple = atom.length > 0
+            if (!reading_tuple) {
+                if (c == '(') {
+                    stack.push([]);
+                } else if (c == ')') {
+                    var pred = stack.length - 2;
+                    if (pred >= 0) {
+                        stack[pred].push(String(this.evaluateSexpr(stack.pop())));
+                    } else {
+                        return this.evaluateSexpr(stack.pop());
+                    }
+                } else if (c.match(/\s/) !== null) {
+                    // pass
+                } else {
+                    atom.push(c);
+                }
+            } else {
+                if (atomEnd.indexOf(c) !== -1) {
+                    stack[stack.length - 1].push(atom.join(""));
+                    atom = [];
+                    i -= 1; // do not skip this
+                } else {
+                    atom.push(c)
+                }
+            }
+            i += 1;
+        }
+        throw "NotImplementedError(whatever this is) " + sexp;
+    },
+    evaluateSexpr: function(l) {
+        var op = l[0],
+            self = this,
+            args = l.slice(1, l.length).map(function (arg) { return self.evalFloat(arg); });
+        
+        switch (op) {
+            case "sin":
+                return Math.sin(args[0])
+            case "cos":
+                return Math.cos(args[0])
+            case "tan":
+                return Math.tan(args[0])
+            case "asin":
+                return Math.asin(args[0])
+            case "acos":
+                return Math.acos(args[0])
+            case "atan":
+                return Math.atan(args[0])
+            case "+":
+                return args[0] + args[1]
+            case "-":
+                if (args.length == 1) {
+                    return -args[0]
+                } else {
+                    return args[0] - args[1]
+                }
+            case "*":
+                return args[0] * args[1]
+            case "/":
+                return args[0] / args[1]
+            case "^":
+                return Math.pow(args[0], args[1])
+            case "root-obj":
+                // ignore imaginary part
+                return args[0];
+            default:
+                throw op + ' in sexprs returned from Z3'
+        }
+    },
+    evalFloat: function(arg) {
+        if (arg.match(/\//)) {
+            var nomden = arg.split("/")
+            return parseFloat(nomden[0])/parseFloat(nomden[1]);
+        } else {
+            return parseFloat(arg);
         }
     },
     
@@ -70,7 +162,11 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
         if (!this.isLoaded) {
             alert("Z3 not ready, will solve when loaded.");
         } else {
-            this.module.postMessage(string);
+            console.log(string)
+            this.module.postMessage(
+                "(set-option :pp.decimal true)\n(set-option :model true)" +
+                string
+            );
         }
     },
     initialize: function(url) {
@@ -156,10 +252,25 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
         return new NaCLZ3BinaryExpression("*", this, r, this.solver);
     },
     sin: function() {
-        return new NaCLZ3UnaryExpression("sin", this, this.solver);
+        return  this.minus(
+                this.pow(3).divide(6)).plus(
+                this.pow(5).divide(120)).minus(
+                this.pow(7).divide(5040)).plus(
+                this.pow(9).divide(362880)).minus(
+                this.pow(11).divide(39916800)).plus(
+                this.pow(13).divide(6227020800)).minus(
+                this.pow(15).divide(1307674400000)).plus(
+                this.pow(17).divide(355687430000000))
+        // Z3 supports sin, but then many systems cannot be solved,
+        // so we approximate using Taylor
+        // return new NaCLZ3UnaryExpression("sin", this, this.solver);
     },
     cos: function() {
-        return new NaCLZ3UnaryExpression("cos", this, this.solver);
+        return this.plus(Math.PI / 2).sin();
+        // Z3 supports cos, but then many systems cannot be solved,
+        // so we approximate using Taylor. We go through Taylor-sin, to
+        // avoid issues with imaginary components, because Taylor-cos uses even powers
+        // return new NaCLZ3UnaryExpression("cos", this, this.solver);
     },
     minus: function (r) {
         return new NaCLZ3BinaryExpression("-", this, r, this.solver);
