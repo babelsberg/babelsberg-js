@@ -1,9 +1,9 @@
-babelsberg-js
+Babelsberg/JS
 =============
 
 A LivelyKernel implementation of Babelsberg
 
-See also [Babelsberg/R](https://github.com/timfel/rupypy)
+See also [Babelsberg/R](https://github.com/timfel/babelsberg-r)
 
 It allows you to do stuff like this
 ```javascript
@@ -23,7 +23,7 @@ a.getPosition() // lively.pt(100.0,100.0)
 b.getPosition() // lively.pt(99.9,300.0)
 ```
 
-Basically, you can write constraints using the `always` that you always want to be true,
+Basically, you can write constraints using the `always` primitive that you always want to be true,
 using existing object-oriented abstractions (I am using the methods `getPosition` and
 `dist` in the example above), and the system will maintain them. The extent to which the
 system is able to keep constraints satisfied depends on the solver that is used. This
@@ -33,5 +33,5 @@ We have used this to implement electrical simulations, a simulation of the Livel
 and some graphical layouting examples. The implementation is available to try at [lively-web.org](http://lively-web.org/users/robertkrahn/2013-10-16_first-constrained-steps.html).
 At any given time it may be broken, though, because the code is changing fairly often.
 
-Paper about this implementation are submitted and a freely accessible technical report
+Papers about this implementation are forthcoming and a freely accessible technical report
 will be published shortly.
