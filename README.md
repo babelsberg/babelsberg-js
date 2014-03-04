@@ -1,7 +1,8 @@
 Babelsberg/JS
 =============
 
-A LivelyKernel implementation of Babelsberg
+A LivelyKernel implementation of Babelsberg licensed under [MIT](https://github.com/timfel/babelsberg-js/blob/master/LICENSE)
+
 
 See also [Babelsberg/R](https://github.com/timfel/babelsberg-r)
 
