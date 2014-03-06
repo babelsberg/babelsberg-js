@@ -25,7 +25,7 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
         );
     },
     initialize: function($super, sync) {
-        this.sync = !sync;
+        this.sync = !!sync;
         $super();
     },
     applyResult: function(result) {

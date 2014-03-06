@@ -202,6 +202,14 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
         throw "strength (and soft constraints) not implemented for Z3, yet"
     },
     weight: 500,
+    solveOnce: function(c) {
+        this.addConstraint(c);
+        try {
+            this.solve();
+        } finally {
+            this.removeConstraint(c);
+        }
+    },
     
     addVariable: function(v, cvar) {
         this.variables.push(v);
@@ -305,14 +313,8 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
     suggestValue: function(value) {
         if (value === this.value) return;
 
-        var c = this.cnEquals(value),
-            s = this.solver;
-        s.addConstraint(c);
-        try {
-            s.solve();
-        } finally {
-            s.removeConstraint(c);
-        }
+        var c = this.cnEquals(value);
+        this.solver.solveOnce(c);
     },
     setReadonly: function(bool) {
         if (bool && !this.readonlyConstraint) {
@@ -365,6 +367,7 @@ NaCLZ3Ast.subclass('NaCLZ3Constraint', {
         }
         this.solver.addConstraint(this);
     },
+
     disable: function () {
         this.solver.removeConstraint(this);
     },

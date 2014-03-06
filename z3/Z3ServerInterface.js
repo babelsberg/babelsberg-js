@@ -8,10 +8,12 @@ Object.extend(Z3ServerInterface, {
     },
     
     evalSync: function(expr, callback) {
-        return this.eval(this.getZ3WR(callback).beSync(), expr);
+        return this.eval(true, expr, callback);
     },
-    eval: function(wr, expr) {
-        var sanitizedExpr = this.createEvalExpression(expr);
+    eval: function(sync, expr, callback) {
+        var sanitizedExpr = this.createEvalExpression(expr),
+            wr = this.getZ3WR(callback);
+        sync ? wr.beSync() : wr.beAsync();
         return wr.post(JSON.stringify({expr: sanitizedExpr, timeout: 3000}), 'application/json');
     },
     getZ3WR: function(callback) {
@@ -22,7 +24,7 @@ Object.extend(Z3ServerInterface, {
         })
     },
     evalAsync: function(expr, callback) {
-        return this.eval(this.getZ3WR(callback).beAsync(), expr);
+        return this.eval(false, expr, callback);
     },
     
     resetZ3Server: function() {
