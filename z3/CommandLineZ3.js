@@ -1,4 +1,4 @@
-module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z3.NaClZ3').toRun(function() {
+module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z3.NaClZ3', "lively.ide.CommandLineInterface").toRun(function() {
     NaCLZ3.subclass("CommandLineZ3", {
     loadModule: function () {
         // No module used
@@ -25,13 +25,14 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
         );
     },
     initialize: function($super, sync) {
-        this.sync = !!sync;
+        this.sync = sync || true;
         $super();
     },
     applyResult: function(result) {
         // console.log(result);
-        if (result.startsWith("sat")) {
-            result = result.slice("sat".length, result.length - 1);
+        if (result.startsWith("sat")/* || result.indexOf("\nsat\n") != -1 */) {
+            var idx = result.indexOf("sat\n");
+            result = result.slice(idx + "sat".length, result.length - 1);
             // remove outer parens
             result = result.trim().slice(1, result.length - 1);
     

@@ -1,4 +1,4 @@
-module("users.timfelgentreff.z3.ServerZ3").requires("users.timfelgentreff.z3.NaClZ3", "users.timfelgentreff.z3.Z3ServerInterface").toRun(function () {
+module("users.timfelgentreff.z3.ServerZ3").requires("users.timfelgentreff.z3.CommandLineZ3", "users.timfelgentreff.z3.Z3ServerInterface").toRun(function () {
 CommandLineZ3.subclass("ServerZ3", {
     loadModule: function () {
         Z3ServerInterface.evalSync("(set-option :pp.decimal true)", function (err, result) {
@@ -27,11 +27,11 @@ CommandLineZ3.subclass("ServerZ3", {
             }.bind(this)
         );
     },
-    initialize: function($super, async) {
+    initialize: function($super, sync) {
         this.newVariables = [];
         this.newConstraints = [];
         this.activeConstraints = [];
-        $super(async);
+        $super(sync);
     },
     addConstraint: function($super, c) {
         this.newConstraints.push(c);
@@ -73,10 +73,10 @@ CommandLineZ3.subclass("ServerZ3", {
         return decls + constraints;
     },
     solveOnce: function($super, c) {
-        if (this.newVariables.length !== 0) {
+        //if (this.newVariables.length !== 0) {
             $super(c);
-        }
-        this.postMessage("(push)\n(assert " + c.print() + ")\n(check-sat)\n", "(pop)\n");
+        //}
+        //this.postMessage("(push)\n(assert " + c.print() + ")\n(check-sat)\n", "(pop)\n");
     },
 
 });

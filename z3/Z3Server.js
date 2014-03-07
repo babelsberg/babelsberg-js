@@ -4,7 +4,7 @@ var i = util.inspect
 var spawn = require("child_process").spawn;
 var fs = require('fs');
 var path = require('path');
-var WebSocketServer = require('core/servers/support/websockets').WebSocketServer;
+// var WebSocketServer = require('core/servers/support/websockets').WebSocketServer;
 
 var domain = require('domain').create();
 domain.on('error', function(er) {
@@ -100,30 +100,30 @@ function cleanup(subserver) {
 }
 
 module.exports = domain.bind(function(route, app, subserver) {
-    var webSocketHandler = new WebSocketServer();
-    webSocketHandler.debug = false;
-    webSocketHandler.listen({
-        route: route + 'connect',
-        subserver: subserver,
-        actions: {
-            eval: function(c, msg) {
-                var expr = msg,
-                    timeout = 3000;
-                if (!expr) {
-                    var msg = {error: 'Cannot deal with request', message: 'No expression'};
-                    c.send({action: 'evalReply', data: JSON.stringify({error: 'No expression given'})});
-                } else {
-                    evalSMTExpression(state, {timeout: timeout}, expr, function(err, output) {
-                        if (err) {
-                            c.send({action: 'evalReply', data: JSON.stringify({error: String(err)})});
-                        } else {
-                            c.send({action: 'evalReply', data: JSON.stringify({data: output})});
-                        }
-                    });
-                }
-            }
-        }
-    });
+    // var webSocketHandler = new WebSocketServer();
+    // webSocketHandler.debug = false;
+    // webSocketHandler.listen({
+    //     route: route + 'connect',
+    //     subserver: subserver,
+    //     actions: {
+    //         eval: function(c, msg) {
+    //             var expr = msg,
+    //                 timeout = 3000;
+    //             if (!expr) {
+    //                 var msg = {error: 'Cannot deal with request', message: 'No expression'};
+    //                 c.send({action: 'evalReply', data: JSON.stringify({error: 'No expression given'})});
+    //             } else {
+    //                 evalSMTExpression(state, {timeout: timeout}, expr, function(err, output) {
+    //                     if (err) {
+    //                         c.send({action: 'evalReply', data: JSON.stringify({error: String(err)})});
+    //                     } else {
+    //                         c.send({action: 'evalReply', data: JSON.stringify({data: output})});
+    //                     }
+    //                 });
+    //             }
+    //         }
+    //     }
+    // });
 
     subserver.on('close', cleanup.bind(null, subserver));
 
