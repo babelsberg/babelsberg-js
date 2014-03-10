@@ -30,7 +30,7 @@ ClSimplexSolver.addMethods({
     weight: 1000,
     always: function (opts, func) {
         var ctx = opts.ctx,
-            priority = opts.priority;
+            priority = this.strength[opts.priority];
         func.varMapping = ctx;
         var constraint = new Constraint(func, this);
         constraint.priority = priority;

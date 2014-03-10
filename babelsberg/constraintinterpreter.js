@@ -38,6 +38,7 @@ Object.subclass("Babelsberg", {
     
     edit: function (obj, accessors) {
         var extVars = {},
+            cVars = {},
             extConstraints = [],
             solvers = [],
             callback = function (newObj) {
@@ -57,8 +58,12 @@ Object.subclass("Babelsberg", {
                     }
                     solvers.invoke("resolveArray", newEditConstants);
                     accessors.each(function (a) {
-                        extVars[a] = extVars[a]; // set the value,
+                        cVars[a].suggestValue(cVars[a].externalValue);
+                        // extVars[a] = extVars[a]; // set the value,
                                                  // propagates change to other property accessors
+                                                 // calls the setters
+                                                 // does not recurse into solvers, because they have already
+                                                 // adopted the correct value
                     })
                 }
             };
@@ -75,6 +80,7 @@ Object.subclass("Babelsberg", {
             if (cvar.solvers.any(function (s) { return !Object.isFunction(s.beginEdit) })) {
                 throw "Cannot edit " + obj + '["' + accessor + '"], because it is in a no-edit solver'
             }
+            cVars[accessor] = cvar;
             extVars[accessor] = evars;
             solvers = solvers.concat(cvar.solvers).uniq();
             evars.each(function (evar) {
