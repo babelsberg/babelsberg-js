@@ -2,14 +2,20 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
 
     Object.subclass("NaCLZ3", {
     loadModule: function (url) {
+        var owner, bounds;
         if (this.embedMorph) {
+            owner = this.embedMorph.owner;
+            bounds = this.embedMorph.getBounds();
             this.embedMorph.remove();
+        } else {
+            owner = $world;
+            bounds = lively.rect(0,0,50,50);
         }
         if (!this.uuid) {
             this.uuid = new UUID().id;
         }
         this.url = url || NaCLZ3.url;
-        this.embedMorph = new lively.morphic.HtmlWrapperMorph(pt(50,50));
+        this.embedMorph = new lively.morphic.HtmlWrapperMorph(bounds.extent());
         this.embedMorph.asJQuery().html('<div id="' + this.uuid + '">\
             <embed name="nacl_module"\
                 id="' + this.uuid + 'z3"\
@@ -17,8 +23,9 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
                 src="' + this.url + '/z3.nmf"\
                 type="application/x-nacl" />\
         </div>');
+        this.embedMorph.setPosition(bounds.topLeft());
         this.embedMorph.name = "Z3Module";
-        this.embedMorph.openInWorld();
+        owner.addMorph(this.embedMorph);
         this.embedMorph.module = this;
         var listener = document.getElementById(this.uuid);
         listener.addEventListener('load', this.moduleDidLoad.bind(this), true);
