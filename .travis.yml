@@ -1,0 +1,21 @@
+language: node_js
+
+node_js:
+  - "0.10"
+
+before_install:
+  - "chromium-browser --version"
+  - "sudo chmod 1777 /dev/shm"
+
+before_script:
+  - "nvm use v0.10"
+  - "git clone git://github.com/LivelyKernel/LivelyKernel.git"
+  - "mkdir LivelyKernel/users"
+  - "ln -s $PWD LivelyKernel/users/timfelgentreff"
+  - "cd LivelyKernel"
+  - "Xvfb :1 -screen 0 800x600x24 &"
+  - "npm start &"
+  - "while [ ! -d PartsBin ]; do echo 'Waiting for server to be initialized'; sleep 2; done; sleep 30"
+  - "sed -i 's/var testList = baseTests;/var testList = [\"users.timfelgentreff.babelsberg.tests\"];/";
+
+script: "DISPLAY=:1 npm test"
