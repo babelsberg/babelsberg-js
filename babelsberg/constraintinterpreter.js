@@ -11,7 +11,7 @@ Object.subclass("Babelsberg", {
         if (!obj) return;
         var cvar = ConstrainedVariable.findConstraintVariableFor(obj, accessor);
         if (!cvar) return;
-        var cGetter = obj.__lookupSetter__(accessor),
+        var cGetter = obj.__lookupSetter__(accessor), //// not __lookupGetter__ ?
             cSetter = obj.__lookupSetter__(accessor);
         if (!cGetter && !cSetter) {
             return;
@@ -199,7 +199,7 @@ Object.subclass('Constraint', {
         } finally {
             Constraint.current = null;
         }
-        this.addPrimitiveConstraint(constraintObject);
+        this.addPrimitiveConstraint(constraintObject); //// isn't constraintObject always undefined in this scope?
     },
     addPrimitiveConstraint: function(obj) {
         if (obj && !this.constraintobjects.include(obj)) {
