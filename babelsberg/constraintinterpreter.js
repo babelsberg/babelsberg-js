@@ -650,7 +650,7 @@ Object.subclass('ConstrainedVariable', {
     },
     externalVariables: function(solver, value) {
         if (!solver.__uuid__) {
-            solver.__uuid__ = new UUID().id
+            solver.__uuid__ = Strings.newUUID()
         }
         if (arguments.length === 1) {
             return this._externalVariables[solver.__uuid__];
