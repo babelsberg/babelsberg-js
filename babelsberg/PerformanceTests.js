@@ -1,6 +1,6 @@
-module('users.timfelgentreff.babelsberg.tests').requires('lively.TestFramework', 'users.timfelgentreff.babelsberg.constraintinterpreter').toRun(function() {
+module('users.timfelgentreff.babelsberg.PerformanceTests').requires('lively.TestFramework', 'users.timfelgentreff.babelsberg.constraintinterpreter').toRun(function() {
 
-TestCase.subclass('users.timfelgentreff.babelsberg.tests.PerformanceTests', {
+TestCase.subclass('users.timfelgentreff.babelsberg.PerformanceTests.PerformanceTests', {
     Iterations: 10000,
     testImperativeDragSimulation: function () {
         var mouse = {},
