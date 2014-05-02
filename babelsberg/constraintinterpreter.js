@@ -1,4 +1,4 @@
-module('users.timfelgentreff.babelsberg.constraintinterpreter').requires('lively.ast.Interpreter', 'cop.Layers', 'users.timfelgentreff.babelsberg.cassowary_ext', 'users.timfelgentreff.babelsberg.deltablue_ext', 'users.timfelgentreff.babelsberg.core_ext', 'users.timfelgentreff.babelsberg.src_transform').toRun(function() {
+module('users.timfelgentreff.babelsberg.constraintinterpreter').requires('users.timfelgentreff.jsinterpreter.Interpreter', 'cop.Layers', 'users.timfelgentreff.babelsberg.cassowary_ext', 'users.timfelgentreff.babelsberg.deltablue_ext', 'users.timfelgentreff.babelsberg.core_ext', 'users.timfelgentreff.babelsberg.src_transform').toRun(function() {
 
 // branched from 198617
 
@@ -120,7 +120,7 @@ Object.extend(Global, {
     bbb: new Babelsberg()
 });
 
-lively.ast.Send.addMethods({
+users.timfelgentreff.jsinterpreter.Send.addMethods({
     get args() {
         return this._$args || []
     },
@@ -149,17 +149,17 @@ cop.create('MorphSetConstrainedPositionLayer').refineClass(lively.morphic.Morph,
     }
 });
 
-cop.create("ConstraintConstructionLayer").refineObject(lively.ast, {
+cop.create("ConstraintConstructionLayer").refineObject(users.timfelgentreff.jsinterpreter, {
     get InterpreterVisitor() {
         return ConstraintInterpreterVisitor;
     }
-}).refineClass(lively.ast.Send, {
+}).refineClass(users.timfelgentreff.jsinterpreter.Send, {
     asFunction: function(optFunc) {
         var initializer = optFunc.prototype.initialize.ast().asFunction();
         initializer.original = optFunc;
         return initializer;
     }
-}).refineClass(lively.ast.GetSlot, {
+}).refineClass(users.timfelgentreff.jsinterpreter.GetSlot, {
     set: function(value, frame, interpreter) {
         var obj = interpreter.visit(this.obj),
             name = interpreter.visit(this.slotName);
@@ -667,7 +667,7 @@ Object.subclass('ConstrainedVariable', {
     }
 })
 
-lively.ast.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
+users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
 
 
 
