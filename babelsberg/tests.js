@@ -716,32 +716,13 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
 
 TestCase.subclass('users.timfelgentreff.babelsberg.src_transform.TransformTest', {
     testObjectEditorTransform1: function () {
-        var src = "bbb.always({
-    ctx: {
-        a: a,
-        b: b,
-        _$_self: this.doitContext || this
-    }
-}, function() {
-    return a < b;;
-});";
+        var src = "always: {a < b}";
         var result = new BabelsbergSrcTransform().transform(src);
         result = result.replace(/[ \n\r\t]/g,"");
         this.assert(result === "bbb.always({ctx:{a:a,b:b,_$_self:this.doitContext||this}},function(){returna<b;;});", result);
     },
     testObjectEditorTransform2: function () {
-        var src = "bbb.always({
-    solver: cassowary,
-    priority: "high",
-    ctx: {
-        cassowary: cassowary,
-        a: a,
-        b: b,
-        _$_self: this.doitContext || this
-    }
-}, function() {
-    return a < b;;
-});";
+        var src = "always: {solver: cassowary; priority: 'high'; a < b}";
         var result = new BabelsbergSrcTransform().transform(src);
         result = result.replace(/[ \n\r\t]/g,"");
         this.assert(result === "bbb.always({solver:cassowary,priority:\"high\",ctx:{cassowary:cassowary,a:a,b:b,_$_self:this.doitContext||this}},function(){returna<b;;});", result);
