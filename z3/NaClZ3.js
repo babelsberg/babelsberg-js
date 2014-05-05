@@ -354,7 +354,7 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
     finishEdit: function() {
         throw "Z3 does not support editing"
     },
-    });
+});
 
 NaCLZ3Ast.subclass('NaCLZ3Constant', {
     initialize: function (value, solver) {

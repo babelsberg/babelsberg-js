@@ -1,6 +1,6 @@
-module('users.timfelgentreff.babelsberg.tests').requires('lively.TestFramework', 'users.timfelgentreff.babelsberg.constraintinterpreter').toRun(function() {
+module('users.timfelgentreff.babelsberg.PerformanceTests').requires('lively.TestFramework', 'users.timfelgentreff.babelsberg.constraintinterpreter').toRun(function() {
 
-TestCase.subclass('users.timfelgentreff.babelsberg.tests.PerformanceTests', {
+TestCase.subclass('users.timfelgentreff.babelsberg.PerformanceTests.PerformanceTests', {
     Iterations: 10000,
     testImperativeDragSimulation: function () {
         var mouse = {},
@@ -41,6 +41,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PerformanceTests', {
             get d() { return this.$$d }, $$d: 0,
             get e() { return this.$$e }, $$e: 0,
         }
+        bbb.unconstrain(this, "constrainedSumObj");
         this.constrainedSumObj = {a: 1, b: 1, c:1, d:1, e:1};
         this.constraint = bbb.always({solver: new ClSimplexSolver(), ctx: {self: this}}, function () {
             return self.constrainedSumObj.a == 1 &&
@@ -145,8 +146,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PerformanceTests', {
                 gray: {top: 0, bottom: 0},
                 white: {top: 0, bottom: 0},
                 display: {number: 0}};
-        ClSimplexSolver.resetInstance();
-        var solver = ClSimplexSolver.getInstance();
+        var solver = new ClSimplexSolver();
         
         bbb.always({solver: solver, ctx: ctx}, function () { return temperature.c == mercury.top });
         bbb.always({solver: solver, ctx: ctx}, function () { return white.top == thermometer.top });

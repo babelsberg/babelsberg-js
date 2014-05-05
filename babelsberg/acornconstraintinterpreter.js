@@ -1,4 +1,4 @@
-module('users.timfelgentreff.babelsberg.constraintinterpreter').requires('users.timfelgentreff.jsinterpreter.Interpreter', 'cop.Layers', 'users.timfelgentreff.babelsberg.cassowary_ext', 'users.timfelgentreff.babelsberg.deltablue_ext', 'users.timfelgentreff.babelsberg.core_ext', 'users.timfelgentreff.babelsberg.src_transform').toRun(function() {
+module('users.timfelgentreff.babelsberg.constraintinterpreter').requires('lively.ast.AcornInterpreter', 'cop.Layers', 'users.timfelgentreff.babelsberg.cassowary_ext', 'users.timfelgentreff.babelsberg.deltablue_ext', 'users.timfelgentreff.babelsberg.core_ext', 'users.timfelgentreff.babelsberg.src_transform').toRun(function() {
 
 // branched from 198617
 
@@ -120,15 +120,6 @@ Object.extend(Global, {
     bbb: new Babelsberg()
 });
 
-users.timfelgentreff.jsinterpreter.Send.addMethods({
-    get args() {
-        return this._$args || []
-    },
-    
-    set args(value) {
-        this._$args = value
-    }
-});
 cop.create('MorphSetConstrainedPositionLayer').refineClass(lively.morphic.Morph, {
     setPosition: function(newPos) {
         if (this.editCb) {
@@ -149,38 +140,18 @@ cop.create('MorphSetConstrainedPositionLayer').refineClass(lively.morphic.Morph,
     }
 });
 
-cop.create("ConstraintConstructionLayer").refineObject(users.timfelgentreff.jsinterpreter, {
-    get InterpreterVisitor() {
-        return ConstraintInterpreterVisitor;
+cop.create("ConstraintConstructionLayer").refineObject(lively.ast.AcornInterpreter, {
+    get Interpreter() {
+        return ConstraintInterpreter;
     }
-}).refineClass(users.timfelgentreff.jsinterpreter.Send, {
-    asFunction: function(optFunc) {
-        var initializer = optFunc.prototype.initialize.ast().asFunction();
-        initializer.original = optFunc;
-        return initializer;
-    }
-}).refineClass(users.timfelgentreff.jsinterpreter.GetSlot, {
-    set: function(value, frame, interpreter) {
-        var obj = interpreter.visit(this.obj),
-            name = interpreter.visit(this.slotName);
-        if (obj === Global || (obj instanceof lively.Module)) {
-            return obj[name] = value;
-        }
-        if (obj && obj.isConstraintObject) {
-            obj = this.getConstraintObjectValue(obj);
-        }
-        
-        obj[name] = value;
-        cvar = ConstrainedVariable.newConstraintVariableFor(obj, name);
-        if (Constraint.current) {
-            cvar.ensureExternalVariableFor(Constraint.current.solver);
-            cvar.addToConstraint(Constraint.current);
-            if (cvar.isSolveable()) {
-                Constraint.current.addPrimitiveConstraint(cvar.externalVariable.cnEquals(value));
-            }
-        }
-    },
-});
+})
+// .refineClass(lively.ast.Send, {
+//     asFunction: function(optFunc) {
+//         var initializer = optFunc.prototype.initialize.ast().asFunction();
+//         initializer.original = optFunc;
+//         return initializer;
+//     }
+// });
 
 Object.subclass('Constraint', {
     initialize: function(predicate, solver) {
@@ -193,8 +164,9 @@ Object.subclass('Constraint', {
         // FIXME: this global state is ugly
         try {
             Constraint.current = this;
+            var interp = new ConstraintInterpreter();
             var constraintObject = cop.withLayers([ConstraintConstructionLayer], function () {
-                return predicate.forInterpretation().apply(undefined, []);
+                return interp.run(lively.ast.acorn.parse("(" + predicate + ")()"), predicate.varMapping);
             });
         } finally {
             Constraint.current = null;
@@ -667,27 +639,32 @@ Object.subclass('ConstrainedVariable', {
     }
 })
 
-users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
+lively.ast.AcornInterpreter.Interpreter.subclass('ConstraintInterpreter', {
 
 
 
 
     getConstraintObjectValue: function(o) {
         var value = o.value;
-        if (typeof(o) == "function") {
+        if (typeof(value) == "function") {
             return value();
         } else {
             return value;
         }
     },
 
-    visitVariable: function($super, node) {
-        return $super(node);
-    },
 
-    visitCond: function($super, node) {
-        var frame = this.currentFrame,
-            condVal = this.visit(node.condExpr);
+
+    visitIfStatement: function($super, node, state) {
+         var oldResult = state.result,
+            frame = state.currentFrame;
+        this.accept(node.test, state);
+        var condVal = state.result;
+        state.result = oldResult;
+
+        if (frame.isResuming() && this.wantsInterpretation(node.consequent, frame)) {
+            condVal = true; // resuming node inside true branch
+        }
         if (condVal && condVal.isConstraintObject) {
             debugger
             var self = this;
@@ -695,203 +672,302 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
             if (!condVal) {
                 condVal = cop.withoutLayers([ConstraintConstructionLayer], function() {
                     // XXX: this will cause GetSlot to call $super, so we don't get constrainded vars
-                    return self.visit(node.condExpr);
+                    this.accept(node.consequent, state);
+                    return state.result;
                 });
+                state.result = oldResult;
                 debugger
             }
         }
-        return condVal ? this.visit(node.trueExpr) : this.visit(node.falseExpr);
+        
+        if (condVal) {
+            this.accept(node.consequent, state);
+        } else if (node.alternate) {
+            this.accept(node.alternate, state);
+        }
     },
 
-    visitUnaryOp: function($super, node) {
-        var frame = this.currentFrame,
-            val = this.visit(node.expr);
-        if (val && val.isConstraintObject) {
+    visitUnaryExpression: function($super, node, state) {
+        // Below copied from AcornInterpreter.Interpreter
+        if (node.operator == 'delete') {
+            node = node.argument;
+            if (node.type == 'Identifier') {
+                // do not delete
+                try {
+                    state.currentFrame.getScope().findScope(node.name);
+                    state.result = false;
+                } catch (e) { // should be ReferenceError
+                    state.result = true;
+                }
+            } else if (node.type == 'MemberExpression') {
+                this.accept(node.object, state);
+                var obj = state.result, prop;
+                if ((node.property.type == 'Identifier') && !node.computed)
+                    prop = node.property.name;
+                else {
+                    this.accept(node.property, state);
+                    prop = state.result;
+                }
+                state.result = delete obj[prop];
+            } else
+                throw new Error('Delete not yet implemented for ' + node.type + '!');
+            return;
+        }
+
+        this.accept(node.argument, state);
+        /* BEGIN BABELSBERG MOD */
+        if (state.result && state.result.isConstraintObject) {
             // TODO: check if this always does what we want
-            val = this.getConstraintObjectValue(val);
+            state.result = this.getConstraintObjectValue(state.result);
         }
-        // Below copied from InterpreterVisitor
-        switch (node.name) {
-            case '-':
-              return -val;
-            case '!':
-              return !val;
-            case '~':
-              return~val;
-            case 'typeof':
-              return typeof val;
-            default:
-              throw new Error('No semantics for unary op ' + node.name)
+        /* END BABELSBERG MOD */
+        switch (node.operator) {
+            case '-':       state.result = -state.result; break;
+            case '+':       state.result = +state.result; break;
+            case '!':       state.result = !state.result; break;
+            case '~':       state.result = ~state.result; break;
+            case 'typeof':  state.result = typeof state.result; break;
+            case 'void':    state.result = void state.result; break; // or undefined?
+            default: throw new Error('No semantics for UnaryExpression with ' + node.operator + ' operator!');
         }
     },
 
-    invoke: function($super, node, recv, func, argValues) {
+    invoke: function($super, recv, func, argValues, frame, isNew) {
         if (!func && (!recv || !recv.isConstraintObject)) {
-            var error = "No such method: " + recv + "." +  (node.property && node.property.value)
+            var error = "No such method: " + recv + "." +  (func && func.name())
             alert(error)
             throw error
         };
+        if (func && this.shouldInterpret(frame, func)) {
+            debugger
+            func = this.fetchInterpretedFunction(func, isNew) || func;
+        }
         if (recv && recv.isConstraintObject) {
             if (func) {
-                var forInterpretation = func.forInterpretation;
-                func.forInterpretation = undefined;
-                try {
-                    return cop.withoutLayers([ConstraintConstructionLayer], function() {
-                        return $super(node, recv, func, argValues);
-                    });
-                } finally {
-                    func.forInterpretation = forInterpretation;
-                }
+                func.isInterpretableFunction = false;
+                return cop.withoutLayers([ConstraintConstructionLayer], function() {
+                    return $super(recv, func, argValues, frame, isNew);
+                });
             } else {
                 // XXX: tried to call a function on this that this constraintobject does not understand.
                 //      we'll just forward to the value, I guess?
-                debugger
                 var value = this.getConstraintObjectValue(recv);
-                var prop = this.visit(node.property);
-                return this.invoke(node, value, value[prop], argValues);
+                var prop = func.name();
+                return this.invoke(value, value[prop], argValues, frame, isNew);
             }
         } else if (recv === Math) {
             if (func === Math.sqrt && argValues[0].pow || argValues[0].sqrt) {
                 if (argValues[0].pow) {
-                    return this.invoke(node, argValues[0], argValues[0].pow, [0.5]);
+                    return this.invoke(argValues[0], argValues[0].pow, [0.5], frame, isNew);
                 } else {
-                    return this.invoke(node, argValues[0], argValues[0].sqrt, []);
+                    return this.invoke(argValues[0], argValues[0].sqrt, [], frame, isNew);
                 }
             } else if (func === Math.pow && argValues[0].pow) {
-                return this.invoke(node, argValues[0], argValues[0].pow, [argValues[1]]);
+                return this.invoke(argValues[0], argValues[0].pow, [argValues[1]], frame, isNew);
             } else if (func === Math.sin && argValues[0].sin) {
-                return this.invoke(node, argValues[0], argValues[0].sin, []);
+                return this.invoke(argValues[0], argValues[0].sin, [], frame, isNew);
             } else if (func === Math.cos && argValues[0].cos) {
-                return this.invoke(node, argValues[0], argValues[0].cos, []);
+                return this.invoke(argValues[0], argValues[0].cos, [], frame, isNew);
             } else {
-                return $super(node, recv, func, argValues);
+                return $super(recv, func, argValues, frame, isNew);
             }
         } else {
             return cop.withLayers([ConstraintConstructionLayer], function() {
-                return $super(node, recv, func, argValues);
+                return $super(recv, func, argValues, frame, isNew);
             });
         }
     },
-    visitBinaryOp: function($super, node) {
-        if (node.name === "&&") {
-            var leftVal = this.visit(node.left),
-                rightVal = this.visit(node.right);
+    fetchInterpretedFunction: function(func, isNew) {
+        // recreate scopes
+        // FIXME: duplicate from lively.ast.Rewriting > UnwindException.prototype.createAndShiftFrame
+        var scope, topScope, newScope,
+            fState = func._cachedScopeObject;
+        if (fState) {
+            do {
+                newScope = new lively.ast.AcornInterpreter.Scope(fState[1]); // varMapping
+                if (scope)
+                    scope.setParentScope(newScope);
+                else
+                    topScope = newScope;
+                scope = newScope
+                fState = fState[2]; // parentFrameState
+            } while (fState && fState != Global);
+            
+            // recreate lively.ast.AcornInterpreter.Function object
+            func = new lively.ast.AcornInterpreter.Function(func._cachedAst, topScope);
+            return func.asFunction();
+        } else {
+            // XXX: HACKY DEEP-INTERPRETATION FROM SOURCE
+            var initializer;
+            if (isNew) {
+                // XXX?
+                initializer = func;
+                func = func.prototype.initialize;
+            }
+        
+            func = new lively.ast.AcornInterpreter.Function(
+                    lively.ast.acorn.parseFunction(func.toString()),
+                    new lively.ast.AcornInterpreter.Scope(Global)
+            );
+            var ast = func.asFunction();
+            ast.original = initializer;
+            return ast;
+        }
+    },
+
+    visitLogicalExpression: function($super, node, state) {
+        if (node.operator === "&&") {
+            this.accept(node.left, state);
+            var leftVal = state.result;
+            this.accept(node.right, state);
+            var rightVal = state.result;
             Constraint.current.addPrimitiveConstraint(leftVal);
             dbgOn(typeof(leftVal) != "object")
-            return rightVal;
-        } else if (node.name.match(/[\*\+\/\-]|==|<=|>=|===/)) {
-            var leftVal = this.visit(node.left),
-                rightVal = this.visit(node.right);
+            state.result = rightVal;
+        } else {
+            $super(node, state);
+        }
+    },
+    visitBinaryExpression: function($super, node, state) {
+        if (node.operator.match(/[\*\+\/\-]|==|<=|>=|===/)) {
+            this.accept(node.left, state);
+            var leftVal = state.result;
+            this.accept(node.right, state);
+            var rightVal = state.result;
             
             if (leftVal === undefined) leftVal = 0;
             if (rightVal === undefined) rightVal = 0;
             
             var rLeftVal = leftVal.isConstraintObject ? this.getConstraintObjectValue(leftVal) : leftVal,
                 rRightVal = rightVal.isConstraintObject ? this.getConstraintObjectValue(rightVal) : rightVal;                    
-            switch (node.name) {
+            switch (node.operator) {
                case '+':
                     if (leftVal.isConstraintObject && leftVal.plus) {
-                        return leftVal.plus(rightVal);
+                        state.result = leftVal.plus(rightVal);
                     } else if (rightVal.isConstraintObject && rightVal.plus) {
-                        return rightVal.plus(leftVal);
+                        state.result = rightVal.plus(leftVal);
                     } else {
-                        return rLeftVal + rRightVal;
+                        state.result = rLeftVal + rRightVal;
                     };
+                    break;
                 case '-':
                     if (leftVal.isConstraintObject && leftVal.minus) {
-                        return leftVal.minus(rightVal);
+                        state.result = leftVal.minus(rightVal);
                     } else if (rightVal.isConstraintObject && rightVal.plus && Object.isNumber(leftVal)) {
-                        return rightVal.plus(-leftVal);
+                        state.result = rightVal.plus(-leftVal);
                     } else {
-                        return rLeftVal - rRightVal;
+                        state.result = rLeftVal - rRightVal;
                     };
+                    break;
                 case '*':
                     if (leftVal.isConstraintObject && leftVal.times) {
-                        return leftVal.times(rightVal);
+                        state.result = leftVal.times(rightVal);
                     } else if (rightVal.isConstraintObject && rightVal.times) {
-                        return rightVal.times(leftVal);
+                        state.result = rightVal.times(leftVal);
                     } else {
-                        return rLeftVal * rRightVal;
+                        state.result = rLeftVal * rRightVal;
                     };
+                    break;
                 case '/':
                     if (leftVal.isConstraintObject && leftVal.divide) {
-                        return leftVal.divide(rightVal);
+                        state.result = leftVal.divide(rightVal);
                     } else {
-                        return rLeftVal / rRightVal;
+                        state.result = rLeftVal / rRightVal;
                     };
+                    break;
                 case '<=':
                     if (leftVal.isConstraintObject && leftVal.cnLeq) {
-                        return leftVal.cnLeq(rightVal);
+                        state.result = leftVal.cnLeq(rightVal);
                     } else if (rightVal.isConstraintObject && rightVal.cnGeq) {
-                        return rightVal.cnGeq(leftVal);
+                        state.result = rightVal.cnGeq(leftVal);
                     } else {
-                        return rLeftVal <= rRightVal;
+                        state.result = rLeftVal <= rRightVal;
                     };
+                    break;
                 case '>=':
                     if (leftVal.isConstraintObject && leftVal.cnGeq) {
-                        return leftVal.cnGeq(rightVal);
+                        state.result = leftVal.cnGeq(rightVal);
                     } else if (rightVal.isConstraintObject && rightVal.cnLeq) {
-                        return rightVal.cnLeq(leftVal);
+                        state.result = rightVal.cnLeq(leftVal);
                     } else {
-                        return rLeftVal >= rRightVal;
+                        state.result = rLeftVal >= rRightVal;
                     };
+                    break;
                 case '==':
                     if (leftVal.isConstraintObject && leftVal.cnEquals) {
-                        return leftVal.cnEquals(rightVal);
+                        state.result = leftVal.cnEquals(rightVal);
                     } else if (rightVal.isConstraintObject && rightVal.cnEquals) {
-                        return rightVal.cnEquals(leftVal);
+                        state.result = rightVal.cnEquals(leftVal);
                     } else {
-                        return rLeftVal == rRightVal;
+                        state.result = rLeftVal == rRightVal;
                     };
+                    break;
                 case '===':
                     if (leftVal.isConstraintObject && leftVal.cnIdentical) {
-                        return leftVal.cnIdentical(rightVal);
+                        state.result = leftVal.cnIdentical(rightVal);
                     } else if (rightVal.isConstraintObject && rightVal.cnIdentical) {
-                        return rightVal.cnIdentical(leftVal);
+                        state.result = rightVal.cnIdentical(leftVal);
                     } else {
-                        return rLeftVal === rRightVal;
+                        state.result = rLeftVal === rRightVal;
                     };
+                    break;
             }
+        } else {
+            $super(node, state);
         }
-        return $super(node);
     },
 
 
-    visitGetSlot: function($super, node) {
+
+    visitMemberExpression: function($super, node, state) {
         if (cop.currentLayers().indexOf(ConstraintConstructionLayer) === -1) {
-            // XXX: See visitCond
-            return $super(node);
+            // XXX: See visitIfStatement
+            return $super(node, state);
         }
-        
-        var obj = this.visit(node.obj),
-            name = this.visit(node.slotName),
-            cobj = (obj ? obj[ConstrainedVariable.ThisAttrName] : undefined),
+        // BEGIN COPIED FROM ACORN
+        this.accept(node.object, state);
+        var object = state.result,
+            property;
+        if ((node.property.type == 'Identifier') && !node.computed)
+            property = node.property.name;
+        else {
+            this.accept(node.property, state);
+            property = state.result;
+        }
+        // END COPIED FROM ACORN
+        var cobj = (object ? object[ConstrainedVariable.ThisAttrName] : undefined),
             cvar;
-        if (obj === Global || (obj instanceof lively.Module)) {
-            return obj[name];
+        if (object === Global || (object instanceof lively.Module)) {
+            return object[property];
         }
-        if (obj && obj.isConstraintObject) {
-            cobj = obj.__cvar__;
-            obj = this.getConstraintObjectValue(obj);
+        if (object && object.isConstraintObject) {
+            cobj = object.__cvar__;
+            object = this.getConstraintObjectValue(object);
         }
 
-        cvar = ConstrainedVariable.newConstraintVariableFor(obj, name, cobj);
+        cvar = ConstrainedVariable.newConstraintVariableFor(object, property, cobj);
         if (Constraint.current) {
             cvar.ensureExternalVariableFor(Constraint.current.solver);
             cvar.addToConstraint(Constraint.current);
         }
         if (cvar && cvar.isSolveable()) {
-            return cvar.externalVariable;
+            state.result = cvar.externalVariable;
         } else {
-            var retval = obj[name];
-            if (retval) {
-                retval[ConstrainedVariable.ThisAttrName] = cvar;
+            var getter = object.__lookupGetter__(property);
+            if (getter) {
+                state.result = this.invoke(object, getter, [], state.currentFrame, false/*isNew*/)
+            } else {
+                var retval = object[property];
+                if (retval) {
+                    retval[ConstrainedVariable.ThisAttrName] = cvar;
+                }
+                state.result = retval;
             }
-            return retval;
         }
     },
-    visitReturn: function($super, node) {
-        var retVal = $super(node);
+    visitReturnStatement: function($super, node, state) {
+        $super(node, state);
+        var retVal = state.result;
         if (retVal) {
             var cvar = retVal[ConstrainedVariable.ThisAttrName];
             if (retVal.isConstraintObject) {
@@ -905,21 +981,64 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
                 }
             }
         }
-        return retVal;
     },
 
 
 
-    shouldInterpret: function(frame, func) {
+    shouldInterpret: function($super, frame, func) {
         if (func.sourceModule === Global.users.timfelgentreff.babelsberg.constraintinterpreter) {
             return false;
         }
         if (func.declaredClass === "Babelsberg") {
-            return false
+            return false;
+        }
+        if (typeof(func.forInterpretation) == "function"){
+            debugger
+            return false;
         }
         var nativeClass = lively.Class.isClass(func) && func.superclass === undefined;
-        return (!(this.isNative(func) || nativeClass)) &&
-                 typeof(func.forInterpretation) == "function"
+        return !nativeClass && $super(frame, func);
+    },
+    setSlot: function($super, node, state) {
+        // BEGIN COPIED FROM ACORN
+        if (node.type != 'MemberExpression')
+            throw new Error('setSlot can only be called with a MemberExpression node');
+        var value = state.result;
+        this.accept(node.object, state);
+        var obj = state.result, prop;
+        if (node.property.type == 'Identifier' && !node.computed) {
+            prop = node.property.name;
+        } else {
+            this.accept(node.property, state);
+            prop = state.result;
+        }
+        // END COPIED FROM ACORN
+        if (obj === Global || (obj instanceof lively.Module)) {
+            return obj[prop] = value;
+        }
+        if (obj && obj.isConstraintObject) {
+            obj = this.getConstraintObjectValue(obj);
+        }
+        // BEGIN COPIED FROM ACORN
+        var setter = obj.__lookupSetter__(prop);
+        if (setter) {
+            this.invoke(obj, setter, [value], state.currentFrame, false/*isNew*/);
+        } else if (obj === state.currentFrame.arguments) {
+            obj[prop] = value;
+            state.currentFrame.setArguments(obj);
+        } else {
+            obj[prop] = value;
+        }
+        state.result = value;
+        // END COPIED FROM ACORN
+        var cvar = ConstrainedVariable.newConstraintVariableFor(obj, prop);
+        if (Constraint.current) {
+            cvar.ensureExternalVariableFor(Constraint.current.solver);
+            cvar.addToConstraint(Constraint.current);
+            if (cvar.isSolveable()) {
+                Constraint.current.addPrimitiveConstraint(cvar.externalVariable.cnEquals(value));
+            }
+        }
     },
     newObject: function($super, func) {
         if (func.original) {
