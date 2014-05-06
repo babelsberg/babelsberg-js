@@ -6,6 +6,10 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
     
     LayoutObject.subclass("LayoutSolver", {
         initialize: function(){
+            this.reset();
+        },
+        
+        reset: function() {
             this.variables = [];
             this.constraints = [];
             
