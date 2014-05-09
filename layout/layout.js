@@ -32,38 +32,26 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
         constraintVariableFor: function(value, ivarname, bbbConstraintVariable) {
             if(!value)
                 return null;
-            if(value && value instanceof lively.morphic.Box) {
-                console.log("constraintVariable for Box");
-                var name = ivarname + "" + this.variables.length;
-                var v = new LayoutConstraintVariableBox(name, value, this);
-                this.addVariable(v, bbbConstraintVariable);
-                return v;
+            if(value && value instanceof lively.morphic.Box) { // Box
+                return this.createSpecificVariable(value, ivarname, bbbConstraintVariable, LayoutConstraintVariableBox);
             }
-            if(value && ivarname === "shape") {
-                console.log("constraintVariable for shape");
-                var name = ivarname + "" + this.variables.length;
-                var v = new LayoutConstraintVariableShape(name, value, this);
-                this.addVariable(v, bbbConstraintVariable);
-                return v;
-                
+            if(value && ivarname === "shape") { // Shape
+                return this.createSpecificVariable(value, ivarname, bbbConstraintVariable, LayoutConstraintVariableShape);
             }
-            if(value && value instanceof lively.Point && ivarname === "_Extent") {
-                console.log("constraintVariable for _Extent");
-                var name = ivarname + "" + this.variables.length;
-                var v = new LayoutConstraintVariablePoint(name, value, this);
-                this.addVariable(v, bbbConstraintVariable);
-                return v;
+            if(value && value instanceof lively.Point && ivarname === "_Extent") { // _Extent
+                return this.createSpecificVariable(value, ivarname, bbbConstraintVariable, LayoutConstraintVariablePoint);
             };
-            console.log("value:", value);
-            if(typeof value === "number") {
-                // TODO: add ConstraintVariable for x and y coordinates
-                console.log("constraintVariable for Number");
-                var name = ivarname + "" + this.variables.length;
-                var v = new LayoutConstraintVariableNumber(name, value, this);
-                this.addVariable(v, bbbConstraintVariable);
-                return v;
+            if(typeof value === "number") { // x or y
+                return this.createSpecificVariable(value, ivarname, bbbConstraintVariable, LayoutConstraintVariableNumber);
             }
             return null;
+        },
+        
+        createSpecificVariable: function(value, ivarname, bbbConstraintVariable, variableClass) {
+            var name = ivarname + "" + this.variables.length;
+            var v = new (variableClass)(name, value, this);
+            this.addVariable(v, bbbConstraintVariable);
+            return v;
         },
 
         addVariable: function(layoutConstraintVariable, bbbConstraintVariable) {
@@ -133,18 +121,11 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
             if(this.__parent__ && this.__parent__ instanceof LayoutConstraintVariable) {
                 this.__parent__.changed(bool)
             }
-        }
-    });
-
-    LayoutConstraintVariable.subclass('LayoutConstraintVariableBox', {
-        initialize: function($super, name, value, solver) {
-            $super(name, value, solver);
-            
-            this.extent = this.constrainExtent(value);
         },
-
-        constrainExtent: function(value) {
-            var extentConstrainedVariable = ConstrainedVariable.newConstraintVariableFor(value, "shape");
+        
+        // create a ConstrainedVariable for the property given by ivarname
+        constrainProperty: function(value, ivarname) {
+            var extentConstrainedVariable = ConstrainedVariable.newConstraintVariableFor(value, ivarname);
             if (Constraint.current) {
                 extentConstrainedVariable.ensureExternalVariableFor(Constraint.current.solver);
                 extentConstrainedVariable.addToConstraint(Constraint.current);
@@ -155,6 +136,15 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
             return extentConstrainedVariable;
         },
         
+    });
+
+    LayoutConstraintVariable.subclass('LayoutConstraintVariableBox', {
+        initialize: function($super, name, value, solver) {
+            $super(name, value, solver);
+            
+            this.shape = this.constrainProperty(value, "shape");
+        },
+
         /*
          * accepted functions for Boxes
          */
@@ -167,22 +157,9 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
         initialize: function($super, name, value, solver) {
             $super(name, value, solver);
             
-            this.extent = this.constrainExtent(value);
-        },
-
-        constrainExtent: function(value) {
-            var extentConstrainedVariable = ConstrainedVariable.newConstraintVariableFor(value, "_Extent");
-            if (Constraint.current) {
-                extentConstrainedVariable.ensureExternalVariableFor(Constraint.current.solver);
-                extentConstrainedVariable.addToConstraint(Constraint.current);
-            }
-
-            var layoutConstraintVariable = extentConstrainedVariable.externalVariables(this.solver);
-            layoutConstraintVariable.__parent__ = this;
-
-            return extentConstrainedVariable;
+            this.extent = this.constrainProperty(value, "_Extent");
         }
-        
+
         /*
          * accepted functions for Shapes
          */
@@ -192,39 +169,13 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
         initialize: function($super, name, value, solver) {
             $super(name, value, solver);
             
-            this.x = this.constrainX(value);
-            this.y = this.constrainY(value);
-        },
-
-        constrainX: function(value) {
-            var extentConstrainedVariable = ConstrainedVariable.newConstraintVariableFor(value, "x");
-            if (Constraint.current) {
-                extentConstrainedVariable.ensureExternalVariableFor(Constraint.current.solver);
-                extentConstrainedVariable.addToConstraint(Constraint.current);
-            }
-
-            var layoutConstraintVariable = extentConstrainedVariable.externalVariables(this.solver);
-            layoutConstraintVariable.__parent__ = this;
-
-            return extentConstrainedVariable;
-        },
-        
-        constrainY: function(value) {
-            var extentConstrainedVariable = ConstrainedVariable.newConstraintVariableFor(value, "y");
-            if (Constraint.current) {
-                extentConstrainedVariable.ensureExternalVariableFor(Constraint.current.solver);
-                extentConstrainedVariable.addToConstraint(Constraint.current);
-            }
-
-            var layoutConstraintVariable = extentConstrainedVariable.externalVariables(this.solver);
-            layoutConstraintVariable.__parent__ = this;
-
-            return extentConstrainedVariable;
+            this.x = this.constrainProperty(value, "x");
+            this.y = this.constrainProperty(value, "y");
         },
         
         suggestValue: function(val) {
             console.log("This is the new _Extent:", val, this);
-            // HACK: replace hard reference with plan implementation
+
             this.changed(true);
             this.solver.solve();
         }
