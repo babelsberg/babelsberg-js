@@ -4,7 +4,7 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
         isConstraintObject: function() { return true; },
     });
     
-    /*
+    /**
      * Solver
      */
     LayoutObject.subclass("LayoutSolver", {
@@ -100,7 +100,12 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
             this.name = name;
             this.value = value;
             this.solver = solver;
+            
+            this.__children__ = {};
+            
+            this.initChildConstraints();
         },
+        initChildConstraints: function() {},
         setReadonly: function(bool) {
             // TODO: add some constraint to hold a constant value
             if (bool && !this.readonlyConstraint) {
@@ -122,27 +127,29 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
                 this.__parent__.changed(bool)
             }
         },
+        addChild: function(ivarname, child) {
+            this.__children__[ivarname] = child;
+            child.__parent__ = this;
+        },
         
         // create a ConstrainedVariable for the property given by ivarname
-        constrainProperty: function(value, ivarname) {
-            var extentConstrainedVariable = ConstrainedVariable.newConstraintVariableFor(value, ivarname);
+        constrainProperty: function(ivarname) {
+            var extentConstrainedVariable = ConstrainedVariable.newConstraintVariableFor(this.value, ivarname);
             if (Constraint.current) {
                 extentConstrainedVariable.ensureExternalVariableFor(Constraint.current.solver);
                 extentConstrainedVariable.addToConstraint(Constraint.current);
             }
 
-            var layoutConstraintVariable = extentConstrainedVariable.externalVariables(this.solver);
-            layoutConstraintVariable.__parent__ = this;
+            var childConstraintVariable = extentConstrainedVariable.externalVariables(this.solver);
+            this.addChild(ivarname, childConstraintVariable);
+
             return extentConstrainedVariable;
-        },
-        
+        }
     });
 
     LayoutConstraintVariable.subclass('LayoutConstraintVariableBox', {
-        initialize: function($super, name, value, solver) {
-            $super(name, value, solver);
-            
-            this.shape = this.constrainProperty(value, "shape");
+        initChildConstraints: function() {
+            this.shape = this.constrainProperty("shape");
         },
 
         /*
@@ -154,10 +161,8 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
     });
     
     LayoutConstraintVariable.subclass('LayoutConstraintVariableShape', {
-        initialize: function($super, name, value, solver) {
-            $super(name, value, solver);
-            
-            this.extent = this.constrainProperty(value, "_Extent");
+        initChildConstraints: function() {
+            this.extent = this.constrainProperty("_Extent");
         }
 
         /*
@@ -166,11 +171,9 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
     });
     
     LayoutConstraintVariable.subclass('LayoutConstraintVariablePoint', {
-        initialize: function($super, name, value, solver) {
-            $super(name, value, solver);
-            
-            this.x = this.constrainProperty(value, "x");
-            this.y = this.constrainProperty(value, "y");
+        initChildConstraints: function() {
+            this.x = this.constrainProperty("x");
+            this.y = this.constrainProperty("y");
         },
         
         suggestValue: function(val) {
@@ -193,8 +196,7 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
 
     // TODO: add further types of constraint variables
     // for Submorphs array (to enable jQuery style of definitions)
-    // for primitive numbers
-    
+
     /**
      * Constraint
      */
