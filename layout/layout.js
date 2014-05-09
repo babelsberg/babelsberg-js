@@ -76,7 +76,7 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
         
         solve: function() {
             console.log("------- solve -------", arguments);
-            this.constraints.reverse().each(function(constraint) {
+            this.constraints.each(function(constraint) {
                 console.log(constraint);
                 constraint.solve();
             });
@@ -149,6 +149,13 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
             this.shape = this.constrainProperty("shape");
         },
 
+        suggestValue: function(val) {
+            console.log("This is the new Box:", val, this);
+    
+            this.changed(true);
+            this.solver.solve();
+        },
+
         /*
          * accepted functions for Boxes
          */
@@ -160,6 +167,13 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
     LayoutConstraintVariable.subclass('LayoutConstraintVariableShape', {
         initChildConstraints: function() {
             this.extent = this.constrainProperty("_Extent");
+        },
+
+        suggestValue: function(val) {
+            console.log("This is the new Shape:", val, this);
+    
+            this.changed(true);
+            this.solver.solve();
         }
 
         /*
@@ -186,6 +200,12 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
     });
     
     LayoutConstraintVariable.subclass('LayoutConstraintVariableNumber', {
+        suggestValue: function(val) {
+            console.log("This is the new Number:", val, this);
+
+            this.changed(true);
+            this.solver.solve();
+        }
         /*
          * accepted functions for Numbers
          */
@@ -197,7 +217,7 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
     /**
      * Constraint
      */
-    Layout.Object.subclass('LayoutConstraint', {
+    LayoutObject.subclass('LayoutConstraint', {
         enable: function (strength) {
             // TODO: consider strength
             this.solver.addConstraint(this);
