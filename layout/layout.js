@@ -21,9 +21,6 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
         },
 
         always: function(opts, func)  {
-            console.log(opts);
-            console.log(func);
-            
             func.varMapping = opts.ctx;
             var constraint = new Constraint(func, this);
             constraint.enable();
