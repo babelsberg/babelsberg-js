@@ -39,6 +39,14 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
                 this.addVariable(v, bbbConstraintVariable);
                 return v;
             }
+            if(value && ivarname === "shape") {
+                console.log("constraintVariable for shape");
+                var name = ivarname + "" + this.variables.length;
+                var v = new LayoutConstraintVariableShape(name, value, this);
+                this.addVariable(v, bbbConstraintVariable);
+                return v;
+                
+            }
             if(value && value instanceof lively.Point && ivarname === "_Extent") {
                 console.log("constraintVariable for _Extent");
                 var name = ivarname + "" + this.variables.length;
@@ -109,6 +117,16 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
         },
         isReadonly: function() {
             return !!this.readonlyConstraint;
+        },
+        changed: function(bool) {
+            if(arguments.length == 0) return this.__changed__;
+            
+            this.__changed__ = bool;
+            
+            // propagate changed flag upwards
+            if(this.__parent__ && this.__parent__ instanceof LayoutConstraintVariable) {
+                this.__parent__.changed(bool)
+            }
         }
     });
 
@@ -120,14 +138,42 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
         },
 
         constrainExtent: function(value) {
-            var extentConstrainedVariable = ConstrainedVariable.newConstraintVariableFor(value.shape, "_Extent");
+            var extentConstrainedVariable = ConstrainedVariable.newConstraintVariableFor(value, "shape");
             if (Constraint.current) {
                 extentConstrainedVariable.ensureExternalVariableFor(Constraint.current.solver);
                 extentConstrainedVariable.addToConstraint(Constraint.current);
             }
-            // HACK: replace hard reference with plan implementation
-            extentConstrainedVariable.box = this;
+
+            var layoutConstraintVariable = extentConstrainedVariable.externalVariables(this.solver);
+            layoutConstraintVariable.__parent__ = this;
+            return extentConstrainedVariable;
+        },
+        
+        /*
+         * accepted functions for Boxes
+         */
+        sameExtent: function(rightHandSideBox) {
+            return new LayoutConstraintBoxSameExtent(this, rightHandSideBox, this.solver);
+        }
+    });
+    
+    LayoutConstraintVariable.subclass('LayoutConstraintVariableShape', {
+        initialize: function($super, name, value, solver) {
+            $super(name, value, solver);
             
+            this.extent = this.constrainExtent(value);
+        },
+
+        constrainExtent: function(value) {
+            var extentConstrainedVariable = ConstrainedVariable.newConstraintVariableFor(value, "_Extent");
+            if (Constraint.current) {
+                extentConstrainedVariable.ensureExternalVariableFor(Constraint.current.solver);
+                extentConstrainedVariable.addToConstraint(Constraint.current);
+            }
+
+            var layoutConstraintVariable = extentConstrainedVariable.externalVariables(this.solver);
+            layoutConstraintVariable.__parent__ = this;
+
             return extentConstrainedVariable;
             
             // TODO: constrain x and y coordinates as well
@@ -147,7 +193,7 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
         suggestValue: function(val) {
             console.log("This is the new _Extent:", val, this);
             // HACK: replace hard reference with plan implementation
-            this.__cvar__.box.changed = true;
+            this.changed(true);
             this.solver.solve();
         }
         /*
@@ -181,8 +227,8 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
             this.solver = solver;
         },
         solve: function(point) {
-            if(this.left.changed) {
-                this.left.changed = false;
+            if(this.left.changed()) {
+                this.left.changed(false);
                 this.right.value.setExtent(this.left.value.getExtent());
             } else {
                 this.left.value.setExtent(this.right.value.getExtent());
