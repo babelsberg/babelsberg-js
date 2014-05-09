@@ -4,6 +4,9 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
         isConstraintObject: function() { return true; },
     });
     
+    /*
+     * Solver
+     */
     LayoutObject.subclass("LayoutSolver", {
         initialize: function(){
             this.reset();
@@ -27,7 +30,6 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
             return constraint;
         },
         constraintVariableFor: function(value, ivarname, bbbConstraintVariable) {
-            console.log(value, ivarname);
             if(!value)
                 return null;
             if(value && value instanceof lively.morphic.Box) {
@@ -82,6 +84,12 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
         }
     });
     
+    LayoutObject.subclass('LayoutPlan', {
+        initialize: function(solver) {
+            this.solver = solver;
+        }
+    });
+    
     /**
      * ConstraintVariable
      */
@@ -105,11 +113,8 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
     });
 
     LayoutConstraintVariable.subclass('LayoutConstraintVariableBox', {
-        initialize: function(name, value, solver) {
-            // TODO: use super call
-            this.name = name;
-            this.value = value;
-            this.solver = solver;
+        initialize: function($super, name, value, solver) {
+            $super(name, value, solver);
             
             this.extent = this.constrainExtent(value);
         },
@@ -151,13 +156,14 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
     });
 
     // TODO: add further types of constraint variables
+    // for shape
     // for Submorphs array (to enable jQuery style of definitions)
     // for primitive numbers
     
     /**
      * Constraint
      */
-    LayoutObject.subclass('LayoutConstraint', {
+    Layout.Object.subclass('LayoutConstraint', {
         enable: function (strength) {
             // TODO: consider strength
             this.solver.addConstraint(this);
