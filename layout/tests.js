@@ -11,8 +11,8 @@ TestCase.subclass('users.timfelgentreff.layout.tests.SimpleLayoutTest', {
         this.layoutSolver = new LayoutSolver();
         
         var parent = new lively.morphic.Box(pt(7,7).extent(pt(300,300)));
-        parent.addMorph(parent.child1 = new lively.morphic.Box(pt(10,10).extent(pt(100,250))));
-        parent.addMorph(parent.child2 = new lively.morphic.Box(pt(150,10).extent(pt(130, 200))));
+        parent.addMorph(parent.child1 = new lively.morphic.Morph.makeRectangle(10, 10, 100, 250));
+        parent.addMorph(parent.child2 = new lively.morphic.Morph.makeRectangle(150, 10, 130, 200));
 
         bbb.always({
             solver: this.layoutSolver,
