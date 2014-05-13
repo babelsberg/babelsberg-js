@@ -62,6 +62,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
     testUndefinedVariables: function() {
         var obj = {};
         bbb.always({
+            allowTests: true,
             solver: ClSimplexSolver.getInstance(),
             ctx: {obj: obj}
         }, function () {

@@ -112,6 +112,7 @@ Object.subclass("Babelsberg", {
     always: function(opts, func) {
         var solver = opts.solver || this.defaultSolver;
         if (!solver) throw "Must explicitely pass a solver for now";
+        func.allowTests = (opts.allowTests === true);
         return solver.always(opts, func);
     }
 
