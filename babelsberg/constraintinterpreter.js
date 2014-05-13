@@ -784,7 +784,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
             Constraint.current.addPrimitiveConstraint(leftVal);
             dbgOn(typeof(leftVal) != "object")
             return rightVal;
-        } else if (node.name.match(/[\*\+\/\-]|==|<=|>=|===/)) {
+        } else if (node.name.match(/[\*\+\/\-]|==|<=|>=|===|<|>/)) {
             var leftVal = this.visit(node.left),
                 rightVal = this.visit(node.right);
             
@@ -855,6 +855,22 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
                         return rightVal.cnIdentical(leftVal);
                     } else {
                         return rLeftVal === rRightVal;
+                    };
+                case '>':
+                    if (leftVal.isConstraintObject && leftVal.cnGreater) {
+                        return leftVal.cnGreater(rightVal);
+                    } else if (rightVal.isConstraintObject && rightVal.cnLess) {
+                        return rightVal.cnLess(leftVal);
+                    } else {
+                        return rLeftVal > rRightVal;
+                    };
+                case '<':
+                    if (leftVal.isConstraintObject && leftVal.cnLess) {
+                        return leftVal.cnLess(rightVal);
+                    } else if (rightVal.isConstraintObject && rightVal.cnGreater) {
+                        return rightVal.cnGreater(leftVal);
+                    } else {
+                        return rLeftVal < rRightVal;
                     };
             }
         }
