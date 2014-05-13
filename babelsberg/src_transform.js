@@ -248,8 +248,9 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
         doSave: function () {
             if (this.owner instanceof lively.ide.BrowserPanel) {
                 // XXX: Ad-hoc fragment search
-                var t = new BabelsbergSrcTransform(),
-                    idx = this.textString.indexOf("always:"),
+                var matchData = this.textString.match(/[^"]always:/),
+                    t = new BabelsbergSrcTransform(),
+                    idx = (matchData && matchData.index) || -1,
                     endIdx = this.textString.indexOf("}", idx + 1),
                     fragments = [];
                 while (idx !== -1 && endIdx !== -1) {
