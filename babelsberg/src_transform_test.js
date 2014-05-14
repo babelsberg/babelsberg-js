@@ -1,4 +1,4 @@
-module('users.timfelgentreff.babelsberg.src_transform_test').requires().toRun(function() {
+module('users.timfelgentreff.babelsberg.src_transform_test').requires('lively.TestFramework').toRun(function() {
 
 TestCase.subclass('users.timfelgentreff.babelsberg.src_transform_test.TransformTest', {
     testObjectEditorTransform1: function () {
