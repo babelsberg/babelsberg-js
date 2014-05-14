@@ -244,6 +244,9 @@ DBVariable.addMethods({
             Constraint.current.solver
         );
     },
+    cnOr: function(other) {
+        return this.value ? this : other;
+    },
     equals: function(argument) {
         return this.cnEquals(argument);
     },
@@ -262,6 +265,10 @@ DBConstraint.addMethods({
 
     disable: function () {
         this.destroyDBConstraint()
+    },
+    
+    cnOr: function (other) {
+        return this; // assume we can satisfy this
     }
 });
 EqualityDBConstraint.addMethods({

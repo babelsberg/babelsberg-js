@@ -129,6 +129,9 @@ ClAbstractVariable.addMethods({
     },
 
 
+    cnOr: function(value) {
+        return this;
+    },
     cnEquals: function(value) {
         return new ClLinearExpression(this).cnEquals(value);
     },
@@ -170,6 +173,9 @@ ClLinearExpression.addMethods({
         return new ClLinearInequality(value.minus(this));
     },
 
+    cnOr: function(other) {
+        return this;
+    },
     cnEquals: function(value) {
         if (typeof(value) == 'string') {
             // XXX: Basically, we make numbers in strings readonly here
@@ -267,6 +273,9 @@ ClConstraint.addMethods({
     },
     disable: function() {
         this.solver.removeConstraint(this);
+    },
+    cnOr: function(other) {
+        return this;
     },
     
     get solver() {
