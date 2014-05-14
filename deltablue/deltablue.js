@@ -704,7 +704,7 @@ Object.subclass('DBVariable', {
      **/
     initialize: function (name, initialValue, planner) {
         this.planner = planner;
-	this.value = initialValue || 0;
+	this.value = initialValue;
 	this.constraints = new DBOrderedCollection();
 	this.determinedBy = null;
 	this.mark = 0;

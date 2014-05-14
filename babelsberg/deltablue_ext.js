@@ -35,7 +35,7 @@ DBPlanner.addMethods({
         if (Object.isString(opts.priority)) {
             opts.priority = this.strength[opts.priority];
         }
-        
+        //func.allowUnsolvableOperations = true; // XXX TODO: find out if we need this
         var planner = this,
             ctx = opts.ctx,
             priority = opts.priority,
@@ -45,7 +45,6 @@ DBPlanner.addMethods({
             methods = func;
             func = undefined;
         }
-        debugger
         methods.varMapping = ctx;
         var cobj = new Constraint(methods, planner);
         var formulas = cobj.constraintvariables.collect(function (v) {
@@ -219,6 +218,13 @@ DBVariable.addMethods({
         return new EqualityDBConstraint(this, other, DBStrength.required, Constraint.current.solver);
     },
     cnEquals: function(other) {
+        if (!(other instanceof DBVariable)) {
+            other = new DBVariable("constant/" + other, other, this.planner);
+            Constraint.current.addPrimitiveConstraint(
+                new StayDBConstraint(other, DBStrength.required, this.planner)
+            );
+        }
+        
         var self = this;
         cloneFunc = function (fromObj) {
             if (fromObj.clone) {

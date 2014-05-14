@@ -428,12 +428,10 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
             r1setPositionValue, r2setPositionValue;
         
         r1.setPosition = r1.setPosition.wrap(function (proceed, value) {
-            debugger
             r1setPositionValue = value;
             return proceed(value);
         })
         r2.setPosition = r2.setPosition.wrap(function (proceed, value) {
-            debugger
             r2setPositionValue = value;
             return proceed(value);
         })

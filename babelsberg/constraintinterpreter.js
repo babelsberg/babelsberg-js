@@ -113,6 +113,8 @@ Object.subclass("Babelsberg", {
         var solver = opts.solver || this.defaultSolver;
         if (!solver) throw "Must explicitely pass a solver for now";
         func.allowTests = (opts.allowTests === true);
+        func.allowUnsolvableOperations = (opts.allowUnsolvableOperations === true);
+        func.debugging = opts.debugging;
         return solver.always(opts, func);
     }
 
@@ -203,7 +205,7 @@ Object.subclass('Constraint', {
         this.addPrimitiveConstraint(constraintObject); //// isn't constraintObject always undefined in this scope?
     },
     addPrimitiveConstraint: function(obj) {
-        if (obj && !this.constraintobjects.include(obj)) {
+        if (typeof(obj) != "undefined" && !this.constraintobjects.include(obj)) {
             this.constraintobjects.push(obj);
         }
     },
@@ -217,6 +219,14 @@ Object.subclass('Constraint', {
 
     get predicate() {
         return this._predicate;
+    },
+    get allowUnsolvableOperations() {
+        dbgOn(this.predicate.debugging);
+        return !!this.predicate.allowUnsolvableOperations;
+    },
+    get allowTests() {
+        dbgOn(this.predicate.debugging);
+        return !!this.predicate.allowTests;
     },
 
     get priority() {
@@ -243,6 +253,9 @@ Object.subclass('Constraint', {
             this.constraintobjects.each(function (ea) {
                 this.enableConstraintObject(ea);
             }.bind(this));
+            if (this.constraintobjects.length === 0) {
+                throw new Error("BUG: No constraintobjects were created.");
+            }
             this._enabled = true;
             this.solver.solve();
         }
@@ -250,15 +263,15 @@ Object.subclass('Constraint', {
 
     enableConstraintObject: function(obj, optPriority) {
         if (obj === true) {
-            if (this.predicate.allowTests) {
+            if (this.allowTests) {
                 alertOK("Warning: Constraint expression returned true. Re-running whenever the value changes");
             } else {
                 throw new Error("Constraint expression returned true, but was not marked as test. If you expected this to be solveable, check that there are no operations in this that cannot be solved by the selected solver (e.g. Cassowary does not support `<', only `<='). Otherwise, if you think this is ok, you must pass `allowTests: true' as option to the constraint.");
             }
         } else if (obj === false) {
-            throw "Error: Constraint expression returned false, no solver available to fix it";
+            throw new Error("Constraint expression returned false, no solver available to fix it");
         } else if (!obj.enable) {
-            throw "Error: Constraint expression returned an object that does not respond to #enable";
+            throw new Error("Constraint expression returned an object that does not respond to #enable");
         } else {
             obj.solver = this.solver; // XXX: Bit of a hack, should really write it so
                                       // this gets passed through from the variables
@@ -678,11 +691,28 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
 
 
     getConstraintObjectValue: function(o) {
+        if (!o.isConstraintObject) return o;
         var value = o.value;
         if (typeof(o) == "function") {
             return value();
         } else {
             return value;
+        }
+    },
+    errorIfUnsolvable: function(op, l, r, res) {
+        if (typeof(res) == "undefined") {
+            res = r;
+            r = undefined;
+        }
+        
+        if (!(l.isConstraintObject || (r && r.isConstraintObject)) ||
+                Constraint.current.allowUnsolvableOperations) {
+            return ((typeof(res) == "function") ? res() : res);
+        } else {
+            var msg = op + " not allowed on " + l;
+            if (r) msg = msg + " and " + r;
+            throw new Error(msg +
+                ". If you want to allow this, pass `allowUnsolvableOperations' to the constraint.");
         }
     },
 
@@ -710,21 +740,28 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
 
     visitUnaryOp: function($super, node) {
         var frame = this.currentFrame,
-            val = this.visit(node.expr);
-        if (val && val.isConstraintObject) {
-            // TODO: check if this always does what we want
-            val = this.getConstraintObjectValue(val);
-        }
-        // Below copied from InterpreterVisitor
+            val = this.visit(node.expr),
+            rVal = this.getConstraintObjectValue(val),
+            msg = "Unary op `" + node.name + "'";
+        
         switch (node.name) {
             case '-':
-              return -val;
+                if (val.isConstraintObject && val.times) {
+                    return val.times(-1);
+                } else {
+                    return this.errorIfUnsolvable(msg, val, -rVal);
+                }
             case '!':
-              return !val;
+                if (val.isConstraintObject && val.not) {
+                    return val.not();
+                } else {
+                    return !val;
+                    // return this.errorIfUnsolvable(msg, val, !val);
+                }
             case '~':
-              return~val;
+                return this.errorIfUnsolvable(msg, val, ~rVal);;
             case 'typeof':
-              return typeof val;
+                return this.errorIfUnsolvable(msg, val, typeof(rVal));
             default:
               throw new Error('No semantics for unary op ' + node.name)
         }
@@ -733,8 +770,8 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
     invoke: function($super, node, recv, func, argValues) {
         if (!func && (!recv || !recv.isConstraintObject)) {
             var error = "No such method: " + recv + "." +  (node.property && node.property.value)
-            alert(error)
-            throw error
+            alert(error);
+            throw new Error(error);
         };
         if (recv && recv.isConstraintObject) {
             if (func) {
@@ -748,12 +785,18 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
                     func.forInterpretation = forInterpretation;
                 }
             } else {
-                // XXX: tried to call a function on this that this constraintobject does not understand.
-                //      we'll just forward to the value, I guess?
-                debugger
-                var value = this.getConstraintObjectValue(recv);
-                var prop = this.visit(node.property);
-                return this.invoke(node, value, value[prop], argValues);
+                return this.errorIfUnsolvable(
+                    "Method `" + (node.property && node.property.value) + "'",
+                    recv,
+                    (function () {
+                        // XXX: tried to call a function on this that this constraintobject does
+                        //      not understand. we'll just forward to the value, I guess?
+                        debugger
+                        var value = this.getConstraintObjectValue(recv);
+                        var prop = this.visit(node.property);
+                        return this.invoke(node, value, value[prop], argValues);
+                    }).bind(this)
+                );
             }
         } else if (recv === Math) {
             if (func === Math.sqrt && argValues[0].pow || argValues[0].sqrt) {
@@ -778,103 +821,111 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
         }
     },
     visitBinaryOp: function($super, node) {
-        if (node.name === "&&") {
-            var leftVal = this.visit(node.left),
-                rightVal = this.visit(node.right);
-            Constraint.current.addPrimitiveConstraint(leftVal);
-            dbgOn(typeof(leftVal) != "object")
-            return rightVal;
-        } else if (node.name.match(/[\*\+\/\-]|==|<=|>=|===|<|>/)) {
-            var leftVal = this.visit(node.left),
-                rightVal = this.visit(node.right);
-            
-            if (leftVal === undefined) leftVal = 0;
-            if (rightVal === undefined) rightVal = 0;
-            
-            var rLeftVal = leftVal.isConstraintObject ? this.getConstraintObjectValue(leftVal) : leftVal,
-                rRightVal = rightVal.isConstraintObject ? this.getConstraintObjectValue(rightVal) : rightVal;                    
-            switch (node.name) {
-               case '+':
-                    if (leftVal.isConstraintObject && leftVal.plus) {
-                        return leftVal.plus(rightVal);
-                    } else if (rightVal.isConstraintObject && rightVal.plus) {
-                        return rightVal.plus(leftVal);
-                    } else {
-                        return rLeftVal + rRightVal;
-                    };
-                case '-':
-                    if (leftVal.isConstraintObject && leftVal.minus) {
-                        return leftVal.minus(rightVal);
-                    } else if (rightVal.isConstraintObject && rightVal.plus && Object.isNumber(leftVal)) {
-                        return rightVal.plus(-leftVal);
-                    } else {
-                        return rLeftVal - rRightVal;
-                    };
-                case '*':
-                    if (leftVal.isConstraintObject && leftVal.times) {
-                        return leftVal.times(rightVal);
-                    } else if (rightVal.isConstraintObject && rightVal.times) {
-                        return rightVal.times(leftVal);
-                    } else {
-                        return rLeftVal * rRightVal;
-                    };
-                case '/':
-                    if (leftVal.isConstraintObject && leftVal.divide) {
-                        return leftVal.divide(rightVal);
-                    } else {
-                        return rLeftVal / rRightVal;
-                    };
-                case '<=':
-                    if (leftVal.isConstraintObject && leftVal.cnLeq) {
-                        return leftVal.cnLeq(rightVal);
-                    } else if (rightVal.isConstraintObject && rightVal.cnGeq) {
-                        return rightVal.cnGeq(leftVal);
-                    } else {
-                        return rLeftVal <= rRightVal;
-                    };
-                case '>=':
-                    if (leftVal.isConstraintObject && leftVal.cnGeq) {
-                        return leftVal.cnGeq(rightVal);
-                    } else if (rightVal.isConstraintObject && rightVal.cnLeq) {
-                        return rightVal.cnLeq(leftVal);
-                    } else {
-                        return rLeftVal >= rRightVal;
-                    };
-                case '==':
-                    if (leftVal.isConstraintObject && leftVal.cnEquals) {
-                        return leftVal.cnEquals(rightVal);
-                    } else if (rightVal.isConstraintObject && rightVal.cnEquals) {
-                        return rightVal.cnEquals(leftVal);
-                    } else {
-                        return rLeftVal == rRightVal;
-                    };
-                case '===':
-                    if (leftVal.isConstraintObject && leftVal.cnIdentical) {
-                        return leftVal.cnIdentical(rightVal);
-                    } else if (rightVal.isConstraintObject && rightVal.cnIdentical) {
-                        return rightVal.cnIdentical(leftVal);
-                    } else {
-                        return rLeftVal === rRightVal;
-                    };
-                case '>':
-                    if (leftVal.isConstraintObject && leftVal.cnGreater) {
-                        return leftVal.cnGreater(rightVal);
-                    } else if (rightVal.isConstraintObject && rightVal.cnLess) {
-                        return rightVal.cnLess(leftVal);
-                    } else {
-                        return rLeftVal > rRightVal;
-                    };
-                case '<':
-                    if (leftVal.isConstraintObject && leftVal.cnLess) {
-                        return leftVal.cnLess(rightVal);
-                    } else if (rightVal.isConstraintObject && rightVal.cnGreater) {
-                        return rightVal.cnGreater(leftVal);
-                    } else {
-                        return rLeftVal < rRightVal;
-                    };
-            }
+        var op = "Binary op `" + node.name + "'";
+
+        // /* Only supported */ if (node.name.match(/[\*\+\/\-]|==|<=|>=|===|<|>|\|\|/)) {
+        var leftVal = this.visit(node.left),
+            rightVal = this.visit(node.right);
+        
+        if (leftVal === undefined) leftVal = 0;
+        if (rightVal === undefined) rightVal = 0;
+        
+        var rLeftVal = leftVal.isConstraintObject ? this.getConstraintObjectValue(leftVal) : leftVal,
+            rRightVal = rightVal.isConstraintObject ? this.getConstraintObjectValue(rightVal) : rightVal;                    
+        switch (node.name) {
+           case '+':
+                if (leftVal.isConstraintObject && leftVal.plus) {
+                    return leftVal.plus(rightVal);
+                } else if (rightVal.isConstraintObject && rightVal.plus) {
+                    return rightVal.plus(leftVal);
+                } else {
+                    return this.errorIfUnsolvable(op, leftVal, rightVal, rLeftVal + rRightVal);
+                };
+            case '-':
+                if (leftVal.isConstraintObject && leftVal.minus) {
+                    return leftVal.minus(rightVal);
+                } else if (rightVal.isConstraintObject && rightVal.plus && Object.isNumber(leftVal)) {
+                    return rightVal.plus(-leftVal);
+                } else {
+                    return this.errorIfUnsolvable(op, leftVal, rightVal, rLeftVal - rRightVal);
+                };
+            case '*':
+                if (leftVal.isConstraintObject && leftVal.times) {
+                    return leftVal.times(rightVal);
+                } else if (rightVal.isConstraintObject && rightVal.times) {
+                    return rightVal.times(leftVal);
+                } else {
+                    return this.errorIfUnsolvable(op, leftVal, rightVal, rLeftVal * rRightVal);
+                };
+            case '/':
+                if (leftVal.isConstraintObject && leftVal.divide) {
+                    return leftVal.divide(rightVal);
+                } else {
+                    return this.errorIfUnsolvable(op, leftVal, rightVal, rLeftVal / rRightVal);
+                };
+            case '<=':
+                if (leftVal.isConstraintObject && leftVal.cnLeq) {
+                    return leftVal.cnLeq(rightVal);
+                } else if (rightVal.isConstraintObject && rightVal.cnGeq) {
+                    return rightVal.cnGeq(leftVal);
+                } else {
+                    return this.errorIfUnsolvable(op, leftVal, rightVal, rLeftVal <= rRightVal);
+                };
+            case '>=':
+                if (leftVal.isConstraintObject && leftVal.cnGeq) {
+                    return leftVal.cnGeq(rightVal);
+                } else if (rightVal.isConstraintObject && rightVal.cnLeq) {
+                    return rightVal.cnLeq(leftVal);
+                } else {
+                    return this.errorIfUnsolvable(op, leftVal, rightVal, rLeftVal >= rRightVal);
+                };
+            case '==':
+                if (leftVal.isConstraintObject && leftVal.cnEquals) {
+                    return leftVal.cnEquals(rightVal);
+                } else if (rightVal.isConstraintObject && rightVal.cnEquals) {
+                    return rightVal.cnEquals(leftVal);
+                } else {
+                    return this.errorIfUnsolvable(op, leftVal, rightVal, rLeftVal == rRightVal);
+                };
+            case '===':
+                if (leftVal.isConstraintObject && leftVal.cnIdentical) {
+                    return leftVal.cnIdentical(rightVal);
+                } else if (rightVal.isConstraintObject && rightVal.cnIdentical) {
+                    return rightVal.cnIdentical(leftVal);
+                } else {
+                    return this.errorIfUnsolvable(op, leftVal, rightVal, rLeftVal === rRightVal);
+                };
+            case '>':
+                if (leftVal.isConstraintObject && leftVal.cnGreater) {
+                    return leftVal.cnGreater(rightVal);
+                } else if (rightVal.isConstraintObject && rightVal.cnLess) {
+                    return rightVal.cnLess(leftVal);
+                } else {
+                    return this.errorIfUnsolvable(op, leftVal, rightVal, rLeftVal > rRightVal);
+                };
+            case '<':
+                if (leftVal.isConstraintObject && leftVal.cnLess) {
+                    return leftVal.cnLess(rightVal);
+                } else if (rightVal.isConstraintObject && rightVal.cnGreater) {
+                    return rightVal.cnGreater(leftVal);
+                } else {
+                    return this.errorIfUnsolvable(op, leftVal, rightVal, rLeftVal < rRightVal);
+                };
+            case '&&':
+                Constraint.current.addPrimitiveConstraint(leftVal);
+                dbgOn(typeof(leftVal) != "object")
+                return rightVal;
+            case '||':
+                if (leftVal.isConstraintObject && leftVal.cnOr) {
+                    return leftVal.cnOr(rightVal);
+                } else if (rightVal.isConstraintObject && rightVal.cnOr) {
+                    return rightVal.cnOr(leftVal);
+                } else {
+                    return this.errorIfUnsolvable(op, leftVal, rightVal, rLeftVal || rRightVal);
+                }
+            default:
+                return this.errorIfUnsolvable(op, leftVal, rightVal, $super(node));
         }
-        return $super(node);
     },
 
 
