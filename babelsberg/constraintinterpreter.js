@@ -693,8 +693,8 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
     getConstraintObjectValue: function(o) {
         if (!o.isConstraintObject) return o;
         var value = o.value;
-        if (typeof(o) == "function") {
-            return value();
+        if (typeof(value) == "function") {
+            return value.apply(o);
         } else {
             return value;
         }
