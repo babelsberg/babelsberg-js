@@ -101,10 +101,10 @@ TestCase.subclass('users.timfelgentreff.layout.tests.ConstainedVariablesTest', {
         var xLayoutCvar = xCvar.externalVariables(this.layoutSolver);
         var yLayoutCvar = yCvar.externalVariables(this.layoutSolver);
         
-        this.assertIdentity(morphLayoutCvar, shapeLayoutCvar.__parent__);
-        this.assertIdentity(shapeLayoutCvar, extentLayoutCvar.__parent__);
-        this.assertIdentity(extentLayoutCvar, xLayoutCvar.__parent__);
-        this.assertIdentity(extentLayoutCvar, yLayoutCvar.__parent__);
+        this.assertIdentity(morphLayoutCvar, shapeLayoutCvar.parentConstraintVariable, "morph"+morphLayoutCvar.name+" <- shape"+shapeLayoutCvar.parentConstraintVariable.name);
+        this.assertIdentity(shapeLayoutCvar, extentLayoutCvar.parentConstraintVariable, "shape"+shapeLayoutCvar.name+" <- extent"+extentLayoutCvar.parentConstraintVariable.name);
+        this.assertIdentity(extentLayoutCvar, xLayoutCvar.parentConstraintVariable, "extent"+extentLayoutCvar.name+" <- x"+xLayoutCvar.parentConstraintVariable.name);
+        this.assertIdentity(extentLayoutCvar, yLayoutCvar.parentConstraintVariable, "extent"+extentLayoutCvar.name+" <- y"+yLayoutCvar.parentConstraintVariable.name);
     }
 });
 
