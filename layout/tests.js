@@ -1,6 +1,112 @@
 module('users.timfelgentreff.layout.tests').requires('lively.TestFramework', 'users.timfelgentreff.babelsberg.constraintinterpreter', 'users.timfelgentreff.layout.layout').toRun(function() {
 
-TestCase.subclass('users.timfelgentreff.layout.tests.SimpleLayoutTest', {});
+TestCase.subclass('users.timfelgentreff.layout.tests.SimpleLayoutTest', {
+    fixtureSameExtent: function() {
+        this.layoutSolver = new LayoutSolver();
+        
+        var parent = new lively.morphic.Box(pt(7,7).extent(pt(300,300)));
+        parent.addMorph(parent.child1 = new lively.morphic.Morph.makeRectangle(10, 10, 100, 250));
+        parent.addMorph(parent.child2 = new lively.morphic.Morph.makeRectangle(150, 10, 130, 200));
+
+        bbb.always({
+            solver: this.layoutSolver,
+            allowUnsolvableOperations: true,
+            allowTests: true,
+            debugging: true,
+            ctx: {
+                parent: parent,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return parent.child1.getExtent().eqPt(parent.child2.getExtent());;
+        });
+        
+        return parent;
+    },
+    testSameExtent: function () {
+        var parent = this.fixtureSameExtent();
+
+        this.assertEquals(parent.child1.getExtent(), parent.child2.getExtent(), "Boxes do not have the same extent after constraint definition.");
+    },
+    
+    testSameExtentAssignmentLeft: function () {
+        var parent = this.fixtureSameExtent();
+        var expectedExtent = pt(70,35);
+        parent.child1.setExtent(expectedExtent);
+        
+        this.assertEquals(parent.child1.getExtent(), parent.child2.getExtent(), "child1 and child2 do not have the same extent after assignment.");
+        this.assertEquals(expectedExtent, parent.child1.getExtent(), "child1 does not have the assigned extent.");
+        this.assertEquals(expectedExtent, parent.child2.getExtent(), "child2 does not have the assigned extent.");
+    },
+    testSameExtentAssignmentRight: function () {
+        var parent = this.fixtureSameExtent();
+        var expectedExtent = pt(70,35);
+        parent.child2.setExtent(expectedExtent);
+        
+        this.assertEquals(parent.child1.getExtent(), parent.child2.getExtent(), "child1 and child2 do not have the same extent after assignment.");
+        this.assertEquals(expectedExtent, parent.child1.getExtent(), "child1 does not have the assigned extent.");
+        this.assertEquals(expectedExtent, parent.child2.getExtent(), "child2 does not have the assigned extent.");
+    }
+});
+
+TestCase.subclass('users.timfelgentreff.layout.tests.ConstainedVariablesTest', {
+    /*
+     * Creates a Box with 2 child Boxes constrained to the same extent.
+     */
+    fixtureSameExtent: function() {
+        this.layoutSolver = new LayoutSolver();
+        
+        var parent = new lively.morphic.Box(pt(7,7).extent(pt(300,300)));
+        parent.addMorph(parent.child1 = new lively.morphic.Morph.makeRectangle(10, 10, 100, 250));
+        parent.addMorph(parent.child2 = new lively.morphic.Morph.makeRectangle(150, 10, 130, 200));
+
+        bbb.always({
+            solver: this.layoutSolver,
+            ctx: {
+                parent: parent,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return parent.child1.sameExtent(parent.child2);;
+        });
+
+        return parent;
+    },
+    testbbbCompoundConstraintVariables: function () {
+        var parent = this.fixtureSameExtent();
+        
+        var morphCvar = ConstrainedVariable.findConstraintVariableFor(parent, "child1");
+        var shapeCvar = ConstrainedVariable.findConstraintVariableFor(parent.child1, "shape");
+        var extentCvar = ConstrainedVariable.findConstraintVariableFor(parent.child1.shape, "_Extent");
+        var xCvar = ConstrainedVariable.findConstraintVariableFor(parent.child1.shape._Extent, "x");
+        var yCvar = ConstrainedVariable.findConstraintVariableFor(parent.child1.shape._Extent, "y");
+
+        this.assertIdentity(morphCvar, shapeCvar.parentConstrainedVariable);
+        this.assertIdentity(shapeCvar, extentCvar.parentConstrainedVariable);
+        this.assertIdentity(extentCvar, xCvar.parentConstrainedVariable);
+        this.assertIdentity(extentCvar, yCvar.parentConstrainedVariable);
+    },
+    testLayoutCompoundConstraintVariables: function () {
+        var parent = this.fixtureSameExtent();
+        
+        var morphCvar = ConstrainedVariable.findConstraintVariableFor(parent, "child1");
+        var shapeCvar = ConstrainedVariable.findConstraintVariableFor(parent.child1, "shape");
+        var extentCvar = ConstrainedVariable.findConstraintVariableFor(parent.child1.shape, "_Extent");
+        var xCvar = ConstrainedVariable.findConstraintVariableFor(parent.child1.shape._Extent, "x");
+        var yCvar = ConstrainedVariable.findConstraintVariableFor(parent.child1.shape._Extent, "y");
+
+        var morphLayoutCvar = morphCvar.externalVariables(this.layoutSolver);
+        var shapeLayoutCvar = shapeCvar.externalVariables(this.layoutSolver);
+        var extentLayoutCvar = extentCvar.externalVariables(this.layoutSolver);
+        var xLayoutCvar = xCvar.externalVariables(this.layoutSolver);
+        var yLayoutCvar = yCvar.externalVariables(this.layoutSolver);
+        
+        this.assertIdentity(morphLayoutCvar, shapeLayoutCvar.__parent__);
+        this.assertIdentity(shapeLayoutCvar, extentLayoutCvar.__parent__);
+        this.assertIdentity(extentLayoutCvar, xLayoutCvar.__parent__);
+        this.assertIdentity(extentLayoutCvar, yLayoutCvar.__parent__);
+    }
+});
 
 /*
  * Solver specific
@@ -18,8 +124,10 @@ TestCase.subclass('users.timfelgentreff.layout.tests.SameExtentTest', {
 
         bbb.always({
             solver: this.layoutSolver,
+            allowUnsolvableOperations: true,
             ctx: {
                 parent: parent,
+            allowUnsolvableOperations: true,
                 _$_self: this.doitContext || this
             }
         }, function() {
@@ -93,10 +201,10 @@ TestCase.subclass('users.timfelgentreff.layout.tests.ChainOfSameExtentTest', {
         this.layoutSolver = new LayoutSolver();
         
         var parent = new lively.morphic.Box(pt(7,7).extent(pt(300,300)));
-        parent.addMorph(parent.child1 = new lively.morphic.Box(pt(10,10).extent(pt(10,20))));
-        parent.addMorph(parent.child2 = new lively.morphic.Box(pt(150,10).extent(pt(130, 200))));
-        parent.addMorph(parent.child3 = new lively.morphic.Box(pt(10,10).extent(pt(300,250))));
-        parent.addMorph(parent.child4 = new lively.morphic.Box(pt(150,10).extent(pt(330, 200))));
+        parent.addMorph(parent.child1 = new lively.morphic.Box(pt(10,10).extent(pt(100,20))));
+        parent.addMorph(parent.child2 = new lively.morphic.Box(pt(10,10).extent(pt(200, 40))));
+        parent.addMorph(parent.child3 = new lively.morphic.Box(pt(10,10).extent(pt(300,60))));
+        parent.addMorph(parent.child4 = new lively.morphic.Box(pt(10,10).extent(pt(400, 80))));
 
         bbb.always({
             solver: this.layoutSolver,
@@ -133,10 +241,19 @@ TestCase.subclass('users.timfelgentreff.layout.tests.ChainOfSameExtentTest', {
 
     test2ChainOfSameExtents: function () {
         var parent = this.fixtureChainOfSameExtent();
-        
-        this.assertEquals(parent.child1.getExtent(), parent.child2.getExtent(), "Boxes do not have the same extent after constraint definition.");
-        this.assertEquals(parent.child2.getExtent(), parent.child3.getExtent(), "Boxes do not have the same extent after constraint definition.");
-        this.assertEquals(parent.child3.getExtent(), parent.child4.getExtent(), "Boxes do not have the same extent after constraint definition.");
+
+/*        console.log(parent);
+        console.log(parent.child1);
+        console.log(parent.child1.solver);
+        console.log(parent.child1.solver.constraints);
+        console.log(parent.child1.value.getExtent().x, parent.child1.value.getExtent().y);
+        console.log(parent.child2.value.getExtent().x, parent.child2.value.getExtent().y);
+        console.log(parent.child3.value.getExtent().x, parent.child3.value.getExtent().y);
+        console.log(parent.child4.value.getExtent().x, parent.child4.value.getExtent().y);
+*/
+        this.assertEquals(parent.child1.getExtent(), parent.child2.getExtent(), "Boxes do not have the same extent after constraint definition1.");
+        this.assertEquals(parent.child2.getExtent(), parent.child3.getExtent(), "Boxes do not have the same extent after constraint definition2.");
+        this.assertEquals(parent.child3.getExtent(), parent.child4.getExtent(), "Boxes do not have the same extent after constraint definition3.");
     },
 
     testAssignment: function () {
