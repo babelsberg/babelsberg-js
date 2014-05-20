@@ -424,7 +424,7 @@ Object.subclass('ConstrainedVariable', {
         }
 
         obj.__defineSetter__(ivarname, function(newValue) {
-            return this.suggestValue(newValue);
+            return this.suggestValue(newValue, "source");
         }.bind(this));
         var newSetter = obj.__lookupSetter__(this.ivarname);
 
@@ -439,17 +439,9 @@ Object.subclass('ConstrainedVariable', {
         this.cachedDefiningVar = null;
         if (!eVar && eVar !== null) { // don't try to create an external variable twice
             this.externalVariables(solver, solver.constraintVariableFor(value, this.ivarname, this));
-            this.updateReadonlyConstraints();
         }
     },
-    updateReadonlyConstraints: function() {
-        var defVar = this.definingExternalVariable;
-        this.eachExternalVariableDo(function (eVar) {
-            if (eVar !== defVar) {
-                eVar.setReadonly(true);
-            }
-        });
-    },
+
 
 
     get currentSolver() {
@@ -461,19 +453,27 @@ Object.subclass('ConstrainedVariable', {
     },
 
 
-    suggestValue: function(value) {
+    suggestValue: function(value, source) {
         if (ConstrainedVariable.$$callingSetters) {
 	        return value;
         }
 
         if (value !== this.storedValue) {
             var callSetters = !ConstrainedVariable.$$optionalSetters;
+            var priorValue = this.storedValue;
             ConstrainedVariable.$$optionalSetters = ConstrainedVariable.$$optionalSetters || [];
             try {
                 if (this.isSolveable() && !ConstrainedVariable.isSuggestingValue) {
                     var wasReadonly = false,
-                        eVar = this.definingExternalVariable;
+                        eVar = this.definingExternalVariable,
+                        solver = this.definingSolver;
                     try {
+                        if (solver && source) {
+                            solver.weight += 987654321; // XXX Magic Number
+                            this.findTransitiveConnectedVariables().each(function (cvar) {
+                                cvar.setDownstreamReadonly(true);
+                            });
+                        }
                         ConstrainedVariable.isSuggestingValue = true;
                         wasReadonly = eVar.isReadonly();
                         eVar.setReadonly(false);
@@ -496,6 +496,14 @@ Object.subclass('ConstrainedVariable', {
                         this.setValue(value);
                         this.updateDownstreamVariables(value);
                         this.updateConnectedVariables();
+                    } catch (e) {
+                        if (source) {
+                            this.$$isStoring = false;
+                            value = this.suggestValue(priorValue, source);
+                            throw new Error(e); // XXX: Lively checks type, so wrap for top-level
+                        } else {
+                            throw e;
+                        }
                     } finally {
                         this.$$isStoring = false;
                     }
@@ -525,6 +533,12 @@ Object.subclass('ConstrainedVariable', {
             } finally {
                 if (callSetters) {
                     ConstrainedVariable.$$optionalSetters = null;
+                }
+                if (solver && source) {
+                    solver.weight -= 987654321; // XXX Magic Number
+                    this.findTransitiveConnectedVariables().each(function (cvar) {
+                        cvar.setDownstreamReadonly(false);
+                    });
                 }
             }
         }
@@ -565,6 +579,43 @@ Object.subclass('ConstrainedVariable', {
             }
         }
     },
+    setDownstreamReadonly: function(bool) {
+        if (bool && !this.$$downstreamReadonlyVars) {
+            // flushCaches
+            this.cachedDefiningSolver = null;
+            this.cachedDefiningVar = null;
+            var defVar = this.definingExternalVariable;
+
+            this.$$downstreamReadonlyVars = [];
+            this.eachExternalVariableDo(function (eVar) {
+                if (eVar !== defVar) {
+                    if (!eVar.isReadonly()) {
+                        eVar.setReadonly(true);
+                        this.$$downstreamReadonlyVars.push(eVar);
+                    }
+                }
+            }.bind(this));
+        } else if (!bool && this.$$downstreamReadonlyVars) {
+            this.$$downstreamReadonlyVars.each(function (eVar) {
+                eVar.setReadonly(false);
+            }.bind(this));
+            this.$$downstreamReadonlyVars = null;
+        }
+    },
+    findTransitiveConnectedVariables: function(ary) {
+        // XXX soooo slowwww
+        var self = this;
+        if (!ary) ary = [];
+        if (ary.indexOf(this) !== -1) return;
+        
+        ary.push(this);
+        this._constraints.each(function (c) {
+            return c.constraintvariables.each(function (cvar) {
+                cvar.findTransitiveConnectedVariables(ary);
+            });
+        });
+        return ary;
+    },
     updateConnectedVariables: function() {
         // so slow :(
         var self = this;
@@ -603,7 +654,7 @@ Object.subclass('ConstrainedVariable', {
         constraint.addConstraintVariable(this);
     },
     get definingSolver() {
-        if (!this.cachedDefiningSolver) {
+        // if (!this.cachedDefiningSolver) {
             var solver = {weight: -1000};
             this.eachExternalVariableDo(function (eVar) {
                 if (eVar) {
@@ -613,9 +664,10 @@ Object.subclass('ConstrainedVariable', {
                     }
                 }
             });
-            this.cachedDefiningSolver = solver;
-        }
-        return this.cachedDefiningSolver;
+            // this.cachedDefiningSolver = solver;
+            return solver
+        // }
+        // return this.cachedDefiningSolver;
     },
     get solvers() {
         var solvers = [];
@@ -628,10 +680,11 @@ Object.subclass('ConstrainedVariable', {
         return solvers;
     },
     get definingExternalVariable() {
-        if (!this.cachedDefiningVar) { 
-            this.cachedDefiningVar = this.externalVariables(this.definingSolver);
-        }
-        return this.cachedDefiningVar;
+        // if (!this.cachedDefiningVar) { 
+        //     this.cachedDefiningVar = this.externalVariables(this.definingSolver);
+        // }
+        // return this.cachedDefiningVar;
+        return this.externalVariables(this.definingSolver);
     },
 
 

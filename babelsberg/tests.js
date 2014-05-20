@@ -650,6 +650,144 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
         this.assert(o.a, "deltablue changed a");
         this.assert(o.b === 20, "cassowary updated this");
     },
+    testDynamicRegions2: function () {
+        var f = new lively.morphic.Slider(rect(0,0,100,20)),
+            c = new lively.morphic.Slider(rect(0,0,100,20)),
+            ft = new lively.morphic.Text(rect(0,0,50,50), ""),
+            ct = new lively.morphic.Text(rect(0,0,50,50), ""),
+            cassowary = new ClSimplexSolver(),
+            deltablue = new DBPlanner(),
+            db2 = new DBPlanner();
+
+        bbb.always({
+            solver: cassowary,
+            ctx: {
+                cassowary: cassowary,
+                f: f,
+                c: c,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return f.getValue() * 100 - 32 == c.getValue() * 100 * 1.8 &&
+                    f.getValue() >= 0 && c.getValue() >= 0 &&
+                    f.getValue() <= 1 && c.getValue() <= 1;
+        });
+    
+        bbb.always({
+            solver: deltablue,
+            ctx: {
+                deltablue: deltablue,
+                ft: ft,
+                f: f,
+                Math: Math,
+                parseFloat: parseFloat,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            ft.getTextString().formula([ f.getValue() ], function(v) {
+                return Math.round(v * 100) + "";
+            });
+            return f.getValue().formula([ ft.getTextString() ], function(v) {
+                return parseFloat(v) / 100;
+            });;
+        });
+
+        bbb.always({
+            solver: db2,
+            ctx: {
+                db2: db2,
+                ct: ct,
+                c: c,
+                Math: Math,
+                parseFloat: parseFloat,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            ct.getTextString().formula([ c.getValue() ], function(v) {
+                return Math.round(v * 100) + "";
+            });
+            return c.getValue().formula([ ct.getTextString() ], function(v) {
+                return parseFloat(v) / 100;
+            });;
+        });
+
+        f.setValue(0.5);
+        this.assert(c.getValue() == 0.1, "1 Cassowary");
+        this.assert(ct.getTextString() == "10", "1 DeltaBlue");
+        this.assert(ft.getTextString() == "50", "1 DeltaBlue2");
+        
+        c.setValue(0);
+        this.assert(f.getValue() == 0.32, "2 Cassowary");
+        this.assert(ct.getTextString() == "0", "2 DeltaBlue");
+        this.assert(ft.getTextString() == "32", "2 DeltaBlue2");
+        
+        ft.setTextString("50");
+        this.assert(approxEq(f.getValue(), 0.5), "3 DeltaBlue");
+        this.assert(approxEq(c.getValue(), 0.1), "3 Cassowary");
+        this.assert(ct.getTextString() == "10", "3 DeltaBlue2");
+        
+        ct.setTextString("0");
+        this.assert(approxEq(c.getValue(), 0), "4 DeltaBlue");
+        this.assert(approxEq(f.getValue(), 0.32), "4 Cassowary");
+        this.assert(ft.getTextString() == "32", "4 DeltaBlue2");
+        
+        f.setValue(0.5);
+        this.assert(approxEq(c.getValue(), 0.1), "5 Cassowary");
+        this.assert(ct.getTextString() == "10", "5 DeltaBlue");
+        this.assert(ft.getTextString() == "50", "5 DeltaBlue2");
+        
+        c.setValue(0);
+        this.assert(approxEq(f.getValue(), 0.32), "6 Cassowary");
+        this.assert(ct.getTextString() == "0", "6 DeltaBlue");
+        this.assert(ft.getTextString() == "32", "6 DeltaBlue2");
+        
+        function approxEq(v1, v2) {
+            return v1.toFixed(1) === v2.toFixed(1);
+        }
+    },
+    testDynamicRegions: function () {
+        var a = pt(0,0),
+            b = {str: ""},
+            c = new ClSimplexSolver(),
+            d = new DBPlanner();
+
+        bbb.always({
+            solver: c,
+            ctx: { c: c, a: a}
+        }, function() {
+            return a.x == a.y;;
+        });
+                
+        bbb.always({
+            solver: d,
+            ctx: { d: d, a: a, b: b, parseFloat: parseFloat }
+        }, function() {
+            a.x.formula([ b.str ], function(v) {
+                return parseFloat(v);
+            });
+            return b.str.formula([ a.x ], function(v) {
+                var fullStr = v + "";
+                if (fullStr.indexOf(".") === -1) {
+                    return v.toFixed(1);
+                } else {
+                    return fullStr;
+                }
+            });;
+        });
+        
+        a.x = 10;
+        this.assert(a.y === 10, "1) Cassowary did not kick in");
+        this.assert(b.str === "10.0", "1) DeltaBlue did not kick in");
+        
+        a.y = 5;
+        this.assert(a.x === 5, "2) Cassowary did not kick in");
+        this.assert(b.str === "5.0", "2) DeltaBlue did not kick in");
+        
+        b.str = "7.5";
+        this.assert(a.x == 7.5, "3a) Cassowary did not kick in");
+        this.assert(a.y == 7.5, "3b) Cassowary did not kick in");
+        this.assert(b.str == "7.5", "3) DeltaBlue did not kick in");
+    },
     testInteractionAssignmentIndirect: function () {
         var o = {a: true,
                  b: 10,
