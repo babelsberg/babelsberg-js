@@ -39,10 +39,12 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
                 self = this;
             if (alwaysNode.args.last() instanceof UglifyJS.AST_Function) {
                 enclosed = alwaysNode.args.last().enclosed || [];
-                // TODO: Check if this is correct. This should remove symbols
-                // that are not defined yet from the passed ctx
                 enclosed = enclosed.reject(function (ea) {
-                    return ea.init && (ea.init.start.pos > alwaysNode.start.pos);
+                    // reject all that
+                    //   1. are not declared (var) BEFORE the always
+                    //   2. are first referenced (globals, specials, etc) AFTER the always
+                    return (ea.init && (ea.init.start.pos > alwaysNode.start.pos)) ||
+                           (ea.orig && ea.orig[0] && (ea.orig[0].start.pos > alwaysNode.end.pos))
                 });
                 enclosed.push({name: "_$_self"}); // always include this
             }
@@ -252,13 +254,23 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
                     t = new BabelsbergSrcTransform(),
                     idx = (matchData && matchData.index) || -1,
                     endIdx = this.textString.indexOf("}", idx + 1),
-                    fragments = [];
+                    fragments = [],
+                    offset = 0,
+                    lines = this.textString.split("\n").map(function (line) {
+                        return [line, offset += line.length];
+                    });
                 while (idx !== -1 && endIdx !== -1) {
                     try {
                         var str = t.transform(this.textString.slice(idx, endIdx + 1));
-                        fragments.push([idx, endIdx, str]);
-                        idx = this.textString.indexOf("always:", idx + 1);
-                        endIdx = this.textString.indexOf("}", idx + 1);
+                        var line;
+                        lines.some(function (ary) { line = ary[0]; return ary[1] > idx });
+                        var indent = new Array(line.indexOf("always:") + 1).join(" ");
+                        str = str.split("\n").inject("", function (acc, line) {
+                            return acc + "\n" + indent + line;
+                        }).slice("\n".length + indent.length); // remove first newline+indent
+                        fragments.push([idx + 1, endIdx, str]);
+                        idx = this.textString.indexOf("always:", idx + 2);
+                        endIdx = this.textString.indexOf("}", idx + 2);
                     } catch(e) {
                         // parsing exception
                         endIdx = this.textString.indexOf("}", endIdx + 1);
