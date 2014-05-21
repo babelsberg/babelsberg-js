@@ -323,6 +323,39 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         i2.prev = {sum: 100}
         this.assert(i2.sum == 103, "expected sum to equal 103, got " + i2.sum);
     },
+    testTransformationDoesNotReferenceLaterVariables: function() {
+        
+        bbb.always({
+            allowTests: true,
+            ctx: {
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return true;;
+        });
+        try {
+            
+        } catch(e) {
+            
+        }
+    },
+    testNoErrorWithStringConstraint: function() {
+        var a = pt(0,0),
+            b = "hello"
+        bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                ClSimplexSolver: ClSimplexSolver,
+                a: a,
+                ro: bbb.readonly,
+                b: b,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return a.x == ro(b.length);;
+        });
+        this.assert(a.x == "hello".length)
+    },
     test1LvlReadonly: function() {
         var solver = new ClSimplexSolver(),
             pt1 = lively.pt(0, 0),
