@@ -15,7 +15,7 @@ before_script:
   - "cd LivelyKernel"
   - "Xvfb :1 -screen 0 800x600x24 &"
   - "npm install"
-  - "npm bin/lk-server --no-partsbin-check &"
+  - "node bin/lk-server --no-partsbin-check &"
   - "sleep 15"
   - "sed -i 's/var testList = baseTests;/var testList = [\"users.timfelgentreff.babelsberg.tests\"]; browserTests = [];/' run_tests.js"
 
