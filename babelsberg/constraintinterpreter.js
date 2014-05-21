@@ -116,17 +116,19 @@ Object.subclass("Babelsberg", {
         func.debugging = opts.debugging;
         
         if (!solver) { // throw "Must explicitely pass a solver for now";
-            var constraint;
+            var constraint,
+                errors = [];
             bbb.defaultSolvers.some(function (solver) {
                 try {
                     constraint = solver.always(opts, func);
                     return true;
                 } catch(e) {
+                    errors.push("\n" + solver.constructor.name + ": " + e);
                     return false;
                 }
             });
             if (!constraint) {
-                throw new Error("Must explicitely pass a solver for this constraint");
+                throw new Error("Must explicitely pass a solver for this constraint. The errors for the tried solvers were:" + errors);
             } else {
                 return constraint;
             }
@@ -981,7 +983,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
             name = this.visit(node.slotName),
             cobj = (obj ? obj[ConstrainedVariable.ThisAttrName] : undefined),
             cvar;
-        if (obj === Global || (obj instanceof lively.Module)) {
+        if (obj === Global || (obj instanceof lively.Module) || (typeof(obj) == "string")) {
             return obj[name];
         }
         if (obj && obj.isConstraintObject) {
