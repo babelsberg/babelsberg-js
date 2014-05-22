@@ -8,6 +8,10 @@ module('users.timfelgentreff.babelsberg.constraintinterpreter').requires('users.
 
 Object.subclass("Babelsberg", {
 
+    initialize: function () {
+        this.defaultSolvers = [];
+    },
+
     isConstraintObject: function () {
 
         return true;
