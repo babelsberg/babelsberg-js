@@ -261,11 +261,14 @@ Object.subclass('Constraint', {
         return this._predicate;
     },
     get allowUnsolvableOperations() {
-        dbgOn(this.predicate.debugging);
+        this.haltIfDebugging();
         return !!this.predicate.allowUnsolvableOperations;
     },
+    haltIfDebugging: function() {
+        if (this.predicate.debugging) debugger;
+    },
     get allowTests() {
-        dbgOn(this.predicate.debugging);
+        this.haltIfDebugging();
         return !!this.predicate.allowTests;
     },
 
@@ -1020,6 +1023,10 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
             return cvar.externalVariable;
         } else {
             var retval = obj[name];
+            console.log(Constraint.current.solver.constructor.name +
+                " cannot reason about the variable " + obj + "[" + name +"], a " + retval +
+                " of type " + (typeof(retval) == "object" ? retval.constructor.name : typeof(retval)));
+            Constraint.current.haltIfDebugging();
             if (retval) {
                 retval[ConstrainedVariable.ThisAttrName] = cvar;
             }
