@@ -1022,11 +1022,16 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
         if (cvar && cvar.isSolveable()) {
             return cvar.externalVariable;
         } else {
-            var retval = obj[name];
-            console.log(Constraint.current.solver.constructor.name +
-                " cannot reason about the variable " + obj + "[" + name +"], a " + retval +
-                " of type " + (typeof(retval) == "object" ? retval.constructor.name : typeof(retval)));
-            Constraint.current.haltIfDebugging();
+            var retval = obj[name]
+            if (!retval.isConstraintObject) {
+                var toS = Object.prototype.toString, objStr, retStr;
+                try { objStr = obj.toString() } catch(e) { objStr = toS.apply(obj) };
+                try { retStr = retval.toString() } catch(e) { retStr = toS.apply(retval) };
+                console.log(Constraint.current.solver.constructor.name +
+                    " cannot reason about the variable " + objStr + "[" + name +"], a " + retStr +
+                    " of type " + (typeof(retval) == "object" ? retval.constructor.name : typeof(retval)));
+                Constraint.current.haltIfDebugging();
+            }
             if (retval) {
                 retval[ConstrainedVariable.ThisAttrName] = cvar;
             }
