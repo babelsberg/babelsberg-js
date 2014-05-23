@@ -1023,7 +1023,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
             return cvar.externalVariable;
         } else {
             var retval = obj[name]
-            if (!retval.isConstraintObject) {
+            if (!retval || !retval.isConstraintObject) {
                 var toS = Object.prototype.toString, objStr, retStr;
                 try { objStr = obj.toString() } catch(e) { objStr = toS.apply(obj) };
                 try { retStr = retval.toString() } catch(e) { retStr = toS.apply(retval) };
