@@ -1,5 +1,4 @@
 module('users.timfelgentreff.layout.layout').requires().toRun(function() {
-
     Object.subclass('LayoutObject', {
         isConstraintObject: function() { return true; },
     });
@@ -99,16 +98,16 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
             }).filter(function(constraintVariable) {
                 return constraintVariable instanceof LayoutConstraintVariableBox;
             }).each(function(constraintVariable) {
-                var morph = constraintVariable.value;
+                var morph = constraintVariable.value();
                 //console.log("Variable", morph);
                 morph.setExtent(morph.getExtent());
             });
         }
     });
-Object.extend(LayoutSolver, {
-    weight: 5000
-});    
-    LayoutObject.subclass('LayoutAlgorithm', {
+LayoutSolver.addMethods({
+    weight: 10000
+});
+LayoutObject.subclass('LayoutAlgorithm', {
         setSolver: function(solver) {
             this.layoutSolver = solver;
         },
@@ -134,7 +133,7 @@ Object.extend(LayoutSolver, {
     },
     addVariable: function(variable) {
         if(variable instanceof LayoutConstraintVariableNumber) {
-            var cassowaryVariable = this.variablesByName[variable.name] = new ClVariable(variable.name, variable.value);
+            var cassowaryVariable = this.variablesByName[variable.name] = new ClVariable(variable.name, variable.value());
             this.solver.addConstraint(new ClStayConstraint(cassowaryVariable));
         }
     },
@@ -153,7 +152,7 @@ Object.extend(LayoutSolver, {
             var bbbConstraintVariable = this.layoutSolver.bbbConstraintVariablesByName[name];
             var newValue = this.variablesByName[name].value();
             
-            numberVariable.value = newValue;
+            numberVariable.setValue(newValue);
             //bbbConstraintVariable.storedValue = newValue;
             //numberVariable.__cvar__.parentConstrainedVariable[numberVariable.ivarname] = newValue;
             console.log("FOOOOOO", bbbConstraintVariable, newValue, numberVariable);
@@ -168,7 +167,7 @@ Object.extend(LayoutSolver, {
     LayoutObject.subclass('LayoutConstraintVariable', {
         initialize: function(name, value, solver, ivarname, bbbConstrainedVariable) {
             this.name = name;
-            this.value = value;
+            this.setValue(value);
             this.solver = solver;
             this.ivarname = ivarname;
             this.__cvar__ = bbbConstrainedVariable;
@@ -199,9 +198,7 @@ Object.extend(LayoutSolver, {
         },
         changed: function(bool) {
             if(arguments.length == 0) return this.__changed__;
-
             this.__changed__ = bool;
-
             // propagate changed flag upwards
             if(this.parentConstraintVariable && this.parentConstraintVariable instanceof LayoutConstraintVariable) {
                 this.parentConstraintVariable.changed(bool)
@@ -210,41 +207,34 @@ Object.extend(LayoutSolver, {
         child: function(ivarname, child) {
             if(arguments.length < 2)
                 return this.__children__[ivarname];
-
             this.__children__[ivarname] = child;
             child.parentConstraintVariable = this;
         },
         
         // create a ConstrainedVariable for the property given by ivarname
         constrainProperty: function(ivarname) {
-            var extentConstrainedVariable = ConstrainedVariable.newConstraintVariableFor(this.value, ivarname, this.__cvar__);
+            var extentConstrainedVariable = ConstrainedVariable.newConstraintVariableFor(this.value(), ivarname, this.__cvar__);
             if (Constraint.current) {
                 extentConstrainedVariable.ensureExternalVariableFor(Constraint.current.solver);
                 extentConstrainedVariable.addToConstraint(Constraint.current);
             }
-
             var childConstraintVariable = extentConstrainedVariable.externalVariables(this.solver);
             this.child(ivarname, childConstraintVariable);
             //console.log("FOOOOOO", ivarname, childConstraintVariable, this, childConstraintVariable.parentConstraintVariable);
-
             return extentConstrainedVariable;
         }
     });
-
     LayoutConstraintVariable.subclass('LayoutConstraintVariableBox', {
         initChildConstraints: function() {
             this.shape = this.constrainProperty("shape");
         },
-
         suggestValue: function(val) {
             //console.log("This is the new Box:", val, this);
-
             if(this.solver.solving) return val;
     
             this.changed(true);
             this.solver.solve();
         },
-
         /*
          * accepted functions for Boxes
          */
@@ -258,7 +248,6 @@ Object.extend(LayoutSolver, {
         },
         aspectRatio: function(rightHandSide) {
             return new LayoutConstraintAspectRatio(this, rightHandSide, this.solver);
-
             // TODO: use correct API
             this.aspectRatio = this.constrainProperty("aspectRatio");
             
@@ -270,16 +259,13 @@ Object.extend(LayoutSolver, {
         initChildConstraints: function() {
             this.extent = this.constrainProperty("_Extent");
         },
-
         suggestValue: function(val) {
             //console.log("This is the new Shape:", val, this);
     
             if(this.solver.solving) return val;
-
             this.changed(true);
             this.solver.solve();
         }
-
         /*
          * accepted functions for Shapes
          */
@@ -293,9 +279,7 @@ Object.extend(LayoutSolver, {
         
         suggestValue: function(val) {
             //console.log("This is the new _Extent:", val, this);
-
             if(this.solver.solving) return val;
-
             this.changed(true);
             this.solver.solve();
         },
@@ -328,7 +312,6 @@ Object.extend(LayoutSolver, {
     LayoutConstraintVariable.subclass('LayoutConstraintVariableAspectRatio', {
         suggestValue: function(val) {
             //console.log("This is the new Number:", val, this);
-
             this.changed(true);
             this.solver.solve();
         },
@@ -339,10 +322,8 @@ Object.extend(LayoutSolver, {
             throw "cnEquals not yet implemented."
         }
     });
-
     // TODO: add further types of constraint variables
     // for Submorphs array (to enable jQuery style of definitions)
-
     /**
      * Constraint
      */
@@ -351,12 +332,10 @@ Object.extend(LayoutSolver, {
             // TODO: consider strength
             this.solver.addConstraint(this);
         },
-
         disable: function () {
             this.solver.removeConstraint(this);
         }
     });
-
     LayoutConstraint.subclass('LayoutConstraintBoxSameExtent', {
         initialize: function(left, right, solver) {
             this.left = left;
@@ -378,12 +357,11 @@ Object.extend(LayoutSolver, {
             }
         },
         _solve: function(from, to) {
-            to.value.getExtent().x = from.value.getExtent().x;
-            to.value.getExtent().y = from.value.getExtent().y;
-            to.value.setExtent(to.value.getExtent());
+            to.value().getExtent().x = from.value().getExtent().x;
+            to.value().getExtent().y = from.value().getExtent().y;
+            to.value().setExtent(to.value().getExtent());
         }
     });
-
     LayoutConstraint.subclass('LayoutConstraintAspectRatio', {
         initialize: function(left, right, solver) {
             this.left = left;
@@ -394,24 +372,7 @@ Object.extend(LayoutSolver, {
             if(this.left.changed()) {
                 this.left.changed(false);
             }
-            this.left.value.getExtent().x = this.right * this.left.value.getExtent().y;
+            this.left.value().getExtent().x = this.right * this.left.value().getExtent().y;
         }
     });
-/*
-    LayoutConstraint.subclass('LayoutConstraintEqPt', {
-        initialize: function(left, right, solver) {
-            this.left = left;
-            this.right = right;
-            this.solver = solver;
-        },
-        solve: function(point) {
-            if(this.left.changed()) {
-                this.left.changed(false);
-                this.right.value.setExtent(this.left.value.getExtent());
-            } else {
-                this.left.value.setExtent(this.right.value.getExtent());
-            }
-        }
-    });
-*/
 }) // end of module
