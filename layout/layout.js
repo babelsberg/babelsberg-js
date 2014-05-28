@@ -179,6 +179,12 @@ Object.extend(LayoutSolver, {
 
             this.initChildConstraints();
         },
+        value: function() {
+            return this.__value__;
+        },
+        setValue: function(value) {
+            this.__value__ = value;
+        },
         initChildConstraints: function() {},
         setReadonly: function(bool) {
             // TODO: add some constraint to hold a constant value
