@@ -8,7 +8,10 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
      * Solver
      */
     LayoutObject.subclass("LayoutSolver", {
-        initialize: function(){
+        initialize: function(algorithm) {
+            this.algorithm = algorithm || new LayoutAlgorithmDefault();
+            this.algorithm.setSolver(this);
+            
             this.reset();
         },
         
@@ -55,14 +58,20 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
             this.variables.push(layoutConstraintVariable);
             this.bbbConstraintVariablesByName[layoutConstraintVariable.name] = bbbConstraintVariable;
             this.layoutConstraintVariablesByName[layoutConstraintVariable.name] = layoutConstraintVariable;
+            
+            this.algorithm.addVariable(layoutConstraintVariable);
         },
         
         addConstraint: function(constraint) {
             this.constraints.push(constraint);
+            
+            this.algorithm.addConstraint(constraint);
         },
         
         removeConstraint: function(constraint) {
             this.constraints.remove(constraint);
+            
+            this.algorithm.removeConstraint(constraint);
         },
         
         solveOnce: function(constraint) {
@@ -75,33 +84,83 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
         },
         
         solve: function() {
-            //console.log("------- solve -------");
-            this.constraints.each(function(constraint) {
-                constraint.solve();
-            });
+            this.solving = true;
+            this.algorithm.solve();
+            this.solving = false;
+            
             this.rerender();
         },
         
         rerender: function() {
-            console.log("------- rerender -------");
+            //console.log("------- rerender -------");
             this.variables.map(function(constraintVariable) {
-                console.log("rerender", constraintVariable.name, constraintVariable);
+                //console.log("rerender", constraintVariable.name, constraintVariable);
                 return constraintVariable;
-/*            }).filter(function(constraintVariable) {
+            }).filter(function(constraintVariable) {
                 return constraintVariable instanceof LayoutConstraintVariableBox;
             }).each(function(constraintVariable) {
                 var morph = constraintVariable.value;
                 //console.log("Variable", morph);
                 morph.setExtent(morph.getExtent());
-*/            });
+            });
+        }
+    });
+Object.extend(LayoutSolver, {
+    weight: 5000
+});    
+    LayoutObject.subclass('LayoutAlgorithm', {
+        setSolver: function(solver) {
+            this.layoutSolver = solver;
+        },
+        addVariable: function(variable) {},
+        addConstraint: function(constraint) {},
+        removeConstraint: function(constraint) {}
+    });
+    
+    LayoutAlgorithm.subclass('LayoutAlgorithmDefault', {
+        solve: function() {
+            this.layoutSolver.constraints.each(function(constraint) {
+                constraint.solve();
+            });
         }
     });
     
-    LayoutObject.subclass('LayoutPlan', {
-        initialize: function(solver) {
-            this.solver = solver;
+    LayoutAlgorithm.subclass('LayoutAlgorithmDelegateCassowary', {
+    initialize: function() {
+        this.solver = new ClSimplexSolver();
+
+        this.variablesByName = {};
+        this.constraintsByName = {};
+    },
+    addVariable: function(variable) {
+        if(variable instanceof LayoutConstraintVariableNumber) {
+            var cassowaryVariable = this.variablesByName[variable.name] = new ClVariable(variable.name, variable.value);
+            this.solver.addConstraint(new ClStayConstraint(cassowaryVariable));
         }
-    });
+    },
+    addConstraint: function(constraint) {
+        if(constraint instanceof LayoutConstraintAspectRatio) {
+            var width = this.variablesByName[constraint.left.child("shape").child("_Extent").child("x").name];
+            var height = this.variablesByName[constraint.left.child("shape").child("_Extent").child("y").name];
+            var aspectRatio = constraint.right;
+            var cn = width.cnGeq(height.times(aspectRatio));
+            this.solver.addConstraint(cn);
+        }
+    },
+    solve: function() {
+        Object.keys(this.variablesByName).each(function(name) {
+            var numberVariable = this.layoutSolver.layoutConstraintVariablesByName[name];
+            var bbbConstraintVariable = this.layoutSolver.bbbConstraintVariablesByName[name];
+            var newValue = this.variablesByName[name].value();
+            
+            numberVariable.value = newValue;
+            //bbbConstraintVariable.storedValue = newValue;
+            //numberVariable.__cvar__.parentConstrainedVariable[numberVariable.ivarname] = newValue;
+            console.log("FOOOOOO", bbbConstraintVariable, newValue, numberVariable);
+        }, this);
+    },
+    getCassowary: function() {}
+});
     
     /**
      * ConstraintVariable
@@ -173,6 +232,8 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
 
         suggestValue: function(val) {
             //console.log("This is the new Box:", val, this);
+
+            if(this.solver.solving) return val;
     
             this.changed(true);
             this.solver.solve();
@@ -188,6 +249,14 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
             return this
                 .child("shape")
                 .child("_Extent");
+        },
+        aspectRatio: function(rightHandSide) {
+            return new LayoutConstraintAspectRatio(this, rightHandSide, this.solver);
+
+            // TODO: use correct API
+            this.aspectRatio = this.constrainProperty("aspectRatio");
+            
+            return this.aspectRatio;
         }
     });
     
@@ -199,6 +268,8 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
         suggestValue: function(val) {
             //console.log("This is the new Shape:", val, this);
     
+            if(this.solver.solving) return val;
+
             this.changed(true);
             this.solver.solve();
         }
@@ -216,6 +287,8 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
         
         suggestValue: function(val) {
             //console.log("This is the new _Extent:", val, this);
+
+            if(this.solver.solving) return val;
 
             this.changed(true);
             this.solver.solve();
@@ -235,13 +308,30 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
     LayoutConstraintVariable.subclass('LayoutConstraintVariableNumber', {
         suggestValue: function(val) {
             //console.log("This is the new Number:", val, this);
-
+            
+            if(this.solver.solving) return val;
+            
             this.changed(true);
             this.solver.solve();
         }
         /*
          * accepted functions for Numbers
          */
+    });
+    
+    LayoutConstraintVariable.subclass('LayoutConstraintVariableAspectRatio', {
+        suggestValue: function(val) {
+            //console.log("This is the new Number:", val, this);
+
+            this.changed(true);
+            this.solver.solve();
+        },
+        /*
+         * accepted functions for AspectRatio
+         */
+        cnGeq: function(rightHandSide) {
+            throw "cnEquals not yet implemented."
+        }
     });
 
     // TODO: add further types of constraint variables
@@ -288,6 +378,20 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
         }
     });
 
+    LayoutConstraint.subclass('LayoutConstraintAspectRatio', {
+        initialize: function(left, right, solver) {
+            this.left = left;
+            this.right = right;
+            this.solver = solver;
+        },
+        solve: function() {
+            if(this.left.changed()) {
+                this.left.changed(false);
+            }
+            this.left.value.getExtent().x = this.right * this.left.value.getExtent().y;
+        }
+    });
+/*
     LayoutConstraint.subclass('LayoutConstraintEqPt', {
         initialize: function(left, right, solver) {
             this.left = left;
@@ -303,4 +407,5 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
             }
         }
     });
+*/
 }) // end of module
