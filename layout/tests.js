@@ -81,14 +81,18 @@ TestCase.subclass('users.timfelgentreff.layout.tests.ConstainedVariablesTest', {
     },
     
     testAssignmentCallsSuggestValue: function () {
-        var counter = sinon.spy(LayoutConstraintVariablePoint.prototype, "suggestValue");
+        var counter = 0;
+        var spy = this.spyInClass(LayoutConstraintVariablePoint, "suggestValue", function() {
+            counter++;
+        }).callsThrough();
 
         var parent = FixtureSameExtent.getSameExtent(this);
+
         parent.child1.setExtent(pt(2,3));
 
-        this.assert(counter.calledOnce,  "function suggestValue was not called once but " + counter.callCount + " times");
+        this.assert(counter == 1,  "function suggestValue was not called once but " + counter + " times");
         
-        counter.restore();
+        spy.uninstall();
     },
     
     testStillConstrainedAfterAssignment: function () {
