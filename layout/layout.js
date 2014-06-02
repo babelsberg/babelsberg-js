@@ -180,27 +180,13 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
         
 
         rerender: function() {
-
-            //console.log("------- rerender -------");
-
             this.variables.map(function(constraintVariable) {
-
-                //console.log("rerender", constraintVariable.name, constraintVariable);
-
                 return constraintVariable;
-
             }).filter(function(constraintVariable) {
-
                 return constraintVariable instanceof LayoutConstraintVariableBox;
-
             }).each(function(constraintVariable) {
-
                 var morph = constraintVariable.value();
-
-                //console.log("Variable", morph);
-
-                //morph.setExtent(morph.getExtent());
-
+                morph.renderUsing(morph.renderContext());
             });
 
         }
