@@ -369,6 +369,9 @@ Object.extend(FixtureMorph, {
     },
     getParentWithFourChildren: function(testCase) {
         throw "not yet implemented"
+    },
+    getParentWithOneChildAndTwoSubchildren: function(testCase) {
+        throw "not yet implemented"
     }
 });
 Object.extend(FixtureWidth, {
@@ -454,6 +457,36 @@ TestCase.subclass('users.timfelgentreff.layout.tests.AspectRatioTest', {
         var parent = FixtureAspectRatio.getAspectRatio(this);
         
         this.assert(parent.child1.getExtent().x / parent.child1.getExtent().y <= 2, "Box does not have an aspect ratio greater than 2. It was " + parent.child1.getExtent().x + " -> " + parent.child1.getExtent().y + " = " + (parent.child1.getExtent().x / parent.child1.getExtent().y));
+    }
+});
+
+TestCase.subclass('users.timfelgentreff.layout.tests.TestStayInParent', {
+    getFixture: function() {
+        var parent = new lively.morphic.Morph.makeRectangle(10, 10, 100, 100);
+        parent.addMorph(parent.child1 = new lively.morphic.Morph.makeRectangle(0, 0, 250, 250));
+        parent.child1.addMorph(parent.child1.child1 = new lively.morphic.Morph.makeRectangle(200, 100, 100, 50));
+
+        return parent;
+
+    },
+    testStayInParent: function () {
+        FixtureMorph.setSolver(this);
+        
+        var parent = this.getFixture();
+        var margin = 20;
+        
+        bbb.always({
+            solver: this.layoutSolver,
+            ctx: {
+                parent: parent,
+                margin: margin,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return parent.child1.contains(parent.child1.child1, margin);;
+        });;
+        console.log(parent.child1.bounds().toString(), parent.child1.child1.bounds().toString());
+        this.assert(parent.child1.innerBounds().insetBy(margin).containsRect(parent.child1.child1.bounds()), "Boxes do not contain each other: " + parent.child1.innerBounds().toString() + " " + parent.child1.child1.bounds().toString());
     }
 });
 
