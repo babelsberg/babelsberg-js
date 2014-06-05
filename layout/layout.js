@@ -83,9 +83,7 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
         },
         
         rerender: function() {
-            this.variables.map(function(constraintVariable) {
-                return constraintVariable;
-            }).filter(function(constraintVariable) {
+            this.variables.filter(function(constraintVariable) {
                 return constraintVariable instanceof LayoutConstraintVariableBox;
             }).each(function(constraintVariable) {
                 var morph = constraintVariable.value();
@@ -160,17 +158,14 @@ LayoutSolver.addMethods({
             this.shape = this.constrainProperty("shape");
         },
         suggestValue: function(val) {
-            //console.log("This is the new Box:", val, this);
-            if(this.solver.solving) return val;
-    
-            this.changed(true);
-            this.solver.solve();
+            return val;
+            throw "suggestValue is not yet implemented on Morphs"
         },
         /*
          * accepted functions for Boxes
          */
         sameExtent: function(rightHandSideBox) {
-            return new LayoutConstraintBoxSameExtent(this, rightHandSideBox, this.solver);
+            return this.getExtent().eqPt(rightHandSideBox.getExtent());
         },
         getExtent: function() {
             return this
@@ -178,11 +173,7 @@ LayoutSolver.addMethods({
                 .child("_Extent");
         },
         aspectRatio: function(aspectRatio) {
-            return new LayoutConstraintAspectRatio(this, aspectRatio, this.solver);
-            // TODO: use correct API
-            this.aspectRatio = this.constrainProperty("aspectRatio");
-            
-            return this.aspectRatio;
+            return new LayoutAccessorAspectRatio(this, this.solver);
         }
     });
     
@@ -191,11 +182,8 @@ LayoutSolver.addMethods({
             this.extent = this.constrainProperty("_Extent");
         },
         suggestValue: function(val) {
-            //console.log("This is the new Shape:", val, this);
-    
-            if(this.solver.solving) return val;
-            this.changed(true);
-            this.solver.solve();
+            return val;
+            throw "suggestValue is not yet implemented on Shapes"
         }
         /*
          * accepted functions for Shapes
@@ -209,8 +197,8 @@ LayoutSolver.addMethods({
         },
         
         suggestValue: function(val) {
-            var x = this.x.externalVariables(this.solver);
-            var y = this.y.externalVariables(this.solver);
+            var x = this.child("x");
+            var y = this.child("y");
             x.suggestValue(val.x);
             y.suggestValue(val.y);
         },
@@ -220,8 +208,8 @@ LayoutSolver.addMethods({
          */
         eqPt: function(rightHandSidePoint) {
             if(this.ivarname === "_Extent" && rightHandSidePoint.ivarname === "_Extent")
-                return this.parentConstraintVariable.parentConstraintVariable.sameExtent(rightHandSidePoint.parentConstraintVariable.parentConstraintVariable);
-                
+                return new LayoutConstraintBoxSameExtent(this, rightHandSidePoint, this.solver);
+
             throw "eqPt does only work for _Extent attributes for now."
         }
     });
@@ -255,55 +243,54 @@ LayoutSolver.addMethods({
          * accepted functions for Numbers
          */
         plus: function(value) {
-            throw "not yet implemented";
+            if(value.cassowary)
+                value = value.cassowary;
+            return new LayoutConstraintLinearExpression(this.cassowary.plus(value), this.solver);
         },
     
         minus: function(value) {
-            throw "not yet implemented";
+            if(value.cassowary)
+                value = value.cassowary;
+            return new LayoutConstraintLinearExpression(this.cassowary.minus(value), this.solver);
         },
     
         times: function(value) {
-            throw "not yet implemented";
+            if(value.cassowary)
+                value = value.cassowary;
+            return new LayoutConstraintLinearExpression(this.cassowary.times(value), this.solver);
         },
     
         divide: function(value) {
-            throw "not yet implemented";
+            if(value.cassowary)
+                value = value.cassowary;
+            return new LayoutConstraintLinearExpression(this.cassowary.divide(value), this.solver);
         },
     
         cnGeq: function(value) {
-            throw "not yet implemented";
+            return new LayoutConstraintLinearEquation(this, value, "cnGeq", this.solver);
         },
     
         cnLeq: function(value) {
-            throw "not yet implemented";
+            return new LayoutConstraintLinearEquation(this, value, "cnLeq", this.solver);
         },
-    
-    
+        
         cnOr: function(value) {
-            throw "not yet implemented";
+            throw "cnOr not yet implemented on LayoutConstraintVariableNumber";
         },
         cnEquals: function(right) {
-            return new LayoutConstraintNumberEqual(this, right, this.solver);
+            return new LayoutConstraintLinearEquation(this, right, "cnEquals", this.solver);
         },
         cnIdentical: function(value) {
-            throw "not yet implemented";
+            throw "cnIdentical not yet implemented on LayoutConstraintVariableNumber";
         }
     });
-    
-    LayoutConstraintVariable.subclass('LayoutConstraintVariableAspectRatio', {
-        suggestValue: function(val) {
-            //console.log("This is the new Number:", val, this);
-            this.changed(true);
-            this.solver.solve();
-        },
-        /*
-         * accepted functions for AspectRatio
-         */
-        cnGeq: function(rightHandSide) {
-            throw "cnEquals not yet implemented."
-        }
-    });
-    // TODO: add further types of constraint variables
+LayoutObject.subclass('LayoutConstraintLinearExpression', {
+    initialize: function(cassowary, solver) {
+        this.cassowary = cassowary;
+        this.solver = solver;
+    }
+});    
+        // TODO: add further types of constraint variables
     // for Submorphs array (to enable jQuery style of definitions)
     /**
      * Constraint
@@ -319,26 +306,26 @@ LayoutSolver.addMethods({
     });
     LayoutConstraint.subclass('LayoutConstraintBoxSameExtent', {
         initialize: function(left, right, solver) {
-            this.left = left.getExtent();
-            this.right = right.getExtent();
-            this.solver = solver;
-            
-            this.cnX = new LayoutConstraintNumberEqual(this.left.x.externalVariables(this.solver), this.right.x.externalVariables(this.solver), this.solver);
-            this.cnY = new LayoutConstraintNumberEqual(this.left.y.externalVariables(this.solver), this.right.y.externalVariables(this.solver), this.solver);
-        }
-    });
-LayoutConstraint.subclass('LayoutConstraintNumberEqual', {
-        initialize: function(left, right, solver) {
             this.left = left;
             this.right = right;
             this.solver = solver;
             
-            this.cassowary = this.left.cassowary.cnEquals(this.right.cassowary);
+            this.cnX = this.left.child("x").cnEquals(this.right.child("x"));
+            this.cnY = this.left.child("y").cnEquals(this.right.child("y"));
+        }
+    });
+LayoutConstraint.subclass('LayoutConstraintLinearEquation', {
+        initialize: function(left, right, operator, solver) {
+            this.left = left;
+            this.right = right;
+            this.solver = solver;
+            
+            this.cassowary = this.left.cassowary[operator](this.right.cassowary);
             this.solver.cassowary.addConstraint(this.cassowary);
         }
 });
     LayoutConstraint.subclass('LayoutConstraintAspectRatio', {
-        initialize: function(box, aspectRatio, solver) {
+        initialize: function(box, aspectRatio, operation, solver) {
             this.box = box;
             this.aspectRatio = aspectRatio;
             this.solver = solver;
@@ -347,8 +334,25 @@ LayoutConstraint.subclass('LayoutConstraintNumberEqual', {
             var height = this.box.getExtent().y
                 .externalVariables(this.solver);
             
-            this.cassowary = height.cassowary.times(aspectRatio).cnEquals(width.cassowary);
+            this.cassowary = height.cassowary.times(aspectRatio)[operation](width.cassowary);
             this.solver.cassowary.addConstraint(this.cassowary);
         }
     });
-}) // end of module
+LayoutObject.subclass('LayoutAccessorAspectRatio', {
+    initialize: function(morph, solver) {
+        this.morph = morph;
+        this.solver = solver;
+    },
+    
+    cnGeq: function(right) {
+        return new LayoutConstraintAspectRatio(this.morph, right, "cnGeq", this.solver);
+    },
+
+    cnLeq: function(right) {
+        return new LayoutConstraintAspectRatio(this.morph, right, "cnLeq", this.solver);
+    },
+    
+    cnEquals: function(right) {
+        return new LayoutConstraintAspectRatio(this.morph, right, "cnEquals",this.solver);
+    }
+});}) // end of module

@@ -289,7 +289,27 @@ Object.extend(FixtureAspectRatio, {
                 _$_self: this.doitContext || this
             }
         }, function() {
-            return parent.child1.aspectRatio(2);;
+            return parent.child1.aspectRatio() >= 2;;
+        });
+        
+        return parent;
+    },
+    getAspectRatioAsLinearExpression: function(testCase) {
+        testCase.layoutSolver = new LayoutSolver();
+        
+        var parent = new lively.morphic.Box(pt(7,7).extent(pt(300,300)));
+        parent.addMorph(parent.child1 = new lively.morphic.Morph.makeRectangle(10, 10, 100, 250));
+
+        bbb.always({
+            solver: testCase.layoutSolver,
+            allowUnsolvableOperations: true,
+            ctx: {
+                parent: parent,
+            allowUnsolvableOperations: true,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return parent.child1.getExtent().x >= parent.child1.getExtent().y * 2;;
         });
         
         return parent;
@@ -351,10 +371,15 @@ TestCase.subclass('users.timfelgentreff.layout.tests.AspectRatioTest', {
         
         this.assertEquals(parent.child1.getExtent().x, parent.child1.getExtent().y, "Box is not a square. x: " + parent.child1.getExtent().x + ", y: " + parent.child1.getExtent().y);
     },
+    testAspectRatioAsLinearExpression: function () {
+        var parent = FixtureAspectRatio.getAspectRatioAsLinearExpression(this);
+        
+        this.assert(parent.child1.getExtent().x / parent.child1.getExtent().y >= 2, "Box does not have an aspect ratio greater than 2. It was " + parent.child1.getExtent().x + " -> " + parent.child1.getExtent().y + " = " + (parent.child1.getExtent().x / parent.child1.getExtent().y));
+    },
     testAspectRatio: function () {
         var parent = FixtureAspectRatio.getAspectRatio(this);
         
-        this.assert(parent.child1.getExtent().x / parent.child1.getExtent().y >= 2, "Box does not have an aspect ratio greater than 2. It was " + parent.child1.getExtent().x + " -> " + parent.child1.getExtent().y + " = " + (parent.child1.getExtent().x / parent.child1.getExtent().y));
+        this.assert(parent.child1.getExtent().x / parent.child1.getExtent().y <= 2, "Box does not have an aspect ratio greater than 2. It was " + parent.child1.getExtent().x + " -> " + parent.child1.getExtent().y + " = " + (parent.child1.getExtent().x / parent.child1.getExtent().y));
     }
 });
 
