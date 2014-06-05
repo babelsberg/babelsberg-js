@@ -35,6 +35,14 @@ TestCase.subclass('users.timfelgentreff.layout.tests.SimpleLayoutTest', {
     }
 });
 
+TestCase.subclass('users.timfelgentreff.layout.tests.TestWidth', {
+    testWidthEquals200: function () {
+        var parent = FixtureWidth.getWidthEqual200(this);
+        
+        this.assertEquals(parent.child1.getExtent().x, 200, "Box does not have the specified width of 200, instead: " + parent.child1.getExtent().x);
+    }
+});
+
 TestCase.subclass('users.timfelgentreff.layout.tests.ConstainedVariablesTest', {
     setUp: function() {
     },
@@ -124,7 +132,11 @@ TestCase.subclass('users.timfelgentreff.layout.tests.ConstainedVariablesTest', {
     }
 });
 Object.subclass('FixtureAspectRatio');
-Object.subclass('FixtureSameExtent');Object.extend(FixtureSameExtent, {
+Object.subclass('FixtureWidth');
+Object.subclass('FixtureHeight');
+Object.subclass('FixtureSameExtent');
+Object.subclass('FixtureMorph');
+Object.extend(FixtureSameExtent, {
     getSameExtent: function(testCase) {
         // Creates a Box with 2 child Boxes constrained to the same extent.
         testCase.layoutSolver = new LayoutSolver();
@@ -330,6 +342,42 @@ Object.extend(FixtureAspectRatio, {
             }
         }, function() {
             return parent.child1.getExtent().x == parent.child1.getExtent().y;;
+        });
+        
+        return parent;
+    }
+});
+Object.extend(FixtureMorph, {
+    setSolver: function(testCase) {
+        testCase.layoutSolver = new LayoutSolver();
+    },
+    getParentWithOneChild: function() {
+        var parent = new lively.morphic.Box(pt(7,7).extent(pt(300,300)));
+        parent.addMorph(parent.child1 = new lively.morphic.Morph.makeRectangle(10, 10, 100, 250));
+
+        return parent;
+    },
+    getParentWithTwoChildren: function(testCase) {
+        throw "not yet implemented"
+    },
+    getParentWithFourChildren: function(testCase) {
+        throw "not yet implemented"
+    }
+});
+Object.extend(FixtureWidth, {
+    getWidthEqual200: function(testCase) {
+        FixtureMorph.setSolver(testCase);
+        
+        var parent = FixtureMorph.getParentWithOneChild();
+
+        bbb.always({
+            solver: testCase.layoutSolver,
+            ctx: {
+                parent: parent,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return parent.child1.width() == 200;;
         });
         
         return parent;
