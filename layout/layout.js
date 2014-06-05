@@ -1,6 +1,6 @@
 module('users.timfelgentreff.layout.layout').requires().toRun(function() {
     Object.subclass('LayoutObject', {
-        isConstraintObject: function() { return true; },
+        isConstraintObject: true//function() { return true; },
     });
     
     /**
@@ -167,6 +167,18 @@ LayoutSolver.addMethods({
         sameExtent: function(rightHandSideBox) {
             return this.getExtent().eqPt(rightHandSideBox.getExtent());
         },
+        width: function() {
+            return this
+                .child("shape")
+                .child("_Extent")
+                .child("x");
+        },
+        height: function() {
+            return this
+                .child("shape")
+                .child("_Extent")
+                .child("y");
+        },
         getExtent: function() {
             return this
                 .child("shape")
@@ -176,6 +188,12 @@ LayoutSolver.addMethods({
             return new LayoutAccessorAspectRatio(this, this.solver);
         }
     });
+    
+    
+    
+    
+    
+    
     
     LayoutConstraintVariable.subclass('LayoutConstraintVariableShape', {
         initChildConstraints: function() {
@@ -316,11 +334,11 @@ LayoutObject.subclass('LayoutConstraintLinearExpression', {
     });
 LayoutConstraint.subclass('LayoutConstraintLinearEquation', {
         initialize: function(left, right, operator, solver) {
-            this.left = left;
-            this.right = right;
+            this.left = left.cassowary || left;
+            this.right = right.cassowary || right;
             this.solver = solver;
             
-            this.cassowary = this.left.cassowary[operator](this.right.cassowary);
+            this.cassowary = this.left[operator](this.right);
             this.solver.cassowary.addConstraint(this.cassowary);
         }
 });

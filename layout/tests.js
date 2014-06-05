@@ -42,6 +42,13 @@ TestCase.subclass('users.timfelgentreff.layout.tests.TestWidth', {
         this.assertEquals(parent.child1.getExtent().x, 200, "Box does not have the specified width of 200, instead: " + parent.child1.getExtent().x);
     }
 });
+TestCase.subclass('users.timfelgentreff.layout.tests.TestHeight', {
+    testHeightGeq200: function () {
+        var parent = FixtureHeight.getHeightGeq200(this);
+        
+        this.assert(parent.child1.getExtent().y >= 200, "Box does not have a greate height that 200, it is: " + parent.child1.getExtent().y);
+    }
+});
 
 TestCase.subclass('users.timfelgentreff.layout.tests.ConstainedVariablesTest', {
     setUp: function() {
@@ -378,6 +385,25 @@ Object.extend(FixtureWidth, {
             }
         }, function() {
             return parent.child1.width() == 200;;
+        });
+        
+        return parent;
+    }
+});
+Object.extend(FixtureHeight, {
+    getHeightGeq200: function(testCase) {
+        FixtureMorph.setSolver(testCase);
+        
+        var parent = FixtureMorph.getParentWithOneChild();
+
+        bbb.always({
+            solver: testCase.layoutSolver,
+            ctx: {
+                parent: parent,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return parent.child1.height() >= 200;;
         });
         
         return parent;
