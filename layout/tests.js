@@ -475,6 +475,7 @@ TestCase.subclass('users.timfelgentreff.layout.tests.TestStayInParent', {
         var parent = this.getFixture();
         var margin = 20;
         
+        //console.log(parent.child1.innerBounds().toString(), parent.child1.child1.bounds().toString());
         bbb.always({
             solver: this.layoutSolver,
             ctx: {
@@ -485,7 +486,8 @@ TestCase.subclass('users.timfelgentreff.layout.tests.TestStayInParent', {
         }, function() {
             return parent.child1.contains(parent.child1.child1, margin);;
         });;
-        console.log(parent.child1.bounds().toString(), parent.child1.child1.bounds().toString());
+        //console.log(parent.child1.innerBounds().toString(), parent.child1.child1.bounds().toString());
+        debugger
         this.assert(parent.child1.innerBounds().insetBy(margin).containsRect(parent.child1.child1.bounds()), "Boxes do not contain each other: " + parent.child1.innerBounds().toString() + " " + parent.child1.child1.bounds().toString());
     }
 });

@@ -87,6 +87,7 @@ module('users.timfelgentreff.layout.layout').requires().toRun(function() {
                 return constraintVariable instanceof LayoutConstraintVariableBox;
             }).each(function(constraintVariable) {
                 var morph = constraintVariable.value();
+                //morph.setPosition(pt(constraintVariable.child("_Position").x, constraintVariable.child("_Position").y));
                 morph.renderUsing(morph.renderContext());
             });
         }
@@ -155,6 +156,7 @@ LayoutSolver.addMethods({
     });
     LayoutConstraintVariable.subclass('LayoutConstraintVariableBox', {
         initChildConstraints: function() {
+            this.position = this.constrainProperty("_Position");
             this.shape = this.constrainProperty("shape");
         },
         suggestValue: function(val) {
@@ -184,13 +186,11 @@ LayoutSolver.addMethods({
         },
         left: function() {
             return this
-                .child("shape")
                 .child("_Position")
                 .child("x");
         },
         top: function() {
             return this
-                .child("shape")
                 .child("_Position")
                 .child("y");
         },
@@ -212,7 +212,6 @@ LayoutSolver.addMethods({
     
     LayoutConstraintVariable.subclass('LayoutConstraintVariableShape', {
         initChildConstraints: function() {
-            this.position = this.constrainProperty("_Position");
             this.extent = this.constrainProperty("_Extent");
         },
         suggestValue: function(val) {
@@ -231,6 +230,7 @@ LayoutSolver.addMethods({
         },
         
         suggestValue: function(val) {
+            //if(this.parentConstraintVariable.value().isBeingDragged) return;
             var x = this.child("x");
             var y = this.child("y");
             x.suggestValue(val.x);
@@ -395,8 +395,8 @@ LayoutConstraint.subclass('LayoutConstraintLinearEquation', {
 });
 LayoutConstraint.subclass('LayoutConstraintContains', {
         initialize: function(parent, child, margin, solver) {
-            this.parentWidth = parent.width();
-            this.parentHeight = parent.height();
+            this.parentWidth = parent.width().cassowary;
+            this.parentHeight = parent.height().cassowary;
 
             this.childLeft = child.left().cassowary;
             this.childTop = child.top().cassowary;
@@ -415,7 +415,8 @@ LayoutConstraint.subclass('LayoutConstraintContains', {
             this.solver.cassowary.addConstraint(i2);
             this.solver.cassowary.addConstraint(i3);
             this.solver.cassowary.addConstraint(i4);
-
+            this.solver.cassowary.addConstraint(this.childWidth.cnGeq(0));
+            this.solver.cassowary.addConstraint(this.childHeight.cnGeq(0));
         }
 });
     LayoutConstraint.subclass('LayoutConstraintAspectRatio', {
