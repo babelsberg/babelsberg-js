@@ -429,7 +429,7 @@ LayoutConstraint.subclass('LayoutConstraintContains', {
             var height = this.box.getExtent().y
                 .externalVariables(this.solver);
             
-            this.cassowary = height.cassowary.times(aspectRatio)[operation](width.cassowary);
+            this.cassowary = (width.cassowary).times(1/aspectRatio)[operation](height.cassowary);
             this.solver.cassowary.addConstraint(this.cassowary);
         }
     });
