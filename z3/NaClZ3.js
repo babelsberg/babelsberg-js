@@ -299,6 +299,12 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
     pow: function (r) {
         return new NaCLZ3BinaryExpression("^", this, r, this.solver);
     },
+    cnAnd: function (r) {
+        return new NaCLZ3BinaryExpression("and", this, r, this.solver);
+    },
+    cnOr: function (r) {
+        return new NaCLZ3BinaryExpression("or", this, r, this.solver);
+    },
     isConstraintObject: function() {
         return true;
     },

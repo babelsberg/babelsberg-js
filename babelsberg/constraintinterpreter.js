@@ -246,6 +246,7 @@ Object.subclass('Constraint', {
     },
     addPrimitiveConstraint: function(obj) {
         if (typeof(obj) != "undefined" && !this.constraintobjects.include(obj)) {
+            if (!obj.enable) this.haltIfDebugging();
             this.constraintobjects.push(obj);
         }
     },
@@ -314,7 +315,10 @@ Object.subclass('Constraint', {
         } else if (obj === false) {
             throw new Error("Constraint expression returned false, no solver available to fix it");
         } else if (!obj.enable) {
-            throw new Error("Constraint expression returned an object that does not respond to #enable");
+            var e = new Error("Constraint expression returned an object that does not respond to #enable");
+            e.obj = obj;
+            e.constraint = this;
+            throw e
         } else {
             obj.solver = this.solver; // XXX: Bit of a hack, should really write it so
                                       // this gets passed through from the variables
@@ -835,7 +839,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
         } else {
             var msg = "`" + op + "'" + " not allowed on " + l,
                 alternative;
-            if (r) {
+            if (r !== undefined) {
                 msg = "Binary op " + msg + " and " + r;
                 
                 var altOp = this.alternativeExpressionsMap[op];
@@ -972,8 +976,16 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
             rRightVal = rightVal.isConstraintObject ? this.getConstraintObjectValue(rightVal) : rightVal;                    
         switch (node.name) {
             case '&&':
-                Constraint.current.addPrimitiveConstraint(leftVal);
-                dbgOn(typeof(leftVal) != "object")
+                if (!leftVal) return leftVal;
+                if (leftVal === true || leftVal.isConstraintObject) {
+                    if (typeof(leftVal.cnAnd) == "function") {
+                        return leftVal.cnAnd(rightVal);
+                    } else {
+                        Constraint.current.addPrimitiveConstraint(leftVal);
+                    }
+                } else {
+                    Constraint.current.haltIfDebugging(); // XXX: Sure?
+                }
                 return rightVal;
             case '-':
                 if (rightVal.isConstraintObject && rightVal.plus && Object.isNumber(leftVal)) {
