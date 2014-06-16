@@ -5,7 +5,6 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
     },
 
     postMessage: function (string) {
-        debugger
         string = "(set-option :pp.decimal true)\n" +
             string +
             ("\n(check-sat)\n(get-value (" + this.variables.inject("", function (acc, v) {
@@ -25,10 +24,11 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
         );
     },
     initialize: function($super, sync) {
-        this.sync = sync || true;
+        this.sync = !!(sync || true);
         $super();
     },
     applyResult: function(result) {
+        debugger
         // console.log(result);
         if (result.startsWith("sat")/* || result.indexOf("\nsat\n") != -1 */) {
             var idx = result.indexOf("sat\n");
