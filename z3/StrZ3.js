@@ -59,7 +59,7 @@ module('users.timfelgentreff.z3.StrZ3').requires().toRun(function() {
                 v.isString = true;
                 return v;
             } else {
-                $super(value, ivarname, cvar);
+                return $super(value, ivarname, cvar);
             }
         }
     });
@@ -72,6 +72,10 @@ refineClass(NaCLZ3Variable, {
         } else {
             return cop.proceed();
         }
+    },
+    
+    get cnlength() {
+        return this.size();
     },
 }).
 refineClass(NaCLZ3BinaryExpression, {
@@ -91,7 +95,7 @@ refineClass(NaCLZ3BinaryExpression, {
         // methodName: [z3function, arity, resultIsString (used as bool flag)]
         "plus": ["Concat", 2, "isString"],
         "include": ["Contains", 2],
-        "length": ["Length", 1],
+        "size": ["Length", 1],
         "endsWith": ["EndsWith", 2],
         "startsWith": ["StartsWith", 2],
         "indexOf": ["Indexof", 2],
