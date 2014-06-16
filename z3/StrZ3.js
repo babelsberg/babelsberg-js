@@ -99,8 +99,9 @@ refineClass(NaCLZ3BinaryExpression, {
         "endsWith": ["EndsWith", 2],
         "startsWith": ["StartsWith", 2],
         "indexOf": ["Indexof", 2],
-        "replace": ["Replace", 3, "isString"]
-        // TODO FIX: Substring, Length, Indexof, Replace
+        "replace": ["Replace", 3, "isString"],
+        "substr": ["Substring", 3, "isString"],
+        "substring": ["Substring", 3, "isString"]
     },
     initializeFunctionOverrides: (function initializeStrZ3Layer () {
         var o = {};
