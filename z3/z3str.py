@@ -55,19 +55,29 @@ def convert(org_file):
 
   linesInFile = f_o.readlines()
 
+  output_str = ""
+
   for line in linesInFile:
     line = line.strip();
     if line == "":
       continue
     if line.startswith(';'):
+      output_str += line + "\n"
       continue
     if line.startswith('%'):
+      output_str += line + "\n"
       continue
     if line.startswith('//'):
+      output_str += line + "\n"
       continue
     if line.find("get-model") != -1:
+      # output_str += line + "\n"
+      continue
+    if line.find("get-value") != -1:
+      # output_str += line + "\n"
       continue
     if line.find("set-option") != -1:
+      output_str += line + "\n"
       continue
     if line.find("declare-variable") != -1:
       declared_string_var.append(line.replace('declare-variable', 'declare-const'))
@@ -101,7 +111,6 @@ def convert(org_file):
     # end: processing const string
     converted_cstr = converted_cstr + line + '\n'
 
-  output_str = ""
   for strv in declared_string_var:
     output_str = output_str + strv + "\n"
   output_str = output_str + '\n'

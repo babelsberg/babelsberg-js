@@ -404,7 +404,20 @@ NaCLZ3Constraint.subclass('NaCLZ3BinaryExpression', {
         return "(" + this.op + " " + this.left.print() + " " + this.right.print() + ")"
     }
 });
-
+NaCLZ3BinaryExpression.subclass('NaCLZ3TertiaryExpression', {
+    initialize: function (op, first, second, third, solver) {
+        this.solver = solver;
+        this.op = op;
+        this.first = this.z3object(first);
+        this.second = this.z3object(second);
+        this.third = this.z3object(third);
+    },
+    
+    print: function () {
+        return "(" + this.op + " " + this.first.print() + " "
+                + this.second.print() + " " + this.third.print() + ")"
+    }
+});
 NaCLZ3Constraint.subclass('NaCLZ3UnaryExpression', {
     initialize: function (op, arg,  solver) {
         this.solver = solver;
