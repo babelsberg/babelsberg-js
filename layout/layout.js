@@ -241,10 +241,13 @@ LayoutSolver.addMethods({
          * accepted functions for Points
          */
         eqPt: function(rightHandSidePoint) {
-            if(this.ivarname === "_Extent" && rightHandSidePoint.ivarname === "_Extent")
+            if(
+                (this.ivarname === "_Extent" || this.ivarname === "_Position") &&
+                (rightHandSidePoint.ivarname === "_Extent" || rightHandSidePoint.ivarname === "_Position")
+            )
                 return new LayoutConstraintBoxSameExtent(this, rightHandSidePoint, this.solver);
 
-            throw "eqPt does only work for _Extent attributes for now."
+            throw "eqPt does only work for _Extent attributes for now. " + rightHandSidePoint.ivarname;
         }
     });
     
