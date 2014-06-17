@@ -1,9 +1,8 @@
-module('users.timfelgentreff.z3.StrZ3').requires().toRun(function() {
+module('users.timfelgentreff.z3.StrZ3').requires('users.timfelgentreff.z3.CommandLineZ3').toRun(function() {
 
 
     CommandLineZ3.subclass('StrZ3', {
         applyResult: function(r) {
-            debugger
             r = r.split("************************\n", 2)[1]
             
             if (r.startsWith(">> SAT")/* || r.indexOf("\nsat\n") != -1 */) {
@@ -97,33 +96,35 @@ refineClass(NaCLZ3BinaryExpression, {
         "indexOf": ["Indexof", 2],
         "replace": ["Replace", 3, "isString"]
         // TODO FIX: Substring, Length, Indexof, Replace
-    },
-    initializeFunctionOverrides: (function initializeStrZ3Layer () {
-        var o = {};
-        Properties.own(StrZ3.functionMap).each(function (method) {
-            var z3Name = StrZ3.functionMap[method][0],
-                arity = StrZ3.functionMap[method][1],
-                isString = !!StrZ3.functionMap[method][2];
-            
-            o[method] = (function (a, b) {
-                if (this.isString) {
-                    var result;
-                    if (arity == 1) {
-                        result = new NaCLZ3UnaryExpression(z3Name, this, this.solver);
-                    } else if (arity == 2) {
-                        result = new NaCLZ3BinaryExpression(z3Name, this, a, this.solver);
-                    } else if (arity == 3) {
-                        result = new NaCLZ3TertiaryExpression(z3Name, this, a, b, this.solver);
-                    }
-                    result.isString = isString;
-                    return result;
-                } else {
-                    return cop.proceed(r);
-                }
-            })
-        });
-        StrZ3Layer.refineClass(NaCLZ3Ast, o);
-    })()
+    }
 })
+
+function initStrZ3Layer() {
+    var o = {};
+    Properties.own(StrZ3.functionMap).each(function (method) {
+        var z3Name = StrZ3.functionMap[method][0],
+            arity = StrZ3.functionMap[method][1],
+            isString = !!StrZ3.functionMap[method][2];
+        
+        o[method] = (function (a, b) {
+            if (this.isString) {
+                var result;
+                if (arity == 1) {
+                    result = new NaCLZ3UnaryExpression(z3Name, this, this.solver);
+                } else if (arity == 2) {
+                    result = new NaCLZ3BinaryExpression(z3Name, this, a, this.solver);
+                } else if (arity == 3) {
+                    result = new NaCLZ3TertiaryExpression(z3Name, this, a, b, this.solver);
+                }
+                result.isString = isString;
+                return result;
+            } else {
+                return cop.proceed(r);
+            }
+        })
+    });
+    StrZ3Layer.refineClass(NaCLZ3Ast, o);
+}
+initStrZ3Layer()
 
 }) // end of module
