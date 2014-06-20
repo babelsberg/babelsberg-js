@@ -926,6 +926,19 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
                     return cop.withoutLayers([ConstraintConstructionLayer], function() {
                         return $super(node, recv, func, argValues);
                     });
+                } catch(e) {
+                    // TODO: this is duplicated with the else branch
+                    
+                    debugger;
+                    return this.errorIfUnsolvable(
+                        (node.property && node.property.value),
+                        recv,
+                        (function () {
+                            var value = this.getConstraintObjectValue(recv);
+                            var prop = this.visit(node.property);
+                            return this.invoke(node, value, value[prop], argValues);
+                        }).bind(this)
+                    );
                 } finally {
                     func.forInterpretation = forInterpretation;
                 }
