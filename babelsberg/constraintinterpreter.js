@@ -1026,7 +1026,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
             // XXX: See visitCond
             return $super(node);
         }
-        
+
         var obj = this.visit(node.obj),
             name = this.visit(node.slotName),
             cobj = (obj ? obj[ConstrainedVariable.ThisAttrName] : undefined),
@@ -1035,8 +1035,12 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
             return obj[name];
         }
         if (obj && obj.isConstraintObject) {
-            cobj = obj.__cvar__;
-            obj = this.getConstraintObjectValue(obj);
+            if (obj["cn" + name]) {
+                return obj["cn" + name]; // XXX: TODO: Document this
+            } else {
+                cobj = obj.__cvar__;
+                obj = this.getConstraintObjectValue(obj);
+            }
         }
 
         cvar = ConstrainedVariable.newConstraintVariableFor(obj, name, cobj);
