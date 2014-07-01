@@ -1,4 +1,4 @@
-module('users.timfelgentreff.layout.tests').requires('lively.TestFramework', 'users.timfelgentreff.babelsberg.constraintinterpreter', 'users.timfelgentreff.layout.layout').toRun(function() {
+module('users.timfelgentreff.layout.tests').requires('lively.TestFramework', 'users.timfelgentreff.babelsberg.constraintinterpreter', 'users.timfelgentreff.layout.layout', 'users.timfelgentreff.layout.test_fixture').toRun(function() {
     //.requiresLib({url: 'http://sinonjs.org/releases/sinon-1.10.0.js', loadTest: function() { return typeof sinon !== 'undefined'; }})
     //debugger
     /*var temp = {
@@ -42,7 +42,132 @@ TestCase.subclass('users.timfelgentreff.layout.tests.TestWidth', {
         this.assertEquals(parent.child1.getExtent().x, 200, "Box does not have the specified width of 200, instead: " + parent.child1.getExtent().x);
     }
 });
-TestCase.subclass('users.timfelgentreff.layout.tests.TestHeight', {
+TestCase.subclass('users.timfelgentreff.layout.tests.TestListenOnSubclass', {
+    testListenOnSubclass: function() {
+        this.layoutSolver = new LayoutSolver();
+        
+        var originalCounter = 0;
+        var layoutCounter = 0;
+        var originalSpy = this.spyInClass(lively.morphic.Morph, "getExtent", function() {
+            originalCounter++;
+        }).callsThrough();
+        var layoutSpy = this.spyInClass(LayoutConstraintVariableBox, "getExtent", function() {
+            layoutCounter++;
+        }).callsThrough();
+
+        var parent = new lively.morphic.Box(pt(7,7).extent(pt(300,300)));
+        parent.addMorph(parent.child1 = new SubclassedBox(new Rectangle(10, 10, 100, 250)));
+        parent.addMorph(parent.child2 = new SubclassedBox(new Rectangle(150, 10, 130, 200)));
+
+        bbb.always({
+            solver: this.layoutSolver,
+            allowUnsolvableOperations: true,
+            ctx: {
+                parent: parent,
+            allowUnsolvableOperations: true,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return parent.child1.getExtent().eqPt(parent.child2.getExtent());;
+        });
+        
+        originalSpy.uninstall();
+        layoutSpy.uninstall();
+
+        this.assertEquals(layoutCounter, 2,  "layout was called " + layoutCounter + " time(s)");
+        this.assertEquals(originalCounter, 0,  "original function was called " + originalCounter + " time(s).");
+        
+        this.assertEquals(parent.child1.getExtent(), parent.child2.getExtent(), "Boxes do not have the same extent.");
+    },
+    testListenOnOverwrittenMethod: function() {
+        this.layoutSolver = new LayoutSolver();
+        
+        /*
+        var originalCounter = 0;
+        var overwrittenCounter = 0;
+        var layoutCounter = 0;
+        var originalSpy = this.spyInClass(lively.morphic.Morph, "getExtent", function() {
+            originalCounter++;
+        }).callsThrough();
+        var overwrittenSpy = this.spyInClass(OverwrittenExtentBox, "getExtent", function() {
+            overwrittenCounter++;
+        }).callsThrough();
+        var layoutSpy = this.spyInClass(LayoutConstraintVariableBox, "getExtent", function() {
+            layoutCounter++;
+        }).callsThrough();
+        */
+
+        var parent = new lively.morphic.Box(pt(7,7).extent(pt(300,300)));
+        parent.addMorph(parent.child1 = new OverwrittenExtentBox(new Rectangle(10, 10, 100, 250)));
+        parent.addMorph(parent.child2 = new OverwrittenExtentBox(new Rectangle(150, 10, 130, 200)));
+
+        bbb.always({
+            solver: this.layoutSolver,
+            allowUnsolvableOperations: true,
+            ctx: {
+                parent: parent,
+            allowUnsolvableOperations: true,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return parent.child1.getExtent().eqPt(parent.child2.getExtent());;
+        });
+        
+        /*
+        originalSpy.uninstall();
+        overwrittenSpy.uninstall();
+        layoutSpy.uninstall();
+
+        this.assertEquals(originalCounter, 0,  "original function was called " + originalCounter + " time(s).");
+        this.assertEquals(overwrittenCounter, 2,  "overwritten method was called " + overwrittenCounter + " time(s)");
+        this.assertEquals(layoutCounter, 0,  "layout was called " + layoutCounter + " time(s)");
+        */
+        
+        this.assertEquals(parent.child1.getExtent(), parent.child2.getExtent(), "Boxes do not have the same extent.");
+    },
+    testListenOnSuperCall: function() {
+        this.layoutSolver = new LayoutSolver();
+        
+        var originalCounter = 0;
+        var overwrittenCounter = 0;
+        var layoutCounter = 0;
+        var originalSpy = this.spyInClass(lively.morphic.Morph, "getExtent", function() {
+            originalCounter++;
+        }).callsThrough();
+        var overwrittenSpy = this.spyInClass(SuperCallBox, "getExtent", function() {
+            overwrittenCounter++;
+        }).callsThrough();
+        var layoutSpy = this.spyInClass(LayoutConstraintVariableBox, "getExtent", function() {
+            layoutCounter++;
+        }).callsThrough();
+
+        var parent = new lively.morphic.Box(pt(7,7).extent(pt(300,300)));
+        parent.addMorph(parent.child1 = new SuperCallBox(new Rectangle(10, 10, 100, 250)));
+        parent.addMorph(parent.child2 = new SuperCallBox(new Rectangle(150, 10, 130, 200)));
+
+        bbb.always({
+            solver: this.layoutSolver,
+            allowUnsolvableOperations: true,
+            ctx: {
+                parent: parent,
+            allowUnsolvableOperations: true,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return parent.child1.getExtent().eqPt(parent.child2.getExtent());;
+        });
+        
+        originalSpy.uninstall();
+        overwrittenSpy.uninstall();
+        layoutSpy.uninstall();
+
+        this.assertEquals(layoutCounter, 2,  "layout was called " + layoutCounter + " time(s)");
+        this.assertEquals(overwrittenCounter, 2,  "overwritten method was called " + overwrittenCounter + " time(s)");
+        this.assertEquals(originalCounter, 0,  "original function was called " + originalCounter + " time(s).");
+        
+        this.assertEquals(parent.child1.getExtent(), parent.child2.getExtent(), "Boxes do not have the same extent.");
+    }
+});TestCase.subclass('users.timfelgentreff.layout.tests.TestHeight', {
     testHeightGeq200: function () {
         var parent = FixtureHeight.getHeightGeq200(this);
         
@@ -296,8 +421,7 @@ Object.extend(FixtureAspectRatio, {
     getAspectRatio: function(testCase) {
         testCase.layoutSolver = new LayoutSolver();
         
-        var parent = new lively.morphic.Box(pt(7,7).extent(pt(300,300)));
-        parent.addMorph(parent.child1 = new lively.morphic.Morph.makeRectangle(10, 10, 100, 250));
+        var parent = FixtureMorph.getParentWithOneChild();
 
         bbb.always({
             solver: testCase.layoutSolver,
