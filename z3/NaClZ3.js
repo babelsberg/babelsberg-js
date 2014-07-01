@@ -218,6 +218,11 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
         }
     },
     
+    removeVariable: function(v, cvar) {
+        this.variables.remove(v);
+        delete this.cvarsByName[v.name];
+        delete this.varsByName[v.name];
+    },
     addVariable: function(v, cvar) {
         this.variables.push(v);
         this.cvarsByName[v.name] = cvar;

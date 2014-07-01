@@ -60,7 +60,25 @@ module('users.timfelgentreff.z3.StrZ3').requires('users.timfelgentreff.z3.Comman
             } else {
                 return $super(value, ivarname, cvar);
             }
-        }
+        },
+        
+        pruneUnusedVariables: function() {
+            // Z3str does not take unused variables well
+            debugger
+            var constraints = ["\n"].concat(this.constraints).reduce(function (acc, c) {
+                return acc + "\n" + c.print();
+            });
+            this.variables.clone().each(function (v, idx) {
+                if (!constraints.match(new RegExp(" " + v.name + "[) ]"))) {
+                    this.removeVariable(v);
+                }
+            }.bind(this));
+        },
+        solve: function($super, c) {
+            this.pruneUnusedVariables();
+            return $super(c);
+        },
+
     });
 
 cop.create('StrZ3Layer').
