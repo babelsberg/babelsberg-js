@@ -76,6 +76,11 @@ refineClass(NaCLZ3Variable, {
     get cnlength() {
         return this.size();
     },
+    
+    toString: function() {
+        debugger
+        return this.value.toString()
+    }
 }).
 refineClass(NaCLZ3BinaryExpression, {
     z3object: function(obj) {
