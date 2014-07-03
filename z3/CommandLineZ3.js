@@ -141,10 +141,7 @@ NaCLZ3Variable.subclass('CommandLineZ3Variable', {
             this.solver.addConstraint(this._stayCn);
         }
     }
-});Object.subclass('MyClass',
-'default category', {
-    m1: function() {},
-});Object.subclass('MyClass',
-'default category', {
-    m1: function() {},
-});}) // end of module
+});
+
+
+}) // end of module
