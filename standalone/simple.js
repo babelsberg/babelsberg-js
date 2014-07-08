@@ -3,27 +3,11 @@
 // just enough so the loading of Babelsberg/JS succeeds
 //////////////////////////////////////////////////////////////////////////////
 
-window.Global = window.Global || window;
-window.URL = window.URL || {};
-URL.codeBase = URL.codeBase || "!not running in Lively!";
-window.Config = window.Config || {};
-window.cop = window.cop || {};
-window.lively = window.lively || window;
-lively.Class = {
-    isClass: function Class$isClass(object) {
-        if (object === Object
-            || object === Array
-            || object === Function
-            || object === String
-            || object === Boolean
-            || object === Date
-            || object === RegExp
-            || object === Number) {
-            return true;
-        }
-        return (object instanceof Function) && (object.superclass !== undefined);
-    },
-};
+window.Global = window;
+window.lively = window;
+window.URL = {codeBase: "!not running in Lively!"};
+window.Config = {};
+window.cop = {};
 lively.morphic = lively.morphic || {};
 Global.Functions = Global.Functions || {get Null() { return function() { return null; }; }};
 lively.morphic.Morph = lively.morphic.Morph || Functions.Null;
@@ -42,12 +26,8 @@ Global.dbgOn = (function (b) {
 var loadedURLs = [];
 Global.JSLoader = {
     loadJs: function(url, callback) {
-        // var match = url.match(/http:\/\/[^\/]+(\/?.*)/);
-        // if (match && match[1]) url = match[1];
         loadedURLs.push(url);
-        try { importScripts(url); } catch(e) {
-            // console.error(url + ' could not be loaded in worker: ' + e);
-        }
+        try { importScripts(url); } catch(e) {}
     },
     currentDir: function () { return options.locationDirectory; },
     isLoading: function(url) { return loadedURLs.indexOf(url) !== -1; }
@@ -68,26 +48,9 @@ module = function(dottedPath) {
 };
 
 
-Object.extend = function(obj /* + more args */ ) {
-    // skip arg 0, copy properties of other args to obj
-    for (var i = 1; i < arguments.length; i++)
-        for (name in arguments[i])
-            obj[name] = arguments[i][name];
-    return obj;
-};
-
-
 Object.extend(Function.prototype, {
     subclass: function(/*... */) {
-	// Main method of the LK class system.
-
-	// {className} is the name of the new class constructor which this method synthesizes
-	// and binds to {className} in the Global namespace.
-	// Remaining arguments are (inline) properties and methods to be copied into the prototype
-	// of the newly created constructor.
-
 	// modified from prototype.js
-
 	var args = $A(arguments),
 	className = args.shift(),
 	targetScope = Global,
@@ -245,17 +208,6 @@ Object.extend(Function.prototype, {
 	Class.addMixin(this, recordType.prototype.create(spec).prototype);
     },
 
-    wrap: function(wrapper) {
-        var __method = this;
-        var wrappedFunc = function wrapped() {
-                var wrapperArgs = wrapper.isWrapper ? Array.from(arguments) : [__method.bind(this)].concat(Array.from(arguments));
-                return wrapper.apply(this, wrapperArgs);
-            }
-        wrappedFunc.isWrapper = true;
-        wrappedFunc.originalFunction = __method;
-        return wrappedFunc;
-    },
-
     parameterNames: function(methodString) {
         var parameterRegex = /function\s*\(([^\)]*)\)/,
             regexResult = parameterRegex.exec(methodString);
@@ -268,53 +220,12 @@ Object.extend(Function.prototype, {
         return parameters;
     },
 
-    argumentNames: function() {
-	return this.parameterNames(String(this));
-    },
-
     firstParameter: function(src) {
         return this.parameterNames(src)[0] || null;
     },
 
-    curry: function() {
-        if (!arguments.length) return this;
-        var __method = this,
-            args = Array.from(arguments),
-            wrappedFunc = function curried() {
-                return __method.apply(this, args.concat(Array.from(arguments)));
-            }
-        wrappedFunc.isWrapper = true;
-        wrappedFunc.originalFunction = __method;
-        return wrappedFunc;
-    },
-
     binds: function(varMapping) {
 	return this;
-	// var funcSource = String(this);
-        // var closureVars = [],
-        //     thisFound = false,
-        //     specificSuperHandling = this.firstParameter(funcSource) === '$super';
-        // for (var name in this.varMapping) {
-        //     if (!this.varMapping.hasOwnProperty(name)) continue;
-        //     if (name == 'this') {
-        //         thisFound = true;
-        //         continue;
-        //     }
-        //     closureVars.push(name + '=this.varMapping["' + name + '"]');
-        // }
-        // var src = closureVars.length > 0 ? 'var ' + closureVars.join(',') + ';\n' : '';
-        // if (specificSuperHandling) src += '(function superWrapperForClosure() { return ';
-        // src += '(' + funcSource + ')';
-        // if (specificSuperHandling) src += '.apply(this, [$super.bind(this)].concat(Array.from(arguments))) })';
-        // try {
-        //     var func = eval(src) || this.couldNotCreateFunc(src);
-        //     // this.addFuncProperties(func);
-        //     this.originalFunc = func;
-        //     return func;
-        // } catch (e) {
-        //     alert('Cannot create function ' + e + ' src: ' + src);
-        //     throw e;
-        // }
     },
 
     getVarMapping: function() {
@@ -322,124 +233,9 @@ Object.extend(Function.prototype, {
     }
 });
 
-Object.extend(Array, {
-    from: function(iterable) {
-        if (!iterable) return [];
-        if (iterable.toArray) return iterable.toArray();
-        var length = iterable.length,
-            results = new Array(length);
-        while (length--) results[length] = iterable[length];
-        return results;
-    }
-});
 Object.extend(Array.prototype, {
-    all: function(fn) {
-	return this.every(fn);
-    },
-    compact: function() { return this.select(function (a) { return a }); },
-    first: function() {
-	return this[0];
-    },
-    last: function() {
-	return this[this.length - 1];
-    },
-    select: function(fn) {
-	return this.filter(fn);
-    },
-    invoke: function(method, arg1, arg2, arg3, arg4, arg5, arg6) {
-        var result = new Array(this.length);
-        for (var i = 0, len = this.length; i < len; i++) {
-            result[i] = this[i][method].call(this[i], arg1, arg2, arg3, arg4, arg5, arg6);
-        }
-        return result;
-    },
-    collect: function(fn, binding) {
-	if (binding) fn = fn.bind(binding);
-	return this.map(fn);
-    },
-    withoutAll: function(ary) {
-	return this.filter(function (ea) {
-	    return ary.indexOf(ea) == -1;
-	});
-    },
-    each: function(fn) {
-	this.forEach(fn);
-	return this;
-    },
-    include: function(el) {
-	return this.indexOf(el) !== -1;
-    },
-    clone: function() {
-	return this.concat([]);
-    },
-    flatten: function() {
-        return this.inject([], function(array, value) {
-            return array.concat(Object.isArray(value) ? value.flatten() : [value]);
-        });
-    },
-    uniq: function(sorted) {
-        return this.inject([], function(array, value, index) {
-            if (0 === index || (sorted ? array.last() != value : !array.include(value))) array.push(value);
-            return array;
-        });
-    },
+    withoutAll: function(ary) { return this.without($A(arguments)); },
     uniqueElements: function() { return this.uniq(); },
-    inject: (function () {
-        return Array.prototype.reduce ?
-            function(memo, iterator, context) {
-                if (context) iterator = iterator.bind(context);
-                return this.reduce(iterator, memo);
-            } : function(memo, iterator, context) {
-                this.forEach(function(value, index) {
-                    memo = iterator.call(context, memo, value, index); });
-                return memo;
-            }
-    })()
-});
-$A = Array.from
-
-Object.extend(Object, {
-    isElement: function(object) {
-        return object && object.nodeType == 1;
-    },
-
-    isArray: function(object) {
-        return object && Array.isArray(object);
-    },
-
-    isFunction: function(object) {
-        return object instanceof Function;
-    },
-
-    isBoolean: function(object) {
-        return typeof object == "boolean";
-    },
-
-    isString: function(object) {
-        return typeof object == "string";
-    },
-
-    isNumber: function(object) {
-        return typeof object == "number";
-    },
-
-    isUndefined: function(object) {
-        return typeof object == "undefined";
-    },
-
-    isRegExp: function(object) {
-        return object instanceof RegExp;
-    },
-
-    isObject: function(object) {
-        return typeof object == "object";
-    },
-
-    isEmpty: function(object) {
-        for (var key in object)
-            if (object.hasOwnProperty(key)) return false;
-        return true;
-    }
 });
 
 function __oldNamespace(spec, context) {
@@ -487,6 +283,19 @@ function namespace(spec, context) {
 };
 
 Object.extend(Class, {
+    isClass: function Class$isClass(object) {
+        if (object === Object
+            || object === Array
+            || object === Function
+            || object === String
+            || object === Boolean
+            || object === Date
+            || object === RegExp
+            || object === Number) {
+            return true;
+        }
+        return (object instanceof Function) && (object.superclass !== undefined);
+    },
     namespaceFor: function Class$namespaceFor(className) {
 	// get the namespace object given the qualified name
 	var lastDot = className.lastIndexOf('.');
