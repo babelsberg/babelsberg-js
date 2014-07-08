@@ -607,7 +607,7 @@ DBConstraint.subclass('UserDBConstraint', {
         return this.out
     },
     get variables() {
-        return this.outputs.concat(this.inputs).uniqueElements();
+        return this.outputs.concat(this.inputs).uniq();
     }
 
 });
