@@ -2,13 +2,17 @@ module('users.timfelgentreff.cassowary.DwarfCassowary').requires('users.timfelge
 // FILE: EDU.Washington.grad.gjb.cassowary
 // package EDU.Washington.grad.gjb.cassowary;
 
-Object.subclass('ExCLError', 'default category', {
-  description: function() {
-    return "(ExCLError) An error has occured in CL";
-  },
-  toString : function() {
-    return this.description();
-  }
+Object.extend(Global, {
+    ExCLError: function() {
+        return new Error("(ExCLError) An error has occured in CL");
+    }
+});
+Object.extend(ExCLError, {
+    subclass: function(name, category, obj) {
+        Global[name] = function() {
+                return new Error(obj.description());
+            }
+    }
 });
 
 ExCLError.subclass('ExCLConstraintNotFound', 'default category', {
