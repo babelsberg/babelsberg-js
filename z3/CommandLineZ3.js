@@ -37,7 +37,7 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
         },
         applyResult: function(result) {
             result = result.replace(/ ?\|->.*\n/m, ""); // Z3-opt has this in the beginning
-            debugger
+            result = result.replace(/\(error.*\n/m, "");
             if (result.startsWith("sat")/* || result.indexOf("\nsat\n") != -1 */) {
                 var idx = result.indexOf("sat\n");
                 result = result.slice(idx + "sat".length, result.length - 1);
@@ -83,8 +83,8 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
     },
     constraintVariableFor: function($super, value, ivarname, cvar) {
         var cvar = $super(value, ivarname, cvar);
-        debugger
-        if (cvar) {
+        if (cvar && this.constructor === CommandLineZ3) {
+            // XXX: only add stays for this specific solver for now
             cvar.stay();
         }
         return cvar;
@@ -102,7 +102,9 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
     },
     });
 Object.extend(CommandLineZ3, {
-    modulePath: module('users.timfelgentreff.z3.CommandLineZ3').relativePath().replace("CommandLineZ3.js", ""),
+    modulePath: module('users.timfelgentreff.z3.CommandLineZ3').relativePath().replace("CommandLineZ3.js", "")
+});
+Object.extend(CommandLineZ3, {
     z3Path: lively.ide.CommandLineInterface.cwd() + "/" + Config.codeBase.replace(Config.rootPath, "") + CommandLineZ3.modulePath + "z3"
 });
 cop.create('CommandLineZ3Layer').
