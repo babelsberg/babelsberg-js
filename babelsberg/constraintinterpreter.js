@@ -819,7 +819,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
 
 
     getConstraintObjectValue: function(o) {
-        if (!o.isConstraintObject) return o;
+        if (o === undefined || !o.isConstraintObject) return o;
         var value = o.value;
         if (typeof(value) == "function") {
             return value.apply(o);
@@ -891,13 +891,13 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
         
         switch (node.name) {
             case '-':
-                if (val.isConstraintObject && val.times) {
+                if (val && val.isConstraintObject && val.times) {
                     return val.times(-1);
                 } else {
                     return this.errorIfUnsolvable(msg, val, -rVal);
                 }
             case '!':
-                if (val.isConstraintObject && val.not) {
+                if (val && val.isConstraintObject && val.not) {
                     return val.not();
                 } else {
                     return !val;

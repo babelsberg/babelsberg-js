@@ -35,8 +35,10 @@ We have used this to implement electrical simulations, a simulation of the Livel
 and some graphical layouting examples. The implementation is available to try at [lively-web.org](http://lively-web.org/users/robertkrahn/2013-10-16_first-constrained-steps.html).
 At any given time it may be broken, though, because the code is changing fairly often.
 
-Papers about this implementation are forthcoming and a freely accessible technical report
-will be published shortly.
+A page with more variety of examples is at [lively-kernel.org](http://lively-kernel.org/babelsberg/users/timfelgentreff/babelsberg-js.html). I also presented this work at the [CRAFT](http://craft-conf.com/2014/) conference. A video of my talk is available [here](https://onedrive.live.com/redir?resid=FCA2914EE7038C6F!17380&authkey=!AEJgnZ0och8WeE4&ithint=video%2c.mp4).
+
+Papers about this implementation are forthcoming. A freely accessible technical report was published [here](http://opus.kobv.de/ubp/volltexte/2014/6729/pdf/tbhpi81.pdf).
+
 
 Created under a grant from Hasso Plattner Institute <img src="http://upload.wikimedia.org/wikipedia/de/c/c9/Hpi_logo.png" alt="HPI Logo" width="50" height="50"/>
 
