@@ -95,6 +95,25 @@ Object.subclass("Color", {
     }
 });
 
-Color.rgb = function(r, g, b) {
-    return new Color(r/255, g/255, b/255);
-};
+Object.extend(Color, {
+	rgb: function(r, g, b) {
+	    return new Color(r/255, g/255, b/255);
+	}
+});
+
+Object.subclass("lively.morphic.Morph", {
+	initialize: function(x, y /* ... ignored */) {
+		this.position = pt(x, y);
+	},
+	setPosition: function(pos) {
+		return this.position = pos;
+	},
+	getPosition: function() {
+		return this.position;
+	}
+});
+Object.extend(lively.morphic.Morph, {
+	makeRectangle: function(x, y /* ... ignored */) {
+		return new lively.morphic.Morph(x, y);
+	}
+});
