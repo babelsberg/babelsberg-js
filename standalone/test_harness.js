@@ -25,28 +25,59 @@ Object.subclass("TestCase", {
 
 Object.subclass("lively.Point", {
     initialize: function(x, y) {
-	this.x = x;
-	this.y = y;
-	return this;
+		this.x = x || 0;
+		this.y = y || 0;
+		return this;
     },
     addPt: function(p) {
-	return pt(this.x + p.x, this.y + p.y);
+        if (arguments.length != 1) throw ('addPt() only takes 1 parameter.');
+
+        return new lively.Point(this.x + p.x, this.y + p.y);
     },
     equals: function(p) {
-	return this.eqPt(p);
+        return this.eqPt(p);
     },
     eqPt: function(p) {
-	return this.x == p.x && this.y == p.y
+    	return this.x == p.x && this.y == p.y
     },
     leqPt: function(p) {
 	return this.x <= p.x && this.y <= p.y
     },
-    scaleBy: function(scalar) {
-	return pt(this.x * scalar, this.y * scalar);
+    scaleBy: function(scaleX, scaleYOrUndefined) {
+        return new lively.Point(this.x * scaleX, this.y * (scaleYOrUndefined||scaleX));
     }
 });
+
+Object.subclass("lively.morphic.Slider", {
+    initialize: function(/* ignored */) {
+    	this.val = 0;
+    },
+    getValue: function() {
+        return this.val;
+    },
+    setValue: function(val) {
+        return this.val = val;
+    }
+});
+
+Object.subclass("lively.morphic.Text", {
+    initialize: function(ignored, string) {
+		this.textString = string || "";
+    },
+    getTextString: function() {
+    	return this.textString;
+    },
+    setTextString: function(string) {
+    	return this.textString = string;
+    }
+});
+
 window.pt = (function (x, y) {
     return new lively.Point(x,y);
+});
+
+window.rect = (function() {
+	// TODO:
 });
 
 window.alertOK = (function(msg) {
