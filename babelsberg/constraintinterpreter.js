@@ -913,8 +913,6 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
     },
 
     invoke: function($super, node, recv, func, argValues) {
-        console.group("INVOKE", recv + "." +  (node.property && node.property.value), func);
-        try {
         if (!func && (!recv || !recv.isConstraintObject)) {
             var error = "No such method: " + recv + "." +  (node.property && node.property.value)
             alert(error);
@@ -973,9 +971,6 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
             return cop.withLayers([ConstraintConstructionLayer], function() {
                 return $super(node, recv, func, argValues);
             });
-        }
-        } finally {
-            console.groupEnd();
         }
     },
     visitBinaryOp: function($super, node) {
