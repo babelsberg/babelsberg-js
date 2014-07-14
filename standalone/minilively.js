@@ -16,7 +16,7 @@ if (!window.module) {
     window.Config = {};
     window.cop = {};
     window.Global = window;
-    window.lively = {};
+    window.lively = window; // TODO: FIXED
     lively.Module = function() { return null; };
     window.dbgOn = (function (b) { if (b) { debugger } });
 
@@ -191,7 +191,7 @@ if (!window.module) {
 			value = Object.extend(advice.wrap(method), {
                             valueOf:  function() { return method },
                             toString: function() { return method.toString() },
-                            originalFunction: method,
+                            originalFunction: method
 			});
 			// for lively.Closures
 			method.varMapping = {$super: advice};
@@ -223,7 +223,7 @@ if (!window.module) {
 
 	binds: function() { return this; },
 
-	getVarMapping: function() { return this.varMapping; },
+	getVarMapping: function() { return this.varMapping; }
     });
 
     window.Strings = {
@@ -297,7 +297,7 @@ if (!window.module) {
 		}
             }
             return str;
-	},
+	}
     };
 }
 
