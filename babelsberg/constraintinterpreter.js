@@ -913,6 +913,8 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
     },
 
     invoke: function($super, node, recv, func, argValues) {
+        console.group("INVOKE", recv + "." +  (node.property && node.property.value), func);
+        try {
         if (!func && (!recv || !recv.isConstraintObject)) {
             var error = "No such method: " + recv + "." +  (node.property && node.property.value)
             alert(error);
@@ -927,9 +929,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
                         return $super(node, recv, func, argValues);
                     });
                 } catch(e) {
-                    // TODO: this is duplicated with the else branch
-                    
-                    debugger;
+                    // TIM: send doesNotUnderstand to solver variable?
                     return this.errorIfUnsolvable(
                         (node.property && node.property.value),
                         recv,
@@ -973,6 +973,9 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
             return cop.withLayers([ConstraintConstructionLayer], function() {
                 return $super(node, recv, func, argValues);
             });
+        }
+        } finally {
+            console.groupEnd();
         }
     },
     visitBinaryOp: function($super, node) {
