@@ -76,19 +76,25 @@ window.pt = (function (x, y) {
     return new lively.Point(x,y);
 });
 
-window.rect = (function() {
-	// TODO:
-});
+window.rect = (function() {});
 
 window.alertOK = (function(msg) {
     console.log(msg);
 });
 
-window.Color = {
-    rgb: function(r,g,b) {
-	var c = {r: r, g: g, b: b};
-	c.equals = function (o) {
-	    return o.r == this.r && o.b == this.b && o.b == this.b
-	}.bind(c);
+Object.subclass("Color", {
+    initialize: function(r, g, b, a) {
+        this.r = r || 0;
+        this.g = g || 0;
+        this.b = b || 0;
+        this.a = a || (a === 0 ? 0 : 1);
+    },
+    equals: function(other) {
+        if (!other) return false;
+        return this.r === other.r && this.g === other.g && this.b === other.b && this.a === other.a;
     }
-}
+});
+
+Color.rgb = function(r, g, b) {
+    return new Color(r/255, g/255, b/255);
+};
