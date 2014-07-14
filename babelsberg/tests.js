@@ -72,19 +72,26 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
 
     testRecalculateForTextInput: function() {
         var obj = {
-                txt: new lively.morphic.Text(),
+                txt: document.createElement("input"),
                 a: 10
             };
-        obj.txt.setTextString("5");
+        obj.txt.type = "text";
+        obj.txt.value = "5";
 
-        (function () {
-            return obj.a == obj.txt.getTextString();
-        }).shouldBeTrue({obj: obj});
-        this.assert(obj.a == obj.txt.getTextString());
+        //console.log(obj.a, obj.txt.value);
         
-        obj.txt.setTextString("15");
-        this.assert(obj.a == obj.txt.getTextString());
-        this.assert(obj.a === 15)
+        (function () {
+            return obj.a == obj.txt.value;
+        }).shouldBeTrue({obj: obj});
+        this.assert(obj.a == obj.txt.value);
+        
+        //console.log(obj.a, obj.txt.value);
+        
+        obj.txt.value = "15";
+        this.assert(obj.a == obj.txt.value);
+        this.assert(obj.a === 15);
+        
+        //console.log(obj.a, obj.txt.value);
     },
 
     testSimpleAssign: function () {
