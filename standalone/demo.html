@@ -49,10 +49,10 @@
 		obj = {a: 1, b: 2}
 		s = new ClSimplexSolver();
 		bbb.always({solver: s, ctx: {obj: obj}}, function () {
-			return obj.a <= obj.b
+			return obj.a + 7 <= obj.b
 		});
 		obj.a = 10;
-		console.log(obj);
+		console.log(obj.a, obj.b);
 		
 		ct = new users.timfelgentreff.babelsberg.tests.ConstraintTest();
 		ct.runAll();
