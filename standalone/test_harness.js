@@ -23,12 +23,12 @@ Object.subclass("TestCase", {
     }
 });
 
-Object.subclass("lively.Point", {
-    initialize: function(x, y) {
+lively.Point = function(x, y) {
 		this.x = x || 0;
 		this.y = y || 0;
 		return this;
-    },
+};
+lively.Point.prototype = {
     addPt: function(p) {
         if (arguments.length != 1) throw ('addPt() only takes 1 parameter.');
 
@@ -38,15 +38,18 @@ Object.subclass("lively.Point", {
         return this.eqPt(p);
     },
     eqPt: function(p) {
-    	return this.x == p.x && this.y == p.y
+    	return this.x == p.x && this.y == p.y;
     },
     leqPt: function(p) {
-	return this.x <= p.x && this.y <= p.y
+    	return this.x <= p.x && this.y <= p.y;
     },
     scaleBy: function(scaleX, scaleYOrUndefined) {
         return new lively.Point(this.x * scaleX, this.y * (scaleYOrUndefined||scaleX));
+    },
+    toString: function() {
+    	return "Point<" + this.x + ", " + this.y + ">";
     }
-});
+};
 
 Object.subclass("lively.morphic.Slider", {
     initialize: function(/* ignored */) {

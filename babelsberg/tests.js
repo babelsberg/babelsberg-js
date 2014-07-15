@@ -130,7 +130,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         }, function() {
             return point.equals(pt(10, 10).addPt(pt(11, 11)));;
         });
-        
+
         this.assert(point.equals(pt(21, 21)), "changed invisible point!");
         try {
             point.x = 100;
@@ -159,7 +159,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
             return pt1.addPt(pt2).equals(pt3);
         }).shouldBeTrue({pt1: pt1, pt2: pt2, pt3: pt3});
 
-        this.assert(pt1.addPt(pt2).equals(pt3));
+        this.assert(pt1.addPt(pt2).equals(pt3), pt1 + " + "+ pt2 + " != " + pt3);
     },
 
     testPointAssignment: function() {
@@ -332,7 +332,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
     },
     testNoErrorWithStringConstraint: function() {
         var a = pt(0,0),
-            b = "hello"
+            b = "hello";
         bbb.always({
             solver: new ClSimplexSolver(),
             ctx: {
@@ -345,7 +345,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         }, function() {
             return a.x == ro(b.length);;
         });
-        this.assert(a.x == "hello".length)
+        this.assert(a.x == "hello".length);
     },
     test1LvlReadonly: function() {
         var solver = new ClSimplexSolver(),
