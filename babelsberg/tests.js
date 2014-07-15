@@ -72,26 +72,19 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
 
     testRecalculateForTextInput: function() {
         var obj = {
-                txt: document.createElement("input"),
+                txt: new lively.morphic.Text(),
                 a: 10
             };
-        obj.txt.type = "text";
-        obj.txt.value = "5";
+        obj.txt.setTextString("5");
 
-        //console.log(obj.a, obj.txt.value);
-        
         (function () {
-            return obj.a == obj.txt.value;
+            return obj.a == obj.txt.getTextString();
         }).shouldBeTrue({obj: obj});
-        this.assert(obj.a == obj.txt.value);
+        this.assert(obj.a == obj.txt.getTextString());
         
-        //console.log(obj.a, obj.txt.value);
-        
-        obj.txt.value = "15";
-        this.assert(obj.a == obj.txt.value);
-        this.assert(obj.a === 15);
-        
-        //console.log(obj.a, obj.txt.value);
+        obj.txt.setTextString("15");
+        this.assert(obj.a == obj.txt.getTextString());
+        this.assert(obj.a === 15)
     },
 
     testSimpleAssign: function () {
@@ -130,7 +123,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         }, function() {
             return point.equals(pt(10, 10).addPt(pt(11, 11)));;
         });
-
+        
         this.assert(point.equals(pt(21, 21)), "changed invisible point!");
         try {
             point.x = 100;
@@ -159,7 +152,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
             return pt1.addPt(pt2).equals(pt3);
         }).shouldBeTrue({pt1: pt1, pt2: pt2, pt3: pt3});
 
-        this.assert(pt1.addPt(pt2).equals(pt3), pt1 + " + "+ pt2 + " != " + pt3);
+        this.assert(pt1.addPt(pt2).equals(pt3));
     },
 
     testPointAssignment: function() {
@@ -332,7 +325,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
     },
     testNoErrorWithStringConstraint: function() {
         var a = pt(0,0),
-            b = "hello";
+            b = "hello"
         bbb.always({
             solver: new ClSimplexSolver(),
             ctx: {
@@ -345,7 +338,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         }, function() {
             return a.x == ro(b.length);;
         });
-        this.assert(a.x == "hello".length);
+        this.assert(a.x == "hello".length)
     },
     test1LvlReadonly: function() {
         var solver = new ClSimplexSolver(),
