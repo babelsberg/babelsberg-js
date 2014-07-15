@@ -123,3 +123,11 @@ Object.extend(lively.morphic.Morph, {
 		return new lively.morphic.Morph(x, y);
 	}
 });
+
+(function() {
+	var temp = window.alert;
+	window.alert = function() {
+		console.log.apply(console, arguments);
+	};
+	window.alert.original = temp;
+})();
