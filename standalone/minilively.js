@@ -1,18 +1,95 @@
 // Non-Lively Compatibility
 if (!window.module) {
     window.module = function(dottedPath) {
-	if (dottedPath == "") return window;
-	var path = dottedPath.split("."),
-
-        name = path.pop(),
-        parent = module(path.join("."));
-	if (!parent[name]) parent[name] = {
+		if (dottedPath == "") return window;
+			var path = dottedPath.split("."),
+	
+	        name = path.pop(),
+	        parent = module(path.join("."));
+		if (!parent[name]) parent[name] = {
             requires: function(ignored) { return this; },
             toRun: function(code) { code(); }
+		};
+		return parent[name];
+    };
+    window.Properties = {
+	    all: function(object, predicate) {
+	        var a = [];
+	        for (var name in object) {
+	            if ((object.__lookupGetter__(name) || !Object.isFunction(object[name]))
+	              && (predicate ? predicate(name, object) : true)) a.push(name);
+	        }
+	        return a;
+	    },
+
+	    allOwnPropertiesOrFunctions: function(obj, predicate) {
+	        var result = [];
+	        Object.getOwnPropertyNames(obj).forEach(function(name){
+	            if(predicate(obj, name)) 
+	                result.push(name);
+	        });
+	        return result;
+	    },
+	    
+	    own: function(object) {
+	        var a = [];
+	        for (var name in object) {
+	            if (object.hasOwnProperty(name) && (object.__lookupGetter__(name) || !Object.isFunction(object[name]))) a.push(name);
+	        }
+	        return a;
+	    },
+
+	    forEachOwn: function(object, func, context) {
+	        var result = [];
+	        for (var name in object) {
+	            if (!object.hasOwnProperty(name)) continue;
+	            var value = object[name];
+	            if (!Object.isFunction(value)) {
+	                result.push(func.call(context || this, name, value));
+	            }
+	        }
+	        return result;
+	    },
+
+	    nameFor: function(object, value) {
+	        for (var name in object) { if (object[name] === value) return name; }
+	        return undefined;
+	    },
+
+	    values: function(obj) {
+	        var values = [];
+	        for (var name in obj) { values.push(obj[name]); }
+	        return values;
+	    },
+
+	    ownValues: function(obj) {
+	        var values = [];
+	        for (var name in obj) if (obj.hasOwnProperty(name)) values.push(obj[name]);
+	        return values;
+	    },
+
+	    printObjectSize: function(obj) {
+	        return Numbers.humanReadableByteSize(JSON.stringify(obj).length);
+	    },
+
+	    any: function(obj, predicate) {
+	        for (var name in obj) { if (predicate(obj, name)) return true; }
+	        return false;
+	    },
+
+	    allProperties: function(obj, predicate) {
+	        var result = [];
+	        for (var name in obj) {
+	            if (predicate(obj, name)) result.push(name);
+	        }
+	        return result;
+	    },
+
+	    hash: function(obj) {
+	        return Object.keys(obj).sort().join('').hashCode();
+	    }
+
 	};
-	return parent[name];
-    }
-    window.Properties = {own: Object.keys};
     window.Config = {};
     window.cop = {};
     window.Global = window;
