@@ -48,6 +48,9 @@ lively.Point.prototype = {
     },
     toString: function() {
     	return "Point<" + this.x + ", " + this.y + ">";
+    },
+    copy: function() {
+        return new lively.Point(this.x, this.y);
     }
 };
 
