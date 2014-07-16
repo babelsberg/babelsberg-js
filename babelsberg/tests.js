@@ -285,12 +285,12 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         var i = {
                 time: 1,
                 value: 2,
-                sum: 0,
+                sum: 0
             },
             i2 = {
                 time: 2,
                 value: 3,
-                sum: 0,
+                sum: 0
             },
             solver = new ClSimplexSolver();
         solver.setAutosolve(false);
@@ -363,8 +363,8 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         var failed = false;
         try { pt1.x = 5 } catch(e) { failed = true }
         this.assert(failed);
-        this.assert(pt1.equals(pt(10,10)))
-        this.assert(pt2.equals(pt(10,10)))
+        this.assert(pt1.equals(pt(10,10)));
+        this.assert(pt2.equals(pt(10,10)));
     },
 
 
@@ -643,7 +643,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
         element.celsius = 30
         this.assert(element.color === "blue", "should have changed to blue");
         this.assert(element.celsius === 30);
-    },
+    }
 });
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
     testInteractionAssignment: function () {
@@ -866,29 +866,6 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
         this.assert(obj.c !== obj.b);
     }
 
-});
-
-TestCase.subclass('users.timfelgentreff.babelsberg.src_transform.TransformTest', {
-    testObjectEditorTransform1: function () {
-        var src = "always: {a < b}";
-        var result = new BabelsbergSrcTransform().transform(src);
-        result = result.replace(/[ \n\r\t]/g,"");
-        this.assert(result === "bbb.always({ctx:{a:a,b:b,_$_self:this.doitContext||this}},function(){returna<b;;});", result);
-    },
-    testObjectEditorTransform2: function () {
-        var src = "always: {solver: cassowary; priority: 'high'; a < b}";
-        var result = new BabelsbergSrcTransform().transform(src);
-        result = result.replace(/[ \n\r\t]/g,"");
-        this.assert(result === "bbb.always({solver:cassowary,priority:\"high\",ctx:{cassowary:cassowary,a:a,b:b,_$_self:this.doitContext||this}},function(){returna<b;;});", result);
-    },
-    testConvertAddScript: function() {
-        var src = "this.addScript(function () { foo })";
-        var result = new BabelsbergSrcTransform().transformAddScript(src);
-        result = result.replace(/[ \n\r\t]/g,"");
-        this.assert(result === "this.addScript(function(){foo;},\"function(){foo}\");", result);
-    }
-});
-TestCase.subclass('TimedConstraints', {
 });
 
 

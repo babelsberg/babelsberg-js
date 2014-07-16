@@ -1101,7 +1101,7 @@ users.timfelgentreff.jsinterpreter.Parser.jsParser = LivelyJSParser;',
         // rule "trans:foo"
         var rules = this.rulesReturningSomething(ruleSpec),
             collectionRules = rules.select(function(ea) {return ea.include('*:') }),
-        simpleRules = rules.withoutAll(collectionRules);
+        simpleRules = rules.without.apply(rules, collectionRules);
         simpleRules.forEach(function(rule) {
             var ruleParts = rule.split(':');
             func.apply(this, ruleParts);

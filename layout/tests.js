@@ -611,7 +611,6 @@ TestCase.subclass('users.timfelgentreff.layout.tests.TestStayInParent', {
             return parent.child1.contains(parent.child1.child1, margin);;
         });;
         //console.log(parent.child1.innerBounds().toString(), parent.child1.child1.bounds().toString());
-        debugger
         this.assert(parent.child1.innerBounds().insetBy(margin).containsRect(parent.child1.child1.bounds()), "Boxes do not contain each other: " + parent.child1.innerBounds().toString() + " " + parent.child1.child1.bounds().toString());
     }
 });

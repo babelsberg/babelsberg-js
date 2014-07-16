@@ -507,7 +507,7 @@ Object.subclass('ConstrainedVariable', {
         var self = this;
         this._constraints.collect(function (c) {
             return c.constraintvariables;
-        }).flatten().uniqueElements().each(function (cvar) {
+        }).flatten().uniq().each(function (cvar) {
             cvar.suggestValue(cvar.getValue()) // will store and recurse only if needed
         });
     },

@@ -16,10 +16,6 @@ Function.addMethods({
     }
 });
 
-JSLoader.loadJs(module('users.timfelgentreff.babelsberg.uglify').uri());
-Object.subclass('FormulaTransform', {
-    
-});
 
 DBPlanner.addMethods({
     isConstraintObject: function() {

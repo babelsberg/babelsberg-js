@@ -1,7 +1,5 @@
 module('users.timfelgentreff.babelsberg.constraintinterpreter').requires('users.timfelgentreff.jsinterpreter.Interpreter', 'cop.Layers', 'users.timfelgentreff.babelsberg.cassowary_ext', 'users.timfelgentreff.babelsberg.deltablue_ext', 'users.timfelgentreff.babelsberg.core_ext', 'users.timfelgentreff.babelsberg.src_transform').toRun(function() {
 
-// branched from 198617
-
 Object.subclass("Babelsberg", {
 
     initialize: function () {
@@ -170,25 +168,6 @@ users.timfelgentreff.jsinterpreter.Send.addMethods({
     
     set args(value) {
         this._$args = value
-    }
-});
-cop.create('MorphSetConstrainedPositionLayer').refineClass(lively.morphic.Morph, {
-    setPosition: function(newPos) {
-        if (this.editCb) {
-            this.editCb(newPos);
-            return this.renderContextDispatch('setPosition', newPos);
-        } else {
-            return cop.proceed(newPos);
-        }
-    },
-}).refineClass(lively.morphic.DragHalo, {
-    dragStartAction: function() {
-        this.targetMorph.editCb = bbb.edit(this.targetMorph.getPosition(), ["x", "y"]);
-        return cop.proceed.apply(this, arguments);
-    },
-    dragEndAction: function() {
-        this.targetMorph.editCb();
-        return cop.proceed.apply(this, arguments);
     }
 });
 
@@ -649,7 +628,7 @@ Object.subclass('ConstrainedVariable', {
         var self = this;
         this._constraints.collect(function (c) {
             return c.constraintvariables;
-        }).flatten().uniqueElements().each(function (cvar) {
+        }).flatten().uniq().each(function (cvar) {
             cvar.suggestValue(cvar.getValue()) // will store and recurse only if needed
         });
     },
@@ -927,9 +906,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
                         return $super(node, recv, func, argValues);
                     });
                 } catch(e) {
-                    // TODO: this is duplicated with the else branch
-                    
-                    debugger;
+                    // TIM: send doesNotUnderstand to solver variable?
                     return this.errorIfUnsolvable(
                         (node.property && node.property.value),
                         recv,
@@ -1139,15 +1116,5 @@ Object.extend(ConstrainedVariable, {
 
     isSuggestingValue: false,
 })
-
-ObjectLinearizerPlugin.subclass('DoNotSerializeConstraintPlugin',
-'plugin interface', {
-    ignoreProp: function (obj, key, value) {
-        return (key === ConstrainedVariable.AttrName ||
-                key === ConstrainedVariable.ThisAttrName ||
-                (value instanceof Constraint))
-    },
-});
-lively.persistence.pluginsForLively.push(DoNotSerializeConstraintPlugin);
 
 })
