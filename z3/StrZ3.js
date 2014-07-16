@@ -29,6 +29,16 @@ module('users.timfelgentreff.z3.StrZ3').requires('users.timfelgentreff.z3.Comman
                 throw "Z3 failed to solve this system";
             }
         },
+    always: function($super, opts, func) {
+        return cop.withLayers([StrZ3Layer], function () {
+            return $super(opts, func);
+        });
+    },
+    initialize: function($super, sync) {
+        var session = lively.net.SessionTracker.getSession();
+        this.uuid = session ? session.sessionId.replace(":", "-") : Strings.newUUID();
+        $super(sync);
+    },
 
         postMessage: function (string) {
             string = "(set-option :pp.decimal true)\n(set-option :produce-models true)\n" +
@@ -36,18 +46,24 @@ module('users.timfelgentreff.z3.StrZ3').requires('users.timfelgentreff.z3.Comman
                 ("\n(check-sat)\n(get-value (" + this.variables.inject("", function (acc, v) {
                     return acc + v.name + " "
                 }) + "))");
-            
             var self = this,
-                id = lively.net.SessionTracker.getSession().sessionId.replace(":", "-"),
+                id = this.uuid,
                 filename = this.constructor.z3Path + "-" + id,
                 commandString = this.constructor.z3Path + ' -f ' + filename;
             
-            lively.ide.CommandLineInterface.runAll([
-                {writeFile: filename, sync: this.sync, content: string},
-                {command: commandString, sync: this.sync}
-            ], function(results) {
-                self.applyResult(results[1].getStdout() + results[1].getStderr());
-            });
+            if (this.sync) {
+                // XXX: for some reason, thenDos don't get called synchronously??
+                lively.ide.CommandLineInterface.writeFile(filename, {sync: true, content: string});
+                var cmd = lively.ide.CommandLineInterface.run(commandString, {sync: true});
+                self.applyResult(cmd.getStdout() + cmd.getStderr());
+            } else {
+                lively.ide.CommandLineInterface.runAll([
+                    {writeFile: filename, options: {sync: this.sync, content: string}},
+                    {command: commandString, options: {sync: this.sync}}
+                ], function(results) {
+                    self.applyResult(results[1].getStdout() + results[1].getStderr());
+                });
+            }
         },
         
         constraintVariableFor: function($super, value, ivarname, cvar) {
@@ -60,11 +76,43 @@ module('users.timfelgentreff.z3.StrZ3').requires('users.timfelgentreff.z3.Comman
             } else {
                 return $super(value, ivarname, cvar);
             }
-        }
+        },
+        
+        pruneUnusedVariables: function() {
+            // Z3str does not take unused variables well
+            debugger
+            var constraints = ["\n"].concat(this.constraints).reduce(function (acc, c) {
+                return acc + "\n" + c.print();
+            });
+            this.variables.clone().each(function (v, idx) {
+                if (!constraints.match(new RegExp(" " + v.name + "[) ]"))) {
+                    this.removeVariable(v);
+                }
+            }.bind(this));
+        },
+        solve: function($super, c) {
+            this.pruneUnusedVariables();
+            return $super(c);
+        },
+
     });
 
 cop.create('StrZ3Layer').
-refineClass(NaCLZ3Variable, {
+refineObject(Global, {
+    get NaCLZ3Variable() {
+        return StrZ3Variable
+    }
+}).
+refineClass(NaCLZ3BinaryExpression, {
+    z3object: function(obj) {
+        if (typeof(obj) == "string" || obj instanceof String) {
+            return new NaCLZ3Constant('"' + obj + '"', this.solver);
+        } else {
+            return cop.proceed(obj);
+        }
+    }
+});
+NaCLZ3Variable.subclass('StrZ3Variable', {
     printDeclaration: function() {
         if (this.isString) {
             return "(declare-variable " + this.name + " String)"
@@ -78,21 +126,9 @@ refineClass(NaCLZ3Variable, {
     },
     
     toString: function() {
-        debugger
         return this.value.toString()
     }
-}).
-refineClass(NaCLZ3BinaryExpression, {
-    z3object: function(obj) {
-        if (typeof(obj) == "string" || obj instanceof String) {
-            return new NaCLZ3Constant('"' + obj + '"', this.solver);
-        } else {
-            return cop.proceed(obj);
-        }
-    }
-}).beGlobal() // XXX: really only needed in StrZ3 always
-
-    Object.extend(StrZ3, {
+});    Object.extend(StrZ3, {
     z3Path: lively.ide.CommandLineInterface.cwd() + "/" +
             Config.codeBase.replace(Config.rootPath, "") + CommandLineZ3.modulePath + "z3str.py",
     functionMap:  {

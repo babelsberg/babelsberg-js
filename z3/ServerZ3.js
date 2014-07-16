@@ -56,10 +56,15 @@ CommandLineZ3.subclass("ServerZ3", {
         this.newVariables.clear();
         
         var constraints = this.newConstraints.inject("\n", function (acc, c) {
-            return acc + "\n" +
+            if (c.strength) {
+                return acc + "\n" + "(assert-soft " + c.print() + " :weight " + c.strength + ")"
+            } else {
+                return acc + "\n" + "(assert " + c.print() + ")";
+            }
+            // return acc + "\n" +
                     // "(declare-fun " + c.uuid + " () Bool)\n" +
                     // "(assert (= " + c.uuid + " " + c.print() + "))";
-                    "(assert " + c.print() + ")";
+                    // "(assert " + c.print() + ")";
         });
         this.newConstraints.clear();
         
