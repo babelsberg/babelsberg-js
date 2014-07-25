@@ -1,4 +1,4 @@
-module('users.timfelgentreff.babelsberg.babelsberg-lively').requires('users.timfelgentreff.babelsberg.constraintinterpreter').toRun(function() {
+module('users.timfelgentreff.babelsberg.babelsberg-lively').requires().toRun(function() {
 // Lively-specific adaptations for Babelsberg/JS
 
 cop.create('MorphSetConstrainedPositionLayer').refineClass(lively.morphic.Morph, {
