@@ -25,9 +25,6 @@
 	<script src="../jsinterpreter/LivelyJSParser.js"></script>
 	<script src="../jsinterpreter/Parser.js"></script>
 	<script src="../jsinterpreter/Meta.js"></script>
-	<script type="text/javascript">
-		JSLoader = function() { throw "Stubbed JSLoader actually in use"; };
-	</script>
 	<script src="../jsinterpreter/Rewriting.js"></script>
 	<script src="../jsinterpreter/Interpreter.js"></script>
 	<!-- // Cassowary -->
@@ -44,6 +41,10 @@
 	<!-- // Tests -->
 	<script src="test_harness.js"></script>
 	<script src="../babelsberg/tests.js"></script>
+	<!-- // src transform -->
+	<script src="../babelsberg/uglify.js"></script>
+	<script src="../babelsberg/src_transform.js"></script>
+	<script src="babelsbergscript.js"></script>
 	
 	<script type="text/javascript">
 		obj = {a: 1, b: 2}
@@ -60,6 +61,16 @@
 		p.runAll();
 		it = new users.timfelgentreff.babelsberg.tests.InteractionTest();
 		it.runAll();
+	</script>
+	
+	<script type="text/babelsbergscript">
+		obj = {a: 1, b: 2}
+		s = new ClSimplexSolver();
+		always: { solver: s
+			obj.a + 7 <= obj.b
+		}
+		obj.a = 10;
+		console.log(obj.a, obj.b);
 	</script>
 	
 	</head>

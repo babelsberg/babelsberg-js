@@ -8,10 +8,15 @@ if (!window.module) {
 	        parent = module(path.join("."));
 		if (!parent[name]) parent[name] = {
             requires: function(ignored) { return this; },
-            toRun: function(code) { code(); }
+            toRun: function(code) { code(); },
+            uri: function() {}
 		};
 		return parent[name];
     };
+    JSLoader = {
+    	loadJs: function() {}
+    };
+
     window.Properties = {
 	    all: function(object, predicate) {
 	        var a = [];
@@ -377,5 +382,6 @@ if (!window.module) {
             return str;
 	}
     };
+    Object.subclass("lively.morphic.CodeEditor", {});
 }
 
