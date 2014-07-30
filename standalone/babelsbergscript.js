@@ -74,5 +74,5 @@ function load() {
 if (document.readyState === 'complete') {
 	setTimeout(load);
 } else {
-	window.onload=load;
+	contentLoaded(window, load);
 }
