@@ -30,9 +30,7 @@ function execute(code, scope) {
 	var params = [],
 		args = [],
 		func;
-	console.log(code);
 	code = compile(code);
-	console.log(code);
 	var firefox = window.InstallTrigger;
 	if (firefox || window.chrome) {
 		var script = document.createElement('script'),
