@@ -53,7 +53,7 @@
 			obj.a + 7 <= obj.b
 		}
 		obj.a = 10;
-		console.log("without babelsbergscript", obj.a, obj.b);
+		console.log("JavaScript", obj.a, obj.b);
 	</script>
 	
 	<script type="text/babelsbergscript">
@@ -63,8 +63,11 @@
 			obj.a + 7 <= obj.b
 		}
 		obj.a = 10;
-		console.log("with babelsbergscript", obj.a, obj.b);
+		console.log("BabelsbergScript", obj.a, obj.b);
 	</script>
+
+	<script src="javascript.js"></script>
+	<script type="text/babelsbergscript" src="babelsbergscript.js"></script>
 	
 	</head>
 	<body>
