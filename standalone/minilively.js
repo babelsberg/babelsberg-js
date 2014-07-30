@@ -98,10 +98,9 @@ if (!window.module) {
     window.Config = {};
     window.cop = {};
     window.Global = window;
-    window.lively = window; // TODO: FIXED
+    window.lively = window;
     lively.Module = function() { return null; };
     window.dbgOn = (function (b) { if (b) { debugger } });
-    window.JSLoader = function() { throw "Stubbed JSLoader actually in use"; };
 
     function __oldNamespace(spec, context) {
 	var	 i,N;
