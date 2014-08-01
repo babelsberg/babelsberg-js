@@ -1,21 +1,13 @@
 module('users.timfelgentreff.layout.tracer').requires('users.timfelgentreff.layout.core').toRun(function() {
-    /**
-     * Solver
-     */
-    LayoutObject.subclass("TracingSolver", {
+    LayoutObject.subclass("LayoutTracer", {
         initialize: function(algorithm) {
-            this.cassowary = new ClSimplexSolver();
-            this.cassowary.setAutosolve(false);
-            this.reset();
-        },
-        
-        reset: function() {
             this.variables = [];
             this.constraints = [];
             
             this.layoutConstraintVariablesByName = {};
             this.bbbConstraintVariablesByName = {};
         },
+        
         always: function(opts, func)  {
             func.allowUnsolvableOperations = true;
             func.varMapping = opts.ctx;
@@ -26,24 +18,17 @@ module('users.timfelgentreff.layout.tracer').requires('users.timfelgentreff.layo
         constraintVariableFor: function(value, ivarname, bbbConstrainedVariable) {
             if(typeof value == "undefined")
                 return null;
-            if(value && value instanceof lively.morphic.Box) { // Box
-                return this.createSpecificVariable(value, ivarname, bbbConstrainedVariable, LayoutConstraintVariableBox);
-            }
-            if(value && ivarname === "shape") { // Shape
-                return this.createSpecificVariable(value, ivarname, bbbConstrainedVariable, LayoutConstraintVariableShape);
-            }
-            if(value && value instanceof lively.Point && (ivarname === "_Extent" || ivarname === "_Position")) {
-                return this.createSpecificVariable(value, ivarname, bbbConstrainedVariable, LayoutConstraintVariablePoint);
-            };
-            if(typeof value === "number" && (ivarname === "x" || ivarname === "y")) { // x or y
-                return this.createSpecificVariable(value, ivarname, bbbConstrainedVariable, LayoutConstraintVariableNumber);
-            }
-            return null;
+            
+            var cVar = this.createSpecificVariable(value, ivarname, bbbConstrainedVariable);
+            // TODO: listen to everything
+            console.log("VAR", cVar, value, ivarname, bbbConstrainedVariable);
+
+            return  cVar;
         },
         
-        createSpecificVariable: function(value, ivarname, bbbConstrainedVariable, variableClass) {
+        createSpecificVariable: function(value, ivarname, bbbConstrainedVariable) {
             var name = ivarname + "" + this.variables.length;
-            var v = new (variableClass)(name, value, this, ivarname, bbbConstrainedVariable);
+            var v = new LayoutTracerVariable(name, value, this, ivarname, bbbConstrainedVariable);
             return v;
         },
         
@@ -74,24 +59,84 @@ module('users.timfelgentreff.layout.tracer').requires('users.timfelgentreff.layo
         },
         
         solve: function() {
-            this.cassowary.solve();
-            
-            this.rerender();
-        },
-        
-        rerender: function() {
-            this.variables.filter(function(constraintVariable) {
-                return constraintVariable instanceof LayoutConstraintVariableBox;
-            }).each(function(constraintVariable) {
-                var morph = constraintVariable.value();
-                //morph.setPosition(pt(constraintVariable.child("_Position").x, constraintVariable.child("_Position").y));
-                morph.renderUsing(morph.renderContext());
-            });
+            // TODO: delegate to cassowary
         }
     });
-    TracingSolver.addMethods({
+    LayoutTracer.addMethods({
         weight: 10000
     });
-
+    LayoutObject.subclass("LayoutTracerVariable", {
+        initialize: function(name, value, solver, ivarname, bbbConstrainedVariable) {
+            this.name = name;
+            this.setValue(value);
+            this.solver = solver;
+            this.ivarname = ivarname;
+            this.__cvar__ = bbbConstrainedVariable;
+            solver.addVariable(this, bbbConstrainedVariable);
+        },
+        value: function() {
+            return this.__value__;
+        },
+        setValue: function(value) {
+            this.__value__ = value;
+        },
+        setReadonly: function(bool) {
+            // TODO: add some constraint to hold a constant value
+            if (bool && !this.readonlyConstraint) {
+            } else if (!bool && this.readonlyConstraint) {
+            }
+        },
+        isReadonly: function() {
+            return !!this.readonlyConstraint;
+        },
+        throwError: function() {
+            throw {
+                name: "NonPrimitiveError",
+                message: "the given method is not the supported primitive",
+                toString: function() { return this.name + ": " + this.message; } 
+            }
+        },
+        getExtent: function() {
+            console.log("CALL", "getExtent", this, arguments)
+            this.throwError();
+        },
+        extent: function() {
+            console.log("CALL", "extent", this, arguments)
+            this.throwError();
+        },
+        getBounds: function() {
+            console.log("CALL", "getBounds", this, arguments)
+            this.throwError();
+        },
+        eqPt: function() {
+            console.log("CALL", "eqPt", this, arguments)
+            this.throwError();
+        },
+        cnEquals: function() {
+            console.log("CALL", "cnEquals", this, arguments)
+            return new LayoutTracerConstraint(this, "cnEquals", arguments, this.solver);
+        },
+        toString: function() {
+            return "LayoutObject["+this.value().toString()+"]";
+        }
+    });
+    LayoutObject.subclass('LayoutTracerConstraint', {
+        initialize: function(left, operation, right, solver) {
+            this.left = left;
+            this.operation = operation;
+            this.right = right;
+            this.solver = solver;
+        },
+        enable: function (strength) {
+            // TODO: consider strength
+            this.solver.addConstraint(this);
+        },
+        disable: function () {
+            this.solver.removeConstraint(this);
+        },
+        cnAnd: function() {
+            return this;
+        }
+    });
 
 }) // end of module
