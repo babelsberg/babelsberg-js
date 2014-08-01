@@ -38,20 +38,25 @@ Object.subclass("Babelsberg", {
         obj[accessor] = obj[newName];
         delete obj[newName]
         
-        // recursive unconstraint
+        // recursive unconstrain
         var child = obj[accessor];
-        if(child && child instanceof Object) {
-            Object.keys(child).each(function(property, index) {
-                var cvar = ConstrainedVariable.findConstraintVariableFor(child, property);
+        Babelsberg.unconstrainAll(child);
+    },
+    
+    unconstrainAll: function (obj) {
+        if(obj && obj instanceof Object) {
+            Object.keys(obj).each(function(property, index) {
+                var cvar = ConstrainedVariable.findConstraintVariableFor(obj, property);
                 if (!cvar) return;
-                var cGetter = child.__lookupGetter__(property),
-                    cSetter = child.__lookupSetter__(property);
+                var cGetter = obj.__lookupGetter__(property),
+                    cSetter = obj.__lookupSetter__(property);
                 if (!cGetter && !cSetter) return;
                 if (!cGetter.isConstraintAccessor || !cSetter.isConstraintAccessor) return;
                 
-                bbb.unconstrain(child, property);
+                bbb.unconstrain(obj, property);
             });
         }
+    	
     },
     
     edit: function (obj, accessors) {
