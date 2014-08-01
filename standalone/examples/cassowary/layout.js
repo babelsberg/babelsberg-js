@@ -1,7 +1,8 @@
 contentLoaded(window, function() {
 
 	// setup canvas
-	var canvas = new fabric.Canvas('canvas', { backgroundColor: "#cccccc" });
+	var canvas = new fabric.Canvas('canvas');
+	fabric.Object.prototype.transparentCorners = false;
 	
 	var red = new fabric.Rect({
 		width: 200, height: 100, left: 0, top: 50, angle: 0,
@@ -23,30 +24,6 @@ contentLoaded(window, function() {
 		fill: 'rgba(255,255,0,0.5)'
 	});
 	
-	//setup constraints
-	cassowarySolver = new ClSimplexSolver();
-
-	always: { solver: cassowarySolver
-	    red.top == green.top;
-	}
-	always: { solver: cassowarySolver
-	    red.left + green.left == 500;
-	}
-	always: { solver: cassowarySolver
-	    red.top + red.currentHeight == yellow.top;
-	}
-	always: { solver: cassowarySolver
-	    red.left == yellow.left;
-	}
-	always: { solver: cassowarySolver
-	    blue.angle >= 90;
-	}
-	always: { solver: cassowarySolver
-	    blue.angle <= 270;
-	}
-
-
-	canvas.add(red, green, blue, yellow);
 	window.rects = {
 		red: red,
 		green: green,
@@ -54,18 +31,57 @@ contentLoaded(window, function() {
 		yellow: yellow
 	};
 
-
-
+	//setup default solver
+	bbb.defaultSolver = new ClSimplexSolver();
+	
 	// code editor
 	var codeEditor = document.getElementById('code');
 	
 	var editorCallback = function() {
-		execute(this.value, window.rects);
-		console.log(this.value);
+		bbb.defaultSolver = new ClSimplexSolver();
+		
+		// remove old constraints
+		Object.keys(window.rects).each(function(name) {
+			bbb.unconstrainAll(window.rects[name]);
+		});
+
+		codeEditor.style.border = "3px solid green";
+		try {
+			execute(this.value, window.rects);
+		} catch (e) {
+			codeEditor.style.border = "3px solid red";
+			throw e;
+		}
+		
+		// rerender for immediate changes
+		canvas.renderAll();
 	};
 	
 	codeEditor.onkeyup = editorCallback;
-	codeEditor.onblur = editorCallback;
 
-	codeEditor.value = "hallo";
+	codeEditor.value =
+	"always: {\n" +
+	"	this.red.top == this.green.top;\n" +
+	"}\n" +
+	"always: {\n" +
+	"	this.red.left + this.green.left == 500;\n" +
+	"}\n" +
+	"always: {\n" +
+	"	this.red.top == this.yellow.top;\n" +
+	"}\n" +
+	"always: {\n" +
+	"	this.red.left == this.yellow.left;\n" +
+	"}\n" +
+	"always: {\n" +
+	"	this.yellow.angle == this.yellow.top;\n" +
+	"}\n" +
+	"always: {\n" +
+	"	this.blue.angle >= 90;\n" +
+	"}\n" +
+	"always: {\n" +
+	"	this.blue.angle <= 270;\n" +
+	"}\n";
+	editorCallback.call(codeEditor);
+
+	canvas.add(red, green, blue, yellow);
 });
