@@ -40,7 +40,7 @@ Object.subclass("Babelsberg", {
         
         // recursive unconstrain
         var child = obj[accessor];
-        Babelsberg.unconstrainAll(child);
+        bbb.unconstrainAll(child);
     },
     
     unconstrainAll: function (obj) {
