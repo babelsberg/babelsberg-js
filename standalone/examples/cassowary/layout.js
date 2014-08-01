@@ -53,8 +53,19 @@ contentLoaded(window, function() {
 		blue: blue,
 		yellow: yellow
 	};
+
+
+
+	// code editor
+	var codeEditor = document.getElementById('code');
 	
+	var editorCallback = function() {
+		execute(this.value, window.rects);
+		console.log(this.value);
+	};
 	
-	
-	
+	codeEditor.onkeyup = editorCallback;
+	codeEditor.onblur = editorCallback;
+
+	codeEditor.value = "hallo";
 });
