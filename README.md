@@ -2,7 +2,7 @@ Babelsberg/JS
 =============
 [![Build Status](https://travis-ci.org/timfel/babelsberg-js.png?branch=master)](https://travis-ci.org/timfel/babelsberg-js)
 
-A LivelyKernel implementation of Babelsberg licensed under [MIT](https://github.com/timfel/babelsberg-js/blob/master/LICENSE)
+A LivelyKernel implementation of Babelsberg licensed under [3-clause BSD](https://github.com/timfel/babelsberg-js/blob/master/LICENSE)
 
 
 See also [Babelsberg/R](https://github.com/timfel/babelsberg-r)
