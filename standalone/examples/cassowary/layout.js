@@ -84,4 +84,13 @@ contentLoaded(window, function() {
 	editorCallback.call(codeEditor);
 
 	canvas.add(red, green, blue, yellow);
+	
+	// update controls of rects moved by constraints
+	var setControls = function() {
+		["red", "green", "blue", "yellow"].each(function(name) {
+			window.rects[name].setCoords();
+		});
+		fabric.util.requestAnimFrame(setControls);
+	};
+	fabric.util.requestAnimFrame(setControls);
 });
