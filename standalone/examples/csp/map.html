@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+	<head>
+	<title>Babelsberg/JS CSP Solver</title>
+	<script src="../../prototype.js"></script>
+	<script src="../../minilively.js"></script>
+	
+	<!-- // cop.Layers -->
+	<script src="../../../cop/Layers.js"></script>
+	
+	<!-- // ometa.lively -->
+	<script src="../../../ometa/lib.js"></script>
+	<script src="../../../ometa/ometa-base.js"></script>
+	<script src="../../../ometa/parser.js"></script>
+	<script src="../../../ometa/ChunkParser.js"></script>
+	<script src="../../../ometa/bs-ometa-compiler.js"></script>
+	<script src="../../../ometa/bs-js-compiler.js"></script>
+	<script src="../../../ometa/bs-ometa-js-compiler.js"></script>
+	<script src="../../../ometa/bs-ometa-optimizer.js"></script>
+	<script src="../../../ometa/lk-parser-extensions.js"></script>
+	<!-- // lively.Ometa -->
+	<script src="../../../ometa/Ometa.js"></script>
+	<!-- // lively.Interpreter -->
+	<script src="../../../jsinterpreter/generated/Nodes.js"></script>
+	<script src="../../../jsinterpreter/generated/Translator.js"></script>
+	<script src="../../../jsinterpreter/LivelyJSParser.js"></script>
+	<script src="../../../jsinterpreter/Parser.js"></script>
+	<script src="../../../jsinterpreter/Meta.js"></script>
+	<script src="../../../jsinterpreter/Rewriting.js"></script>
+	<script src="../../../jsinterpreter/Interpreter.js"></script>
+	<!-- // Cassowary -->
+	<script src="../../../cassowary/Hashtable.js"></script>
+	<script src="../../../cassowary/HashSet.js"></script>
+	<script src="../../../cassowary/DwarfCassowary.js"></script>
+	<script src="../../../babelsberg/cassowary_ext.js"></script>
+	<!-- // DeltaBlue -->
+	<script src="../../../deltablue/deltablue.js"></script>
+	<script src="../../../babelsberg/deltablue_ext.js"></script>
+	<!-- // CSP -->
+	<script src="../../../csp/util.js"></script>
+	<script src="../../../csp/discrete_finite.js"></script>
+	<script src="../../../csp/csp.js"></script>
+	<!-- // Babelsberg/js -->
+	<script src="../../../babelsberg/core_ext.js"></script>
+	<script src="../../../babelsberg/constraintinterpreter.js"></script>
+	<!-- // Tests -->
+	<script src="../../test_harness.js"></script>
+	<script src="../../../babelsberg/tests.js"></script>
+	<!-- // src transform -->
+	<script src="../../../babelsberg/uglify.js"></script>
+	<script src="../../../babelsberg/src_transform.js"></script>
+	<script src="../../babelsbergscript.js"></script>
+	
+	<script src="fabric.js"></script>
+	<script type="text/babelsbergscript" src="layout.js"></script>
+	
+	<script src="map.js"></script>
+	
+	<style>
+		.output {
+			margin-left: 15px;
+			font-family: monospace;
+		}
+		.bug {
+			background: red;
+			font-size: 1.2em;
+			color: white;
+			
+		}
+	</style>
+	</head>
+	<body>
+		<h2>CPS Solver</h2>
+		<p>Version</p>
+		<div id="version" class="output"></div>
+		<h3>Problem Setup</h3>
+		<p>Variables</p>
+		<div id="variables" class="output"></div>
+		<p>Constraints</p>
+		<div id="constraints" class="output"></div>
+		<p>Solution</p>
+		<div id="solution" class="output"></div>
+		<p>All Solutions</p>
+		<div id="allsolutions" class="output"></div>
+		<h2>Example 2</h2>
+		<div id="p2_out"></div>
+		<div id="p2_bug" class="bug"></div>
+		<div style="float: left;">
+			<canvas id="canvas" width="700" height="600" style="border: 1px dotted black"></canvas>
+		</div>
+		<div style="float: left;">
+			<textarea id="code" name="user_eingabe" cols="75" rows="25"></textarea>
+		</div>
+	</body>
+</html>
