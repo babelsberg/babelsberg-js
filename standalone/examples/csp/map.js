@@ -1,4 +1,4 @@
-var example = function() {
+contentLoaded(window, function() {
     
     var p = csp.DiscreteProblem();
     
@@ -78,7 +78,4 @@ var example = function() {
       }
       sh.innerHTML += "}<br/>"
     }   
-    
-  };
-  
-window.onload = example;
+});
