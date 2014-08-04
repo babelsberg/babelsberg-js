@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 	<head>
-	<title>Babelsberg/JS Source Transformation</title>
+	<title>Babelsberg/JS Dom Constraints</title>
 	<script src="../../prototype.js"></script>
 	<script src="../../minilively.js"></script>
 	
@@ -46,30 +46,10 @@
 	<script src="../../../babelsberg/src_transform.js"></script>
 	<script src="../../babelsbergscript.js"></script>
 	
-	<script type="text/javascript">
-		obj = {a: 1, b: 2}
-		s = new ClSimplexSolver();
-		always: { solver: s
-			obj.a + 7 <= obj.b
-		}
-		obj.a = 10;
-		console.log("JavaScript", obj.a, obj.b);
-	</script>
-	
-	<script type="text/babelsbergscript">
-		obj = {a: 1, b: 2}
-		s = new ClSimplexSolver();
-		always: { solver: s
-			obj.a + 7 <= obj.b
-		}
-		obj.a = 10;
-		console.log("BabelsbergScript", obj.a, obj.b);
-	</script>
-
-	<script src="javascript.js"></script>
-	<script type="text/babelsbergscript" src="babelsbergscript.js"></script>
+	<script src="domconstraints.js"></script>
 	
 	</head>
 	<body>
+		<div id="div1" style="background-color:black; width:200px; height:100px" />
 	</body>
 </html>

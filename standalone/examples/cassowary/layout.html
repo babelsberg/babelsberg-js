@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 	<head>
-	<title>Babelsberg/JS Source Transformation</title>
+	<title>Babelsberg/JS</title>
 	<script src="../../prototype.js"></script>
 	<script src="../../minilively.js"></script>
 	
@@ -46,30 +46,16 @@
 	<script src="../../../babelsberg/src_transform.js"></script>
 	<script src="../../babelsbergscript.js"></script>
 	
-	<script type="text/javascript">
-		obj = {a: 1, b: 2}
-		s = new ClSimplexSolver();
-		always: { solver: s
-			obj.a + 7 <= obj.b
-		}
-		obj.a = 10;
-		console.log("JavaScript", obj.a, obj.b);
-	</script>
-	
-	<script type="text/babelsbergscript">
-		obj = {a: 1, b: 2}
-		s = new ClSimplexSolver();
-		always: { solver: s
-			obj.a + 7 <= obj.b
-		}
-		obj.a = 10;
-		console.log("BabelsbergScript", obj.a, obj.b);
-	</script>
-
-	<script src="javascript.js"></script>
-	<script type="text/babelsbergscript" src="babelsbergscript.js"></script>
+	<script src="fabric.js"></script>
+	<script type="text/babelsbergscript" src="layout.js"></script>
 	
 	</head>
 	<body>
+		<div style="float: left;">
+			<canvas id="canvas" width="700" height="600" style="border: 1px dotted black"></canvas>
+		</div>
+		<div style="float: left;">
+			<textarea id="code" name="user_eingabe" cols="75" rows="25"></textarea>
+		</div>
 	</body>
 </html>
