@@ -36,9 +36,8 @@
 	<script src="../../../deltablue/deltablue.js"></script>
 	<script src="../../../babelsberg/deltablue_ext.js"></script>
 	<!-- // CSP -->
-	<script src="../../../csp/util.js"></script>
-	<script src="../../../csp/discrete_finite.js"></script>
 	<script src="../../../csp/csp.js"></script>
+	<script src="../../../babelsberg/csp_ext.js"></script>
 	<!-- // Babelsberg/js -->
 	<script src="../../../babelsberg/core_ext.js"></script>
 	<script src="../../../babelsberg/constraintinterpreter.js"></script>
@@ -50,23 +49,9 @@
 	<script src="../../../babelsberg/src_transform.js"></script>
 	<script src="../../babelsbergscript.js"></script>
 	
-	<script src="fabric.js"></script>
-	<script type="text/babelsbergscript" src="layout.js"></script>
+	<script type="text/babelsbergscript" src="map.js"></script>
 	
-	<script src="map.js"></script>
-	
-	<style>
-		.output {
-			margin-left: 15px;
-			font-family: monospace;
-		}
-		.bug {
-			background: red;
-			font-size: 1.2em;
-			color: white;
-			
-		}
-	</style>
+
 	</head>
 	<body>
 		<h2>CPS Solver</h2>
@@ -84,11 +69,5 @@
 		<h2>Example 2</h2>
 		<div id="p2_out"></div>
 		<div id="p2_bug" class="bug"></div>
-		<div style="float: left;">
-			<canvas id="canvas" width="700" height="600" style="border: 1px dotted black"></canvas>
-		</div>
-		<div style="float: left;">
-			<textarea id="code" name="user_eingabe" cols="75" rows="25"></textarea>
-		</div>
 	</body>
 </html>

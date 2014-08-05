@@ -9,7 +9,6 @@
 module('users.timfelgentreff.csp.csp').requires().toRun(function() {
 
 var util = {
-    
     mixin: function(target, src) {
       for (var name in src) {
         if (src.hasOwnProperty(name) && !target.hasOwnProperty(name)) {
@@ -17,7 +16,6 @@ var util = {
         }
       }
     },
-   
     hashcopy: function(obj) {
       var ret = obj.constructor();
       for (var p in obj) {
@@ -27,8 +25,6 @@ var util = {
       }
       return ret;
     }
-
- 
 };
 
 /* 
@@ -39,19 +35,17 @@ var util = {
  *
  */
  
-  discrete_finite = (function (util) {
-  
   /* 
    * Variable
    */
   var Variable = function(name,domain) {
     this.name = name;
     this.domain = domain;
-  }
+  };
   
   Variable.prototype.toString = function() {
     return "" + this.name + " => [" + this.domain.toString() + "]";
-  }
+  };
 
   /* 
    * Constraint 
@@ -60,11 +54,11 @@ var util = {
   var Constraint = function(variables, fn) {
     this.fn = fn;
     this.variables = variables;
-  }
+  };
   
   Constraint.prototype.toString = function() {
     return "(" + this.variables.toString() + ") => " + this.fn.toString();
-  }
+  };
   
   /* 
    * Problem 
@@ -77,71 +71,67 @@ var util = {
   
   Problem.prototype.addVariable = function(name, domain) {
     this.variables[name] = new Variable(name,domain);
-  }
+  };
   Problem.prototype.changeVariable = function(name, newdomain) {
     if (this.variables[name]) {
       this.variables[name].domain = newdomain;      
     } else {
       throw new Error("Attempted to change a nonexistant variable.");
     }
-  }
+  };
 
   Problem.prototype.addConstraint = function(variables, fn) {
       if (variables.length == 0) {
           return;
       }
     this.constraints.push(new Constraint(variables, fn));
-  }
+  };
   
   Problem.prototype.setSolver = function(solver) {
     this.solver = solver;
-  }
+  };
   
   Problem.prototype.getSolution = function() {
     return this.solver.getSolution(this);
-  }
+  };
 
   Problem.prototype.getSolutions = function() {
     return this.solver.getSolutions(this);
-  }
-  
-  Problem.prototype.getSolutionIter = function() {
-    return this.solver.getSolutions(this);
-  }
-  
+  };
+	  
+  Problem.prototype.getAssignmentFor = function(name) {
+    return this.solver.getAssignmentFor(name);
+  };
+		  
+			  
   /* 
    * Solver 
    */
   var RecursiveBacktrackingSolver = function() {
-    
+    this.assignments = {};
   };
   
   RecursiveBacktrackingSolver.prototype.getSolution = function(csp) {
-    var assignment = {}
+    var assignment = {};
     if (this.solve(assignment, csp.variables, csp.constraints, true)) {
       return assignment;
     } else {
       return {};
     }
-  }
+  };
 
   RecursiveBacktrackingSolver.prototype.getSolutions = function(csp) {
     this.allAssignments = [];
     this.solve({}, csp.variables, csp.constraints, false);
     return this.allAssignments;
-  }
-
-  RecursiveBacktrackingSolver.prototype.getSolutionIter = function(csp) {
-    throw {
-      error: "Unsupported",
-      message: "RecursiveBacktrackingSolver does not support a solution iterator"
-    }
-  }
+  };
   
+  RecursiveBacktrackingSolver.prototype.getAssignmentFor = function(name) {
+    return this.assignments[name];
+  };
+
   RecursiveBacktrackingSolver.prototype.solve = function(assignments, variables, constraints, single) {
-    
-    
-    
+
     function recursiveSolve(assignments, variables, constraints, single) {
       //Move stuff in here to not re-evaluate the checkAssignment function...
       
@@ -174,7 +164,7 @@ var util = {
       assignments[nextVar.name] = val;
       for (var c in constraints) {
         if (!constraints.hasOwnProperty(c)) continue;
-        args = []
+        args = [];
         var valid = true;
         
         //try to build the argument list for this constraint...
@@ -211,7 +201,7 @@ var util = {
         assignments[nextVar.name] = val;
         if (this.solve(assignments, variables, constraints, single)) {
           if (single) {
-            return true
+            return true;
           }
         }
         delete assignments[nextVar.name];
@@ -219,30 +209,20 @@ var util = {
     }
     return false;
     
-  }
+  };
   
   
   /*
    * Public API
    */
-  return {
-    
-    DiscreteProblem: function() {
-      return new Problem();
-    }
-    
-    
+  var discrete_finite = {
+    DiscreteProblem: Problem
   };
-  
-})(util);
 
-Object.subclass("csp", {});
-Object.extend(csp, {
+Object.subclass("_csp", {});
+Object.extend(_csp, {
 	version: "0.1"
 });
 
-(function (util, discrete_finite) {
-  util.mixin(csp, discrete_finite);
-})(util, discrete_finite);
-
+util.mixin(_csp, discrete_finite);
 });

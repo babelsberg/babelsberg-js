@@ -1,6 +1,8 @@
 contentLoaded(window, function() {
-    
-    var p = csp.DiscreteProblem();
+   
+(function() {
+	// non-Babelsberg sample 1
+    var p = new _csp.DiscreteProblem();
     
     p.addVariable("a", [1,2,3]);
     p.addVariable("b", [4,5,6]);
@@ -16,18 +18,14 @@ contentLoaded(window, function() {
       function(b, c) { return b*2 === c; }
     );
     
-    
-    
-    
-    
-    var p2 = csp.DiscreteProblem();
+	// non-Babelsberg sample 2
+    var p2 = new _csp.DiscreteProblem();
 
     allVars = [];
     for (var a = 65; a < 91; a++) {
       allVars.push(String.fromCharCode(a));
       p2.addVariable(String.fromCharCode(a), [0,1,2,3]);
     }
-
 
     p2.addConstraint(
       ["A", "B"],
@@ -45,8 +43,8 @@ contentLoaded(window, function() {
       
     }
 
-
-    document.getElementById("version").innerHTML = csp.version;
+    // show results
+    document.getElementById("version").innerHTML = _csp.version;
     
     vhtml = document.getElementById("variables");
     vhtml.innerHTML = "";
@@ -77,5 +75,85 @@ contentLoaded(window, function() {
         sh.innerHTML += (j + "=" + soln[j] + " ");
       }
       sh.innerHTML += "}<br/>"
-    }   
+    }
+    
+})();
+(function() {
+	
+(function() {
+	var colors = ["blue", "black", "brown", "white"];
+	var man = {
+		shoes: "foo",
+		shirt: "foo",
+		pants: "foo",
+		hat: "foo"
+	};
+    var solver = bbb.defaultSolver = new csp.Solver();
+	
+    var sho = solver.newVariable(man, "shoes", colors);
+    solver.newVariable(man, "shirt", colors);
+    solver.newVariable(man, "pants", colors);
+    var hat = solver.newVariable(man, "hat", colors);
+    
+    man.hat = "white";
+    
+    always: { man.shoes === man.hat }
+    always: { man.shoes !== man.pants }
+    always: { man.shoes !== man.shirt }
+    always: { man.shirt !== man.pants }
+
+    always: { man.hat === "brown" }
+    always: { man.shoes === "brown" || man.shoes === "black" }
+    always: { ["white", "blue", "brown"].indexOf(man.shirt) > -1 }
+
+    console.log(man.shoes, man.pants, man.shirt, man.hat);
+})();
+
+return;
+
+    // Babelsberg sample
+    var Vector = function(x, y) {
+    	this.x = x;
+    	this.y = y;
+    };
+    var Rect = function(ox, oy, ex, ey) {
+    	this.origin = new Vector(ox, oy);
+    	this.extent = new Vector(ex, ey);
+    };
+    Rect.prototype.getArea = function() {
+    	var e = this.extent;
+    	return e.x * e.y;
+    };
+    Rect.prototype.toString = function() {
+    	return "Rect(" +
+    	this.origin.x + ", "+ 
+    	this.origin.y + ", "+ 
+    	this.extent.x + ", "+ 
+    	this.extent.y + ")";
+    };
+
+    var foo = {
+    	r1: new Rect(1,2,3,4)
+    };
+    
+    var solver = new csp.Solver();
+    
+    var possibleRects = [];
+    for(var ox = 0; ox < 5; ox++) {
+        for(var oy = 0; oy < 5; oy++) {
+            for(var ex = 0; ex < 5; ex++) {
+                for(var ey = 0; ey < 5; ey++) {
+                    possibleRects.push(new Rect(ox, oy, ex, ey));
+                }	
+            }	
+        }
+    }
+    var h1 = solver.addVariable(foo, "r1", possibleRects);
+    
+    always: { solver: solver
+    	args: [h1]
+    	foo.r1.origin.x <= 3
+    }
+})();
+
 });
