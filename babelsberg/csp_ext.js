@@ -45,11 +45,7 @@ module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff
 	    weight: 1000,
 	    always: function (opts, func) {
 	    	this.p.addConstraint([], func);
-	    	var solutions = this.p.getSolutions();
-	    	console.log(solutions);
-	    	for(var i = 0; i < solutions.length; i++) {
-	    		console.log(solutions[i]);
-	    	}
+	    	this.p.getSolution();
 	    }
 	});
 	Object.extend(csp.Solver, {
@@ -73,9 +69,12 @@ module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff
 			this.cspname = csp.Solver.getUniqueName();
 			
 			this.cspvariable = this.solver.p.addVariable(this.cspname, domain);
+			
+			this.solver.p.solver.assignments[this.cspname] = this.domain[0];
 		},
 		
 		// TODO:
+		// check if assignment is contained in the domain -> early error
         // clear/save previous assignments
         // add 'value' as assignment
         // (try to) solve
@@ -84,8 +83,6 @@ module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff
 	    	console.log("suggest value", value);
 	    },
 
-	    // TODO:
-    	// get value from assignments
 	    value: function() {
 	    	return this.solver.p.getAssignmentFor(this.cspname);
 	    },
