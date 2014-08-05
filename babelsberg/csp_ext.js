@@ -1,4 +1,7 @@
 module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff.csp.csp').toRun(function() {
+	
+	JSLoader.loadJs(module('users.timfelgentreff.csp.underscore-min').uri());
+
 	Object.subclass("csp.Solver", {
 	    isConstraintObject: function() {
 	        return true;

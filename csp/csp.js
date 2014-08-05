@@ -1,11 +1,11 @@
 /* 
- * CSP.JS
  *
- * A constraint satisfaction problem solver in Javascript.
+ * A simple constraint satisfaction problem solver in Javascript.
  *
- * By Niels Joubert https://github.com/njoubert/csp.js
  */
 module('users.timfelgentreff.csp.csp').requires().toRun(function() {
+
+JSLoader.loadJs(module('users.timfelgentreff.csp.underscore-min').uri());
 
 var util = {
     mixin: function(target, src) {
@@ -26,14 +26,6 @@ var util = {
     }
 };
 
-/* 
- * DiscreteFinite.JS
- *
- * Implementation for a discrete, finite-domain CSP solver
- *
- *
- */
- 
   /* 
    * Variable
    */
@@ -104,8 +96,8 @@ var util = {
   };
   
   RecursiveBacktrackingSolver.prototype.getSolution = function(csp, restrictedDomains) {
-    var assignment = {};
-    var satisfiable = this.solve(csp, assignment, csp.variables, csp.constraints, true, restrictedDomains);
+    var satisfiable = this.solve(csp.variables, csp.constraints, restrictedDomains);
+
     return satisfiable;
   };
 
@@ -113,23 +105,23 @@ var util = {
     return this.assignments[name];
   };
 
-  RecursiveBacktrackingSolver.prototype.solve = function(csp, assignments, variables, constraints, single, restrictedDomains) {
-	  var domainByName = this.prepareSolving(csp, assignments, variables, constraints, single, restrictedDomains);
+  RecursiveBacktrackingSolver.prototype.solve = function(variables, constraints, restrictedDomains) {
+	  var domainByName = this.prepareSolving(variables, restrictedDomains);
 	  
-	  var fulfilled = this.recursiveSolve(csp, assignments, variables, constraints, single, domainByName);
+	  var fulfilled = this.recursiveSolve(constraints, domainByName);
 	  
 	  return fulfilled;
   };
 
-  RecursiveBacktrackingSolver.prototype.prepareSolving = function(csp, assignments, variables, constraints, single, restrictedDomains) {
+  RecursiveBacktrackingSolver.prototype.prepareSolving = function(variables, restrictedDomains) {
 	  var domainByName = _.defaults(restrictedDomains, variables);
 
 	  return domainByName;
   };
 
-	RecursiveBacktrackingSolver.prototype.recursiveSolve = function(csp, assignments, variables, constraints, single, domainByName) {
+	RecursiveBacktrackingSolver.prototype.recursiveSolve = function(constraints, domainByName) {
 		if(_.size(domainByName) === 0) {
-			var fulfilled = this.checkAssignments(csp, assignments, variables, constraints, single, domainByName);
+			var fulfilled = this.checkAssignments(constraints);
 			return fulfilled;
 		} else {
 			var current = _.chain(domainByName)
@@ -140,27 +132,26 @@ var util = {
 			var currentDomain = domainByName[current].domain;
 			var fulfillingValue = _.find(currentDomain, function(val) {
 				this.assignments[current] = val;
-				var fulfilled = this.recursiveSolve(csp, assignments, variables, constraints, single, remainingDomain);
+				var fulfilled = this.recursiveSolve(constraints, remainingDomain);
 				return fulfilled;
 			}, this);
 			return typeof fulfillingValue !== "undefined";
 		};
 	};
 
-	RecursiveBacktrackingSolver.prototype.checkAssignments = function(csp, assignments, variables, constraints, single, domainByName) {
+	RecursiveBacktrackingSolver.prototype.checkAssignments = function(constraints) {
 		var constraintsFulfilled =_.every(constraints, function(constraint) {
 			return constraint.fn();
 		}, this);
 
 		if(constraintsFulfilled) {
-			this.summitSolution(csp, assignments, variables, constraints, single, domainByName);
+			this.summitSolution();
 		}
 		
 		return constraintsFulfilled;
 	};
 
-	RecursiveBacktrackingSolver.prototype.summitSolution = function(csp, assignments, variables, constraints, single, domainByName) {
-	};
+	RecursiveBacktrackingSolver.prototype.summitSolution = function() {};
 
 /*
  * Public API
