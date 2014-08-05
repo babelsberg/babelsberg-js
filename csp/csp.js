@@ -70,30 +70,28 @@ var util = {
   Problem.prototype.addVariable = function(name, domain) {
     this.variables[name] = new Variable(name,domain);
   };
-  Problem.prototype.changeVariable = function(name, newdomain) {
-    if (this.variables[name]) {
-      this.variables[name].domain = newdomain;      
-    } else {
-      throw new Error("Attempted to change a nonexistant variable.");
-    }
-  };
 
   Problem.prototype.addConstraint = function(variables, fn) {
     this.constraints.push(new Constraint(variables, fn));
   };
-  
+	  
+  Problem.prototype.removeConstraint = function(constraint) {
+	var index = this.constraints.indexOf(constraint);
+	if(index > -1) {
+	    this.constraints.splice(index, 1).push(new Constraint(variables, fn));
+	} else {
+		throw "attempt to removed a non-existing element";
+	}
+  };
+		  
   Problem.prototype.setSolver = function(solver) {
     this.solver = solver;
   };
   
-  Problem.prototype.getSolution = function() {
-    return this.solver.getSolution(this);
+  Problem.prototype.getSolution = function(restrictedDomains) {
+    return this.solver.getSolution(this, restrictedDomains);
   };
 
-  Problem.prototype.getSolutions = function() {
-    return this.solver.getSolutions(this);
-  };
-	  
   Problem.prototype.getAssignmentFor = function(name) {
     return this.solver.getAssignmentFor(name);
   };
@@ -105,31 +103,27 @@ var util = {
     this.assignments = {};
   };
   
-  RecursiveBacktrackingSolver.prototype.getSolution = function(csp) {
+  RecursiveBacktrackingSolver.prototype.getSolution = function(csp, restrictedDomains) {
     var assignment = {};
-    if (this.solve(csp, assignment, csp.variables, csp.constraints, true)) {
-      return assignment;
-    } else {
-      return {};
-    }
+    var satisfiable = this.solve(csp, assignment, csp.variables, csp.constraints, true, restrictedDomains);
+    return satisfiable;
   };
 
   RecursiveBacktrackingSolver.prototype.getAssignmentFor = function(name) {
     return this.assignments[name];
   };
 
-  RecursiveBacktrackingSolver.prototype.solve = function(csp, assignments, variables, constraints, single) {
-	  var domainByName = this.prepareSolving(csp, assignments, variables, constraints, single);
+  RecursiveBacktrackingSolver.prototype.solve = function(csp, assignments, variables, constraints, single, restrictedDomains) {
+	  var domainByName = this.prepareSolving(csp, assignments, variables, constraints, single, restrictedDomains);
 	  
 	  var fulfilled = this.recursiveSolve(csp, assignments, variables, constraints, single, domainByName);
 	  
 	  return fulfilled;
   };
 
-  // TODO: consider predefined/restricted domains
-  RecursiveBacktrackingSolver.prototype.prepareSolving = function(csp, assignments, variables, constraints, single) {
-	  var domainByName = _.clone(variables);
-	  
+  RecursiveBacktrackingSolver.prototype.prepareSolving = function(csp, assignments, variables, constraints, single, restrictedDomains) {
+	  var domainByName = _.defaults(restrictedDomains, variables);
+
 	  return domainByName;
   };
 
