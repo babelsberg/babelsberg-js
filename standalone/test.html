@@ -35,6 +35,10 @@
 	<!-- // DeltaBlue -->
 	<script src="../deltablue/deltablue.js"></script>
 	<script src="../babelsberg/deltablue_ext.js"></script>
+	<!-- // CSP -->
+	<script src="../csp/underscore-min.js"></script>
+	<script src="../csp/csp.js"></script>
+	<script src="../babelsberg/csp_ext.js"></script>
 	<!-- // Babelsberg/js -->
 	<script src="../babelsberg/core_ext.js"></script>
 	<script src="../babelsberg/constraintinterpreter.js"></script>
@@ -61,6 +65,8 @@
 		p.runAll();
 		it = new users.timfelgentreff.babelsberg.tests.InteractionTest();
 		it.runAll();
+		cspt = new users.timfelgentreff.babelsberg.tests.CSPTest();
+		cspt.runAll();
 	</script>
 	
 	<script type="text/babelsbergscript">
