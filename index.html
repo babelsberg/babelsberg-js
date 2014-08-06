@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Babelsberg-js by timfel</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Babelsberg-js</h1>
+        <p>A LivelyKernel implementation of Babelsberg</p>
+
+        <p class="view"><a href="https://github.com/timfel/babelsberg-js">View the Project on GitHub <small>timfel/babelsberg-js</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/timfel/babelsberg-js/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/timfel/babelsberg-js/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/timfel/babelsberg-js">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a name="babelsbergjs" class="anchor" href="#babelsbergjs"><span class="octicon octicon-link"></span></a>Babelsberg/JS</h1>
+
+<p><a href="https://travis-ci.org/timfel/babelsberg-js"><img src="https://travis-ci.org/timfel/babelsberg-js.png?branch=master" alt="Build Status"></a></p>
+
+<p>A LivelyKernel implementation of Babelsberg licensed under <a href="https://github.com/timfel/babelsberg-js/blob/master/LICENSE">3-clause BSD</a></p>
+
+<p>See also <a href="https://github.com/timfel/babelsberg-r">Babelsberg/R</a></p>
+
+<p>It allows you to do stuff like this</p>
+
+<div class="highlight highlight-javascript"><pre><span class="nx">z3</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">ServerZ3</span><span class="p">()</span>
+<span class="nx">z3</span><span class="p">.</span><span class="nx">reset</span><span class="p">()</span>
+<span class="nx">a</span> <span class="o">=</span> <span class="nx">lively</span><span class="p">.</span><span class="nx">morphic</span><span class="p">.</span><span class="nx">Morph</span><span class="p">.</span><span class="nx">makeRectangle</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="nx">b</span> <span class="o">=</span> <span class="nx">lively</span><span class="p">.</span><span class="nx">morphic</span><span class="p">.</span><span class="nx">Morph</span><span class="p">.</span><span class="nx">makeCircle</span><span class="p">(</span><span class="nx">pt</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mi">10</span><span class="p">)</span>
+<span class="nx">always</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">solver</span><span class="o">:</span> <span class="nx">z3</span>
+    <span class="nx">a</span><span class="p">.</span><span class="nx">getPosition</span><span class="p">().</span><span class="nx">dist</span><span class="p">(</span><span class="nx">b</span><span class="p">.</span><span class="nx">getPosition</span><span class="p">())</span> <span class="o">==</span> <span class="mi">200</span>
+<span class="p">}</span>
+<span class="nx">a</span><span class="p">.</span><span class="nx">getPosition</span><span class="p">()</span> <span class="c1">// lively.pt(0.5,-200.0)</span>
+<span class="nx">b</span><span class="p">.</span><span class="nx">getPosition</span><span class="p">()</span> <span class="c1">// lively.pt(0.0,0.0)</span>
+
+<span class="nx">a</span><span class="p">.</span><span class="nx">setPosition</span><span class="p">(</span><span class="nx">pt</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+<span class="nx">a</span><span class="p">.</span><span class="nx">getPosition</span><span class="p">()</span> <span class="c1">// lively.pt(100.0,100.0)</span>
+<span class="nx">b</span><span class="p">.</span><span class="nx">getPosition</span><span class="p">()</span> <span class="c1">// lively.pt(99.9,300.0)</span>
+</pre></div>
+
+<p>Basically, you can write constraints using the <code>always</code> primitive that you always want to be true,
+using existing object-oriented abstractions (I am using the methods <code>getPosition</code> and
+<code>dist</code> in the example above), and the system will maintain them. The extent to which the
+system is able to keep constraints satisfied depends on the solver that is used. This
+implementation provides Z3, DeltaBlue, and Cassowary.</p>
+
+<p>We have used this to implement electrical simulations, a simulation of the Lively Engine,
+and some graphical layouting examples. The implementation is available to try at <a href="http://lively-web.org/users/robertkrahn/2013-10-16_first-constrained-steps.html">lively-web.org</a>.
+At any given time it may be broken, though, because the code is changing fairly often.</p>
+
+<p>A page with more variety of examples is at <a href="http://lively-kernel.org/babelsberg/users/timfelgentreff/babelsberg-js.html">lively-kernel.org</a>. I also presented this work at the <a href="http://craft-conf.com/2014/">CRAFT</a> conference. A video of my talk is available <a href="https://onedrive.live.com/redir?resid=FCA2914EE7038C6F!17380&amp;authkey=!AEJgnZ0och8WeE4&amp;ithint=video%2c.mp4">here</a>.</p>
+
+<p>Papers about this implementation are forthcoming. A freely accessible technical report was published <a href="http://opus.kobv.de/ubp/volltexte/2014/6729/pdf/tbhpi81.pdf">here</a>.</p>
+
+<p>Created under a grant from Hasso Plattner Institute <img src="http://upload.wikimedia.org/wikipedia/de/c/c9/Hpi_logo.png" alt="HPI Logo" width="50" height="50"></p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/timfel">timfel</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-25791824-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
