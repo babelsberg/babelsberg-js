@@ -69,7 +69,9 @@ var util = {
   };
   
   Problem.prototype.addConstraint = function(variables, fn) {
-    this.constraints.push(new Constraint(variables, fn));
+	var constraint = new Constraint(variables, fn);
+    this.constraints.push(constraint);
+    return constraint;
   };
 	  
   Problem.prototype.removeConstraint = function(constraint) {
