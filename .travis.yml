@@ -1,5 +1,10 @@
 language: node_js
 
+env:
+  matrix:
+    - TYPE=Lively
+    - TYPE=Standalone
+
 node_js:
   - "0.10"
 
@@ -9,14 +14,6 @@ before_install:
 
 before_script:
   - "nvm use v0.10"
-  - "git clone git://github.com/LivelyKernel/LivelyKernel.git"
-  - "mkdir LivelyKernel/users"
-  - "ln -s $PWD LivelyKernel/users/timfelgentreff"
-  - "cd LivelyKernel"
-  - "Xvfb :1 -screen 0 800x600x24 &"
-  - "npm install"
-  - "node bin/lk-server --no-partsbin-check &"
-  - "sleep 15"
-  - "sed -i 's/var testList = baseTests;/var testList = [\"users.timfelgentreff.babelsberg.tests\"]; browserTests = [];/' run_tests.js"
+  - "chmod +x $TRAVIS_BUILD_DIR/travis.sh"
 
-script: "DISPLAY=:1 npm test"
+script: "$TRAVIS_BUILD_DIR/travis.sh"
