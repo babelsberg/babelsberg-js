@@ -877,11 +877,54 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
 			pants: "foo",
 			hat: "foo"
 		};
-		
-	    solver.newVariable(man, "shoes", ["brown", "black"]);
-	    solver.newVariable(man, "shirt", ["white", "blue", "brown"]);
-	    solver.newVariable(man, "pants", ["blue", "black", "brown", "white"]);
-	    solver.newVariable(man, "hat", ["brown"]);
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shoes.is in ["brown", "black"];;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shirt.is in ["brown", "blue", "white"];;
+        });
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.pants.is in ["brown", "blue", "black", "white"];;
+        });
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.hat.is in ["brown"];;
+        });
 	    
         bbb.always({
             ctx: {
@@ -941,7 +984,17 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
 	    var solver = bbb.defaultSolver = new csp.Solver();
 	    var pt = {x: 5, y: 2};
 	    
-	    solver.newVariable(pt, "x", [1, 2, 3]);
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x.is in [1, 2, 3];;
+        });
 
 	    this.assert([1, 2, 3].indexOf(pt.x) > -1, "x is not in its domain [1, 2, 3], but " + pt.x);
     },
@@ -949,7 +1002,17 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
 	    var solver = bbb.defaultSolver = new csp.Solver();
 	    var pt = {x: 5, y: 2};
 	    
-	    solver.newVariable(pt, "x", [4, 5, 6]);
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x.is in [4, 5, 6];;
+        });
 
 	    this.assert(pt.x === 5, "x does not stay at 5, but probably raims in its domain [4, 5, 6]; x: " + pt.x);
     },
@@ -958,7 +1021,18 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
 	    	pt = {x: 5, y: 2},
 	    	errorThrown = false;
 	    
-	    try {
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x.is in [];;
+        });
+        try {
 		    solver.newVariable(pt, "x", []);
 	    } catch (e) {
 	    	errorThrown = true;
@@ -971,8 +1045,29 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
 	    	pt = {x: 2, y: 6},
 	    	errorThrown = false;
 	    
-	    solver.newVariable(pt, "x", [1, 2, 3, 4, 5, 6, 7, 8, 9]);
-	    solver.newVariable(pt, "y", [4, 5, 6, 7, 8, 9, 10, 11, 12]);
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x.is in [1, 2, 3, 4, 5, 6, 7, 8, 9];;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.y.is in [4, 5, 6, 7, 8, 9, 10, 11, 12];;
+        });
 	    
         bbb.always({
             ctx: {
@@ -999,9 +1094,30 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
 	    	pt = {x: 2, y: 8},
 	    	errorThrown = false;
 	    
-	    solver.newVariable(pt, "x", [1, 2, 3, 4, 5, 6, 7, 8, 9]);
-	    solver.newVariable(pt, "y", [4, 5, 6, 7, 8, 9, 10, 11, 12]);
-	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x.is in [1, 2, 3, 4, 5, 6, 7, 8, 9];;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.y.is in [4, 5, 6, 7, 8, 9, 10, 11, 12];;
+        });
+
         bbb.always({
             ctx: {
                 bbb: bbb,
@@ -1025,7 +1141,17 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
 	    	pt = {x: 5, y: 2},
 	    	errorThrown = false;
 	    
-	    solver.newVariable(pt, "x", [1, 2, 3]);
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x.is in [1, 2, 3];;
+        });
 	    
 	    try {
 	        pt.x = 0;
@@ -1041,8 +1167,29 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
 	    	pt = {x: 2, y: 8},
 	    	errorThrown = false;
 	    
-	    solver.newVariable(pt, "x", [1, 2, 3, 4, 5, 6, 7, 8, 9]);
-	    solver.newVariable(pt, "y", [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x.is in [1, 2, 3, 4, 5, 6, 7, 8, 9];;
+        });
+        
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.y.is in [1, 2, 3, 4, 5, 6, 7, 8, 9];;
+        });
 	    
 	    bbb.always({
 	        ctx: {
@@ -1088,7 +1235,17 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
 	    	pt = {x: 5, y: 2},
 	    	errorThrown = false;
 	    
-	    solver.newVariable(pt, "x", [1, 2, 3]);
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x.is in [1, 2, 3];;
+        });
 	    
 	    try {
 	        bbb.always({
