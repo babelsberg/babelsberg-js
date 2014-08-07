@@ -18,5 +18,6 @@ before_script:
   - "node bin/lk-server --no-partsbin-check &"
   - "sleep 15"
   - "sed -i 's/var testList = baseTests;/var testList = [\"users.timfelgentreff.babelsberg.tests\"]; browserTests = [];/' run_tests.js"
+  - "chmod +x $TRAVIS_BUILD_DIR/travis.sh"
 
-script: "DISPLAY=:1 npm test"
+script: "$TRAVIS_BUILD_DIR/travis.sh"
