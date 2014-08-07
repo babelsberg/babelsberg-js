@@ -1135,7 +1135,7 @@ Object.extend(ConstrainedVariable, {
 
 Object.subclass("PrimitiveCObjectRegistry", {});
 Object.extend(PrimitiveCObjectRegistry, {
-	registry: new WeakMap(),
+	registry: {},
 
 	// stores last seen cvars for objects weakly
 	set: function (obj, cobj) {
