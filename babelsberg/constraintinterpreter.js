@@ -404,7 +404,6 @@ Object.subclass('ConstrainedVariable', {
         this.parentConstrainedVariable = optParentCVar;
         this._constraints = [];
         this._externalVariables = {};
-
         var value = obj[ivarname],
             solver = this.currentSolver;
 
@@ -986,6 +985,13 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
                 if (rightVal.isConstraintObject && rightVal.plus && Object.isNumber(leftVal)) {
                     return rightVal.plus(-leftVal);
                 } // special case for reversing minus - allowed to fall through to default
+            case 'in':
+                if (node.name != '-') {
+                	if (leftVal.isConstraintObject && leftVal.cnIn) {
+                        return leftVal.cnIn(rightVal);
+                    } // special case for reversing minus - allowed to fall through to default
+                	// TODO: rightVal->contains if !leftVal.isConstraintObject
+                }
             default:
                 var method = this.binaryExpressionMap[node.name];
                 if (method) {
@@ -1008,7 +1014,6 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
             // XXX: See visitCond
             return $super(node);
         }
-
         var obj = this.visit(node.obj),
             name = this.visit(node.slotName),
             cobj = (obj ? obj[ConstrainedVariable.ThisAttrName] : undefined),
