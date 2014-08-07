@@ -63,6 +63,11 @@ var util = {
     this.variables[name] = new Variable(name,domain);
   };
 
+  Problem.prototype.removeVariable = function(vari) {
+	  var vars = this.variables;
+	  delete vars[vari];
+  };
+  
   Problem.prototype.addConstraint = function(variables, fn) {
     this.constraints.push(new Constraint(variables, fn));
   };
@@ -70,7 +75,7 @@ var util = {
   Problem.prototype.removeConstraint = function(constraint) {
 	var index = this.constraints.indexOf(constraint);
 	if(index > -1) {
-	    this.constraints.splice(index, 1).push(new Constraint(variables, fn));
+	    this.constraints.splice(index, 1);
 	} else {
 		throw "attempt to removed a non-existing element";
 	}
