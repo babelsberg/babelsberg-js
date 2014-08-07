@@ -1,4 +1,4 @@
-module('users.timfelgentreff.babelsberg.src_transform_test').requires('lively.TestFramework').toRun(function() {
+module('users.timfelgentreff.babelsberg.src_transform_test').requires('lively.TestFramework', 'users.timfelgentreff.standalone.Compressor').toRun(function() {
 
 TestCase.subclass('users.timfelgentreff.babelsberg.src_transform_test.TransformTest', {
     testObjectEditorTransform1: function () {
@@ -59,6 +59,11 @@ TestCase.subclass('users.timfelgentreff.babelsberg.src_transform_test.TransformT
         this.assert(result === "this.addScript(function(){foo;},\"function(){foo}\");", result);
     }
 });
-
+TestCase.subclass('users.timfelgentreff.babelsberg.src_transform_test.MinifyTest', {
+    testBuildMinifiedJs: function () {
+        module("users.timfelgentreff.standalone.Compressor").load(true);
+        users.timfelgentreff.standalone.Compressor.doAction();
+    }
+});
 
 }) // end of module
