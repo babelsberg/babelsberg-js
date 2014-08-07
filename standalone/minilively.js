@@ -16,6 +16,7 @@ if (!window.module) {
     JSLoader = {
     	loadJs: function() {}
     };
+    window.URL = {};
 
     window.Properties = {
 	    all: function(object, predicate) {
