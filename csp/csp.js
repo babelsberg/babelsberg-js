@@ -137,12 +137,12 @@ var util = {
 				.value();
 			var remainingDomain = _.omit(domainByName, current);
 			var currentDomain = domainByName[current].domain;
-			var fulfillingValue = _.find(currentDomain, function(val) {
+			var fulfilled = _.some(currentDomain, function(val) {
 				this.assignments[current] = val;
 				var fulfilled = this.recursiveSolve(constraints, remainingDomain);
 				return fulfilled;
 			}, this);
-			return typeof fulfillingValue !== "undefined";
+			return fulfilled;
 		};
 	};
 
