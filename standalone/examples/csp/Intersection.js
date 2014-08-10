@@ -62,8 +62,14 @@ var Intersection = {
 		return Intersection.intersectGeometry(state1.geometry, state2.geometry);
 	}
 };
-// bounding boxes
-var getAABB = function(path) {
+
+//bounding boxes
+var AABB = function(min, max) {
+	this.min = min;
+	this.max = max;
+};
+
+AABB.fromPath = function(path) {
 	var min = [10000, 10000],
 		max = [-10000, -10000];
 	
@@ -74,21 +80,16 @@ var getAABB = function(path) {
 		if(max[1] < point[1]) max[1] = point[1];
 	});
 	
-	return {
-		min: min,
-		max: max
-	};
+	return new AABB(min, max);
 };
 
-var combineAABB = function(aabb1, aabb2) {
-	return {
-		min: [
-		    aabb1.min[0] < aabb2.min[0] ? aabb1.min[0] : aabb2.min[0],
-		    aabb1.min[1] < aabb2.min[1] ? aabb1.min[1] : aabb2.min[1]
-		    ],
-		max: [
-		    aabb1.max[0] > aabb2.max[0] ? aabb1.max[0] : aabb2.max[0],
-		    aabb1.max[1] > aabb2.max[1] ? aabb1.max[1] : aabb2.max[1]
-		    ]
-	};
+AABB.prototype.combine = function(aabb2) {
+	return new AABB([
+	    this.min[0] < aabb2.min[0] ? this.min[0] : aabb2.min[0],
+	    this.min[1] < aabb2.min[1] ? this.min[1] : aabb2.min[1]
+	    ],
+	    [
+	    this.max[0] > aabb2.max[0] ? this.max[0] : aabb2.max[0],
+	    this.max[1] > aabb2.max[1] ? this.max[1] : aabb2.max[1]
+	    ]);
 };
