@@ -1,74 +1,112 @@
 contentLoaded(window, function() {
-   
-(function() {
+	var colors = ["red", "green", "blue", "yellow"],
+		stateNames = ["AUT", "BEL", "CZE", "FRA", "DEU", "LUX", "NLD", "POL", "CHE"];
 	
-(function() {
-	var colors = ["blue", "black", "brown", "white"];
-	var man = {
-		shoes: "foo",
-		shirt: "foo",
-		pants: "foo",
-		hat: "foo"
+	// drawing
+	var applyPathToContext = function(path, ctx) {
+		var last = _.last(path);
+		ctx.moveTo(last[0], last[1]);
+		_.each(path, function(point) {
+			ctx.lineTo(point[0], point[1]);
+		});
 	};
-    var solver = bbb.defaultSolver = new csp.Solver();
 	
-    solver.newVariable(man, "shoes", ["brown", "black"]);
-    solver.newVariable(man, "shirt", ["white", "blue", "brown"]);
-    solver.newVariable(man, "pants", ["blue", "black", "brown", "white"]);
-    solver.newVariable(man, "hat", ["brown"]);
-    
-    always: { man.shoes === man.hat }
-    always: { man.shoes !== man.pants }
-    always: { man.shoes !== man.shirt }
-    always: { man.shirt !== man.pants }
-    console.log(man.shoes, man.pants, man.shirt, man.hat);
-})();
+	var drawMultipolygon = function(polygon, ctx) {
+		ctx.beginPath();
+		_.each(polygon.coordinates, function(coords) {
+			applyPathToContext(coords, ctx);
+		});
+		ctx.closePath();
+		ctx.fill();
+		ctx.stroke();
+	};
+	
+	var loaded = function(error /*, states ... */) {
+	    var solver = bbb.defaultSolver = new csp.Solver();
+	    
+	    // prepare data
+		var states = _.chain(arguments)
+			.filter(function(state, index) {
+				return index !== 0;
+			})
+			.pluck("features")
+			.pluck(0)
+			.map(function(state) {
+				var geometry = state.geometry;
+				if(geometry.type === "Polygon")
+					geometry.coordinates = [geometry.coordinates];
+				geometry.coordinates = _.pluck(geometry.coordinates, 0);
+				return {
+					geometry: geometry,
+					name: state.properties.name,
+					color: colors[0]
+				};
+			})
+			.map(function(state) {
+				state.geometry.aabbs = _.map(state.geometry.coordinates, AABB.fromPath);
+				return state;
+			})
+			.value();
 
-return;
+		// define domains for colors
+		_.each(states, function(state, index) {
+			always: { state.color.is in colors }
+		});
 
-    // Babelsberg sample
-    var Vector = function(x, y) {
-    	this.x = x;
-    	this.y = y;
-    };
-    var Rect = function(ox, oy, ex, ey) {
-    	this.origin = new Vector(ox, oy);
-    	this.extent = new Vector(ex, ey);
-    };
-    Rect.prototype.getArea = function() {
-    	var e = this.extent;
-    	return e.x * e.y;
-    };
-    Rect.prototype.toString = function() {
-    	return "Rect(" +
-    	this.origin.x + ", "+ 
-    	this.origin.y + ", "+ 
-    	this.extent.x + ", "+ 
-    	this.extent.y + ")";
-    };
+		// ... and constrain neighbored countries
+		_.each(states, function(state1, index1) {
+			_.each(states, function(state2, index2) {
+				if(index1 < index2 && Intersection.intersectStates(state1, state2)) {
+					console.log(state1.name + " - " + state2.name);
+					always: { state1.color != state2.color }
+				}
+			}, this);
+		}, this);
 
-    var foo = {
-    	r1: new Rect(1,2,3,4)
-    };
-    
-    var solver = new csp.Solver();
-    
-    var possibleRects = [];
-    for(var ox = 0; ox < 5; ox++) {
-        for(var oy = 0; oy < 5; oy++) {
-            for(var ex = 0; ex < 5; ex++) {
-                for(var ey = 0; ey < 5; ey++) {
-                    possibleRects.push(new Rect(ox, oy, ex, ey));
-                }	
-            }	
-        }
-    }
-    var h1 = solver.addVariable(foo, "r1", possibleRects);
-    
-    always: { solver: solver
-    	args: [h1]
-    	foo.r1.origin.x <= 3
-    }
-})();
+		var worldAABB = _.reduce(states, function(mem, state) {
+			var stateAABB = _.reduce(state.geometry.aabbs, function(mem, aabb) {
+				return mem.combine(aabb);
+			});
+			return mem.combine(stateAABB);
+		}, new AABB([], []));
+		
+		// prepare canvas
+		var worldWidth = worldAABB.max[0] - worldAABB.min[0],
+			worldHeight = worldAABB.max[1] - worldAABB.min[1],
+			canvasWidth = 800,
+			canvasHeight = worldHeight / worldWidth * canvasWidth,
+			c = document.getElementById("canvas"),
+			ctx = c.getContext("2d");
+		
+		c.width = canvasWidth;
+		c.height = canvasHeight;
+		
+		ctx.strokeStyle = "black";
+		ctx.lineWidth = 1/8;
+		
+		ctx.save();
+		
+		ctx.translate(canvasWidth / 2, canvasHeight / 2);
+		ctx.scale(canvasWidth, canvasHeight);
+		ctx.scale(1, -1);
+		ctx.scale(1 / worldWidth, 1 / worldHeight);
+		ctx.translate(
+			-(worldAABB.max[0] + worldAABB.min[0])/2,
+			-(worldAABB.max[1] + worldAABB.min[1])/2
+		);
+		
+		// draw polygons
+		_.each(states, function(state) {
+			ctx.fillStyle = state.color;
+			drawMultipolygon(state.geometry, ctx);
+		});
+		
+		ctx.restore();
+	};
 
+	var q = queue();
+	_.each(stateNames, function(state) {
+		q.defer(d3.json, "countries/" + state + ".geo.json");
+	});
+	q.await(loaded);
 });
