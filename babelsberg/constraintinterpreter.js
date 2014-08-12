@@ -1,4 +1,4 @@
-module('users.timfelgentreff.babelsberg.constraintinterpreter').requires('users.timfelgentreff.jsinterpreter.Interpreter', 'cop.Layers', 'users.timfelgentreff.babelsberg.cassowary_ext', 'users.timfelgentreff.babelsberg.deltablue_ext', 'users.timfelgentreff.babelsberg.core_ext', 'users.timfelgentreff.babelsberg.src_transform', 'users.timfelgentreff.babelsberg.babelsberg-lively').toRun(function() {
+module('users.timfelgentreff.babelsberg.constraintinterpreter').requires('users.timfelgentreff.jsinterpreter.Interpreter', 'cop.Layers', 'users.timfelgentreff.babelsberg.cassowary_ext', 'users.timfelgentreff.babelsberg.deltablue_ext', 'users.timfelgentreff.babelsberg.csp_ext', 'users.timfelgentreff.babelsberg.core_ext', 'users.timfelgentreff.babelsberg.src_transform', 'users.timfelgentreff.babelsberg.babelsberg-lively').toRun(function() {
 
 Object.subclass("Babelsberg", {
 
@@ -404,7 +404,6 @@ Object.subclass('ConstrainedVariable', {
         this.parentConstrainedVariable = optParentCVar;
         this._constraints = [];
         this._externalVariables = {};
-
         var value = obj[ivarname],
             solver = this.currentSolver;
 
@@ -442,8 +441,8 @@ Object.subclass('ConstrainedVariable', {
         }.bind(this));
         var newSetter = obj.__lookupSetter__(this.ivarname);
 
-        newSetter.isConstraintAccessor = true;
-        newGetter.isConstraintAccessor = true;
+        if (newSetter) newSetter.isConstraintAccessor = true;
+        if (newGetter) newGetter.isConstraintAccessor = true;
     },
     ensureExternalVariableFor: function(solver) {
         var eVar = this.externalVariables(solver),
@@ -986,6 +985,13 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
                 if (rightVal.isConstraintObject && rightVal.plus && Object.isNumber(leftVal)) {
                     return rightVal.plus(-leftVal);
                 } // special case for reversing minus - allowed to fall through to default
+            case 'in':
+                if (node.name != '-') {
+                	if (leftVal.isConstraintObject && leftVal.cnIn) {
+                        return leftVal.cnIn(rightVal);
+                    } // special case for reversing minus - allowed to fall through to default
+                	// TODO: rightVal->contains if !leftVal.isConstraintObject
+                }
             default:
                 var method = this.binaryExpressionMap[node.name];
                 if (method) {
@@ -1008,12 +1014,11 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
             // XXX: See visitCond
             return $super(node);
         }
-
         var obj = this.visit(node.obj),
             name = this.visit(node.slotName),
             cobj = (obj ? obj[ConstrainedVariable.ThisAttrName] : undefined),
             cvar;
-        if (obj === Global || (obj instanceof lively.Module) || (typeof(obj) == "string")) {
+        if (obj === Global || (obj instanceof lively.Module) /*|| (typeof(obj) == "string")*/) {
             return obj[name];
         }
         if (obj && obj.isConstraintObject) {
@@ -1044,7 +1049,13 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
                 Constraint.current.haltIfDebugging();
             }
             if (retval) {
-                retval[ConstrainedVariable.ThisAttrName] = cvar;
+            	switch (typeof(retval)) {
+            	case "object": retval[ConstrainedVariable.ThisAttrName] = cvar; break;
+            	case "number": new Number(retval)[ConstrainedVariable.ThisAttrName] = cvar; break;
+            	case "string": new String(retval)[ConstrainedVariable.ThisAttrName] = cvar; break;
+            	default: throw "Error - we cannot store the constrained var attribute on " + retval + " of type " + typeof(retval);
+            	}
+                
             }
             return retval;
         }
@@ -1120,6 +1131,40 @@ Object.extend(ConstrainedVariable, {
     },
 
     isSuggestingValue: false,
-})
+});
+
+Object.subclass("PrimitiveCObjectRegistry", {});
+Object.extend(PrimitiveCObjectRegistry, {
+	registry: {},
+
+	// stores last seen cvars for objects weakly
+	set: function (obj, cobj) {
+		PrimitiveCObjectRegistry.registry[obj] = cobj;
+	},
+	get: function (obj) {
+		return PrimitiveCObjectRegistry.registry[obj];
+	}
+});
+
+Number.prototype.__defineGetter__(ConstrainedVariable.ThisAttrName, function () {
+	return PrimitiveCObjectRegistry.get(this + 0 /* coerce back into prim */);
+});
+Number.prototype.__defineGetter__(ConstrainedVariable.AttrName, function () {
+	return {};
+});
+Number.prototype.__defineSetter__(ConstrainedVariable.ThisAttrName, function (v) {
+	PrimitiveCObjectRegistry.set(this + 0 /* coerce back into prim */, v);
+});
+String.prototype.__defineGetter__(ConstrainedVariable.ThisAttrName, function () {
+	return PrimitiveCObjectRegistry.get(this + "" /* coerce back into prim */);
+});
+String.prototype.__defineGetter__(ConstrainedVariable.AttrName, function () {
+	return {};
+});
+String.prototype.__defineSetter__(ConstrainedVariable.ThisAttrName, function (v) {
+	PrimitiveCObjectRegistry.set(this + "" /* coerce back into prim */, v);
+});
+
 
 })
+ 

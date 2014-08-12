@@ -868,5 +868,403 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
 
 });
 
+TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
+    testBacktalkPaperExample: function () {
+	    var solver = bbb.defaultSolver = new csp.Solver();
+    	var man = {
+			shoes: "foo",
+			shirt: "foo",
+			pants: "foo",
+			hat: "foo"
+		};
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shoes.is in ["brown", "black"];;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shirt.is in ["brown", "blue", "white"];;
+        });
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.pants.is in ["brown", "blue", "black", "white"];;
+        });
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.hat.is in ["brown"];;
+        });
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shoes === man.hat;;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shoes !== man.pants;;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shoes !== man.shirt;;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shirt !== man.pants;;
+        });
+
+        this.assert(man.hat === "brown", "hat's domain is restricted to 'brown' only");
+        this.assert(man.shoes === "brown", "shoes have to be 'brown'");
+        this.assert(man.shirt === "blue" || man.shirt === "white", "shirt has to be 'blue' or 'white'");
+        this.assert(man.shirt !== man.pants, "shirt and pants must not have the same color");
+        this.assert(man.pants === "black" || man.pants === "blue" || man.pants === "white", "pants should be 'black', 'blue' or 'white'");
+    },
+    testForceToDomain: function () {
+	    var solver = bbb.defaultSolver = new csp.Solver();
+	    var pt = {x: 5, y: 2};
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x.is in [1, 2, 3];;
+        });
+
+	    this.assert([1, 2, 3].indexOf(pt.x) > -1, "x is not in its domain [1, 2, 3], but " + pt.x);
+    },
+    testRemainIfInDomain: function () {
+	    var solver = bbb.defaultSolver = new csp.Solver();
+	    var pt = {x: 5, y: 2};
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x.is in [4, 5, 6];;
+        });
+
+	    this.assert(pt.x === 5, "x does not stay at 5, but probably raims in its domain [4, 5, 6]; x: " + pt.x);
+    },
+    testErrorOnEmptyDomain: function () {
+	    var solver = bbb.defaultSolver = new csp.Solver(),
+	    	pt = {x: 5, y: 2},
+	    	errorThrown = false;
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x.is in [];;
+        });
+        try {
+		    solver.newVariable(pt, "x", []);
+	    } catch (e) {
+	    	errorThrown = true;
+	    }
+
+	    this.assert(errorThrown, "no error was thrown on empty domain");
+    },
+    testAssignment: function () {
+	    var solver = bbb.defaultSolver = new csp.Solver(),
+	    	pt = {x: 2, y: 6},
+	    	errorThrown = false;
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x.is in [1, 2, 3, 4, 5, 6, 7, 8, 9];;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.y.is in [4, 5, 6, 7, 8, 9, 10, 11, 12];;
+        });
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x + 4 === pt.y;;
+        });
+	
+        pt.x = 8;
+        this.assert(pt.x === 8, "assignment 'x = 8' was not successful; x: " + pt.x);
+	    this.assert(pt.y === 12, "constraint 'x + 4 == y' not satisfied; y: " + pt.y);
+	    
+	    pt.y = 7;
+	    this.assert(pt.y === 7, "assignment 'y = 7' was not successful; y: " + pt.y);
+	    this.assert(pt.x === 3, "constraint 'x + 4 == y' not satisfied; x: " + pt.x);
+    },
+    testAssignment2: function () {
+	    var solver = bbb.defaultSolver = new csp.Solver(),
+	    	pt = {x: 2, y: 8},
+	    	errorThrown = false;
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x.is in [1, 2, 3, 4, 5, 6, 7, 8, 9];;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.y.is in [4, 5, 6, 7, 8, 9, 10, 11, 12];;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x + pt.y >= 10;;
+        });
+	
+        this.assert(pt.x + pt.y >= 10, "constraint 'pt.x + pt.y >= 10' does not hold for x: "+ pt.x+", y: " + pt.y);
+
+	    pt.y = 4;
+        this.assert(pt.y === 4, "assignment 'y = 4' was not successful; y: " + pt.y);
+        this.assert(pt.x + pt.y >= 10, "constraint 'pt.x + pt.y >= 10' does not hold for x: "+ pt.x+", y: " + pt.y);
+    },
+    testFailingAssignmentOnDomain: function () {
+	    var solver = bbb.defaultSolver = new csp.Solver(),
+	    	pt = {x: 5, y: 2},
+	    	errorThrown = false;
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x.is in [1, 2, 3];;
+        });
+	    
+	    try {
+	        pt.x = 0;
+	    } catch (e) {
+	    	errorThrown = true;
+	    }
+	
+	    this.assert(errorThrown, "no error was thrown on new value x = 0 with domain [1, 2, 3]; x: " + pt.x);
+    },
+    testFailingAssignment: function () {
+    	// try x = 0 with constraint x > 4
+	    var solver = bbb.defaultSolver = new csp.Solver(),
+	    	pt = {x: 2, y: 8},
+	    	errorThrown = false;
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x.is in [1, 2, 3, 4, 5, 6, 7, 8, 9];;
+        });
+        
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.y.is in [1, 2, 3, 4, 5, 6, 7, 8, 9];;
+        });
+	    
+	    bbb.always({
+	        ctx: {
+	            bbb: bbb,
+	            csp: csp,
+	            solver: solver,
+	            pt: pt,
+	            _$_self: this.doitContext || this
+	        }
+	    }, function() {
+	        return pt.x > 4;;
+	    });
+	
+	    bbb.always({
+	        ctx: {
+	            bbb: bbb,
+	            csp: csp,
+	            solver: solver,
+	            pt: pt,
+	            _$_self: this.doitContext || this
+	        }
+	    }, function() {
+	        return pt.x + pt.y === 10;;
+	    });
+
+	    this.assert(pt.x > 4, "constraint 'pt.x  > 4' does not hold for x: "+ pt.x);
+	    this.assert(pt.x + pt.y === 10, "constraint 'pt.x + pt.y === 10' does not hold for x: "+ pt.x + ", y: " + pt.y);
+	
+	    var oldValueX = pt.x;
+	    var oldValueY = pt.y;
+	    
+	    try {
+	        pt.y = 7;
+	    } catch (e) {
+	    	errorThrown = true;
+	    }
+        this.assert(errorThrown, "no error was thrown on new value y = 7 with constraints 'pt.x + pt.y === 10' and 'pt.x  > 4'; x: " + pt.x + ", y: " + pt.y);
+	    this.assert(pt.y === oldValueY, "old value of y not restored after failed assignment; currentY: " + pt.y + ", oldY: " + oldValueY);
+	    this.assert(pt.x === oldValueX, "old value of x not restored after failed assignment; currentX: " + pt.x + ", oldX: " + oldValueX);
+    },
+    testUnsatisfiableConstraint: function () {
+	    var solver = bbb.defaultSolver = new csp.Solver(),
+	    	pt = {x: 5, y: 2},
+	    	errorThrown = false;
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x.is in [1, 2, 3];;
+        });
+	    
+	    try {
+	        bbb.always({
+	            ctx: {
+	                bbb: bbb,
+	                csp: csp,
+	                solver: solver,
+	                pt: pt,
+	                _$_self: this.doitContext || this
+	            }
+	        }, function() {
+	            return pt.x >= 5;;
+	        });
+	    } catch (e) {
+	    	errorThrown = true;
+	    }
+	
+	    this.assert(errorThrown, "no error was thrown on unsatisfiable constraint");
+    }
+});
 
 }) // end of module

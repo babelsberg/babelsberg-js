@@ -63,13 +63,16 @@ module('users.timfelgentreff.standalone.Compressor').requires().toRun(function()
                 "deltablue/deltablue",
                 "babelsberg/deltablue_ext",
                 
-                "babelsberg/core_ext",
+                "csp/underscore-min",
+                "csp/csp",
+                "babelsberg/csp_ext",
+
+				"babelsberg/core_ext",
                 "babelsberg/constraintinterpreter",
                 
-                // "babelsberg/uglify",
-                // "babelsberg/src_transform",
-                
-                // "standalone/babelsbergscript"
+                "babelsberg/uglify",
+                "babelsberg/src_transform",
+                "standalone/babelsbergscript"
             ]
         },
         
