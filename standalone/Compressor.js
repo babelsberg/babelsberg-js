@@ -70,7 +70,7 @@ module('users.timfelgentreff.standalone.Compressor').requires().toRun(function()
 				"babelsberg/core_ext",
                 "babelsberg/constraintinterpreter",
 
-				"test_harness",
+				"standalone/test_harness",
                 
                 "babelsberg/uglify",
                 "babelsberg/src_transform",
