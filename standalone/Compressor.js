@@ -66,9 +66,11 @@ module('users.timfelgentreff.standalone.Compressor').requires().toRun(function()
                 "csp/underscore-min",
                 "csp/csp",
                 "babelsberg/csp_ext",
-
+				
 				"babelsberg/core_ext",
                 "babelsberg/constraintinterpreter",
+
+				"test_harness",
                 
                 "babelsberg/uglify",
                 "babelsberg/src_transform",
