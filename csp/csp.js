@@ -1,7 +1,5 @@
-/* 
- *
+/**
  * A simple constraint satisfaction problem solver in Javascript.
- *
  */
 module('users.timfelgentreff.csp.csp').requires().toRun(function() {
 
