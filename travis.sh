@@ -3,7 +3,15 @@ if [ "$TYPE" == "Lively" ]; then
     git clone git://github.com/LivelyKernel/LivelyKernel.git
     mkdir LivelyKernel/users
     ln -s $PWD LivelyKernel/users/timfelgentreff
-    cd LivelyKernel
+	
+    npm install jsdoc@"<=3.3.0"
+	./node_modules/.bin/jsdoc csp/csp.js -d docs
+	cd docs
+	ls -a
+	cd ..
+	curl -T docs/csp/csp.js http://www.lively-kernel.org/babelsberg/
+    
+	cd LivelyKernel
     Xvfb :1 -screen 0 800x600x24 &
     npm install
     node bin/lk-server --no-partsbin-check &
@@ -15,7 +23,7 @@ if [ "$TYPE" == "Lively" ]; then
     if [ $exitcode -eq 0 ]; then
 	curl -T $TRAVIS_BUILD_DIR/standalone/babelsberg.mini.js http://www.lively-kernel.org/babelsberg/
 	curl -T $TRAVIS_BUILD_DIR/standalone/babelsberg.mini.prototype.js http://www.lively-kernel.org/babelsberg/
-    fi
+	fi
     exit $exitcode
 else
     npm install zombie
