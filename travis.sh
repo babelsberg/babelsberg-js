@@ -7,9 +7,9 @@ if [ "$TYPE" == "Lively" ]; then
     npm install jsdoc@"<=3.3.0"
 	./node_modules/.bin/jsdoc csp/csp.js -d docs
 	cd docs
-	ls -a
+	ls -a -r
 	cd ..
-	curl -T docs/csp/csp.js http://www.lively-kernel.org/babelsberg/
+	curl -T docs/index.html http://www.lively-kernel.org/babelsberg/docs/
     
 	cd LivelyKernel
     Xvfb :1 -screen 0 800x600x24 &
