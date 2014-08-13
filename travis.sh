@@ -9,7 +9,8 @@ if [ "$TYPE" == "Lively" ]; then
 	cd docs
 	ls -a -r
 	cat index.html
-	curl -T index.html http://www.lively-kernel.org/babelsberg/
+	curl -T index.html http://www.lively-kernel.org/babelsberg/docs/
+	curl -T index.html http://www.lively-kernel.org/babelsberg-docs/
 	cd ..
     
 	cd LivelyKernel
