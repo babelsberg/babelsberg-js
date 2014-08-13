@@ -1,5 +1,9 @@
 module('users.timfelgentreff.babelsberg.constraintinterpreter').requires('users.timfelgentreff.jsinterpreter.Interpreter', 'cop.Layers', 'users.timfelgentreff.babelsberg.cassowary_ext', 'users.timfelgentreff.babelsberg.deltablue_ext', 'users.timfelgentreff.babelsberg.csp_ext', 'users.timfelgentreff.babelsberg.core_ext', 'users.timfelgentreff.babelsberg.src_transform', 'users.timfelgentreff.babelsberg.babelsberg-lively').toRun(function() {
 
+/**
+ * The interface to create, maintain and remove constraints.
+ * @class Babelsberg
+ */
 Object.subclass("Babelsberg", {
 
     initialize: function () {
@@ -10,6 +14,13 @@ Object.subclass("Babelsberg", {
         return true;
     },
     
+	/**
+	 * Removes the listener on the given property of the given object.
+	 * @function unconstrain
+	 * @public
+	 * @param {Object} obj The object whose property should be unconstrained.
+	 * @param {string} accessor The name of the property to be unconstrained.
+	 */
     unconstrain: function (obj, accessor) {
         if (!obj) return;
         var cvar = ConstrainedVariable.findConstraintVariableFor(obj, accessor);
@@ -43,6 +54,12 @@ Object.subclass("Babelsberg", {
         bbb.unconstrainAll(child);
     },
     
+	/**
+	 * Removes all listener on the given object.
+	 * @function unconstrainAll
+	 * @public
+	 * @param {Object} obj The object whose property should be unconstrained.
+	 */
     unconstrainAll: function (obj) {
         if(obj && obj instanceof Object) {
             Object.keys(obj).each(function(property, index) {
@@ -59,6 +76,10 @@ Object.subclass("Babelsberg", {
     	
     },
     
+	/**
+	 * @todo describe: used to tune some solver's performance
+	 * which solvers can do this?
+	 */
     edit: function (obj, accessors) {
         var extVars = {},
             cVars = {},
@@ -114,6 +135,10 @@ Object.subclass("Babelsberg", {
         solvers.invoke("beginEdit");
         return callback;
     },
+	
+	/**
+	 * @todo describe with example from tests
+	 */
     readonly: function(obj) {
         if (obj.isConstraintObject) {
             obj.setReadonly(true);
@@ -132,6 +157,18 @@ Object.subclass("Babelsberg", {
         return obj;
     },
 
+	/**
+	 * Creates a constraint equivalent to the given function.
+	 * @function always
+	 * @public
+	 * @param {Object} opts An options object to configure the constraint construction.
+	 * @param {Object} opts.ctx The local scope in which the given function is executed.
+	 * @param {Object} [opts.solver] The solver to maintain the constraint.
+	 * @param {boolean} [opts.allowTests=false] If true, allows to specify assertions rather than solvable constraints.
+	 * @param {boolean} [opts.allowUnsolvableOperations=false] If true, allows the use of operations that are not supported by the solver.
+	 * @param {boolean} [opts.debugging=false] If true, calls debugger at certain points during constraint construction.
+	 * @param {function} func The constraint to be fulfilled.
+	 */
     always: function(opts, func) {
         var solver = opts.solver || this.defaultSolver;
         func.allowTests = (opts.allowTests === true);
@@ -276,6 +313,11 @@ Object.subclass('Constraint', {
         return this.constraintobjects.last();
     },
 
+	/**
+	 * Enables this constraint. This is done automatically after constraint construction by most solvers.
+	 * @function enable
+	 * @public
+	 */
     enable: function() {
         if (!this._enabled) {
             this.constraintobjects.each(function (ea) {
@@ -310,6 +352,11 @@ Object.subclass('Constraint', {
         }
     },
 
+	/**
+	 * Disables this constraint. It is not further maintained until its {@link enable|re-enabling}.
+	 * @function disable
+	 * @public
+	 */
     disable: function() {
         if (this._enabled) {
             this.constraintobjects.each(function (ea) {
