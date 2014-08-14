@@ -8,7 +8,7 @@ if [ "$TYPE" == "Lively" ]; then
 	./node_modules/.bin/jsdoc jsdoc_test.js babelsberg/constraintinterpreter.js -d docs
 	cd docs
 	curl -T index.html http://www.lively-kernel.org/babelsberg/docs/
-	find -maxdepth 1 -type f -printf "%P\n" -name '*.html' -exec echo '{}' \;
+	find -maxdepth 1 -type f -name '*.html' | sed 's!.*/!!' -exec echo '{}' \;
 	cd ..
     
 	cd LivelyKernel
