@@ -5,13 +5,12 @@ if [ "$TYPE" == "Lively" ]; then
     ln -s $PWD LivelyKernel/users/timfelgentreff
 	
     npm install jsdoc@"<=3.3.0"
-	./node_modules/.bin/jsdoc babelsberg/constraintinterpreter.js -d docs
+	./node_modules/.bin/jsdoc babelsberg -r -d docs
 	cd docs
 	curl -T Babelsberg.html http://www.lively-kernel.org/babelsberg/docs/
 	for f in *.html
 	do
 	  echo $f
-	  curl -T $f http://www.lively-kernel.org/babelsberg/docs/
 	done
 	cd ..
     
