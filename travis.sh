@@ -5,13 +5,11 @@ if [ "$TYPE" == "Lively" ]; then
     ln -s $PWD LivelyKernel/users/timfelgentreff
 	
     npm install jsdoc@"<=3.3.0"
-	./node_modules/.bin/jsdoc babelsberg cassowary cop csp deltablue jsinterpreter layout ohshima ometa standalone z3 -r -d docs
+	./node_modules/.bin/jsdoc -c jsdoc_conf.json -r -d docs
 	cd docs
-	curl -T Babelsberg.html http://www.lively-kernel.org/babelsberg/docs/
 	for f in *.html
 	do
 	  echo $f
-	  curl -T $f http://www.lively-kernel.org/babelsberg/docs/
 	done
 	cd ..
     
