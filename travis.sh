@@ -9,7 +9,7 @@ if [ "$TYPE" == "Lively" ]; then
 	cd docs
 	for f in *.html
 	do
-	  echo $f
+	  curl -T $f http://www.lively-kernel.org/babelsberg/docs/
 	done
 	cd ..
     
