@@ -7,7 +7,7 @@ if [ "$TYPE" == "Lively" ]; then
     npm install jsdoc@"<=3.3.0"
 	./node_modules/.bin/jsdoc babelsberg/constraintinterpreter.js -d docs
 	cd docs
-	curl -T index.html http://www.lively-kernel.org/babelsberg/docs/
+	curl -T Babelsberg.html http://www.lively-kernel.org/babelsberg/docs/
 	for f in *.html
 	do
 	  echo $f
