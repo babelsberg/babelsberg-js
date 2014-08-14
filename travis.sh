@@ -13,6 +13,7 @@ if [ "$TYPE" == "Lively" ]; then
 	for i in $(find docs -type f -name '*.html'); do
 		echo $i
 	done
+	find docs -type f -name '*.html' -exec echo {};
     
 	cd LivelyKernel
     Xvfb :1 -screen 0 800x600x24 &

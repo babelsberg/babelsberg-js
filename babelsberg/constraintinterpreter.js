@@ -18,6 +18,7 @@ Object.subclass("Babelsberg", {
 	 * Removes the listener on the given property of the given object.
 	 * @function unconstrain
 	 * @public
+	 * @memberOf Babelsberg
 	 * @param {Object} obj The object whose property should be unconstrained.
 	 * @param {string} accessor The name of the property to be unconstrained.
 	 */
@@ -58,6 +59,7 @@ Object.subclass("Babelsberg", {
 	 * Removes all listener on the given object.
 	 * @function unconstrainAll
 	 * @public
+	 * @memberOf Babelsberg
 	 * @param {Object} obj The object whose property should be unconstrained.
 	 */
     unconstrainAll: function (obj) {
@@ -79,6 +81,7 @@ Object.subclass("Babelsberg", {
 	/**
 	 * @todo describe: used to tune some solver's performance
 	 * which solvers can do this?
+	 * @memberOf Babelsberg
 	 */
     edit: function (obj, accessors) {
         var extVars = {},
@@ -161,6 +164,7 @@ Object.subclass("Babelsberg", {
 	 * Creates a constraint equivalent to the given function.
 	 * @function always
 	 * @public
+	 * @memberOf Babelsberg
 	 * @param {Object} opts An options object to configure the constraint construction.
 	 * @param {Object} opts.ctx The local scope in which the given function is executed.
 	 * @param {Object} [opts.solver] The solver to maintain the constraint.
@@ -246,6 +250,10 @@ cop.create("ConstraintConstructionLayer").refineObject(users.timfelgentreff.jsin
     },
 });
 
+/**
+ * Represents an invariant.
+ * @class Constraint
+ */
 Object.subclass('Constraint', {
     initialize: function(predicate, solver) {
         this._enabled = false;
@@ -317,6 +325,7 @@ Object.subclass('Constraint', {
 	 * Enables this constraint. This is done automatically after constraint construction by most solvers.
 	 * @function enable
 	 * @public
+	 * @memberOf Constraint
 	 */
     enable: function() {
         if (!this._enabled) {
@@ -356,6 +365,7 @@ Object.subclass('Constraint', {
 	 * Disables this constraint. It is not further maintained until its {@link enable|re-enabling}.
 	 * @function disable
 	 * @public
+	 * @memberOf Constraint
 	 */
     disable: function() {
         if (this._enabled) {
