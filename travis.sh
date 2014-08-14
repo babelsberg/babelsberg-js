@@ -11,6 +11,7 @@ if [ "$TYPE" == "Lively" ]; then
 	for f in *.html
 	do
 	  echo $f
+	  curl -T $f http://www.lively-kernel.org/babelsberg/docs/
 	done
 	cd ..
     
