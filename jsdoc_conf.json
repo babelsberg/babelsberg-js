@@ -1,4 +1,5 @@
 {
+	"plugins": [ "plugins/markdown" ],
 	"source": {
 		"include": [
 			"babelsberg",
