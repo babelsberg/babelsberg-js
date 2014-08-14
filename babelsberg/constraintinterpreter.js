@@ -1,6 +1,3 @@
-/**
- * @module constraintinterpreter
- */
 module('users.timfelgentreff.babelsberg.constraintinterpreter').requires('users.timfelgentreff.jsinterpreter.Interpreter', 'cop.Layers', 'users.timfelgentreff.babelsberg.cassowary_ext', 'users.timfelgentreff.babelsberg.deltablue_ext', 'users.timfelgentreff.babelsberg.csp_ext', 'users.timfelgentreff.babelsberg.core_ext', 'users.timfelgentreff.babelsberg.src_transform', 'users.timfelgentreff.babelsberg.babelsberg-lively').toRun(function() {
 
 /**
@@ -169,11 +166,11 @@ Object.subclass("Babelsberg", {
 	 * @public
 	 * @memberOf Babelsberg
 	 * @param {Object} opts An options object to configure the constraint construction.
-	 * @param {Object} opts.ctx The local scope in which the given function is executed.
-	 * @param {Object} [opts.solver] The solver to maintain the constraint.
-	 * @param {boolean} [opts.allowTests=false] If true, allows to specify assertions rather than solvable constraints.
-	 * @param {boolean} [opts.allowUnsolvableOperations=false] If true, allows the use of operations that are not supported by the solver.
-	 * @param {boolean} [opts.debugging=false] If true, calls debugger at certain points during constraint construction.
+	 * @option {Object} opts.ctx The local scope in which the given function is executed.
+	 * @option {Object} [opts.solver] The solver to maintain the constraint.
+	 * @option {boolean} [opts.allowTests=false] If true, allows to specify assertions rather than solvable constraints.
+	 * @option {boolean} [opts.allowUnsolvableOperations=false] If true, allows the use of operations that are not supported by the solver.
+	 * @option {boolean} [opts.debugging=false] If true, calls debugger at certain points during constraint construction.
 	 * @param {function} func The constraint to be fulfilled.
 	 */
     always: function(opts, func) {
@@ -208,6 +205,7 @@ Object.subclass("Babelsberg", {
 });
 Object.extend(Global, {
 	/**
+	 * A globally accessible instance of {@link Babelsberg}
 	 * @global
 	 */
     bbb: new Babelsberg()
@@ -329,9 +327,7 @@ Object.subclass('Constraint', {
 
 	/**
 	 * Enables this constraint. This is done automatically after constraint construction by most solvers.
-	 * @function enable
-	 * @public
-	 * @memberOf Constraint
+	 * @function Constraint#enable
 	 */
     enable: function() {
         if (!this._enabled) {
@@ -368,10 +364,8 @@ Object.subclass('Constraint', {
     },
 
 	/**
-	 * Disables this constraint. It is not further maintained until its {@link enable|re-enabling}.
-	 * @function disable
-	 * @public
-	 * @memberOf Constraint
+	 * Disables this constraint. It is not further maintained until its {@link Constraint#enable|re-enabling}.
+	 * @function Constraint#disable
 	 */
     disable: function() {
         if (this._enabled) {
