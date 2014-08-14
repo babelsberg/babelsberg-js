@@ -8,12 +8,8 @@ if [ "$TYPE" == "Lively" ]; then
 	./node_modules/.bin/jsdoc jsdoc_test.js babelsberg/constraintinterpreter.js -d docs
 	cd docs
 	curl -T index.html http://www.lively-kernel.org/babelsberg/docs/
-	find . -maxdepth 1 -type f -name '*.html' -exec echo '{}' \;
+	find -maxdepth 1 -type f -name '*.html' -exec echo '{}' \;
 	cd ..
-	
-	for i in $(find docs -type f -name '*.html'); do
-		echo $i
-	done
     
 	cd LivelyKernel
     Xvfb :1 -screen 0 800x600x24 &
