@@ -8,11 +8,9 @@ if [ "$TYPE" == "Lively" ]; then
 	./node_modules/.bin/jsdoc jsdoc_test.js babelsberg/constraintinterpreter.js -d docs
 	cd docs
 	curl -T index.html http://www.lively-kernel.org/babelsberg/docs/
-	curl -T styles/prettify-tomorrow.css http://www.lively-kernel.org/babelsberg/docs/styles/
-	curl -T styles/prettify-tomorrow.css http://www.lively-kernel.org/babelsberg/docs/
 	cd ..
 	
-	for i in $(find docs -type f); do
+	for i in $(find docs -type f -name '*.html'); do
 		echo $i
 	done
     
