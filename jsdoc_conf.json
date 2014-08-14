@@ -25,7 +25,8 @@
 		"includePattern": ".+\\.js$"
 	},
 	"opts": {
-		"recurse": true
+		"recurse": true,
+		"tutorials": "tutorials"
 	}
 }
 

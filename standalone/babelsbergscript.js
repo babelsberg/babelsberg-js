@@ -1,5 +1,7 @@
 /**
- * @name Babelsbergscript
+ * BabelsbergScript is a way to describe constraints in a convenient syntax.
+ * @name BabelsbergScript
+ * @tutorial babelsbergscript_tutorial-tutorial
  */
 (function() {
 	var Http = {
@@ -25,7 +27,7 @@
 	};
 
 	/**
-	 * Transforms the given Babelsbergscript source code as regular JavaScript.
+	 * Transforms the given {@link BabelsbergScript} source code as regular JavaScript.
 	 * @function Babelsberg.compile
 	 * @public
 	 * @param {string} code The source code that should be transformed.
@@ -37,7 +39,7 @@
 	}
 
 	/**
-	 * Transforms and executes the given Babelsbergscript source code.
+	 * Transforms and executes the given {@link BabelsbergScript} source code.
 	 * @function Babelsberg.execute
 	 * @public
 	 * @param {string} code The source code that should be executed.
