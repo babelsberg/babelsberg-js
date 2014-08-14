@@ -47,7 +47,7 @@ contentLoaded(window, function() {
 
 		codeEditor.style.border = "3px solid green";
 		try {
-			execute(this.value, window.rects);
+			Babelsberg.execute(this.value, window.rects);
 		} catch (e) {
 			codeEditor.style.border = "3px solid red";
 			throw e;

@@ -16,9 +16,8 @@ Object.subclass("Babelsberg", {
     
 	/**
 	 * Removes the listener on the given property of the given object.
-	 * @function unconstrain
+	 * @function Babelsberg#unconstrain
 	 * @public
-	 * @memberOf Babelsberg
 	 * @param {Object} obj The object whose property should be unconstrained.
 	 * @param {string} accessor The name of the property to be unconstrained.
 	 */
@@ -57,9 +56,8 @@ Object.subclass("Babelsberg", {
     
 	/**
 	 * Removes all listener on the given object.
-	 * @function unconstrainAll
+	 * @function Babelsberg#unconstrainAll
 	 * @public
-	 * @memberOf Babelsberg
 	 * @param {Object} obj The object whose property should be unconstrained.
 	 */
     unconstrainAll: function (obj) {
@@ -162,9 +160,8 @@ Object.subclass("Babelsberg", {
 
 	/**
 	 * Creates a constraint equivalent to the given function.
-	 * @function always
+	 * @function Babelsberg#always
 	 * @public
-	 * @memberOf Babelsberg
 	 * @param {Object} opts An options object to configure the constraint construction.
 	 * @option {Object} opts.ctx The local scope in which the given function is executed.
 	 * @option {Object} [opts.solver] The solver to maintain the constraint.
@@ -328,6 +325,7 @@ Object.subclass('Constraint', {
 	/**
 	 * Enables this constraint. This is done automatically after constraint construction by most solvers.
 	 * @function Constraint#enable
+	 * @public
 	 */
     enable: function() {
         if (!this._enabled) {
@@ -366,6 +364,7 @@ Object.subclass('Constraint', {
 	/**
 	 * Disables this constraint. It is not further maintained until its {@link Constraint#enable|re-enabling}.
 	 * @function Constraint#disable
+	 * @public
 	 */
     disable: function() {
         if (this._enabled) {
