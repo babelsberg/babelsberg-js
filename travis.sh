@@ -5,7 +5,7 @@ if [ "$TYPE" == "Lively" ]; then
     ln -s $PWD LivelyKernel/users/timfelgentreff
 	
     npm install jsdoc@"<=3.3.0"
-	./node_modules/.bin/jsdoc -c jsdoc_conf.json -r -d docs
+	./node_modules/.bin/jsdoc -c jsdoc_conf.json -d docs
 	cd docs
 	for f in *.html
 	do

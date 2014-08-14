@@ -23,6 +23,9 @@
 			"z3"
 		],
 		"includePattern": ".+\\.js$"
+	},
+	"opts": {
+		"recurse": true
 	}
 }
 
