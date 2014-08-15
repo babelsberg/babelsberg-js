@@ -9,7 +9,7 @@ BabelsbergScript is the plain old JavaScript that you are used to, but added con
 
 ###Using BabelsbergScript
 
-BabelsbergScript code can be loaded just like any other JavaScript using the `&lt;script&gt;` tag, except for the type being set to `"text/babelsbergscript"`:
+BabelsbergScript code can be loaded just like any other JavaScript using the `script` tag, except for the type being set to `"text/babelsbergscript"`:
 
 ```html
 <!DOCTYPE html>
