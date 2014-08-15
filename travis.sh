@@ -11,6 +11,9 @@ if [ "$TYPE" == "Lively" ]; then
 	do
 	  curl -T $f http://www.lively-kernel.org/babelsberg/docs/
 	done
+	cd styles
+	curl -T jsdoc-default.css http://www.lively-kernel.org/babelsberg/docs/styles/
+	cd ..
 	find . -type f -exec echo '{}' \;
 	cd ..
     
