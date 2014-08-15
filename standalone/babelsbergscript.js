@@ -1,7 +1,7 @@
 /**
  * BabelsbergScript is a way to describe constraints in a convenient syntax.
  * @name BabelsbergScript
- * @tutorial babelsbergscript_tutorial-tutorial
+ * @tutorial babelsbergscript-tutorial
  */
 (function() {
 	var Http = {
