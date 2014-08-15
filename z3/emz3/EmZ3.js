@@ -24,26 +24,26 @@ module('users.timfelgentreff.z3.emz3.EmZ3').requires().toRun(function() {
                     self.Module = Module;
                     Module.TOTAL_MEMORY = 128 * 1024 * 1024;
                     Module.memoryInitializerPrefixURL = prefixUrl;
+                    Module.arguments = ["-smt2", "problem.smt2"];
                     // Don't start or stop the program, just set it up.
                     // We'll call the API functions ourself.
                     Module.noInitialRun = true;
                     Module.noExitRuntime = true;
                     // Route stdout to an overridable method on the object.
-                    var stdin = (function stdin() {
-                        return self.stdin();
-                    });
+                    // Module.stdin = (function stdin() {
+                    //     return self.stdin();
+                    // });
                 
                     // Route stdout to an overridable method on the object.
-                    var stdout = (function stdout(x) {
-                        self.stdout(x);
-                    });
+                    // Module.stdout = (function stdout(x) {
+                    //     console.log(x);
+                    //     self.stdout(x);
+                    // });
                     
                     // Route stderr to an overridable method on the object.
-                    var stderr = (function stderr(x) {
+                    Module.stderr = (function stderr(x) {
                         self.stderr(x);
                     });
-                    
-                    Module.noFSInit = true;
                     
                     // Eval the code.  This will probably take quite a while in Firefox
                     // as it parses and compiles all the functions.  The result is that
@@ -51,7 +51,6 @@ module('users.timfelgentreff.z3.emz3.EmZ3').requires().toRun(function() {
                     console.log("evaluating asmjs code...");
                     eval(request.responseText);
                     self.FS = FS;
-                    FS.init(stdin, stdout, stderr);
                 }
             };
             request.open("GET", prefixUrl + "z3.js", true);
@@ -62,7 +61,7 @@ module('users.timfelgentreff.z3.emz3.EmZ3').requires().toRun(function() {
             this.stdout = [];
             this.FS.createDataFile("/", "problem.smt2", code, true, true);
             try {
-                this.Module.callMain(["-smt2", "problem.smt2"]);
+                this.Module.callMain(["-smt2", "/problem.smt2"]);
             } finally {
                 this.FS.unlink("/problem.smt2");
             }
@@ -73,6 +72,7 @@ module('users.timfelgentreff.z3.emz3.EmZ3').requires().toRun(function() {
             debugger
         },
         stdout: function (c) {
+            console.log(String.fromCharCode(c));
             this.stdout.push(String.fromCharCode(c));
         },
         stderr: function (c) {
