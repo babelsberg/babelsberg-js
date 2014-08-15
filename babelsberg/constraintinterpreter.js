@@ -77,9 +77,33 @@ Object.subclass("Babelsberg", {
     },
     
 	/**
-	 * @todo describe: used to tune some solver's performance
-	 * which solvers can do this?
-	 * @memberOf Babelsberg
+	 * Some solvers, like Cassowary and DeltaBlue, handle assignments by using temporary constraint that reflects the assignments. The creation and deletion of these constraints can be costly if assignments are done frequently. The edit function is one way to deal with this issue. Use it on attributes that are frequently modified for better performance.
+	 * @function Babelsberg#edit
+	 * @public
+	 * @param {Object} obj An object that is modified quite often.
+	 * @param {string[]} accessors The property names of the properties that are modified.
+	 * @returns {function} A callback that can be used to assign new values to the given properties.
+	 * @example Example usage of bbb.edit
+	 * var s = new DBPlanner(),
+	 *     obj = {int: 42, str: "42"};
+     * 
+	 * // Keep the attributes 'str' and 'int' in sync.
+	 * bbb.always({
+	 *     solver: deltablue,
+	 *     ctx: {
+	 *         obj: obj
+	 *     }, methods: function() {
+	 *         obj.int.formula([obj.str], function (str) { return parseInt(str); });
+	 *         obj.str.formula([obj.int], function (int) { return int + ""; })
+	 *     }
+	 * }, function () {
+	 *     return obj.int + "" === obj.str;
+	 * });
+     * 
+     * // Create an edit constraint for frequent assignments on obj.int.
+     * var callback = bbb.edit(obj, ["int"]);
+     * // Assign 17 as the new value of obj.int. Constraints are solved automatically.
+     * callback([17]);
 	 */
     edit: function (obj, accessors) {
         var extVars = {},
