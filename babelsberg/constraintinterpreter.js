@@ -77,9 +77,33 @@ Object.subclass("Babelsberg", {
     },
     
 	/**
-	 * @todo describe: used to tune some solver's performance
-	 * which solvers can do this?
-	 * @memberOf Babelsberg
+	 * Some solvers, like Cassowary and DeltaBlue, handle assignments by using temporary constraint that reflects the assignments. The creation and deletion of these constraints can be costly if assignments are done frequently. The edit function is one way to deal with this issue. Use it on attributes that are frequently modified for better performance.
+	 * @function Babelsberg#edit
+	 * @public
+	 * @param {Object} obj An object that is modified quite often.
+	 * @param {string[]} accessors The property names of the properties that are modified.
+	 * @returns {function} A callback that can be used to assign new values to the given properties.
+	 * @example Example usage of bbb.edit
+	 * var s = new DBPlanner(),
+	 *     obj = {int: 42, str: "42"};
+     * 
+	 * // Keep the attributes 'str' and 'int' in sync.
+	 * bbb.always({
+	 *     solver: deltablue,
+	 *     ctx: {
+	 *         obj: obj
+	 *     }, methods: function() {
+	 *         obj.int.formula([obj.str], function (str) { return parseInt(str); });
+	 *         obj.str.formula([obj.int], function (int) { return int + ""; })
+	 *     }
+	 * }, function () {
+	 *     return obj.int + "" === obj.str;
+	 * });
+     * 
+     * // Create an edit constraint for frequent assignments on obj.int.
+     * var callback = bbb.edit(obj, ["int"]);
+     * // Assign 17 as the new value of obj.int. Constraints are solved automatically.
+     * callback([17]);
 	 */
     edit: function (obj, accessors) {
         var extVars = {},
@@ -138,7 +162,29 @@ Object.subclass("Babelsberg", {
     },
 	
 	/**
-	 * @todo describe with example from tests
+	 * Marks the given object as readonly. This functionality is only supported for some solvers.
+	 * @function Babelsberg#readonly
+	 * @public
+	 * @param {Object} obj The object that should not be modified.
+	 * @example Example usage of bbb.readonly
+	 * var s = new ClSimplexSolver(),
+	 *     pt = {x: 1, y: 2, z: 3};
+     * 
+	 * // The x and y coordinate of the point should sum up to its z coordinate.
+	 * // Cassowary is not allowed to change the value of pt.z in order to fulfil this constraint.
+	 * bbb.always({
+	 *     solver: s,
+	 *     ctx: {
+	 *         pt: pt,
+	 *         r: bbb.readonly,
+	 *         _$_self: this.doitContext || this
+	 *     }
+	 * }, function() {
+	 *     return pt.x + ro(pt.y) == pt.z;;
+	 * });
+     * 
+	 * // This assignment cannot modify pt.y, but rather changes pt.z
+	 * pt.x = 4;
 	 */
     readonly: function(obj) {
         if (obj.isConstraintObject) {
@@ -163,11 +209,11 @@ Object.subclass("Babelsberg", {
 	 * @function Babelsberg#always
 	 * @public
 	 * @param {Object} opts An options object to configure the constraint construction.
-	 * @option {Object} opts.ctx The local scope in which the given function is executed.
-	 * @option {Object} [opts.solver] The solver to maintain the constraint.
-	 * @option {boolean} [opts.allowTests=false] If true, allows to specify assertions rather than solvable constraints.
-	 * @option {boolean} [opts.allowUnsolvableOperations=false] If true, allows the use of operations that are not supported by the solver.
-	 * @option {boolean} [opts.debugging=false] If true, calls debugger at certain points during constraint construction.
+	 * @param {Object} opts.ctx The local scope in which the given function is executed.
+	 * @param {Object} [opts.solver] The solver to maintain the constraint.
+	 * @param {boolean} [opts.allowTests=false] If true, allows to specify assertions rather than solvable constraints.
+	 * @param {boolean} [opts.allowUnsolvableOperations=false] If true, allows the use of operations that are not supported by the solver.
+	 * @param {boolean} [opts.debugging=false] If true, calls debugger at certain points during constraint construction.
 	 * @param {function} func The constraint to be fulfilled.
 	 */
     always: function(opts, func) {
