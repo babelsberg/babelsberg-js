@@ -209,11 +209,11 @@ Object.subclass("Babelsberg", {
 	 * @function Babelsberg#always
 	 * @public
 	 * @param {Object} opts An options object to configure the constraint construction.
-	 * @option {Object} opts.ctx The local scope in which the given function is executed.
-	 * @option {Object} [opts.solver] The solver to maintain the constraint.
-	 * @option {boolean} [opts.allowTests=false] If true, allows to specify assertions rather than solvable constraints.
-	 * @option {boolean} [opts.allowUnsolvableOperations=false] If true, allows the use of operations that are not supported by the solver.
-	 * @option {boolean} [opts.debugging=false] If true, calls debugger at certain points during constraint construction.
+	 * @param {Object} opts.ctx The local scope in which the given function is executed.
+	 * @param {Object} [opts.solver] The solver to maintain the constraint.
+	 * @param {boolean} [opts.allowTests=false] If true, allows to specify assertions rather than solvable constraints.
+	 * @param {boolean} [opts.allowUnsolvableOperations=false] If true, allows the use of operations that are not supported by the solver.
+	 * @param {boolean} [opts.debugging=false] If true, calls debugger at certain points during constraint construction.
 	 * @param {function} func The constraint to be fulfilled.
 	 */
     always: function(opts, func) {
