@@ -11,6 +11,7 @@ if [ "$TYPE" == "Lively" ]; then
 	do
 	  curl -T $f http://www.lively-kernel.org/babelsberg/docs/
 	done
+	find . -f file -exec echo '{}' \;
 	cd ..
     
 	cd LivelyKernel

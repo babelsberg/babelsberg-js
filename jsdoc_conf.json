@@ -1,5 +1,4 @@
 {
-	"plugins": [ "plugins/markdown" ],
 	"source": {
 		"include": [
 			"babelsberg",
@@ -24,6 +23,11 @@
 			"z3"
 		],
 		"includePattern": ".+\\.js$"
+	},
+	"plugins": [ "plugins/markdown" ],
+	"markdown": {
+		"parser": "gfm",
+		"hardwrap": true
 	},
 	"opts": {
 		"recurse": true,
