@@ -466,7 +466,7 @@ Object.subclass('Constraint', {
                 this._enabled = true; // force disable to run
                 this.disable();
                 assignments.invoke("disable");
-                assignments.invoke("enable", this.solver.strength.strong);
+                assignments.invoke("enable", this.solver.strength && this.solver.strength.strong);
                 this.enable();
             } finally {
                 assignments.invoke("disable");
@@ -614,7 +614,7 @@ Object.subclass('ConstrainedVariable', {
                         if (source) {
                             this.$$isStoring = false;
                             value = this.suggestValue(priorValue, source);
-                            throw new Error(e); // XXX: Lively checks type, so wrap for top-level
+                            throw e; // XXX: Lively checks type, so wrap for top-level
                         } else {
                             throw e;
                         }
