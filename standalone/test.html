@@ -42,8 +42,11 @@
 	<!-- // Babelsberg/js -->
 	<script src="../babelsberg/core_ext.js"></script>
 	<script src="../babelsberg/constraintinterpreter.js"></script>
+	<!-- // experimental -->
+	<script src="../experimental/assert.js"></script>
 	<!-- // Tests -->
 	<script src="test_harness.js"></script>
+	<script src="../experimental/experimental_test.js"></script>
 	<script src="../babelsberg/tests.js"></script>
 	<!-- // src transform -->
 	<script src="../babelsberg/uglify.js"></script>
@@ -59,14 +62,11 @@
 		obj.a = 10;
 		console.log(obj.a, obj.b);
 		
-		ct = new users.timfelgentreff.babelsberg.tests.ConstraintTest();
-		ct.runAll();
-		p = new users.timfelgentreff.babelsberg.tests.PropagationTest();
-		p.runAll();
-		it = new users.timfelgentreff.babelsberg.tests.InteractionTest();
-		it.runAll();
-		cspt = new users.timfelgentreff.babelsberg.tests.CSPTest();
-		cspt.runAll();
+		new users.timfelgentreff.babelsberg.tests.ConstraintTest().runAll();
+		new users.timfelgentreff.babelsberg.tests.PropagationTest().runAll();
+		new users.timfelgentreff.babelsberg.tests.InteractionTest().runAll();
+		new users.timfelgentreff.babelsberg.tests.CSPTest().runAll();
+		new users.timfelgentreff.experimental.experimental_test.AssertTest().runAll();
 	</script>
 	
 	<script type="text/babelsbergscript">
