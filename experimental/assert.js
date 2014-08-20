@@ -8,11 +8,12 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	// TODO: improve syntax of bbb.assert
 	// TODO: multiple asserts and multiple variable interconnected
 	// TODO: enable and disable AssertConstraints
+	// TODO: integration with other solvers
 	
 	Error.subclass("ContinuousAssertError", {
-		initialize: function MyError(msg) {
+		initialize: function ContinuousAssertError(msg) {
 			if (Error.captureStackTrace) {
-				Error.captureStackTrace(this, MyError);
+				Error.captureStackTrace(this, ContinuousAssertError);
 			} else {
 				this.stack = (new Error).stack || '';
 			}
@@ -27,25 +28,32 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 		},
 	    isConstraintObject: function() { return true; },
 	    always: function(opts, func) {
-	    	console.log("AssertSolver.always");
+	    	//console.log("AssertSolver.always");
 	        var ctx = opts.ctx;
 	        func.varMapping = ctx;
 	        var cobj = new Constraint(func, this);
 	        cobj.addPrimitiveConstraint(new AssertSolver.Constraint(this, cobj));
-	        cobj.enable();
+			try {
+				cobj.enable();
+			} catch(e) {
+				if(e instanceof ContinuousAssertError) {
+					cobj.disable();
+				}
+				throw e;
+			}
 	        return cobj;
 	    },
 	    constraintVariableFor: function(value, ivarname, bbbCVar) {
-	    	console.log("AssertSolver.constraintVariableFor", value, ivarname, bbbCVar);
+	    	//console.log("AssertSolver.constraintVariableFor", value, ivarname, bbbCVar);
 	    	return new AssertSolver.Variable(this, value, ivarname, bbbCVar);
 	    },
 	    solve: function() {
-	    	console.log("AssertSolver.solve");
+	    	//console.log("AssertSolver.solve");
 	    	this.check();
 	    },
 	    check: function() {
-	    	console.log("AssertSolver.check");
-	    	if(this.constraint && typeof this.constraint.predicate === "function")
+	    	//console.log("AssertSolver.check");
+	    	if(this.constraint && this.constraint.enabled && typeof this.constraint.predicate === "function")
 	    		if(!this.constraint.predicate())
 	    			throw new ContinuousAssertError(this.message);
 	    },
@@ -54,30 +62,39 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	
 	Object.subclass("AssertSolver.Variable", {
 		initialize: function(solver, value, ivarname, bbbCVar) {
-	    	console.log("AssertSolver.Variable.initialize");
+	    	//console.log("AssertSolver.Variable.initialize");
 			this.solver = solver;
 			this.__val__ = value;
 		},
 	    isConstraintObject: function() { return true; },
 	    toFulfill: function(assertPredicate) {
-	    	console.log("AssertSolver.Variable.toFulfill", assertPredicate);
+	    	//console.log("AssertSolver.Variable.toFulfill", assertPredicate);
 	    	this.assertPredicate = assertPredicate;
 	    },
 	    suggestValue: function(value) {
-	    	console.log("AssertSolver.Variable.suggestValue", value);
+	    	//console.log("AssertSolver.Variable.suggestValue", value);
+			var prev = this.__val__;
 	    	this.__val__ = value;
-	    	this.solver.solve();
+			try {
+				this.solver.solve();
+			} catch(e) {
+				// revert value in case of a violated assertion
+				if(e instanceof ContinuousAssertError) {
+					this.__val__ = prev;
+				}
+				throw e;
+			}
 	    	return this.__val__;
 	    },
 	    value: function() {
 	    	return this.__val__;
 	    },
 	    setReadonly: function(bool) {
+	    	//console.log("AssertSolver.Variable.setReadonly", bool);
 	    	this.readonly = bool;
-	    	console.log("AssertSolver.Variable.setReadonly", bool);
 	    },
 	    isReadonly: function() {
-	    	console.log("AssertSolver.Variable.isReadonly");
+	    	//console.log("AssertSolver.Variable.isReadonly");
 	        return this.readonly;
 	    }
 	});
@@ -85,7 +102,8 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	Object.subclass("AssertSolver.Constraint", {
 	    isConstraintObject: function() { return true; },
 	    initialize: function(solver, bbbConstraint) {
-	    	console.log("AssertSolver.Constraint.initialize");
+	    	//console.log("AssertSolver.Constraint.initialize");
+			this.enabled = false;
 	    	this.solver = solver;
 	    	this.solver.constraint = this;
 
@@ -101,10 +119,12 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	    		.assertPredicate;
 	    },
 	    enable: function() {
-	    	console.log("AssertSolver.Constraint.enable");
+	    	//console.log("AssertSolver.Constraint.enable");
+			this.enabled = true;
 	    },
 	    disable: function() {
-	    	console.log("AssertSolver.Constraint.disable");
+	    	//console.log("AssertSolver.Constraint.disable");
+			this.enabled = false;
 	    }
 	});
 	
