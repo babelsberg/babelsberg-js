@@ -149,6 +149,42 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	    }
 	});
 	
+	/***************************************************************
+	 * Continuous asserts
+	 ***************************************************************/
+	AssertSolver.subclass("TriggerSolver", {
+		initialize: function(callback) {
+			this.callback = callback;
+			this.triggeredOnce = false;
+		},
+	    always: function(opts, func) {
+	    	//console.log("TriggerSolver.always");
+	        var ctx = opts.ctx;
+	        func.varMapping = ctx;
+	        var cobj = new Constraint(func, this);
+	        cobj.addPrimitiveConstraint(new AssertSolver.Constraint(this, cobj));
+			cobj.enable();
+	        return cobj;
+	    },
+	    solve: function() {
+	    	console.log("TriggerSolver.solve", this.constraint.predicate());
+	    	if(this.constraint &&
+				this.constraint.enabled &&
+				typeof this.constraint.predicate === "function" &&
+				!this.triggeredOnce
+			) {
+	    		if(this.constraint.predicate()) {
+					this.triggeredOnce = true;
+					this.constraint.disable();
+	    			this.callback();
+				} else {
+					// resetOnFalse?
+				}
+			}
+	    },
+	    weight: 10
+	});
+	
 	Object.extend(Babelsberg.prototype, {
 		assert: function(opts, func) {
 			opts.solver = new AssertSolver(opts.message);
@@ -156,7 +192,17 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 			opts.allowTests = true;
 			//opts.debugging = true;
 	        this.always(opts, func);
+		},
+		trigger: function(opts, func) {
+			opts.solver = new TriggerSolver(opts.callback);
+			opts.allowUnsolvableOperations = true;
+			opts.allowTests = true;
+			//opts.debugging = true;
+	        this.always(opts, func);
 		}
+	});
+	
+	Object.extend(Babelsberg.prototype, {
 	});
 	
 });
