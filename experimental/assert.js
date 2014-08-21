@@ -96,6 +96,27 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	    isReadonly: function() {
 	    	//console.log("AssertSolver.Variable.isReadonly");
 	        return this.readonly;
+	    },
+	    cnEquals: function() {
+	    	//console.log("AssertSolver.Variable.cnEquals");
+	        return new AssertSolver.PrimitiveConstraint(this, arguments);
+	    }
+	});
+	
+	Object.subclass("AssertSolver.PrimitiveConstraint", {
+	    isConstraintObject: function() { return true; },
+	    initialize: function(variable, args) {
+	    	//console.log("AssertSolver.PrimitiveConstraint.initialize", variable, args);
+			this.enabled = false;
+	    	this.solver = variable.solver;
+	    },
+	    enable: function() {
+	    	//console.log("AssertSolver.PrimitiveConstraint.enable");
+			this.enabled = true;
+	    },
+	    disable: function() {
+	    	//console.log("AssertSolver.PrimitiveConstraint.disable");
+			this.enabled = false;
 	    }
 	});
 	
@@ -131,8 +152,8 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	Object.extend(Babelsberg.prototype, {
 		assert: function(opts, func) {
 			opts.solver = new AssertSolver(opts.message);
-			//opts.allowUnsolvableOperations = true;
-			//opts.allowTests = true;
+			opts.allowUnsolvableOperations = true;
+			opts.allowTests = true;
 			//opts.debugging = true;
 	        this.always(opts, func);
 		}
