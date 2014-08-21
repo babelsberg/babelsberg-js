@@ -176,7 +176,7 @@ Object.subclass("Babelsberg", {
 	 *     solver: s,
 	 *     ctx: {
 	 *         pt: pt,
-	 *         r: bbb.readonly,
+	 *         ro: bbb.readonly,
 	 *         _$_self: this.doitContext || this
 	 *     }
 	 * }, function() {
