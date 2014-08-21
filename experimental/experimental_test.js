@@ -256,4 +256,123 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.AssertTes
 	}
 });
 
+TestCase.subclass('users.timfelgentreff.experimental.experimental_test.TriggerTest', {
+	setUp: function() {
+		var Player = function(hp) {
+			this.alive = true;
+			this.hp = hp;
+		};
+		Player.prototype.die = function() {
+			this.alive = false;
+		};
+
+		this.Player = Player;
+	},
+    testTriggerSolver: function() {
+    	var p = new this.Player(2);
+    	
+    	bbb.trigger({
+			callback: p.die.bind(p),
+    		ctx: {
+    			p: p
+    		}
+    	}, function() {
+    		[p.hp];
+    		p.hp.toFulfill(function() {
+    			return p.hp <=  0;
+    		});
+    	});
+		this.assert(p.hp === 2, "constraint construction modified variable, p.hp: " + p.hp);
+		this.assert(p.alive === true, "constraint construction modified variable, p.alive: " + p.alive);
+
+		// valid assignment
+		p.hp--;
+		this.assert(p.hp === 1, "assignment did not work, p.hp: " + p.hp);
+		this.assert(p.alive === true, "modified unassigned variable, p.alive: " + p.alive);
+
+		// triggering assignment
+		p.hp--;
+		this.assert(p.hp === 0, "assignment did not work, p.hp: " + p.hp);
+		this.assert(p.alive === false, "desired callback was not triggered");
+	},
+    testRecursiveTriggering: function() {
+		var Domino = function(id, next) {
+			this.id = id;
+			this.next = next;
+			this.standing = true;
+		};
+		Domino.prototype.pushNext = function() {
+			if(this.next instanceof Domino) {
+				this.next.push();
+			}
+		};
+		Domino.prototype.push = function() {
+			this.standing = false;
+		};
+		
+		var domino3 = new Domino(3),
+			domino2 = new Domino(2, domino3),
+			domino1 = new Domino(1, domino2);
+    	
+    	bbb.trigger({
+			callback: domino1.pushNext.bind(domino1),
+    		ctx: {
+    			domino1: domino1
+    		}
+    	}, function() {
+    		[domino1.standing];
+    		domino1.standing.toFulfill(function() {
+    			return !domino1.standing;
+    		});
+    	});
+    	bbb.trigger({
+			callback: domino2.pushNext.bind(domino2),
+    		ctx: {
+    			domino2: domino2
+    		}
+    	}, function() {
+    		[domino2.standing];
+    		domino2.standing.toFulfill(function() {
+    			return !domino2.standing;
+    		});
+    	});
+    	bbb.trigger({
+			callback: domino3.pushNext.bind(domino3),
+    		ctx: {
+    			domino3: domino3
+    		}
+    	}, function() {
+    		[domino3.standing];
+    		domino3.standing.toFulfill(function() {
+    			return !domino3.standing;
+    		});
+    	});
+		
+		domino1.push();
+		this.assert(!domino1.standing, "domino1 still stands");
+		this.assert(!domino2.standing, "domino2 still stands");
+		this.assert(!domino3.standing, "domino3 still stands");
+	},
+	// TODO
+    testInteractingWithAssertions: function() {
+	},
+    testImmediateTrigger: function() {
+    	var p = new this.Player(-5);
+    	
+    	bbb.trigger({
+			callback: p.die.bind(p),
+    		ctx: {
+    			p: p
+    		}
+    	}, function() {
+    		[p.hp];
+    		p.hp.toFulfill(function() {
+    			return p.hp <=  0;
+    		});
+    	});
+		this.assert(p.hp === -5, "assignment did not work, p.hp: " + p.hp);
+		this.assert(p.alive === false, "desired callback was not triggered");
+	}
+});
+
 }); // end of module
