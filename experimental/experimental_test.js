@@ -203,9 +203,52 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.AssertTes
 		this.assert(pt.x === 1, "another variable was modified, pt.x: " + pt.x);
 		this.assert(pt.y === 2, "assignment to variable not reverted, pt.y: " + pt.y);
    },
-	// TODO
 	testMultipleAssertionsOnSameObject: function() {
-		this.assert(true);
+    	var pt = {x: 1, y: 2};
+    	
+    	bbb.assert({
+			message: "x-coordinate is not positive",
+    		ctx: {
+    			pt: pt
+    		}
+    	}, function() {
+    		[pt.x];
+    		pt.x.toFulfill(function() {
+    			return pt.x >= 0;
+    		});
+    	});
+    	bbb.assert({
+			message: "x-coordinate is greater then 10",
+    		ctx: {
+    			pt: pt
+    		}
+    	}, function() {
+    		[pt.x];
+    		pt.x.toFulfill(function() {
+    			return pt.x <= 10;
+    		});
+    	});
+		this.assert(pt.x === 1, "constraint construction modified variable, pt.x: " + pt.x);
+		
+		// valid assignment
+		pt.x = 7;
+		this.assert(pt.x === 7, "assignment did not work, pt.x: " + pt.x);
+		
+		// invalid assignment with respect to first assertion
+		this.assertWithError(
+			ContinuousAssertError,
+			function() { pt.x = -1; },
+			"no ContinuousAssertError was thrown"
+		);
+		this.assert(pt.x === 7, "assignment to variable not reverted, pt.x: " + pt.x);
+		
+		// invalid assignment with respect to second assertion
+		this.assertWithError(
+			ContinuousAssertError,
+			function() { pt.x = 11; },
+			"no ContinuousAssertError was thrown"
+		);
+		this.assert(pt.x === 7, "assignment to variable not reverted, pt.x: " + pt.x);
     },
 	// TODO
 	testIntegrationWithOtherSolvers: function() {
