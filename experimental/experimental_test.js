@@ -375,4 +375,41 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.TriggerTe
 	}
 });
 
+TestCase.subclass('users.timfelgentreff.experimental.experimental_test.LayerActivationTest', {
+    testLayerActivationSolver: function() {
+		var the = {
+			trigger: false,
+			answer: function() {
+				return 17;
+			}
+		};
+
+		cop.create("correction")
+			.refineObject(the, {
+				answer: function() {
+				var oldAnswer = cop.proceed();
+					return oldAnswer + 25;
+				}
+			})
+			.activeOn({
+				ctx: {
+					the: the
+				}
+			}, function() {
+				[the.answer, the.trigger];
+				the.trigger.toFulfill(function() {
+					return the.trigger === true;
+				});
+			});
+
+		this.assert(the.answer() === 17, "not the correct answer, but " + the.answer());
+		
+		the.trigger = true;
+		this.assert(the.answer() === 42, "layer not correctly activated, the.answer(): " + the.answer());
+		
+		the.trigger = false;
+		this.assert(the.answer() === 17, "layer not correctly de-activated, the.answer(): " + the.answer());
+	}
+});
+
 }); // end of module
