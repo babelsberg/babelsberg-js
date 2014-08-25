@@ -5,6 +5,7 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	/***************************************************************
 	 * Continuous asserts
 	 ***************************************************************/
+	
 	// TODO: improve syntax of bbb.assert
 	// TODO: multiple asserts and multiple variable interconnected
 	// TODO: enable and disable AssertConstraints
@@ -149,9 +150,20 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	    }
 	});
 	
+	Object.extend(Babelsberg.prototype, {
+		assert: function(opts, func) {
+			opts.solver = new AssertSolver(opts.message);
+			opts.allowUnsolvableOperations = true;
+			opts.allowTests = true;
+			//opts.debugging = true;
+	        this.always(opts, func);
+		}
+	});
+
 	/***************************************************************
-	 * Continuous asserts
+	 * Triggering
 	 ***************************************************************/
+	
 	AssertSolver.subclass("TriggerSolver", {
 		initialize: function(callback) {
 			this.callback = callback;
@@ -167,7 +179,7 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	        return cobj;
 	    },
 	    solve: function() {
-	    	console.log("TriggerSolver.solve", this.constraint.predicate());
+	    	//console.log("TriggerSolver.solve", this.constraint.predicate());
 	    	if(this.constraint &&
 				this.constraint.enabled &&
 				typeof this.constraint.predicate === "function" &&
@@ -186,13 +198,6 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	});
 	
 	Object.extend(Babelsberg.prototype, {
-		assert: function(opts, func) {
-			opts.solver = new AssertSolver(opts.message);
-			opts.allowUnsolvableOperations = true;
-			opts.allowTests = true;
-			//opts.debugging = true;
-	        this.always(opts, func);
-		},
 		trigger: function(opts, func) {
 			opts.solver = new TriggerSolver(opts.callback);
 			opts.allowUnsolvableOperations = true;
@@ -201,8 +206,65 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	        this.always(opts, func);
 		}
 	});
+
+	/***************************************************************
+	 * Layer activation
+	 ***************************************************************/
 	
-	Object.extend(Babelsberg.prototype, {
+	AssertSolver.subclass("LayerActivationSolver", {
+		initialize: function(layer) {
+			this.layer = layer;
+		},
+	    always: function(opts, func) {
+	    	//console.log("LayerActivationSolver.always");
+	        var ctx = opts.ctx;
+	        func.varMapping = ctx;
+	        var cobj = new Constraint(func, this);
+	        cobj.addPrimitiveConstraint(new AssertSolver.Constraint(this, cobj));
+			cobj.enable();
+	        return cobj;
+	    },
+	    solve: function() {
+	    	console.log("LayerActivationSolver.solve", this.constraint.predicate());
+	    	if(this.constraint &&
+				this.constraint.enabled &&
+				typeof this.constraint.predicate === "function"
+			) {
+				var predicateFulfilled = this.constraint.predicate();
+	    		if(predicateFulfilled && !this.layer.isGlobal()) {
+	    			this.layer.beGlobal();
+				} else  if(!predicateFulfilled && this.layer.isGlobal()) {
+	    			this.layer.beNotGlobal();
+				}
+			}
+	    },
+	    weight: 10
 	});
 	
+	// hotfix
+	// instead of cop.GlobalLayers.removeAt(idx); just use standard conform splice method
+	Object.extend(cop, {
+		disableLayer: function(layer) {
+			var idx = cop.GlobalLayers.indexOf(layer)
+			if (idx < 0) return;
+			cop.GlobalLayers.splice(idx, 1);
+			cop.invalidateLayerComposition();
+		},
+	});
+	
+	Object.extend(Layer.prototype, {
+		activeOn: function(opts, func) {
+			opts.solver = new LayerActivationSolver(this);
+			opts.allowUnsolvableOperations = true;
+			opts.allowTests = true;
+			//opts.debugging = true;
+	        opts.solver.always(opts, func);
+		}
+	});
+	
+	/***************************************************************
+	 * TODO: Scoped constraints
+	 ***************************************************************/
+	
+
 });
