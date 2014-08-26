@@ -526,6 +526,147 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.ScopedCon
 		temperature.celsius = 42;
 		this.assert(temperature.celsius === 42, "assignment did not work; temperature.celsius: " + temperature.celsius);
 		// TODO: check constraint
+	},
+    testScopedAssert: function() {
+		var temperature = {
+			celsius: 10,
+			sense: false
+		};
+
+		cop.create("thermometer")
+			.activeOn({
+				ctx: {
+					temperature: temperature
+				}
+			}, function() {
+				[temperature.sense];
+				temperature.sense.toFulfill(function() {
+					return temperature.sense === true;
+				});
+			})
+			.assert({
+				ctx: {
+					temperature: temperature
+				}
+			}, function() {
+				[temperature.celsius];
+				temperature.celsius.toFulfill(function() {
+					return temperature.celsius > -273;
+				});
+			});
+		
+		temperature.celsius = -1000;
+		temperature.celsius = 10;
+		
+		temperature.sense = true
+		new users.timfelgentreff.experimental.experimental_test.AssertTest().assertWithError(
+			ContinuousAssertError,
+			function() {
+				temperature.celsius = -1000;
+			},
+			"no ContinuousAssertError was thrown"
+		);
+		this.assert(temperature.celsius === 10, "assigned variable was not reverted; temperature.celsius: " + temperature.celsius);
+	},
+    testScopedAssertBreaksImmediatly: function() {
+		var temperature = {
+			celsius: -1000,
+			sense: false
+		};
+
+		cop.create("thermometer")
+			.activeOn({
+				ctx: {
+					temperature: temperature
+				}
+			}, function() {
+				[temperature.sense];
+				temperature.sense.toFulfill(function() {
+					return temperature.sense === true;
+				});
+			})
+			.assert({
+				ctx: {
+					temperature: temperature
+				}
+			}, function() {
+				[temperature.celsius];
+				temperature.celsius.toFulfill(function() {
+					return temperature.celsius > -273;
+				});
+			});
+		
+		temperature.celsius = -1000;
+		
+		new users.timfelgentreff.experimental.experimental_test.AssertTest().assertWithError(
+			ContinuousAssertError,
+			function() {
+				// trigger that activates an immediately breaking assertion
+				temperature.sense = true
+			},
+			"no ContinuousAssertError was thrown"
+		);
+	},
+    testScopedTrigger: function() {
+		var count = 0, obj = {
+			activated: false,
+			trigger: false,
+			action: function() {
+				count++;
+			}
+		};
+    	
+		cop.create("triggerLayer")
+			.activeOn({
+				ctx: {
+					obj: obj
+				}
+			}, function() {
+				[obj.activated];
+				obj.activated.toFulfill(function() {
+					return obj.activated === true;
+				});
+			})
+			.trigger({
+				callback: obj.action.bind(obj),
+				ctx: {
+					obj: obj
+				}
+			}, function() {
+				[obj.trigger];
+				obj.trigger.toFulfill(function() {
+					return obj.trigger === true;
+				});
+			});
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === false, "layer was unintentionally activated");
+		this.assert(obj.trigger === false, "trigger variable was changed");
+
+		// unactivated trigger
+		obj.trigger = true;
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === false, "layer was unintentionally activated");
+		this.assert(obj.trigger === true, "assignment did not work");
+		
+		// reset trigger
+		obj.trigger = false;
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === false, "layer was unintentionally activated");
+		this.assert(obj.trigger === false, "assignment did not work");
+
+		// activate layer
+		obj.activated = true;
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === true, "assignment did not work");
+		this.assert(obj.trigger === false, "trigger unintentionally initiated");
+		this.assert(triggerLayer.isGlobal(), "layer not active");
+
+		// activated triggering
+		obj.trigger = true;
+		this.assert(count === 1, "action not triggered once, count: " + count);
+		this.assert(obj.activated === true, "modified unassigned variables");
+		this.assert(obj.trigger === true, "assignment did not work");
+		this.assert(triggerLayer.isGlobal(), "layer not active");
 	}
 });
 
