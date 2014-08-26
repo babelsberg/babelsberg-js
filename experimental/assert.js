@@ -35,7 +35,7 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	        var cobj = new Constraint(func, this);
 	        cobj.addPrimitiveConstraint(new AssertSolver.Constraint(this, cobj));
 			try {
-				cobj.enable();
+				if(!opts.postponeEnabling) { cobj.enable(); }
 			} catch(e) {
 				if(e instanceof ContinuousAssertError) {
 					cobj.disable();
@@ -156,7 +156,7 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 			opts.allowUnsolvableOperations = true;
 			opts.allowTests = true;
 			//opts.debugging = true;
-	        this.always(opts, func);
+	        return this.always(opts, func);
 		}
 	});
 
@@ -176,7 +176,7 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	        func.varMapping = ctx;
 	        var cobj = new Constraint(func, this);
 	        cobj.addPrimitiveConstraint(new AssertSolver.Constraint(this, cobj));
-			cobj.enable();
+			if(!opts.postponeEnabling) { cobj.enable(); }
 	        return cobj;
 	    },
 	    solve: function() {
@@ -204,14 +204,13 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 			opts.allowUnsolvableOperations = true;
 			opts.allowTests = true;
 			//opts.debugging = true;
-	        this.always(opts, func);
+	        return this.always(opts, func);
 		}
 	});
 
 	/***************************************************************
 	 * Layer activation
 	 ***************************************************************/
-	
 	AssertSolver.subclass("LayerActivationSolver", {
 		initialize: function(layer) {
 			this.layer = layer;
@@ -272,7 +271,21 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 		always: function(opts, func) {
 			opts.postponeEnabling = !this.isGlobal();
 			var cobj = bbb.always(opts, func);
-			// add cobj to list of associated constraints
+
+			this.constraintObjects = this.constraintObjects || [];
+			this.constraintObjects.push(cobj);
+		},
+		assert: function(opts, func) {
+			opts.postponeEnabling = !this.isGlobal();
+			var cobj = bbb.assert(opts, func);
+
+			this.constraintObjects = this.constraintObjects || [];
+			this.constraintObjects.push(cobj);
+		},
+		trigger: function(opts, func) {
+			opts.postponeEnabling = !this.isGlobal();
+			var cobj = bbb.trigger(opts, func);
+
 			this.constraintObjects = this.constraintObjects || [];
 			this.constraintObjects.push(cobj);
 		},
@@ -290,42 +303,42 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 		}
 	});
 
-var copWithLayers = cop.withLayers;
-var copWithoutLayers = cop.withoutLayers;
-var copEnableLayer = cop.enableLayer;
-var copDisableLayer = cop.disableLayer;
-Object.extend(cop, {
-    /* Layer Activation */
-    withLayers: function withLayers(layers, func) {
-		layers.forEach(function(layer) { layer._activate(); });
-
-        try {
-            return copWithLayers.apply(this, arguments);
-        } finally {
-			layers.forEach(function(layer) { layer._deactivate(); });
-        }
-    },
-
-	withoutLayers: function withoutLayers(layers, func) {
-		layers.forEach(function(layer) { layer._deactivate(); });
-		
-        try {
-            return copWithoutLayers.apply(this, arguments);
-        } finally {
+	var copWithLayers = cop.withLayers;
+	var copWithoutLayers = cop.withoutLayers;
+	var copEnableLayer = cop.enableLayer;
+	var copDisableLayer = cop.disableLayer;
+	Object.extend(cop, {
+		/* Layer Activation */
+		withLayers: function withLayers(layers, func) {
 			layers.forEach(function(layer) { layer._activate(); });
-        }
-    },
 
-    /* Global Layer Activation */
-    enableLayer: function(layer) {
-		layer._activate();
-		return copEnableLayer.apply(this, arguments);
-    },
+			try {
+				return copWithLayers.apply(this, arguments);
+			} finally {
+				layers.forEach(function(layer) { layer._deactivate(); });
+			}
+		},
 
-    disableLayer: function(layer) {
-		layer._deactivate();
-		return copDisableLayer.apply(this, arguments);
-	}
-});
+		withoutLayers: function withoutLayers(layers, func) {
+			layers.forEach(function(layer) { layer._deactivate(); });
+			
+			try {
+				return copWithoutLayers.apply(this, arguments);
+			} finally {
+				layers.forEach(function(layer) { layer._activate(); });
+			}
+		},
+
+		/* Global Layer Activation */
+		enableLayer: function(layer) {
+			layer._activate();
+			return copEnableLayer.apply(this, arguments);
+		},
+
+		disableLayer: function(layer) {
+			layer._deactivate();
+			return copDisableLayer.apply(this, arguments);
+		}
+	});
 
 });
