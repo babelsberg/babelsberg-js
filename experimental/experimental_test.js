@@ -377,6 +377,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.TriggerTe
 
 TestCase.subclass('users.timfelgentreff.experimental.experimental_test.LayerActivationTest', {
     testLayerActivationSolver: function() {
+		// TODO: rename trigger in test for clarification
 		var the = {
 			trigger: false,
 			answer: function() {
@@ -409,6 +410,122 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.LayerActi
 		
 		the.trigger = false;
 		this.assert(the.answer() === 17, "layer not correctly de-activated, the.answer(): " + the.answer());
+	},
+    testImmediateTriggerOnAvtivationDefinition: function() {
+	}
+});
+
+TestCase.subclass('users.timfelgentreff.experimental.experimental_test.ScopedConstraintsTest', {
+    testScopedConstraints: function() {
+		var temperature = {
+			celsius: 0,
+			fahrenheit: 0
+		};
+
+		cop.create("synchronization")
+			.always({
+				solver: new ClSimplexSolver(),
+				ctx: {
+					temperature: temperature
+				}
+			}, function() {
+				return temperature.celsius * 1.8 == temperature.fahrenheit - 32;
+			});
+		this.assert(temperature.celsius === 0, "attributes changed without modification; temperature.celsius: " + temperature.celsius);
+		this.assert(temperature.fahrenheit === 0, "attributes changed without modification; temperature.fahrenheit: " + temperature.fahrenheit);
+		
+		// unconstrained assignment
+		temperature.celsius = 17;
+		this.assert(temperature.celsius === 17, "assignment did not work; temperature.celsius: " + temperature.celsius);
+		this.assert(temperature.fahrenheit === 0, "value changed although no constraint was enabled; temperature.fahrenheit: " + temperature.fahrenheit);
+		
+		// layer activation
+		synchronization.beGlobal();
+		this.assert(temperature.celsius * 1.8 == temperature.fahrenheit - 32, "constraint was not solved after layer activation; temperature.celsius: " + temperature.celsius + ", temperature.fahrenheit: " + temperature.fahrenheit);
+		
+		// constrained assignment
+		temperature.celsius = 20;
+		this.assert(temperature.celsius * 1.8 == temperature.fahrenheit - 32, "constraint is not fulfilled after constrained assignment; temperature.celsius: " + temperature.celsius + ", temperature.fahrenheit: " + temperature.fahrenheit);
+		this.assert(temperature.celsius === 20, "assignment did not work; temperature.celsius: " + temperature.celsius);
+
+		var prevCelsius = temperature.celsius;
+		var prevFahrenheit = temperature.fahrenheit;
+		
+		// layer deactivation
+		synchronization.beNotGlobal();
+		this.assert(temperature.celsius * 1.8 == temperature.fahrenheit - 32, "constraint was not solved after layer activation; temperature.celsius: " + temperature.celsius + ", temperature.fahrenheit: " + temperature.fahrenheit);
+		this.assert(temperature.celsius === prevCelsius, "value changed during layer de-activation; temperature.celsius: " + temperature.celsius + ", previous value: " + prevCelsius);
+		this.assert(temperature.fahrenheit === prevFahrenheit, "value changed during layer de-activation; temperature.fahrenheit: " + temperature.fahrenheit + ", previous value: " + prevFahrenheit);
+
+		// unconstrained assignment
+		temperature.celsius = 42;
+		this.assert(temperature.celsius === 42, "assignment did not work; temperature.celsius: " + temperature.celsius);
+		this.assert(temperature.fahrenheit === prevFahrenheit, "value of unassigned variable changed; temperature.fahrenheit: " + temperature.fahrenheit);
+	},
+    testWithLayers: function() {
+		var prevFahrenheit, temperature = {
+			celsius: 0,
+			fahrenheit: 0
+		};
+
+		cop.create("synchronization")
+			.always({
+				solver: new ClSimplexSolver(),
+				ctx: {
+					temperature: temperature
+				}
+			}, function() {
+				return temperature.celsius * 1.8 == temperature.fahrenheit - 32;
+			});
+		
+		var testcase = this;
+		cop.withLayers([synchronization], function() {
+			testcase.assert(temperature.celsius * 1.8 == temperature.fahrenheit - 32, "constraint was not solved after layer activation; temperature.celsius: " + temperature.celsius + ", temperature.fahrenheit: " + temperature.fahrenheit);
+
+			// constrained assignment
+			temperature.celsius = 20;
+			testcase.assert(temperature.celsius * 1.8 == temperature.fahrenheit - 32, "constraint is not fulfilled after constrained assignment; temperature.celsius: " + temperature.celsius + ", temperature.fahrenheit: " + temperature.fahrenheit);
+			testcase.assert(temperature.celsius === 20, "assignment did not work; temperature.celsius: " + temperature.celsius);
+
+			prevFahrenheit = temperature.fahrenheit;
+		});
+		
+		// unconstrained assignment
+		temperature.celsius = 42;
+		this.assert(temperature.celsius === 42, "assignment did not work; temperature.celsius: " + temperature.celsius);
+		this.assert(temperature.fahrenheit === prevFahrenheit, "value of unassigned variable changed; temperature.fahrenheit: " + temperature.fahrenheit);
+	},
+    testAlwaysWithAlreadyActivatedLayer: function() {
+		var prevFahrenheit, temperature = {
+			celsius: 10,
+			fahrenheit: 0
+		};
+
+		cop.create("synchronization")
+			.activeOn({
+				ctx: {
+					temperature: temperature
+				}
+			}, function() {
+				[temperature.celsius];
+				temperature.celsius.toFulfill(function() {
+					return temperature.celsius >= 5;
+				});
+			})
+			.always({
+				solver: new ClSimplexSolver(),
+				ctx: {
+					temperature: temperature
+				}
+			}, function() {
+				return temperature.celsius * 1.8 == temperature.fahrenheit - 32;
+			});
+		this.assert(temperature.celsius * 1.8 == temperature.fahrenheit - 32, "constraint was not solved after layer activation; temperature.celsius: " + temperature.celsius + ", temperature.fahrenheit: " + temperature.fahrenheit);
+		
+		// unconstrained assignment
+		temperature.celsius = 42;
+		this.assert(temperature.celsius === 42, "assignment did not work; temperature.celsius: " + temperature.celsius);
+		// TODO: check constraint
 	}
 });
 
