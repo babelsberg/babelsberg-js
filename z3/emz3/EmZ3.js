@@ -1,7 +1,8 @@
-module('users.timfelgentreff.z3.emz3.EmZ3').requires().toRun(function() {
+module('users.timfelgentreff.z3.emz3.EmZ3').requires('users.timfelgentreff.z3.NaClZ3').toRun(function() {
 
-    Object.subclass("EmZ3", {
-        initialize: function () {
+    NaCLZ3.subclass("EmZ3", {
+        initialize: function ($super) {
+            $super();
             var prefixUrl; //new URL(module('users.timfelgentreff.z3.emz3.EMZ3').uri()).dirname();
             // A little hackery to find the URL of this very file.
             // Throw an error, then parse the stack trace looking for filenames.
@@ -12,6 +13,9 @@ module('users.timfelgentreff.z3.emz3.EmZ3').requires().toRun(function() {
                 prefixUrl = match[1];
                 break;
               }
+            }
+            if (!prefixUrl) {
+                prefixUrl = module("users.timfelgentreff.z3.emz3.EmZ3").uri().replace("EmZ3.js", "");
             }
             
             var self = this;
@@ -53,16 +57,25 @@ module('users.timfelgentreff.z3.emz3.EmZ3').requires().toRun(function() {
                     self.FS = FS;
                 }
             };
-            request.open("GET", prefixUrl + "z3.js", true);
+            request.open("GET", prefixUrl + "z3.js", false); // be synchronous
             request.send();
         },
         
+        loadModule: function () {},
+        
         run: function (code) {
+            var self = this;
             this.stdout = [];
-            this.FS.createDataFile("/", "problem.smt2", code, true, true);
+            this.FS.createDataFile("/", "problem.smt2", "(check-sat)" + code, true, true);
             try {
+                var oldlog = console.log;
+                console.log = function () {
+                    self.stdout.push.apply(self.stdout, arguments);
+                    oldlog.apply(console, arguments);
+                }
                 this.Module.callMain(["-smt2", "/problem.smt2"]);
             } finally {
+                console.log = oldlog;
                 this.FS.unlink("/problem.smt2");
             }
             return this.stdout.join("");
@@ -72,11 +85,47 @@ module('users.timfelgentreff.z3.emz3.EmZ3').requires().toRun(function() {
             debugger
         },
         stdout: function (c) {
-            console.log(String.fromCharCode(c));
             this.stdout.push(String.fromCharCode(c));
         },
         stderr: function (c) {
             this.stdout.push(String.fromCharCode(c));
-        }
+        },
+        
+        applyResults: function (result) {
+            result = result.replace(/\(error.*\n/m, "").replace(/^WARNING.*\n/m, "");
+            if (result.startsWith("sat")/* || result.indexOf("\nsat\n") != -1 */) {
+                var idx = result.indexOf("sat");
+                result = result.slice(idx + "sat".length, result.length);
+                // remove outer parens
+                result = result.trim().slice(2, result.length - 2);
+        
+                var assignments = result.split(/\)\s+\(/m).map(function (str) {
+                    // these are now just pairs of varname value
+                    var both = str.trim().split(" ");
+                    if (both.length < 2) return;
+                    both = [both[0].trim(), both.slice(1, both.length).join(" ").trim()];
+                    
+                    var name = both[0];
+                    var value = this.parseAndEvalSexpr(both[1]);
+                    return {name: name, value: value};
+                }.bind(this));
+                assignments.each(function (a) {
+                    this.varsByName[a.name].value = a.value;
+                }.bind(this));
+            } else if (result.startsWith("unsat")) {
+                debugger
+                throw "Unsatisfiable constraint system";
+            } else {
+                throw "Z3 failed to solve this system";
+            }
+        },
+        postMessage: function (string) {
+            string = string.replace(/\n/g, " ") +
+                ("(check-sat)(get-value (" + this.variables.inject("", function (acc, v) {
+                    return acc + v.name + " "
+                }) + "))");
+            this.applyResults(this.run(string).replace("sat", "") /* remove first sat */);
+    },
+
     });
 }) // end of module
