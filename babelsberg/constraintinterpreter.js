@@ -394,7 +394,9 @@ Object.subclass('Constraint', {
                 throw new Error("Constraint expression returned true, but was not marked as test. If you expected this to be solveable, check that there are no operations in this that cannot be solved by the selected solver (e.g. Cassowary does not support `<', only `<='). Otherwise, if you think this is ok, you must pass `allowTests: true' as option to the constraint.");
             }
         } else if (obj === false) {
-            throw new Error("Constraint expression returned false, no solver available to fix it");
+			if(!this.allowFailing) {
+				throw new Error("Constraint expression returned false, no solver available to fix it");
+			}
         } else if (!obj.enable) {
             var e = new Error("Constraint expression returned an object that does not respond to #enable");
             e.obj = obj;
