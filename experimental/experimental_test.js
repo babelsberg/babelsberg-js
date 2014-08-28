@@ -58,10 +58,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.AssertTes
     			pt: pt
     		}
     	}, function() {
-    		[pt.x, pt.y];
-    		pt.x.toFulfill(function() {
-    			return pt.y > pt.x;
-    		});
+   			return pt.y > pt.x;
     	});
 		this.assert(pt.x === 1, "constraint construction modified variable, pt.x: " + pt.x);
 		this.assert(pt.y === 2, "constraint construction modified variable, pt.y: " + pt.y);
@@ -90,10 +87,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.AssertTes
 						pt: pt
 					}
 				}, function() {
-					[pt.x, pt.y];
-					pt.x.toFulfill(function() {
-						return pt.x === pt.y;
-					});
+					return pt.x === pt.y;
 				});
 			},
 			"no ContinuousAssertError was thrown"
@@ -117,10 +111,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.AssertTes
 				pt2: pt2
 			}
 		}, function() {
-			[pt1.distance(pt2) === 5];
-			pt1.x.toFulfill(function() {
-				return pt1.distance(pt2) === 5;
-			});
+			return pt1.distance(pt2) === 5;
 		});
 		
 		// valid assignment
@@ -150,10 +141,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.AssertTes
 				pt: pt
 			}
 		}, function() {
-			rect.contains(pt);
-			pt.x.toFulfill(function() {
-				return rect.contains(pt);
-			});
+			return rect.contains(pt);
 		});
 		
 		this.assertWithError(
@@ -189,10 +177,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.AssertTes
     			pt: pt
     		}
     	}, function() {
-    		[pt.x, pt.y];
-    		pt.x.toFulfill(function() {
-    			return pt.y > pt.x;
-    		});
+   			return pt.y > pt.x;
     	});
 
 		this.assertWithError(
@@ -212,10 +197,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.AssertTes
     			pt: pt
     		}
     	}, function() {
-    		[pt.x];
-    		pt.x.toFulfill(function() {
-    			return pt.x >= 0;
-    		});
+   			return pt.x >= 0;
     	});
     	bbb.assert({
 			message: "x-coordinate is greater then 10",
@@ -223,10 +205,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.AssertTes
     			pt: pt
     		}
     	}, function() {
-    		[pt.x];
-    		pt.x.toFulfill(function() {
-    			return pt.x <= 10;
-    		});
+   			return pt.x <= 10;
     	});
 		this.assert(pt.x === 1, "constraint construction modified variable, pt.x: " + pt.x);
 		
@@ -277,10 +256,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.TriggerTe
     			p: p
     		}
     	}, function() {
-    		[p.hp];
-    		p.hp.toFulfill(function() {
-    			return p.hp <=  0;
-    		});
+   			return p.hp <=  0;
     	});
 		this.assert(p.hp === 2, "constraint construction modified variable, p.hp: " + p.hp);
 		this.assert(p.alive === true, "constraint construction modified variable, p.alive: " + p.alive);
@@ -320,10 +296,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.TriggerTe
     			domino1: domino1
     		}
     	}, function() {
-    		[domino1.standing];
-    		domino1.standing.toFulfill(function() {
-    			return !domino1.standing;
-    		});
+   			return !domino1.standing;
     	});
     	bbb.trigger({
 			callback: domino2.pushNext.bind(domino2),
@@ -331,10 +304,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.TriggerTe
     			domino2: domino2
     		}
     	}, function() {
-    		[domino2.standing];
-    		domino2.standing.toFulfill(function() {
-    			return !domino2.standing;
-    		});
+   			return !domino2.standing;
     	});
     	bbb.trigger({
 			callback: domino3.pushNext.bind(domino3),
@@ -342,10 +312,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.TriggerTe
     			domino3: domino3
     		}
     	}, function() {
-    		[domino3.standing];
-    		domino3.standing.toFulfill(function() {
-    			return !domino3.standing;
-    		});
+   			return !domino3.standing;
     	});
 		
 		domino1.push();
@@ -365,10 +332,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.TriggerTe
     			p: p
     		}
     	}, function() {
-    		[p.hp];
-    		p.hp.toFulfill(function() {
-    			return p.hp <=  0;
-    		});
+   			return p.hp <=  0;
     	});
 		this.assert(p.hp === -5, "assignment did not work, p.hp: " + p.hp);
 		this.assert(p.alive === false, "desired callback was not triggered");
@@ -397,10 +361,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.LayerActi
 					the: the
 				}
 			}, function() {
-				[the.answer, the.trigger];
-				the.trigger.toFulfill(function() {
-					return the.trigger === true;
-				});
+				return the.trigger === true;
 			});
 
 		this.assert(the.answer() === 17, "not the correct answer, but " + the.answer());
@@ -411,6 +372,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.LayerActi
 		the.trigger = false;
 		this.assert(the.answer() === 17, "layer not correctly de-activated, the.answer(): " + the.answer());
 	},
+	// TODO
     testImmediateTriggerOnAvtivationDefinition: function() {
 	}
 });
@@ -507,10 +469,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.ScopedCon
 					temperature: temperature
 				}
 			}, function() {
-				[temperature.celsius];
-				temperature.celsius.toFulfill(function() {
-					return temperature.celsius >= 5;
-				});
+				return temperature.celsius >= 5;
 			})
 			.always({
 				solver: new ClSimplexSolver(),
@@ -539,20 +498,14 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.ScopedCon
 					temperature: temperature
 				}
 			}, function() {
-				[temperature.sense];
-				temperature.sense.toFulfill(function() {
-					return temperature.sense === true;
-				});
+				return temperature.sense === true;
 			})
 			.assert({
 				ctx: {
 					temperature: temperature
 				}
 			}, function() {
-				[temperature.celsius];
-				temperature.celsius.toFulfill(function() {
-					return temperature.celsius > -273;
-				});
+				return temperature.celsius > -273;
 			});
 		
 		temperature.celsius = -1000;
@@ -580,20 +533,14 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.ScopedCon
 					temperature: temperature
 				}
 			}, function() {
-				[temperature.sense];
-				temperature.sense.toFulfill(function() {
-					return temperature.sense === true;
-				});
+				return temperature.sense === true;
 			})
 			.assert({
 				ctx: {
 					temperature: temperature
 				}
 			}, function() {
-				[temperature.celsius];
-				temperature.celsius.toFulfill(function() {
-					return temperature.celsius > -273;
-				});
+				return temperature.celsius > -273;
 			});
 		
 		temperature.celsius = -1000;
@@ -622,10 +569,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.ScopedCon
 					obj: obj
 				}
 			}, function() {
-				[obj.activated];
-				obj.activated.toFulfill(function() {
-					return obj.activated === true;
-				});
+				return obj.activated === true;
 			})
 			.trigger({
 				callback: obj.action.bind(obj),
@@ -633,10 +577,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.ScopedCon
 					obj: obj
 				}
 			}, function() {
-				[obj.trigger];
-				obj.trigger.toFulfill(function() {
-					return obj.trigger === true;
-				});
+				return obj.trigger === true;
 			});
 		this.assert(count === 0, "action was already triggered, count: " + count);
 		this.assert(obj.activated === false, "layer was unintentionally activated");
