@@ -12,6 +12,8 @@ BabelsbergScript is the plain old JavaScript that you are used to, but added con
 BabelsbergScript code can be loaded just like any other JavaScript using the `script` tag, except for the type being set to `"text/babelsbergscript"`:
 
 ```html
+<pre>
+<code>
 <!DOCTYPE html>
 <html>
 <head>
@@ -35,11 +37,14 @@ BabelsbergScript code can be loaded just like any other JavaScript using the `sc
 <body>
 </body>
 </html>
+</code>
+</pre>
 ```
 
 If you want to work with an external file instead, you can copy the inlined code to a file named `myScript.js`. This allows us to rewrite the above example to load the external file instead:
 
 ```html
+<samp>
 <!DOCTYPE html>
 <html>
 <head>
@@ -51,6 +56,7 @@ If you want to work with an external file instead, you can copy the inlined code
 <body>
 </body>
 </html>
+</samp>
 ```
 
 Your BabelsbergScript code is transformed to regular JavaScript by Babelsberg under the hood. The generated JavaScript equivalent to the example above would be:
