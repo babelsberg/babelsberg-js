@@ -12,15 +12,13 @@ BabelsbergScript is the plain old JavaScript that you are used to, but added con
 BabelsbergScript code can be loaded just like any other JavaScript using the `script` tag, except for the type being set to `"text/babelsbergscript"`:
 
 ```html
-<pre>
-<code>
-<!DOCTYPE html>
-<html>
-<head>
-<!-- Load the Babelsberg.js library -->
-<script type="text/javascript" src="js/babelsberg.mini.prototype.js"></script>
-<!-- Define inlined BabelsbergScript -->
-<script type="text/babelsberg">
+&#60!DOCTYPE html&#62
+&#60html&#62
+&#60head&#62
+&#60!-- Load the Babelsberg.js library --&#62
+&#60script type="text/javascript" src="js/babelsberg.mini.prototype.js"&#62&#60/script&#62
+&#60!-- Define inlined BabelsbergScript --&#62
+&#60script type="text/babelsberg"&#62
 	// Create a solver and an object to work with.
 	var s = new ClSimplexSolver(),
     	pt = {x: 1, y: 2}
@@ -32,31 +30,27 @@ BabelsbergScript code can be loaded just like any other JavaScript using the `sc
 	pt.x = 10;
 	// Check the result.
 	console.log(obj.a, obj.b);
-</script>
-</head>
-<body>
-</body>
-</html>
-</code>
-</pre>
+&#60/script&#62
+&#60/head&#62
+&#60body&#62
+&#60/body&#62
+&#60/html&#62
 ```
 
 If you want to work with an external file instead, you can copy the inlined code to a file named `myScript.js`. This allows us to rewrite the above example to load the external file instead:
 
 ```html
-<samp>
-<!DOCTYPE html>
-<html>
-<head>
-<!-- Load the Babelsberg.js library -->
-<script type="text/javascript" src="js/babelsberg.mini.prototype.js"></script>
-<!-- Load external BabelsbergScript -->
-<script type="text/babelsberg" src="myScript.js"></script>
-</head>
-<body>
-</body>
-</html>
-</samp>
+&#60!DOCTYPE html&#62
+&#60html&#62
+&#60head&#62
+&#60!-- Load the Babelsberg.js library --&#62
+&#60script type="text/javascript" src="js/babelsberg.mini.prototype.js"&#62&#60/script&#62
+&#60!-- Load external BabelsbergScript --&#62
+&#60script type="text/babelsberg" src="myScript.js">&#60/script&#62
+&#60/head&#62
+&#60body&#62
+&#60/body&#62
+&#60/html&#62
 ```
 
 Your BabelsbergScript code is transformed to regular JavaScript by Babelsberg under the hood. The generated JavaScript equivalent to the example above would be:
