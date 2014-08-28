@@ -33,7 +33,8 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	        var ctx = opts.ctx;
 	        func.varMapping = ctx;
 	        var cobj = new Constraint(func, this);
-	        cobj.addPrimitiveConstraint(new AssertSolver.Constraint(this, cobj));
+			cobj.allowFailing = true;
+	        cobj.addPrimitiveConstraint(new AssertSolver.Constraint(this, cobj, func));
 			try {
 				if(!opts.postponeEnabling) { cobj.enable(); }
 			} catch(e) {
@@ -123,14 +124,14 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	
 	Object.subclass("AssertSolver.Constraint", {
 	    isConstraintObject: function() { return true; },
-	    initialize: function(solver, bbbConstraint) {
+	    initialize: function(solver, bbbConstraint, func) {
 	    	//console.log("AssertSolver.Constraint.initialize");
 			this.enabled = false;
 	    	this.solver = solver;
 	    	this.solver.constraint = this;
 
 	    	// extract predicate from bbbConstraint
-	    	this.predicate = _.chain(bbbConstraint.constraintvariables)
+	    	this.predicate = func;/*_.chain(bbbConstraint.constraintvariables)
 	    		.map(function(variable) {
 	    			return variable.externalVariables(this.solver);
 	    		}, this)
@@ -138,7 +139,7 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	    			return typeof externalVariable.assertPredicate === "function";
 	    		})
 	    		.value()
-	    		.assertPredicate;
+	    		//.assertPredicate;*/
 	    },
 	    enable: function() {
 	    	//console.log("AssertSolver.Constraint.enable");
@@ -175,7 +176,8 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	        var ctx = opts.ctx;
 	        func.varMapping = ctx;
 	        var cobj = new Constraint(func, this);
-	        cobj.addPrimitiveConstraint(new AssertSolver.Constraint(this, cobj));
+			cobj.allowFailing = true;
+	        cobj.addPrimitiveConstraint(new AssertSolver.Constraint(this, cobj, func));
 			if(!opts.postponeEnabling) { cobj.enable(); }
 	        return cobj;
 	    },
@@ -220,7 +222,8 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	        var ctx = opts.ctx;
 	        func.varMapping = ctx;
 	        var cobj = new Constraint(func, this);
-	        cobj.addPrimitiveConstraint(new AssertSolver.Constraint(this, cobj));
+			cobj.allowFailing = true;
+	        cobj.addPrimitiveConstraint(new AssertSolver.Constraint(this, cobj, func));
 			cobj.enable();
 	        return cobj;
 	    },
@@ -258,7 +261,7 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 			opts.allowUnsolvableOperations = true;
 			opts.allowTests = true;
 			//opts.debugging = true;
-	        opts.solver.always(opts, func);
+	        bbb.always(opts, func);
 			
 			return this;
 		}
