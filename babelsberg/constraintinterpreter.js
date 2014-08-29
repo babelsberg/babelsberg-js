@@ -882,7 +882,9 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
         ">=": ["cnGeq", "cnLeq"],
         "<": ["cnLess", "cnGreater"],
         ">": ["cnGreater", "cnLess"],
-        "||": ["cnOr", "cnOr"]
+        "||": ["cnOr", "cnOr"],
+        "!=": ["cnNeq", "cnNeq"],
+        "!==": ["cnNotIdentical", "cnNotIdentical"]
     },
     
     alternativeExpressionsMapTo: {
@@ -1269,4 +1271,3 @@ String.prototype.__defineSetter__(ConstrainedVariable.ThisAttrName, function (v)
 
 
 })
- 

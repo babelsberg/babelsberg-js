@@ -19,9 +19,8 @@ module('users.timfelgentreff.standalone.Compressor').requires().toRun(function()
             return code;
         },
         
-        doAction: function() {
-            this.writeCombinedSources(this.combineSources(this.sources()), "babelsberg_mini_prototype");
-            this.writeCombinedSources(this.combineSources(this.sources().slice(1)), "babelsberg_mini");
+        doAction: function(spec, name) {
+            this.writeCombinedSources(this.combineSources(this.sources(spec)), name);
         },
         
         
@@ -29,53 +28,60 @@ module('users.timfelgentreff.standalone.Compressor').requires().toRun(function()
             return module("users.timfelgentreff." + string).relativePath()
         },
         
-        sources: function () {
-            return [
-                "standalone/prototype",
-                "standalone/minilively",
-        
-                "cop/Layers",
-        
-                "ometa/lib",
-                "ometa/ometa-base",
-                "ometa/parser",
-                "ometa/ChunkParser",
-                "ometa/bs-ometa-compiler",
-                "ometa/bs-js-compiler",
-                "ometa/bs-ometa-js-compiler",
-                "ometa/bs-ometa-optimizer",
-                "ometa/lk-parser-extensions",
-                "ometa/Ometa",
-        
-                "jsinterpreter/generated/Nodes",
-                "jsinterpreter/generated/Translator",
-                "jsinterpreter/LivelyJSParser",
-                "jsinterpreter/Parser",
-                "jsinterpreter/Meta",
-                "jsinterpreter/Rewriting",
-                "jsinterpreter/Interpreter",
-        
-                "cassowary/Hashtable",
-                "cassowary/HashSet",
-                "cassowary/DwarfCassowary",
-                "babelsberg/cassowary_ext",
-                
-                "deltablue/deltablue",
-                "babelsberg/deltablue_ext",
-                
-                "csp/underscore-min",
-                "csp/csp",
-                "babelsberg/csp_ext",
-				
-				"babelsberg/core_ext",
-                "babelsberg/constraintinterpreter",
-
-				"standalone/test_harness",
-                
-                "babelsberg/uglify",
-                "babelsberg/src_transform",
-                "standalone/babelsbergscript"
-            ]
+        sourceObject: {
+            prototypejs: ["standalone/prototype"],
+            core: ["standalone/minilively",
+                    "cop/Layers",
+            
+                    "ometa/lib",
+                    "ometa/ometa-base",
+                    "ometa/parser",
+                    "ometa/ChunkParser",
+                    "ometa/bs-ometa-compiler",
+                    "ometa/bs-js-compiler",
+                    "ometa/bs-ometa-js-compiler",
+                    "ometa/bs-ometa-optimizer",
+                    "ometa/lk-parser-extensions",
+                    "ometa/Ometa",
+            
+                    "jsinterpreter/generated/Nodes",
+                    "jsinterpreter/generated/Translator",
+                    "jsinterpreter/LivelyJSParser",
+                    "jsinterpreter/Parser",
+                    "jsinterpreter/Meta",
+                    "jsinterpreter/Rewriting",
+                    "jsinterpreter/Interpreter",
+                    
+                    "babelsberg/core_ext",
+                    "babelsberg/constraintinterpreter",
+                    "babelsberg/uglify",
+                    "babelsberg/src_transform",
+                    "standalone/babelsbergscript"],
+            cassowary: ["cassowary/Hashtable",
+                    "cassowary/HashSet",
+                    "cassowary/DwarfCassowary",
+                    "babelsberg/cassowary_ext"],
+            deltablue: ["deltablue/deltablue",
+                    "babelsberg/deltablue_ext"],
+            csp: ["csp/underscore-min",
+                    "csp/csp",
+                    "babelsberg/csp_ext"],
+            sutherland: ["sutherland/relax",
+                    "sutherland/relax_bbb"],
+            z3: ["z3/NaClZ3",
+                "z3/CommandLineServerInterface",
+                "z3/CommandLineZ3",
+                "z3/StrZ3",
+                "z3/emz3/EmZ3"],
+			tests: ["standalone/test_harness"],
+        },
+        sources: function (list) {
+            if (!list || list.length === 0) {
+                list = ["prototypejs", "core", "cassowary", "deltablue", "csp"];
+            }
+            return [[]].concat(list).reduce(function (acc, key) {
+                return acc.concat(this.sourceObject[key]);
+            }.bind(this));
         },
         
         writeCombinedSources: function (code, name) {

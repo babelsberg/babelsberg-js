@@ -1,4 +1,11 @@
 contentLoaded(window, function() {
+	var consoleLog = console.log;
+	console.log = function (args) {
+		consoleLog.apply(console, arguments);
+		var c = document.getElementById('console');
+		c.innerText = "Console\n" + args + "\n" + 
+				c.innerText.slice("Console\n".length, c.innerText.indexOf("\n", 500));
+	};
 
 	// setup canvas
 	var canvas = new fabric.Canvas('canvas');
@@ -36,9 +43,10 @@ contentLoaded(window, function() {
 	
 	// code editor
 	var codeEditor = document.getElementById('code');
+	var solverSelect = document.getElementById('solver');
 	
 	var editorCallback = function() {
-		bbb.defaultSolver = new ClSimplexSolver();
+		bbb.defaultSolver = new (eval(solverSelect.value))();
 		
 		// remove old constraints
 		Object.keys(window.rects).each(function(name) {
@@ -84,6 +92,10 @@ contentLoaded(window, function() {
 	editorCallback.call(codeEditor);
 
 	canvas.add(red, green, blue, yellow);
+
+	solverSelect.onchange = (function () {
+		editorCallback.call(codeEditor);
+	});
 	
 	// update controls of rects moved by constraints
 	var setControls = function() {
