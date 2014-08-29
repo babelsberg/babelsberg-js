@@ -73,6 +73,55 @@ RelaxNode.prototype.cnEquals = function(r) {
     )
 }
 
+RelaxNode.prototype.cnIdentical = RelaxNode.prototype.cnEquals;
+
+RelaxNode.prototype.cnGeq = function (r) {
+    return new RelaxNode(
+        '((' + this.expr + ' >= ' + _expr(r) + ') ? 0 : Math.abs(' + this.expr + ' - (' + _expr(r) + ')))',
+        this.vars.concat(r.vars).uniq(),
+        this.solver
+    )
+}
+
+RelaxNode.prototype.cnLeq = function (r) {
+    return new RelaxNode(
+        '((' + this.expr + ' <= ' + _expr(r) + ') ? 0 : Math.abs(' + this.expr + ' - (' + _expr(r) + ')))',
+        this.vars.concat(r.vars).uniq(),
+        this.solver
+    )
+}
+
+RelaxNode.prototype.cnLess = function (r) {
+    return new RelaxNode(
+        '((' + this.expr + ' < ' + _expr(r) + ') ? 0 : ((' +
+            this.expr + ' + (' + _expr(r) + ' * ' + this.solver.epsilon + ')) - (' + _expr(r) + ')))',
+        this.vars.concat(r.vars).uniq(),
+        this.solver
+    )
+}
+
+RelaxNode.prototype.cnGreater = function (r) {
+    return new RelaxNode(
+        '((' + this.expr + ' > ' + _expr(r) + ') ? 0 : ((' +
+            _expr(r) + ' + (' + _expr(r) + ' * ' + this.solver.epsilon + ')) - (' + this.expr + ')))',
+        this.vars.concat(r.vars).uniq(),
+        this.solver
+    )
+}
+
+RelaxNode.prototype.cnNeq = function (r) {
+    return new RelaxNode(
+        '((Math.abs(' + this.expr + ' - ' + _expr(r) + ') > ' + this.solver.epsilon + ') ' +
+        '? 0 : Math.abs((' +
+            _expr(r) + ' + (' +
+                _expr(r) + ' * ' + this.solver.epsilon + ')) - (' +this.expr + ')))',
+        this.vars.concat(r.vars).uniq(),
+        this.solver
+    )
+}
+
+RelaxNode.prototype.cnNotIdentical = RelaxNode.prototype.cnNeq;
+
 RelaxNode.prototype.plus = function(r) {
     return new RelaxNode(
         '(' + this.expr + ' + ' + _expr(r) + ')',
