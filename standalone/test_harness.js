@@ -1,3 +1,6 @@
+window.GlobalErrors = [];
+window.runcount = 0;
+
 Object.subclass("TestCase", {
     assert: function (bool, msg) {
 	if (!bool) {
@@ -11,10 +14,12 @@ Object.subclass("TestCase", {
 		if (typeof(p) == "function") {
 		    try {
 			console.log(l);
+			window.runcount += 1;
 			this.setUp && this.setUp();
 			p.apply(this);
 			this.tearDown && this.tearDown();
 		    } catch (e) {
+		      window.GlobalErrors.push(e.stack);
 		    	console.error(e);
 		    }
 		}
