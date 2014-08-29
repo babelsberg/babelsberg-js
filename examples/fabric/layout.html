@@ -2,18 +2,53 @@
 	<head>
 	<title>Babelsberg/JS FabricJS Layout</title>
 	
-	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.mini.prototype.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/prototype/1.7.2.0/prototype.js"></script>
+	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.core.js"></script>
+	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.cassowary.js"></script>
+	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.csp.js"></script>
+	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.deltablue.js"></script>
+	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.sutherland.js"></script>
+	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.z3.js"></script>
 	
 	<script src="fabric.js"></script>
 	<script type="text/babelsbergscript" src="layout.js"></script>
 	
 	</head>
 	<body>
+		<div>
+		  Try different solvers. Only Cassowary and
+		  Sutherland work with all the default constraints.
+		  The console below indicates problems with the
+		  constraints.
+		  <p>
+		    Notice the differences between solvers. For
+		    example, Cassowary will not let you violate the
+		    constraints when rotating the blue
+		    box. Sutherland's relaxation will let you do it,
+		    but correct it when you touch something
+		    else. DeltaBlue can only deal with equalities with
+		    explicit propagation functions.
+		  </p>
+		    Mind that some of these solvers are heavily under
+		    development and may not work at all. YMMV.
+		</div>
 		<div style="float: left;">
 			<canvas id="canvas" width="700" height="600" style="border: 1px dotted black"></canvas>
 		</div>
 		<div style="float: left;">
+			<select id="solver">
+			  <option value="ClSimplexSolver">Cassowary (Simplex)</option>
+			  <option value="Relax">Sutherland's Relaxation</option>
+			  <option value="EmZ3">Z3 (Emscripten version)</option>
+			  <option value="DBPlanner">DeltaBlue (local propagation)</option>
+			  <option value="csp.Solver">CSP solver</option>
+			</select>
+		</div>
+		<div style="float: left;">
 			<textarea id="code" name="user_eingabe" cols="75" rows="25"></textarea>
+		</div>
+		<div id="console" style="position: fixed;width: 100%;overflow-y: scroll;height: 15%;bottom: 0px;left: 0px;background-color: #ccc;opacity: 0.8;">
+		  Console
 		</div>
 	</body>
 </html>
