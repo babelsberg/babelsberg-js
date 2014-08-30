@@ -500,6 +500,16 @@ Object.extend(Constraint, {
     },
 
 });
+recursionGuard = function(obj, key, func, context) {
+	if(!obj[key]) {
+		try {
+			obj[key] = true;
+			func.call(context);
+		} finally {
+			obj[key] = false;
+		}
+	}
+};
 Object.subclass('ConstrainedVariable', {
     initialize: function(obj, ivarname, optParentCVar) {
         this.__uuid__ = Strings.newUUID();
@@ -580,27 +590,31 @@ Object.subclass('ConstrainedVariable', {
             var priorValue = this.storedValue;
             ConstrainedVariable.$$optionalSetters = ConstrainedVariable.$$optionalSetters || [];
             try {
-                if (this.isSolveable() && !ConstrainedVariable.isSuggestingValue[this.__uuid__]) {
-                    var wasReadonly = false,
-                        eVar = this.definingExternalVariable,
-                        solver = this.definingSolver;
-                    try {
-                        if (solver && source) {
-                            solver.weight += 987654321; // XXX Magic Number
-                            this.findTransitiveConnectedVariables().each(function (cvar) {
-                                cvar.setDownstreamReadonly(true);
-                            });
-                        }
-                        ConstrainedVariable.isSuggestingValue[this.__uuid__] = true;
-                        wasReadonly = eVar.isReadonly();
-                        eVar.setReadonly(false);
-                        eVar.suggestValue(value);
-                        value = this.externalValue;
-                    } finally {
-                        eVar.setReadonly(wasReadonly);
-                        ConstrainedVariable.isSuggestingValue[this.__uuid__] = false;
-                    }
-                }
+				var solver = this.definingSolver;
+				recursionGuard(
+					ConstrainedVariable.isSuggestingValue, this.__uuid__,
+					function() {
+						if (this.isSolveable()) {
+							var wasReadonly = false,
+								eVar = this.definingExternalVariable;
+							try {
+								if (solver && source) {
+									solver.weight += 987654321; // XXX Magic Number
+									this.findTransitiveConnectedVariables().each(function (cvar) {
+										cvar.setDownstreamReadonly(true);
+									});
+								}
+								wasReadonly = eVar.isReadonly();
+								eVar.setReadonly(false);
+								eVar.suggestValue(value);
+								value = this.externalValue;
+							} finally {
+								eVar.setReadonly(wasReadonly);
+							}
+						}
+					},
+					this
+				);
                 if (value !== this.storedValue && !this.$$isStoring) {
                     this.$$isStoring = true;
                     try {
