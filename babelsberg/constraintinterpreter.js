@@ -502,6 +502,7 @@ Object.extend(Constraint, {
 });
 Object.subclass('ConstrainedVariable', {
     initialize: function(obj, ivarname, optParentCVar) {
+        this.__uuid__ = Strings.newUUID();
         this.obj = obj;
         this.ivarname = ivarname;
         this.newIvarname = "$1$1" + ivarname;
@@ -579,7 +580,7 @@ Object.subclass('ConstrainedVariable', {
             var priorValue = this.storedValue;
             ConstrainedVariable.$$optionalSetters = ConstrainedVariable.$$optionalSetters || [];
             try {
-                if (this.isSolveable() && !ConstrainedVariable.isSuggestingValue) {
+                if (this.isSolveable() && !ConstrainedVariable.isSuggestingValue[this.__uuid__]) {
                     var wasReadonly = false,
                         eVar = this.definingExternalVariable,
                         solver = this.definingSolver;
@@ -590,14 +591,14 @@ Object.subclass('ConstrainedVariable', {
                                 cvar.setDownstreamReadonly(true);
                             });
                         }
-                        ConstrainedVariable.isSuggestingValue = true;
+                        ConstrainedVariable.isSuggestingValue[this.__uuid__] = true;
                         wasReadonly = eVar.isReadonly();
                         eVar.setReadonly(false);
                         eVar.suggestValue(value);
                         value = this.externalValue;
                     } finally {
                         eVar.setReadonly(wasReadonly);
-                        ConstrainedVariable.isSuggestingValue = false;
+                        ConstrainedVariable.isSuggestingValue[this.__uuid__] = false;
                     }
                 }
                 if (value !== this.storedValue && !this.$$isStoring) {
@@ -1157,6 +1158,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
             	case "object": retval[ConstrainedVariable.ThisAttrName] = cvar; break;
             	case "number": new Number(retval)[ConstrainedVariable.ThisAttrName] = cvar; break;
             	case "string": new String(retval)[ConstrainedVariable.ThisAttrName] = cvar; break;
+				//case "boolean": break;
             	default: throw "Error - we cannot store the constrained var attribute on " + retval + " of type " + typeof(retval);
             	}
                 
@@ -1234,7 +1236,7 @@ Object.extend(ConstrainedVariable, {
         }
     },
 
-    isSuggestingValue: false,
+    isSuggestingValue: {},
 });
 
 Object.subclass("PrimitiveCObjectRegistry", {});
