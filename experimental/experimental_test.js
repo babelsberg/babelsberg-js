@@ -336,6 +336,100 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.TriggerTe
     	});
 		this.assert(p.hp === -5, "assignment did not work, p.hp: " + p.hp);
 		this.assert(p.alive === false, "desired callback was not triggered");
+	},
+    testOneTimeTrigger: function() {
+    	var p = {
+			hp: 10,
+			lives: 2
+		};
+    	
+    	bbb.trigger({
+			callback: function() {
+				p.lives--;
+			},
+    		ctx: {
+    			p: p
+    		}
+    	}, function() {
+   			return p.hp <=  0;
+    	});
+		this.assert(p.hp === 10, "constraint construction modified variable, p.hp: " + p.hp);
+		this.assert(p.lives === 2, "constraint construction modified variable, p.lives: " + p.lives);
+
+		// trigger activation
+		p.hp = -1;
+		this.assert(p.lives === 1, "callback not triggered correctly (1), p.lives: " + p.lives);
+
+		// no trigger activation
+		p.hp = -2;
+		this.assert(p.lives === 1, "callack activated again without reset, p.lives: " + p.lives);
+	},
+    testResetOnFalse: function() {
+    	var p = {
+			hp: 10,
+			lives: 2
+		};
+    	
+    	bbb.trigger({
+			callback: function() {
+				p.lives--;
+				if(p.lives === 0)
+					this.disable();
+			},
+    		ctx: {
+    			p: p
+    		}
+    	}, function() {
+   			return p.hp <=  0;
+    	});
+		this.assert(p.hp === 10, "constraint construction modified variable, p.hp: " + p.hp);
+		this.assert(p.lives === 2, "constraint construction modified variable, p.lives: " + p.lives);
+
+		// valid assignment
+		p.hp = -1;
+		this.assert(p.lives === 1, "callback not triggered correctly (1), p.lives: " + p.lives);
+
+		p.hp = -2;
+		this.assert(p.lives === 1, "callack activated again without reset, p.lives: " + p.lives);
+
+		// reactivate trigger
+		p.hp = 10;
+		
+		// calls callback (should disable the trigger)
+		p.hp = -1;
+		this.assert(p.lives === 0, "callback not triggered correctly (2), p.lives: " + p.lives);
+
+		// for reactivation
+		p.hp = 10;
+
+		// non-triggering assignments
+		p.hp = -1;
+		this.assert(p.lives === 0, "callback triggered again, p.lives: " + p.lives);
+	},
+    testResetValue: function() {
+    	var p = {
+			hp: 10,
+			lives: 2
+		};
+    	
+    	bbb.trigger({
+			callback: function() {
+				p.lives--;
+				p.hp = 10;
+			},
+    		ctx: {
+    			p: p
+    		}
+    	}, function() {
+   			return p.hp <=  0;
+    	});
+		this.assert(p.lives === 2, "constraint construction modified variable, p.lives: " + p.lives);
+		this.assert(p.hp === 10, "constraint construction modified variable, p.hp: " + p.hp);
+
+		// valid assignment
+		p.hp = -1;
+		this.assert(p.lives === 1, "callback not triggered correctly (1), p.lives: " + p.lives);
+		this.assert(p.hp === 10, "variable that initiates the trigger could not be reset in callback, p.hp: " + p.hp);
 	}
 });
 
