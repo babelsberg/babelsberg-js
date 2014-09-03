@@ -171,7 +171,7 @@ Object.subclass("Babelsberg", {
 	 *     pt = {x: 1, y: 2, z: 3};
      * 
 	 * // The x and y coordinate of the point should sum up to its z coordinate.
-	 * // Cassowary is not allowed to change the value of pt.y in order to fulfil this constraint.
+	 * // Cassowary is not allowed to change the value of pt.y in order to fulfill this constraint.
 	 * always: { solver: s
 	 *     pt.x + bbb.readonly(pt.y) == pt.z
 	 * }
