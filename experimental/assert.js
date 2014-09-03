@@ -129,6 +129,7 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 			this.enabled = false;
 	    	this.solver = solver;
 	    	this.solver.constraint = this;
+			this.bbbConstraint = bbbConstraint;
 
 	    	// extract predicate from bbbConstraint
 	    	this.predicate = func;/*_.chain(bbbConstraint.constraintvariables)
@@ -164,8 +165,6 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	/***************************************************************
 	 * Triggering
 	 ***************************************************************/
-	// TODO: queue triggered actions and process list after assignments are done
-	
 	AssertSolver.subclass("TriggerSolver", {
 		initialize: function(callback) {
 			this.callback = callback;
@@ -185,15 +184,15 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	    	//console.log("TriggerSolver.solve", this.constraint.predicate());
 	    	if(this.constraint &&
 				this.constraint.enabled &&
-				typeof this.constraint.predicate === "function" &&
-				!this.triggeredOnce
+				typeof this.constraint.predicate === "function"
 			) {
 	    		if(this.constraint.predicate()) {
-					this.triggeredOnce = true;
-					this.constraint.disable();
-	    			this.callback();
+					if(!this.triggeredOnce) {
+						this.triggeredOnce = true;
+						this.callback.call(this.constraint.bbbConstraint);
+					}
 				} else {
-					// resetOnFalse?
+					this.triggeredOnce = false;
 				}
 			}
 	    },
