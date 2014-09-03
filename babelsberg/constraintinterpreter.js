@@ -596,6 +596,7 @@ Object.subclass('ConstrainedVariable', {
 					function() {
 						if (this.isSolveable()) {
 							var wasReadonly = false,
+								// recursionGuard per externalVariable?
 								eVar = this.definingExternalVariable;
 							try {
 								if (solver && source) {
