@@ -1,40 +1,37 @@
-module('users.timfelgentreff.experimental.experimental_test').requires('lively.TestFramework').toRun(function() {
+module('users.timfelgentreff.experimental.experimental_test').requires('lively.TestFramework', 'users.timfelgentreff.experimental.assert').toRun(function() {
 
 TestCase.subclass('users.timfelgentreff.experimental.experimental_test.AssertTest', {
 	setUp: function() {
-		Point = function(x, y) {
+		_Point = function(x, y) {
 			this.x = x;
 			this.y = y;
 		};
-		Point.prototype.distance = function(ext) {
+		_Point.prototype.distance = function(ext) {
 			var distX = ext.x - this.x;
 			var distY = ext.y - this.y;
 			return Math.sqrt(distX * distX + distY * distY);
 		};
-		Point.prototype.extent = function(ext) {
+		_Point.prototype.extent = function(ext) {
 			return new Rectangle(this.x, this.y, ext.x, ext.y);
 		};
-		Point.prototype.leq = function(other) {
+		_Point.prototype.leq = function(other) {
 			return this.x <= other.x && this.y <= other.y;
 		}
-		Point.prototype.add = function(other) {
+		_Point.prototype.add = function(other) {
 			var x = this.x + other.x;
 			var y = this.y + other.y;
-			return new Point(x, y);
+			return new _Point(x, y);
 		};
 		
-		Rectangle = function(left, bottom, width, height) {
-			this.origin = new Point(left, bottom);
-			this.extent = new Point(width, height);
+		_Rectangle = function(left, bottom, width, height) {
+			this.origin = new _Point(left, bottom);
+			this.extent = new _Point(width, height);
 		};
-		Rectangle.prototype.contains = function(point) {
+		_Rectangle.prototype.contains = function(point) {
 			var upperRightCorner = this.origin.add(this.extent);
 			return this.origin.leq(point) &&
 				point.leq(upperRightCorner);
 		};
-		
-		this.Point = Point;
-		this.Rectangle = Rectangle;
 	},
 	assertWithError: function(ErrorType, func, msg) {
 		var errorThrown = false;
@@ -100,8 +97,8 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.AssertTes
 		this.assert(pt.y === 2, "modified unassigned variable, pt.y: " + pt.y);
     },
 	testComplexFunction: function() {
-		var pt1 = new this.Point(2,3);
-		var pt2 = new this.Point(5,7);
+		var pt1 = new _Point(2,3);
+		var pt2 = new _Point(5,7);
 		this.assert(pt1.distance(pt2) === 5, "distance not correct, distance: " + pt1.distance(pt2));
 		
 		bbb.assert({
@@ -129,8 +126,8 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.AssertTes
 		);
 	},
 	testComplexObject: function() {
-		var pt = new this.Point(4,4);
-		var rect = new this.Rectangle(0, 0, 5, 5);
+		var pt = new _Point(4,4);
+		var rect = new _Rectangle(0, 0, 5, 5);
 
 		this.assert(rect.contains(pt), "pt not contained by rectangle");
 		
@@ -147,7 +144,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.AssertTes
 		this.assertWithError(
 			ContinuousAssertError,
 			function() {
-				rect.origin = new this.Point(3,4.5);
+				rect.origin = new _Point(3,4.5);
 			},
 			"no ContinuousAssertError was thrown (1)"
 		);
@@ -159,7 +156,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.AssertTes
 			"no ContinuousAssertError was thrown (2)"
 		);
 		
-		rect.origin = new this.Point(3,3);
+		rect.origin = new _Point(3,3);
 		this.assertWithError(
 			ContinuousAssertError,
 			function() {
@@ -478,7 +475,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.ScopedCon
 			fahrenheit: 0
 		};
 
-		cop.create("synchronization")
+		cop.create("synchronization3")
 			.always({
 				solver: new ClSimplexSolver(),
 				ctx: {
@@ -496,7 +493,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.ScopedCon
 		this.assert(temperature.fahrenheit === 0, "value changed although no constraint was enabled; temperature.fahrenheit: " + temperature.fahrenheit);
 		
 		// layer activation
-		synchronization.beGlobal();
+		synchronization3.beGlobal();
 		this.assert(temperature.celsius * 1.8 == temperature.fahrenheit - 32, "constraint was not solved after layer activation; temperature.celsius: " + temperature.celsius + ", temperature.fahrenheit: " + temperature.fahrenheit);
 		
 		// constrained assignment
@@ -508,7 +505,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.ScopedCon
 		var prevFahrenheit = temperature.fahrenheit;
 		
 		// layer deactivation
-		synchronization.beNotGlobal();
+		synchronization3.beNotGlobal();
 		this.assert(temperature.celsius * 1.8 == temperature.fahrenheit - 32, "constraint was not solved after layer activation; temperature.celsius: " + temperature.celsius + ", temperature.fahrenheit: " + temperature.fahrenheit);
 		this.assert(temperature.celsius === prevCelsius, "value changed during layer de-activation; temperature.celsius: " + temperature.celsius + ", previous value: " + prevCelsius);
 		this.assert(temperature.fahrenheit === prevFahrenheit, "value changed during layer de-activation; temperature.fahrenheit: " + temperature.fahrenheit + ", previous value: " + prevFahrenheit);
@@ -524,7 +521,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.ScopedCon
 			fahrenheit: 0
 		};
 
-		cop.create("synchronization")
+		cop.create("synchronization1")
 			.always({
 				solver: new ClSimplexSolver(),
 				ctx: {
@@ -535,7 +532,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.ScopedCon
 			});
 		
 		var testcase = this;
-		cop.withLayers([synchronization], function() {
+		cop.withLayers([synchronization1], function() {
 			testcase.assert(temperature.celsius * 1.8 == temperature.fahrenheit - 32, "constraint was not solved after layer activation; temperature.celsius: " + temperature.celsius + ", temperature.fahrenheit: " + temperature.fahrenheit);
 
 			// constrained assignment
@@ -557,7 +554,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.ScopedCon
 			fahrenheit: 0
 		};
 
-		cop.create("synchronization")
+		cop.create("synchronization2")
 			.activeOn({
 				ctx: {
 					temperature: temperature
