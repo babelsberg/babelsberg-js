@@ -86,6 +86,14 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 				}
 				throw e;
 			}
+			
+			// re-constrain variables
+			var bbbConstraint = this.solver.constraint.bbbConstraint;
+			var enabled = bbbConstraint._enabled;
+			bbbConstraint.initialize(bbbConstraint.predicate, bbbConstraint.solver);
+			bbbConstraint.addPrimitiveConstraint(this.solver.constraint);
+			if(enabled) bbbConstraint.enable();
+			
 	    	return this.__val__;
 	    },
 	    value: function() {
