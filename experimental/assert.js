@@ -189,7 +189,7 @@ module('users.timfelgentreff.experimental.assert').requires('users.timfelgentref
 	    		if(this.constraint.predicate()) {
 					if(!this.triggeredOnce) {
 						this.triggeredOnce = true;
-						this.callback.call(this.constraint.bbbConstraint);
+						bbb.addCallback(this.callback, this.constraint.bbbConstraint, []);
 					}
 				} else {
 					this.triggeredOnce = false;
