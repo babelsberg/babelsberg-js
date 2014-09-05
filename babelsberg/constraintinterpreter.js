@@ -8,6 +8,7 @@ Object.subclass("Babelsberg", {
 
     initialize: function () {
         this.defaultSolvers = [];
+		this.callbacks = [];
     },
 
     isConstraintObject: function () {
@@ -217,35 +218,58 @@ Object.subclass("Babelsberg", {
 	 * @param {function} func The constraint to be fulfilled.
 	 */
     always: function(opts, func) {
-        var solver = opts.solver || this.defaultSolver;
-        func.allowTests = (opts.allowTests === true);
-        func.allowUnsolvableOperations = (opts.allowUnsolvableOperations === true);
-        func.debugging = opts.debugging;
-        
-        if (!solver) { // throw "Must explicitely pass a solver for now";
-            var constraint,
-                errors = [];
-            bbb.defaultSolvers.some(function (solver) {
-                try {
-                    constraint = solver.always(opts, func);
-                    return true;
-                } catch(e) {
-                    errors.push("\n" + solver.constructor.name + ": " + e);
-                    return false;
-                }
-            });
-            if (!constraint) {
-                throw new Error("Must explicitely pass a solver for this constraint. The errors for the tried solvers were:" + errors);
-            } else {
-                return constraint;
-            }
-        } else {
-            return solver.always(opts, func);
-        }
-        return solver.always(opts, func);
-    }
+		try {
+			var solver = opts.solver || this.defaultSolver;
+			func.allowTests = (opts.allowTests === true);
+			func.allowUnsolvableOperations = (opts.allowUnsolvableOperations === true);
+			func.debugging = opts.debugging;
+			
+			if (!solver) { // throw "Must explicitely pass a solver for now";
+				var constraint,
+					errors = [];
+				bbb.defaultSolvers.some(function (solver) {
+					try {
+						constraint = solver.always(opts, func);
+						return true;
+					} catch(e) {
+						errors.push("\n" + solver.constructor.name + ": " + e);
+						return false;
+					}
+				});
+				if (!constraint) {
+					throw new Error("Must explicitely pass a solver for this constraint. The errors for the tried solvers were:" + errors);
+				} else {
+					return constraint;
+				}
+			} else {
+				return solver.always(opts, func);
+			}
+			return solver.always(opts, func);
+		} finally {
+			bbb.processCallbacks();
+		}
+    },
 
+	addCallback: function(func, context, args) {
+		this.callbacks.push({
+			func: func,
+			context: context,
+			args: args || [],
+		});
+	},
+	
+	processCallbacks: function() {
+		recursionGuard(bbb, "isProcessingCallbacks",
+			function() {
+				while(bbb.callbacks.length > 0) {
+					var cb = bbb.callbacks.shift();
+					cb.func.apply(cb.context, cb.args);
+				}
+			}, this
+		);
+	}
 });
+
 Object.extend(Global, {
 	/**
 	 * A globally accessible instance of {@link Babelsberg}
@@ -673,6 +697,7 @@ Object.subclass('ConstrainedVariable', {
                     });
                 }
             }
+			bbb.processCallbacks();
         }
         return value;
     },
