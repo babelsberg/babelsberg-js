@@ -1,6 +1,6 @@
-module('users.timfelgentreff.experimental.experimental_test').requires('lively.TestFramework', 'users.timfelgentreff.experimental.assert').toRun(function() {
+module('users.timfelgentreff.reactive.reactive_test').requires('lively.TestFramework', 'users.timfelgentreff.reactive.reactive').toRun(function() {
 
-TestCase.subclass('users.timfelgentreff.experimental.experimental_test.AssertTest', {
+TestCase.subclass('users.timfelgentreff.reactive.reactive_test.AssertTest', {
 	setUp: function() {
 		_Point = function(x, y) {
 			this.x = x;
@@ -232,7 +232,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.AssertTes
 	}
 });
 
-TestCase.subclass('users.timfelgentreff.experimental.experimental_test.TriggerTest', {
+TestCase.subclass('users.timfelgentreff.reactive.reactive_test.TriggerTest', {
 	setUp: function() {
 		var Player = function(hp) {
 			this.alive = true;
@@ -430,7 +430,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.TriggerTe
 	}
 });
 
-TestCase.subclass('users.timfelgentreff.experimental.experimental_test.LayerActivationTest', {
+TestCase.subclass('users.timfelgentreff.reactive.reactive_test.LayerActivationTest', {
     testLayerActivationSolver: function() {
 		// TODO: rename trigger in test for clarification
 		var the = {
@@ -468,7 +468,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.LayerActi
 	}
 });
 
-TestCase.subclass('users.timfelgentreff.experimental.experimental_test.ScopedConstraintsTest', {
+TestCase.subclass('users.timfelgentreff.reactive.reactive_test.ScopedConstraintsTest', {
     testScopedConstraints: function() {
 		var temperature = {
 			celsius: 0,
@@ -603,7 +603,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.ScopedCon
 		temperature.celsius = 10;
 		
 		temperature.sense = true
-		new users.timfelgentreff.experimental.experimental_test.AssertTest().assertWithError(
+		new users.timfelgentreff.reactive.reactive_test.AssertTest().assertWithError(
 			ContinuousAssertError,
 			function() {
 				temperature.celsius = -1000;
@@ -636,7 +636,7 @@ TestCase.subclass('users.timfelgentreff.experimental.experimental_test.ScopedCon
 		
 		temperature.celsius = -1000;
 		
-		new users.timfelgentreff.experimental.experimental_test.AssertTest().assertWithError(
+		new users.timfelgentreff.reactive.reactive_test.AssertTest().assertWithError(
 			ContinuousAssertError,
 			function() {
 				// trigger that activates an immediately breaking assertion

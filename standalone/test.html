@@ -42,11 +42,11 @@
 	<!-- // Babelsberg/js -->
 	<script src="../babelsberg/core_ext.js"></script>
 	<script src="../babelsberg/constraintinterpreter.js"></script>
-	<!-- // experimental -->
-	<script src="../experimental/assert.js"></script>
+	<!-- // reactive: assert, trigger, layer.activeOn, layer.always, ... -->
+	<script src="../reactive/reactive.js"></script>
 	<!-- // Tests -->
 	<script src="test_harness.js"></script>
-	<script src="../experimental/experimental_test.js"></script>
+	<script src="../reactive/reactive_test.js"></script>
 	<script src="../babelsberg/tests.js"></script>
 	<!-- // src transform -->
 	<script src="../babelsberg/uglify.js"></script>
@@ -67,10 +67,10 @@
 		new users.timfelgentreff.babelsberg.tests.InteractionTest().runAll();
 		new users.timfelgentreff.babelsberg.tests.CSPTest().runAll();
 
-		new users.timfelgentreff.experimental.experimental_test.AssertTest().runAll();
-		new users.timfelgentreff.experimental.experimental_test.TriggerTest().runAll();
-		new users.timfelgentreff.experimental.experimental_test.LayerActivationTest().runAll();
-		new users.timfelgentreff.experimental.experimental_test.ScopedConstraintsTest().runAll();
+		new users.timfelgentreff.reactive.reactive_test.AssertTest().runAll();
+		new users.timfelgentreff.reactive.reactive_test.TriggerTest().runAll();
+		new users.timfelgentreff.reactive.reactive_test.LayerActivationTest().runAll();
+		new users.timfelgentreff.reactive.reactive_test.ScopedConstraintsTest().runAll();
 	</script>
 	
 	<script type="text/babelsbergscript">
