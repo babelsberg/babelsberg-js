@@ -1,4 +1,4 @@
-module('users.timfelgentreff.experimental.assert').requires('users.timfelgentreff.babelsberg.constraintinterpreter', 'cop.Layers').toRun(function() {
+module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.babelsberg.constraintinterpreter', 'cop.Layers').toRun(function() {
 
 	JSLoader.loadJs(module('users.timfelgentreff.csp.underscore-min').uri());
 
