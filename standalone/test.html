@@ -7,6 +7,9 @@
 	<!-- // cop.Layers -->
 	<script src="../cop/Layers.js"></script>
 	
+	<!-- // CouldNotSatisfyError -->
+	<script src="../babelsberg/couldnotsatisfyerror.js"></script>
+
 	<!-- // ometa.lively -->
 	<script src="../ometa/lib.js"></script>
 	<script src="../ometa/ometa-base.js"></script>
@@ -66,6 +69,7 @@
 		new users.timfelgentreff.babelsberg.tests.PropagationTest().runAll();
 		new users.timfelgentreff.babelsberg.tests.InteractionTest().runAll();
 		new users.timfelgentreff.babelsberg.tests.CSPTest().runAll();
+		new users.timfelgentreff.babelsberg.tests.OnErrorTest().runAll();
 
 		new users.timfelgentreff.reactive.reactive_test.AssertTest().runAll();
 		new users.timfelgentreff.reactive.reactive_test.TriggerTest().runAll();

@@ -1,4 +1,5 @@
-module('users.timfelgentreff.babelsberg.constraintinterpreter').requires('users.timfelgentreff.jsinterpreter.Interpreter', 'cop.Layers', 'users.timfelgentreff.babelsberg.cassowary_ext', 'users.timfelgentreff.babelsberg.deltablue_ext', 'users.timfelgentreff.babelsberg.csp_ext', 'users.timfelgentreff.babelsberg.core_ext', 'users.timfelgentreff.babelsberg.src_transform', 'users.timfelgentreff.babelsberg.babelsberg-lively').toRun(function() {
+module('users.timfelgentreff.babelsberg.constraintinterpreter').requires('users.timfelgentreff.jsinterpreter.Interpreter', 'cop.Layers', 'users.timfelgentreff.babelsberg.cassowary_ext', 'users.timfelgentreff.babelsberg.deltablue_ext', 'users.timfelgentreff.babelsberg.csp_ext', 'users.timfelgentreff.babelsberg.core_ext', 'users.timfelgentreff.babelsberg.src_transform', 'users.timfelgentreff.babelsberg.babelsberg-lively',
+'users.timfelgentreff.babelsberg.couldnotsatisfyerror').toRun(function() {
 
 /**
  * The interface to create, maintain and remove constraints.
@@ -223,6 +224,7 @@ Object.subclass("Babelsberg", {
 			func.allowTests = (opts.allowTests === true);
 			func.allowUnsolvableOperations = (opts.allowUnsolvableOperations === true);
 			func.debugging = opts.debugging;
+			func.onError = opts.onError;
 			
 			if (!solver) { // throw "Must explicitely pass a solver for now";
 				var constraint,
@@ -245,6 +247,12 @@ Object.subclass("Babelsberg", {
 				return solver.always(opts, func);
 			}
 			return solver.always(opts, func);
+		} catch(e) {
+			if(e instanceof CouldNotSatisfyError && typeof opts.onError  === "function") {
+				bbb.addCallback(opts.onError, opts.onError.constraint);
+			} else {
+				throw e;
+			}
 		} finally {
 			bbb.processCallbacks();
 		}
@@ -329,6 +337,10 @@ Object.subclass('Constraint', {
     initialize: function(predicate, solver) {
         this._enabled = false;
         this._predicate = predicate;
+		if(typeof predicate.onError === "function") {
+			this.onError = predicate.onError;
+			this.onError.constraint = this;
+		}
         this.constraintobjects = [];
         this.constraintvariables = [];
         this.solver = solver;
@@ -686,6 +698,15 @@ Object.subclass('ConstrainedVariable', {
                     });
                     ConstrainedVariable.$$callingSetters = false;
                 }
+            } catch(e) {
+				var catchingConstraint = this._constraints.find(function(constraint) {
+					return typeof constraint.onError  === "function";
+				});
+				if(e instanceof CouldNotSatisfyError && catchingConstraint) {
+					bbb.addCallback(catchingConstraint.onError, catchingConstraint);
+				} else {
+					throw e;
+				}
             } finally {
                 if (callSetters) {
                     ConstrainedVariable.$$optionalSetters = null;

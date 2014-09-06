@@ -1267,4 +1267,91 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
     }
 });
 
+TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
+    testCassowaryThrowsACouldNotSatisfyError: function () {
+        var obj = {a:0, b:10},
+			s = new ClSimplexSolver(),
+			couldNotSatisfyErrorThrown = false;
+
+		bbb.always({
+			solver: s,
+			ctx: {
+				bbb: bbb,
+				obj: obj,
+				_$_self: this.doitContext || this
+			}
+		}, function() {
+			return obj.a == 0;;
+		});
+		
+		// not satisfiable assignment
+		try {
+			obj.a = 10;
+		} catch(e) {
+			if(e instanceof CouldNotSatisfyError) {
+				couldNotSatisfyErrorThrown = true;
+			}
+		}
+		
+		this.assert(couldNotSatisfyErrorThrown, "no CouldNotSatisfyError was thrown, when expected; obj.a: " + obj.a);
+    },
+    testCallOnError: function () {
+        var obj = {a: 0},
+			onErrorCalled = false;
+
+		bbb.defaultSolver = new ClSimplexSolver();
+		
+		bbb.always({
+			onError: function() {
+				onErrorCalled = true;
+			},
+			ctx: {
+				bbb: bbb,
+				obj: obj,
+				_$_self: this.doitContext || this
+			}
+		}, function() {
+			return obj.a == 0;;
+		});
+
+		bbb.always({
+			onError: function() {
+				onErrorCalled = true;
+			},
+			ctx: {
+				bbb: bbb,
+				obj: obj,
+				_$_self: this.doitContext || this
+			}
+		}, function() {
+			return obj.a == 10;;
+		});
+	
+		this.assert(onErrorCalled, "onError was not called; obj.a: " + obj.a);
+    },
+    testCallOnErrorDuringAssignment: function () {
+        var obj = {a: 0},
+			onErrorCalled = false;
+
+		bbb.defaultSolver = new ClSimplexSolver();
+		
+		bbb.always({
+			onError: function() {
+				onErrorCalled = true;
+			},
+			ctx: {
+				bbb: bbb,
+				obj: obj,
+				_$_self: this.doitContext || this
+			}
+		}, function() {
+			return obj.a == 0;;
+		});
+
+		obj.a = 10;
+		
+		this.assert(onErrorCalled, "onError was not called; obj.a: " + obj.a);
+    },
+});
+
 }) // end of module
