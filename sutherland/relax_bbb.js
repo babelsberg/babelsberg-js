@@ -1,4 +1,4 @@
-module('users.timfelgentreff.sutherland.relax_bbb').requires('users.timfelgentreff.sutherland.relax').toRun(function() {
+module('users.timfelgentreff.sutherland.relax_bbb').requires('users.timfelgentreff.sutherland.relax', 'users.timfelgentreff.babelsberg.couldnotsatisfyerror').toRun(function() {
 
 
 // Babelsberg required interface
@@ -34,7 +34,7 @@ Relax.prototype.solve = function() {
     // we solve eagerly, so just use this to throw if the error is too large
     this.iterateForUpTo(this.longWaitMillis);
     if (this.shouldRelax) {
-        throw new Error("Could not satisfy constraint");
+        throw new CouldNotSatisfyError("Could not satisfy constraint");
     }
 }
 

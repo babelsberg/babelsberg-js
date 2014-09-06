@@ -1445,6 +1445,38 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
 	
 	    this.assert(onErrorCalled, "onError was not called");
     },
+    testRelaxConstraintConstruction: function () {
+        var pt = {x: 5},
+			onErrorCalled = false;
+
+		bbb.defaultSolver = new Relax();
+	    
+        bbb.always({
+			onError: function() {
+				onErrorCalled = true;
+			},
+            ctx: {
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x == 5;;
+        });
+	    
+		bbb.always({
+			onError: function() {
+				onErrorCalled = true;
+			},
+			ctx: {
+				pt: pt,
+				_$_self: this.doitContext || this
+			}
+		}, function() {
+			return pt.x >= 20;;
+		});
+	
+	    this.assert(onErrorCalled, "onError was not called");
+    }
 });
 
 }) // end of module
