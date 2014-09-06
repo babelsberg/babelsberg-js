@@ -1,4 +1,4 @@
-module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff.csp.csp').toRun(function() {
+module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff.csp.csp', 'users.timfelgentreff.babelsberg.couldnotsatisfyerror').toRun(function() {
 	
 	JSLoader.loadJs(module('users.timfelgentreff.csp.underscore-min').uri());
 	
@@ -80,7 +80,7 @@ module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff
 		    	var satisfiable = this.p.getSolution({});
 		    	if(!satisfiable) {
 		    		this.p.removeConstraint(constraint);
-		    		throw "constraint cannot be satisfied";
+		    		throw new CouldNotSatisfyError("constraint cannot be satisfied");
 		    	}
 	    	} else {
 	    		delete this.__domainDefinition__;
@@ -125,7 +125,7 @@ module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff
 	    	// throw error if assigned value does not match the corresponding domain
 	    	var inDomain = this.domain.indexOf(value) > -1;
 	    	if(!inDomain) {
-	    		throw "assigned value is not contained in domain";
+	    		throw new CouldNotSatisfyError("assigned value is not contained in domain");
 	    	}
 	    	
 	    	// save previous assignments for possible later restoration.
@@ -140,7 +140,7 @@ module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff
 	    	if(!satisfiable) {
 	    		// restore assignments
 	    		_.extend(this.solver.p.solver.assignments, save);
-	    		throw "assignment makes constraints not satisfiable";
+	    		throw new CouldNotSatisfyError("assignment makes constraints not satisfiable");
 	    	}
 	    },
 

@@ -1329,7 +1329,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
 	
 		this.assert(onErrorCalled, "onError was not called; obj.a: " + obj.a);
     },
-    testCallOnErrorDuringAssignment: function () {
+    testCallOnErrorAssignment: function () {
         var obj = {a: 0},
 			onErrorCalled = false;
 
@@ -1351,6 +1351,99 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
 		obj.a = 10;
 		
 		this.assert(onErrorCalled, "onError was not called; obj.a: " + obj.a);
+    },
+    _testDeltaBlueConstraintConstruction: function () {
+        var obj = {int: 17, str: "17"},
+			onErrorCalled = false;
+
+		bbb.defaultSolver = new DBPlanner();
+		
+		bbb.always({
+			onError: function() {
+				onErrorCalled = true;
+			},
+			ctx: {
+				obj: obj
+			}, methods: function() {
+				obj.int.formula([obj.str], function (str) { return parseInt(str); });
+				obj.str.formula([obj.int], function (int) { return int + ""; })
+			}
+		}, function () {
+			return obj.int + "" === obj.str;
+		});
+		bbb.always({
+			onError: function() {
+				onErrorCalled = true;
+			},
+			ctx: {
+				obj: obj
+			}, methods: function() {
+				obj.int.formula([obj.str], function (str) { return parseInt(str)-1; });
+				obj.str.formula([obj.int], function (int) { return (int+1) + ""; })
+			}
+		}, function () {
+			return (obj.int+1) + "" === obj.str;
+		});
+
+		obj.str = "10";
+		
+		this.assert(onErrorCalled, "onError was not called; obj.a: " + obj.a);
+    },
+    testCSPConstraintConstruction: function () {
+        var pt = {x: 5, y: 2},
+			onErrorCalled = false;
+
+		bbb.defaultSolver = new csp.Solver();
+	    
+        bbb.always({
+			onError: function() {
+				onErrorCalled = true;
+			},
+            ctx: {
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x.is in [1, 2, 3];;
+        });
+	    
+		bbb.always({
+			onError: function() {
+				onErrorCalled = true;
+			},
+			ctx: {
+				pt: pt,
+				_$_self: this.doitContext || this
+			}
+		}, function() {
+			return pt.x >= 5;;
+		});
+	
+	    this.assert(onErrorCalled, "onError was not called");
+    },
+    testCSPAssignment: function () {
+        var pt = {x: 1, y: 2},
+			onErrorCalled = false;
+
+		bbb.defaultSolver = new csp.Solver();
+	    
+        bbb.always({
+			onError: function() {
+				onErrorCalled = true;
+			},
+            ctx: {
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x.is in [1, 2, 3];;
+        });
+
+	    this.assert(!onErrorCalled, "onError called unexpectedly");
+
+		pt.x = 5;
+	
+	    this.assert(onErrorCalled, "onError was not called");
     },
 });
 
