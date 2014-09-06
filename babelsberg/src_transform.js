@@ -311,6 +311,7 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
 			}
 		});
 		ConstraintSyntaxLayer.beGlobal();
+
     }
     
 }) // end of module

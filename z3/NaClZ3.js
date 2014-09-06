@@ -247,7 +247,14 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
     },
 });
 
-    NaCLZ3.url = URL.codeBase.withFilename(module('users.timfelgentreff.z3.NaClZ3').relativePath()).dirname();
+    if (URL && URL.codeBase && URL.codeBase.withFilename) {
+	// Lively
+	NaCLZ3.url = URL.codeBase.withFilename(module('users.timfelgentreff.z3.NaClZ3').relativePath()).dirname();
+    } else {
+	NaCLZ3.__defineGetter__("url", function () {
+	    throw "Standalone deployment must provide the URL to the Native client module as NaCLZ3.url"
+	});
+    }
 
     Object.subclass('NaCLZ3Ast', {
     cnEquals: function (r) {

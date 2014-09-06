@@ -173,19 +173,12 @@ Object.subclass("Babelsberg", {
 	 *     pt = {x: 1, y: 2, z: 3};
      * 
 	 * // The x and y coordinate of the point should sum up to its z coordinate.
-	 * // Cassowary is not allowed to change the value of pt.z in order to fulfil this constraint.
-	 * bbb.always({
-	 *     solver: s,
-	 *     ctx: {
-	 *         pt: pt,
-	 *         r: bbb.readonly,
-	 *         _$_self: this.doitContext || this
-	 *     }
-	 * }, function() {
-	 *     return pt.x + ro(pt.y) == pt.z;;
-	 * });
+	 * // Cassowary is not allowed to change the value of pt.y in order to fulfill this constraint.
+	 * always: { solver: s
+	 *     pt.x + bbb.readonly(pt.y) == pt.z
+	 * }
      * 
-	 * // This assignment cannot modify pt.y, but rather changes pt.z
+	 * // This assignment cannot modify pt.y, but rather changes pt.z.
 	 * pt.x = 4;
 	 */
     readonly: function(obj) {
@@ -946,7 +939,9 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
         ">=": ["cnGeq", "cnLeq"],
         "<": ["cnLess", "cnGreater"],
         ">": ["cnGreater", "cnLess"],
-        "||": ["cnOr", "cnOr"]
+        "||": ["cnOr", "cnOr"],
+        "!=": ["cnNeq", "cnNeq"],
+        "!==": ["cnNotIdentical", "cnNotIdentical"]
     },
     
     alternativeExpressionsMapTo: {
@@ -1334,4 +1329,3 @@ String.prototype.__defineSetter__(ConstrainedVariable.ThisAttrName, function (v)
 
 
 })
- 

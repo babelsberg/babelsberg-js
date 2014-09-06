@@ -62,8 +62,36 @@ TestCase.subclass('users.timfelgentreff.babelsberg.src_transform_test.TransformT
 TestCase.subclass('users.timfelgentreff.babelsberg.src_transform_test.MinifyTest', {
     testBuildMinifiedJs: function () {
         module("users.timfelgentreff.standalone.Compressor").load(true);
-        users.timfelgentreff.standalone.Compressor.doAction();
-    }
+        users.timfelgentreff.standalone.Compressor.doAction(["prototypejs", "core", "cassowary", "deltablue", "csp"], "babelsberg_mini_prototype");
+    },
+    testBuildMinifiedJs1: function () {
+        module("users.timfelgentreff.standalone.Compressor").load(true);
+        users.timfelgentreff.standalone.Compressor.doAction(["core", "cassowary", "deltablue", "csp"], "babelsberg_mini");
+    },
+    testBuildMinifiedJs2: function () {
+        module("users.timfelgentreff.standalone.Compressor").load(true);
+        users.timfelgentreff.standalone.Compressor.doAction(["core"], "babelsberg_core");
+    },
+    testBuildMinifiedJs3: function () {
+        module("users.timfelgentreff.standalone.Compressor").load(true);
+        users.timfelgentreff.standalone.Compressor.doAction(["deltablue"], "babelsberg_deltablue");
+    },
+    testBuildMinifiedJs4: function () {
+        module("users.timfelgentreff.standalone.Compressor").load(true);
+        users.timfelgentreff.standalone.Compressor.doAction(["cassowary"], "babelsberg_cassowary");
+    },
+    testBuildMinifiedJs5: function () {
+        module("users.timfelgentreff.standalone.Compressor").load(true);
+        users.timfelgentreff.standalone.Compressor.doAction(["csp"], "babelsberg_csp");
+    },
+    testBuildMinifiedJs6: function () {
+        module("users.timfelgentreff.standalone.Compressor").load(true);
+        users.timfelgentreff.standalone.Compressor.doAction(["sutherland"], "babelsberg_sutherland");
+    },
+    testBuildMinifiedJs7: function () {
+        module("users.timfelgentreff.standalone.Compressor").load(true);
+        users.timfelgentreff.standalone.Compressor.doAction(["z3"], "babelsberg_z3");
+    },
 });
 
 }) // end of module

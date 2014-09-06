@@ -101,12 +101,21 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
         return result;
     },
     });
-Object.extend(CommandLineZ3, {
-    modulePath: module('users.timfelgentreff.z3.CommandLineZ3').relativePath().replace("CommandLineZ3.js", "")
-});
-Object.extend(CommandLineZ3, {
-    z3Path: lively.ide.CommandLineInterface.cwd() + "/" + Config.codeBase.replace(Config.rootPath, "") + CommandLineZ3.modulePath + "z3"
-});
+if (window.Config && window.Config.codeBase) {
+    // Only in Lively
+    Object.extend(CommandLineZ3, {
+        modulePath: module('users.timfelgentreff.z3.CommandLineZ3').relativePath().replace("CommandLineZ3.js", "")
+    });
+    Object.extend(CommandLineZ3, {
+        z3Path: lively.ide.CommandLineInterface.cwd() + "/" + Config.codeBase.replace(Config.rootPath, "") + CommandLineZ3.modulePath + "z3"
+    });
+} else {
+    Object.extend(CommandLineZ3, {
+        get z3Path() {
+            throw "Standalone deployment must define CommandLineZ3.z3Path";
+        }
+    });
+}
 cop.create('CommandLineZ3Layer').
 refineObject(Global, {
     get NaCLZ3Variable() {
