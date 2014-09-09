@@ -1210,11 +1210,11 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
                 Constraint.current.haltIfDebugging();
             }
             if (retval) {
-            	switch (typeof(retval)) {
-            	case "object": retval[ConstrainedVariable.ThisAttrName] = cvar; break;
-            	case "number": new Number(retval)[ConstrainedVariable.ThisAttrName] = cvar; break;
-            	case "string": new String(retval)[ConstrainedVariable.ThisAttrName] = cvar; break;
-				//case "boolean": break;
+                switch (typeof(retval)) {
+                case "object": retval[ConstrainedVariable.ThisAttrName] = cvar; break;
+                case "number": new Number(retval)[ConstrainedVariable.ThisAttrName] = cvar; break;
+                case "string": new String(retval)[ConstrainedVariable.ThisAttrName] = cvar; break;
+                case "boolean": break;
             	default: throw "Error - we cannot store the constrained var attribute on " + retval + " of type " + typeof(retval);
             	}
                 
