@@ -220,16 +220,6 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    weight: 10
 	});
 	
-	// HACK: instead of cop.GlobalLayers.removeAt(idx); just use standard conform splice method
-	Object.extend(cop, {
-		disableLayer: function(layer) {
-			var idx = cop.GlobalLayers.indexOf(layer)
-			if (idx < 0) return;
-			cop.GlobalLayers.splice(idx, 1);
-			cop.invalidateLayerComposition();
-		},
-	});
-	
 	Object.extend(Layer.prototype, {
 		activeOn: function(opts, func) {
 			opts.solver = new LayerActivationSolver(this);

@@ -383,6 +383,10 @@ if (!window.module) {
 	}
     };
     Object.subclass("lively.morphic.CodeEditor", {});
+	
+    Array.prototype.removeAt = function(idx) {
+        this.splice(idx, 1);
+    }
 }
 
 /*!
