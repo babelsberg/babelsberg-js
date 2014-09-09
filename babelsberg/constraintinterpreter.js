@@ -213,15 +213,15 @@ Object.subclass("Babelsberg", {
 	 */
     always: function(opts, func) {
 		try {
-			var solver = opts.solver || this.defaultSolver;
+			var solver = opts.solver || this.defaultSolver,
+				constraint;
 			func.allowTests = (opts.allowTests === true);
 			func.allowUnsolvableOperations = (opts.allowUnsolvableOperations === true);
 			func.debugging = opts.debugging;
 			func.onError = opts.onError;
 			
 			if (!solver) { // throw "Must explicitely pass a solver for now";
-				var constraint,
-					errors = [];
+				var errors = [];
 				bbb.defaultSolvers.some(function (solver) {
 					try {
 						constraint = solver.always(opts, func);
@@ -233,13 +233,11 @@ Object.subclass("Babelsberg", {
 				});
 				if (!constraint) {
 					throw new Error("Must explicitely pass a solver for this constraint. The errors for the tried solvers were:" + errors);
-				} else {
-					return constraint;
 				}
 			} else {
-				return solver.always(opts, func);
+				constraint = solver.always(opts, func);
 			}
-			return solver.always(opts, func);
+			return constraint;
 		} catch(e) {
 			if(e instanceof CouldNotSatisfyError && typeof opts.onError  === "function") {
 				bbb.addCallback(opts.onError, opts.onError.constraint);
