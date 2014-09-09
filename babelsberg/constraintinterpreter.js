@@ -645,30 +645,34 @@ Object.subclass('ConstrainedVariable', {
 					},
 					this
 				);
-                if (value !== this.storedValue && !this.$$isStoring) {
-                    this.$$isStoring = true;
-                    try {
-                        if (this.isSolveable()) {
-                            var getterSetterPair = this.findOptionalSetter();
-                            if (getterSetterPair) {
-                                ConstrainedVariable.$$optionalSetters.push(getterSetterPair);
-                            }
-                        }
-                        this.setValue(value);
-                        this.updateDownstreamVariables(value);
-                        this.updateConnectedVariables();
-                    } catch (e) {
-                        if (source) {
-                            this.$$isStoring = false;
-                            value = this.suggestValue(priorValue, source);
-                            throw e; // XXX: Lively checks type, so wrap for top-level
-                        } else {
-                            throw e;
-                        }
-                    } finally {
-                        this.$$isStoring = false;
-                    }
-                }
+				recursionGuard(
+					this, "$$isStoring",
+					function() {
+						if (value !== this.storedValue) {
+							try {
+								if (this.isSolveable()) {
+									var getterSetterPair = this.findOptionalSetter();
+									if (getterSetterPair) {
+										ConstrainedVariable.$$optionalSetters.push(getterSetterPair);
+									}
+								}
+								this.setValue(value);
+								this.updateDownstreamVariables(value);
+								this.updateConnectedVariables();
+							} catch (e) {
+								if (source) {
+									// is freeing the recursionGuard here necessary?
+									this.$$isStoring = false;
+									value = this.suggestValue(priorValue, source);
+									throw e; // XXX: Lively checks type, so wrap for top-level
+								} else {
+									throw e;
+								}
+							}
+						}
+					},
+					this
+				);
                 if (callSetters) {
                     ConstrainedVariable.$$callingSetters = true;
                     var recvs = [],
