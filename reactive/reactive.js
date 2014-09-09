@@ -271,41 +271,35 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 		}
 	});
 
-	var copWithLayers = cop.withLayers;
-	var copWithoutLayers = cop.withoutLayers;
-	var copEnableLayer = cop.enableLayer;
-	var copDisableLayer = cop.disableLayer;
-	Object.extend(cop, {
-		/* Layer Activation */
-		withLayers: function withLayers(layers, func) {
-			layers.forEach(function(layer) { layer._activate(); });
+	/* Layer Activation */
+	cop.withLayers = cop.withLayers.wrap(function(callOriginal, layers, func) {
+		layers.forEach(function(layer) { layer._activate(); });
 
-			try {
-				return copWithLayers.apply(this, arguments);
-			} finally {
-				layers.forEach(function(layer) { layer._deactivate(); });
-			}
-		},
-
-		withoutLayers: function withoutLayers(layers, func) {
+		try {
+			return callOriginal(layers, func);
+		} finally {
 			layers.forEach(function(layer) { layer._deactivate(); });
-			
-			try {
-				return copWithoutLayers.apply(this, arguments);
-			} finally {
-				layers.forEach(function(layer) { layer._activate(); });
-			}
-		},
-
-		/* Global Layer Activation */
-		enableLayer: function(layer) {
-			layer._activate();
-			return copEnableLayer.apply(this, arguments);
-		},
-
-		disableLayer: function(layer) {
-			layer._deactivate();
-			return copDisableLayer.apply(this, arguments);
 		}
+	});
+
+	cop.withoutLayers = cop.withoutLayers.wrap(function(callOriginal, layers, func) {
+		layers.forEach(function(layer) { layer._deactivate(); });
+		
+		try {
+			return callOriginal(layers, func);
+		} finally {
+			layers.forEach(function(layer) { layer._activate(); });
+		}
+	});
+
+	/* Global Layer Activation */
+	cop.enableLayer = cop.enableLayer.wrap(function(callOriginal, layer) {
+		layer._activate();
+		return callOriginal(layer);
+	});
+
+	cop.disableLayer = cop.disableLayer.wrap(function(callOriginal, layer) {
+		layer._deactivate();
+		return callOriginal(layer);
 	});
 });
