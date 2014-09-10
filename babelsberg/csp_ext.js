@@ -73,8 +73,10 @@ module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff
 	    weight: 1000,
 	    always: function (opts, func) {
 	    	func.varMapping = opts.ctx;
+	    	func.allowTests = true;
 	    	func.allowUnsolvableOperations = true;
 	    	var cobj = new Constraint(func, this);
+	    	cobj.allowFailing = true;
 	    	if(!this.__domainDefinition__) {
 		    	var constraint  = this.p.addConstraint([], func);
 		    	var satisfiable = this.p.getSolution({});
@@ -85,7 +87,9 @@ module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff
 	    	} else {
 	    		delete this.__domainDefinition__;
 	    	}
-	    }
+			return cobj;
+	    },
+		solve: function() { /* ignored */ }
 	});
 	Object.extend(csp.Solver, {
 		weight: 1000,
@@ -159,7 +163,6 @@ module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff
 	    	return true;
 	    }
 	});
-	
 
 	Number.prototype.__defineGetter__(csp.Solver.DomainMethod, function () {
 		return this;

@@ -24,7 +24,6 @@ ClSimplexSolver.addMethods({
         func.varMapping = ctx;
         var constraint = new Constraint(func, this);
         constraint.priority = priority;
-        if(!opts.postponeEnabling) { constraint.enable(); }
         return constraint;
     }
 });

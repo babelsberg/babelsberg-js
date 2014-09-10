@@ -44,7 +44,6 @@ DBPlanner.addMethods({
             cobj.addPrimitiveConstraint(constraint);
         };
         cobj.priority = priority;
-        if(!opts.postponeEnabling) { cobj.enable(); }
         return cobj;
     },
 

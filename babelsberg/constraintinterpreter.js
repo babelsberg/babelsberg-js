@@ -237,6 +237,7 @@ Object.subclass("Babelsberg", {
 			} else {
 				constraint = solver.always(opts, func);
 			}
+            if(!opts.postponeEnabling) { constraint.enable(); }
 			return constraint;
 		} catch(e) {
 			if(e instanceof CouldNotSatisfyError && typeof opts.onError  === "function") {
