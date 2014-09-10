@@ -4,9 +4,9 @@
  */
 module('users.timfelgentreff.csp.csp').requires().toRun(function() {
 
-JSLoader.loadJs(module('users.timfelgentreff.csp.underscore-min').uri());
+  JSLoader.loadJs(module('users.timfelgentreff.csp.underscore-min').uri());
 
-var util = {
+  var util = {
     mixin: function(target, src) {
       for (var name in src) {
         if (src.hasOwnProperty(name) && !target.hasOwnProperty(name)) {
@@ -23,69 +23,69 @@ var util = {
       }
       return ret;
     }
-};
+  };
 
-  /* 
+  /*
    * Variable
    */
-  var Variable = function(name,domain) {
+  var Variable = function(name, domain) {
     this.name = name;
     this.domain = domain;
   };
-  
+
   Variable.prototype.toString = function() {
-    return "" + this.name + " => [" + this.domain.toString() + "]";
+    return '' + this.name + ' => [' + this.domain.toString() + ']';
   };
 
-  /* 
-   * Constraint 
+  /*
+   * Constraint
    */
   var Constraint = function(variables, fn) {
     this.fn = fn;
     this.variables = variables;
   };
-  
+
   Constraint.prototype.toString = function() {
-    return "(" + this.variables.toString() + ") => " + this.fn.toString();
+    return '(' + this.variables.toString() + ') => ' + this.fn.toString();
   };
-  
-  /* 
-   * Problem 
-   */ 
+
+  /*
+   * Problem
+   */
   var Problem = function() {
     this.solver = new RecursiveBacktrackingSolver();
     this.variables = {};
     this.constraints = [];
   };
-  
+
   Problem.prototype.addVariable = function(name, domain) {
-    this.variables[name] = new Variable(name,domain);
+    this.variables[name] = new Variable(name, domain);
   };
 
   Problem.prototype.removeVariable = function(vari) {
-	  var vars = this.variables;
-	  delete vars[vari];
+    var vars = this.variables;
+    delete vars[vari];
   };
-  
+
   Problem.prototype.addConstraint = function(variables, fn) {
-	var constraint = new Constraint(variables, fn);
+  var constraint = new Constraint(variables, fn);
     this.constraints.push(constraint);
     return constraint;
   };
-	  
+
   Problem.prototype.removeConstraint = function(constraint) {
-	var index = this.constraints.indexOf(constraint);
-	if(index > -1) {
-	    this.constraints.splice(index, 1);
-	} else {
-		throw "attempt to removed a non-existing element";
-	}
+  var index = this.constraints.indexOf(constraint);
+  if (index > -1) {
+      this.constraints.splice(index, 1);
+  } else {
+    throw 'attempt to removed a non-existing element';
+  }
   };
-		  
+
   Problem.prototype.setSolver = function(solver) {
     this.solver = solver;
   };
-  
+
   Problem.prototype.getSolution = function(restrictedDomains) {
     return this.solver.getSolution(this, restrictedDomains);
   };
@@ -94,13 +94,13 @@ var util = {
     return this.solver.getAssignmentFor(name);
   };
 
-  /* 
-   * Solver 
+  /*
+   * Solver
    */
   var RecursiveBacktrackingSolver = function() {
     this.assignments = {};
   };
-  
+
   RecursiveBacktrackingSolver.prototype.getSolution = function(csp, restrictedDomains) {
     var satisfiable = this.solve(csp.variables, csp.constraints, restrictedDomains);
 
@@ -112,60 +112,60 @@ var util = {
   };
 
   RecursiveBacktrackingSolver.prototype.solve = function(variables, constraints, restrictedDomains) {
-	  var domainByName = this.prepareSolving(variables, restrictedDomains);
-	  
-	  var fulfilled = this.recursiveSolve(constraints, domainByName);
-	  
-	  return fulfilled;
+    var domainByName = this.prepareSolving(variables, restrictedDomains);
+
+    var fulfilled = this.recursiveSolve(constraints, domainByName);
+
+    return fulfilled;
   };
 
   RecursiveBacktrackingSolver.prototype.prepareSolving = function(variables, restrictedDomains) {
-	  var domainByName = _.defaults(restrictedDomains, variables);
+    var domainByName = _.defaults(restrictedDomains, variables);
 
-	  return domainByName;
+    return domainByName;
   };
 
-	RecursiveBacktrackingSolver.prototype.recursiveSolve = function(constraints, domainByName) {
-		if(_.size(domainByName) === 0) {
-			var fulfilled = this.checkAssignments(constraints);
-			return fulfilled;
-		} else {
-			var current = _.chain(domainByName)
-				.keys()
-				.first()
-				.value();
-			var remainingDomain = _.omit(domainByName, current);
-			var currentDomain = domainByName[current].domain;
-			var fulfilled = _.some(currentDomain, function(val) {
-				this.assignments[current] = val;
-				var fulfilled = this.recursiveSolve(constraints, remainingDomain);
-				return fulfilled;
-			}, this);
-			return fulfilled;
-		};
-	};
+  RecursiveBacktrackingSolver.prototype.recursiveSolve = function(constraints, domainByName) {
+    if (_.size(domainByName) === 0) {
+      var fulfilled = this.checkAssignments(constraints);
+      return fulfilled;
+    } else {
+      var current = _.chain(domainByName)
+        .keys()
+        .first()
+        .value();
+      var remainingDomain = _.omit(domainByName, current);
+      var currentDomain = domainByName[current].domain;
+      var fulfilled = _.some(currentDomain, function(val) {
+        this.assignments[current] = val;
+        var fulfilled = this.recursiveSolve(constraints, remainingDomain);
+        return fulfilled;
+      }, this);
+      return fulfilled;
+    }
+  };
 
-	RecursiveBacktrackingSolver.prototype.checkAssignments = function(constraints) {
-		var constraintsFulfilled =_.every(constraints, function(constraint) {
-			return constraint.fn();
-		}, this);
+  RecursiveBacktrackingSolver.prototype.checkAssignments = function(constraints) {
+    var constraintsFulfilled = _.every(constraints, function(constraint) {
+      return constraint.fn();
+    }, this);
 
-		if(constraintsFulfilled) {
-			this.summitSolution();
-		}
-		
-		return constraintsFulfilled;
-	};
+    if (constraintsFulfilled) {
+      this.summitSolution();
+    }
 
-	RecursiveBacktrackingSolver.prototype.summitSolution = function() {};
+    return constraintsFulfilled;
+  };
+
+  RecursiveBacktrackingSolver.prototype.summitSolution = function() {};
 
 /*
  * Public API
  */
-Object.subclass("_csp", {});
+Object.subclass('_csp', {});
 Object.extend(_csp, {
-	version: "0.1",
-    DiscreteProblem: Problem
+  version: '0.1',
+  DiscreteProblem: Problem
 });
 
 });

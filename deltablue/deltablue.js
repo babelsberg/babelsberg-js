@@ -44,36 +44,36 @@ Object.subclass('DBOrderedCollection', {
     initialize: function() {
         this.elms = new Array();
     },
-    
-    add: function (elm) {
-	this.elms.push(elm);
-    },
-    
-    at: function (index) {
-	return this.elms[index];
+
+    add: function(elm) {
+        this.elms.push(elm);
     },
 
-    size: function () {
-	return this.elms.length;
+    at: function(index) {
+        return this.elms[index];
     },
 
-    removeFirst: function () {
-	return this.elms.pop();
+    size: function() {
+        return this.elms.length;
     },
 
-    remove: function (elm) {
-	var index = 0, skipped = 0;
-	for (var i = 0; i < this.elms.length; i++) {
-	    var value = this.elms[i];
-	    if (value != elm) {
-		this.elms[index] = value;
-		index++;
-	    } else {
-		skipped++;
-	    }
-	}
-	for (var i = 0; i < skipped; i++)
-	    this.elms.pop();
+    removeFirst: function() {
+        return this.elms.pop();
+    },
+
+    remove: function(elm) {
+        var index = 0, skipped = 0;
+        for (var i = 0; i < this.elms.length; i++) {
+            var value = this.elms[i];
+            if (value != elm) {
+                this.elms[index] = value;
+                index++;
+            } else {
+                skipped++;
+            }
+        }
+        for (var i = 0; i < skipped; i++)
+            this.elms.pop();
     }
 });
 
@@ -89,47 +89,47 @@ Object.subclass('DBStrength', {
      * this class, so pointer comparison can be used for value comparison.
      */
     initialize: function(strengthValue, name) {
-	this.strengthValue = strengthValue;
-	this.name = name;
+        this.strengthValue = strengthValue;
+        this.name = name;
     },
 
-    nextWeaker: function () {
-	switch (this.strengthValue) {
-	case 0: return DBStrength.WEAKEST;
-	case 1: return DBStrength.WEAK_DEFAULT;
-	case 2: return DBStrength.NORMAL;
-	case 3: return DBStrength.STRONG_DEFAULT;
-	case 4: return DBStrength.PREFERRED;
-	case 5: return DBStrength.REQUIRED;
-	}
+    nextWeaker: function() {
+        switch (this.strengthValue) {
+        case 0: return DBStrength.WEAKEST;
+        case 1: return DBStrength.WEAK_DEFAULT;
+        case 2: return DBStrength.NORMAL;
+        case 3: return DBStrength.STRONG_DEFAULT;
+        case 4: return DBStrength.PREFERRED;
+        case 5: return DBStrength.REQUIRED;
+        }
     }
 });
 
 Object.extend(DBStrength, {
-    stronger: function (s1, s2) {
-	return s1.strengthValue < s2.strengthValue;
+    stronger: function(s1, s2) {
+        return s1.strengthValue < s2.strengthValue;
     },
 
-    weaker: function (s1, s2) {
-	return s1.strengthValue > s2.strengthValue;
+    weaker: function(s1, s2) {
+        return s1.strengthValue > s2.strengthValue;
     },
 
-    weakestOf: function (s1, s2) {
-	return this.weaker(s1, s2) ? s1 : s2;
+    weakestOf: function(s1, s2) {
+        return this.weaker(s1, s2) ? s1 : s2;
     },
 
-    strongest: function (s1, s2) {
-	return this.stronger(s1, s2) ? s1 : s2;
+    strongest: function(s1, s2) {
+        return this.stronger(s1, s2) ? s1 : s2;
     },
 
     // DBStrength constants.
-    REQUIRED        : new DBStrength(0, "required"),
-    STONG_PREFERRED : new DBStrength(1, "strongPreferred"),
-    PREFERRED       : new DBStrength(2, "preferred"),
-    STRONG_DEFAULT  : new DBStrength(3, "strongDefault"),
-    NORMAL          : new DBStrength(4, "normal"),
-    WEAK_DEFAULT    : new DBStrength(5, "weakDefault"),
-    WEAKEST         : new DBStrength(6, "weakest")
+    REQUIRED: new DBStrength(0, 'required'),
+    STONG_PREFERRED: new DBStrength(1, 'strongPreferred'),
+    PREFERRED: new DBStrength(2, 'preferred'),
+    STRONG_DEFAULT: new DBStrength(3, 'strongDefault'),
+    NORMAL: new DBStrength(4, 'normal'),
+    WEAK_DEFAULT: new DBStrength(5, 'weakDefault'),
+    WEAKEST: new DBStrength(6, 'weakest')
 });
 
 /* --- *
@@ -144,17 +144,17 @@ Object.subclass('DBConstraint', {
      * of storing the constrained variables and other information required
      * to represent a constraint.
      */
-    initialize: function (strength, planner) {
+    initialize: function(strength, planner) {
         this.planner = planner;
-	this.strength = strength;
+        this.strength = strength;
     },
 
     /**
      * Activate this constraint and attempt to satisfy it.
      */
-    addDBConstraint: function (planner) {
-	this.addToGraph();
-	this.planner.incrementalAdd(this);
+    addDBConstraint: function(planner) {
+        this.addToGraph();
+        this.planner.incrementalAdd(this);
     },
 
     /**
@@ -164,32 +164,32 @@ Object.subclass('DBConstraint', {
      * there is one, or nil, if there isn't.
      * Assume: I am not already satisfied.
      */
-    satisfy: function (mark) {
-	this.chooseMethod(mark);
-	if (!this.isSatisfied()) {
-	    if (this.strength == DBStrength.REQUIRED) {
-		alert("Could not satisfy a required constraint!");
+    satisfy: function(mark) {
+        this.chooseMethod(mark);
+        if (!this.isSatisfied()) {
+            if (this.strength == DBStrength.REQUIRED) {
+                alert('Could not satisfy a required constraint!');
             }
-	    return null;
-	}
-	this.markInputs(mark);
-	var out = this.output();
-	var overridden = out.determinedBy;
-	if (overridden != null) overridden.markUnsatisfied();
-	out.determinedBy = this;
-	if (!(this.planner.addPropagate(this, mark))) {
-	    alert("Cycle encountered");
-	}
-	out.mark = mark;
-	return overridden;
+            return null;
+        }
+        this.markInputs(mark);
+        var out = this.output();
+        var overridden = out.determinedBy;
+        if (overridden != null) overridden.markUnsatisfied();
+        out.determinedBy = this;
+        if (!(this.planner.addPropagate(this, mark))) {
+            alert('Cycle encountered');
+        }
+        out.mark = mark;
+        return overridden;
     },
 
-    destroyDBConstraint: function () {
-	if (this.isSatisfied()) {
-	    this.planner.incrementalRemove(this);
-	} else {
-	    this.removeFromGraph();
-	}
+    destroyDBConstraint: function() {
+        if (this.isSatisfied()) {
+            this.planner.incrementalRemove(this);
+        } else {
+            this.removeFromGraph();
+        }
     },
 
     /**
@@ -197,8 +197,8 @@ Object.subclass('DBConstraint', {
      * is one that depends on external state, such as the mouse, the
      * keybord, a clock, or some arbitraty piece of imperative code.
      */
-    isInput: function () {
-	return false;
+    isInput: function() {
+        return false;
     }
 });
 
@@ -211,45 +211,45 @@ DBConstraint.subclass('UnaryDBConstraint', {
      * Abstract superclass for constraints having a single possible output
      * variable.
      */
-    initialize: function ($super, v, strength, planner) {
-	$super(strength, planner);
-	this.myOutput = v;
-	this.satisfied = false;
+    initialize: function($super, v, strength, planner) {
+        $super(strength, planner);
+        this.myOutput = v;
+        this.satisfied = false;
     },
 
     /**
      * Adds this constraint to the constraint graph
      */
-    addToGraph: function () {
-	this.myOutput.addDBConstraint(this);
-	this.satisfied = false;
+    addToGraph: function() {
+        this.myOutput.addDBConstraint(this);
+        this.satisfied = false;
     },
 
     /**
      * Decides if this constraint can be satisfied and records that
      * decision.
      */
-    chooseMethod: function (mark) {
-	this.satisfied = (this.myOutput.mark != mark)
-	    && DBStrength.stronger(this.strength, this.myOutput.walkDBStrength);
+    chooseMethod: function(mark) {
+        this.satisfied = (this.myOutput.mark != mark) &&
+            DBStrength.stronger(this.strength, this.myOutput.walkDBStrength);
     },
 
     /**
      * Returns true if this constraint is satisfied in the current solution.
      */
-    isSatisfied: function () {
-	return this.satisfied;
+    isSatisfied: function() {
+        return this.satisfied;
     },
 
-    markInputs: function (mark) {
-	// has no inputs
+    markInputs: function(mark) {
+        // has no inputs
     },
 
     /**
      * Returns the current output variable.
      */
-    output: function () {
-	return this.myOutput;
+    output: function() {
+        return this.myOutput;
     },
 
     /**
@@ -257,26 +257,26 @@ DBConstraint.subclass('UnaryDBConstraint', {
      * 'stay', the value for the current output of this constraint. Assume
      * this constraint is satisfied.
      */
-    recalculate: function () {
-	this.myOutput.walkDBStrength = this.strength;
-	this.myOutput.stay = !this.isInput();
-	if (this.myOutput.stay) this.execute(); // Stay optimization
+    recalculate: function() {
+        this.myOutput.walkDBStrength = this.strength;
+        this.myOutput.stay = !this.isInput();
+        if (this.myOutput.stay) this.execute(); // Stay optimization
     },
 
     /**
      * Records that this constraint is unsatisfied
      */
-    markUnsatisfied: function () {
-	this.satisfied = false;
+    markUnsatisfied: function() {
+        this.satisfied = false;
     },
 
-    inputsKnown: function () {
-	return true;
+    inputsKnown: function() {
+        return true;
     },
 
-    removeFromGraph: function () {
-	if (this.myOutput != null) this.myOutput.removeDBConstraint(this);
-	this.satisfied = false;
+    removeFromGraph: function() {
+        if (this.myOutput != null) this.myOutput.removeDBConstraint(this);
+        this.satisfied = false;
     }
 });
 
@@ -293,8 +293,8 @@ UnaryDBConstraint.subclass('StayDBConstraint', {
      */
 
 
-    execute: function () {
-	// Stay constraints do nothing
+    execute: function() {
+        // Stay constraints do nothing
     }
 });
 
@@ -311,12 +311,12 @@ UnaryDBConstraint.subclass('EditDBConstraint', {
     /**
      * Edits indicate that a variable is to be changed by imperative code.
      */
-    isInput: function () {
-	return true;
+    isInput: function() {
+        return true;
     },
 
-    execute: function () {
-	// Edit constraints do nothing
+    execute: function() {
+        // Edit constraints do nothing
     }
 });
 
@@ -325,8 +325,8 @@ UnaryDBConstraint.subclass('EditDBConstraint', {
  * --- */
 
 var Direction = new Object();
-Direction.NONE     = 0;
-Direction.FORWARD  = 1;
+Direction.NONE = 0;
+Direction.FORWARD = 1;
 Direction.BACKWARD = -1;
 
 DBConstraint.subclass('BinaryDBConstraint', {
@@ -334,11 +334,11 @@ DBConstraint.subclass('BinaryDBConstraint', {
      * Abstract superclass for constraints having two possible output
      * variables.
      */
-    initialize: function ($super, var1, var2, strength, planner) {
-	$super(strength, planner);
-	this.v1 = var1;
-	this.v2 = var2;
-	this.direction = Direction.NONE;
+    initialize: function($super, var1, var2, strength, planner) {
+        $super(strength, planner);
+        this.v1 = var1;
+        this.v2 = var2;
+        this.direction = Direction.NONE;
     },
 
     /**
@@ -346,63 +346,63 @@ DBConstraint.subclass('BinaryDBConstraint', {
      * should flow based on the relative strength of the variables related,
      * and record that decision.
      */
-    chooseMethod: function (mark) {
-	if (this.v1.mark == mark) {
-	    this.direction = (this.v2.mark != mark && DBStrength.stronger(this.strength, this.v2.walkDBStrength))
-		? Direction.FORWARD
-		: Direction.NONE;
-	}
-	if (this.v2.mark == mark) {
-	    this.direction = (this.v1.mark != mark && DBStrength.stronger(this.strength, this.v1.walkDBStrength))
-		? Direction.BACKWARD
-		: Direction.NONE;
-	}
-	if (DBStrength.weaker(this.v1.walkDBStrength, this.v2.walkDBStrength)) {
-	    this.direction = DBStrength.stronger(this.strength, this.v1.walkDBStrength)
-		? Direction.BACKWARD
-		: Direction.NONE;
-	} else {
-	    this.direction = DBStrength.stronger(this.strength, this.v2.walkDBStrength)
-		? Direction.FORWARD
-		: Direction.BACKWARD;
-	}
+    chooseMethod: function(mark) {
+        if (this.v1.mark == mark) {
+            this.direction = (this.v2.mark != mark && DBStrength.stronger(this.strength, this.v2.walkDBStrength)) ?
+                Direction.FORWARD :
+                Direction.NONE;
+        }
+        if (this.v2.mark == mark) {
+            this.direction = (this.v1.mark != mark && DBStrength.stronger(this.strength, this.v1.walkDBStrength)) ?
+                Direction.BACKWARD :
+                Direction.NONE;
+        }
+        if (DBStrength.weaker(this.v1.walkDBStrength, this.v2.walkDBStrength)) {
+            this.direction = DBStrength.stronger(this.strength, this.v1.walkDBStrength) ?
+                Direction.BACKWARD :
+                Direction.NONE;
+        } else {
+            this.direction = DBStrength.stronger(this.strength, this.v2.walkDBStrength) ?
+                Direction.FORWARD :
+                Direction.BACKWARD;
+        }
     },
 
     /**
      * Add this constraint to the constraint graph
      */
-    addToGraph: function () {
-	this.v1.addDBConstraint(this);
-	this.v2.addDBConstraint(this);
-	this.direction = Direction.NONE;
+    addToGraph: function() {
+        this.v1.addDBConstraint(this);
+        this.v2.addDBConstraint(this);
+        this.direction = Direction.NONE;
     },
 
     /**
      * Answer true if this constraint is satisfied in the current solution.
      */
-    isSatisfied: function () {
-	return this.direction != Direction.NONE;
+    isSatisfied: function() {
+        return this.direction != Direction.NONE;
     },
 
     /**
      * Mark the input variable with the given mark.
      */
-    markInputs: function (mark) {
-	this.input().mark = mark;
+    markInputs: function(mark) {
+        this.input().mark = mark;
     },
 
     /**
      * Returns the current input variable
      */
-    input: function () {
-	return (this.direction == Direction.FORWARD) ? this.v1 : this.v2;
+    input: function() {
+        return (this.direction == Direction.FORWARD) ? this.v1 : this.v2;
     },
 
     /**
      * Returns the current output variable
      */
-    output: function () {
-	return (this.direction == Direction.FORWARD) ? this.v2 : this.v1;
+    output: function() {
+        return (this.direction == Direction.FORWARD) ? this.v2 : this.v1;
     },
 
     /**
@@ -410,36 +410,36 @@ DBConstraint.subclass('BinaryDBConstraint', {
      * 'stay', the value for the current output of this
      * constraint. Assume this constraint is satisfied.
      */
-    recalculate: function () {
-	var ihn = this.input(), out = this.output();
-	out.walkDBStrength = DBStrength.weakestOf(this.strength, ihn.walkDBStrength);
-	out.stay = ihn.stay;
-	if (out.stay) this.execute();
+    recalculate: function() {
+        var ihn = this.input(), out = this.output();
+        out.walkDBStrength = DBStrength.weakestOf(this.strength, ihn.walkDBStrength);
+        out.stay = ihn.stay;
+        if (out.stay) this.execute();
     },
 
     /**
      * Record the fact that this constraint is unsatisfied.
      */
-    markUnsatisfied: function () {
-	this.direction = Direction.NONE;
+    markUnsatisfied: function() {
+        this.direction = Direction.NONE;
     },
 
-    inputsKnown: function (mark) {
-	var i = this.input();
-	return i.mark == mark || i.stay || i.determinedBy == null;
+    inputsKnown: function(mark) {
+        var i = this.input();
+        return i.mark == mark || i.stay || i.determinedBy == null;
     },
 
-    removeFromGraph: function () {
-	if (this.v1 != null) this.v1.removeDBConstraint(this);
-	if (this.v2 != null) this.v2.removeDBConstraint(this);
-	this.direction = Direction.NONE;
+    removeFromGraph: function() {
+        if (this.v1 != null) this.v1.removeDBConstraint(this);
+        if (this.v2 != null) this.v2.removeDBConstraint(this);
+        this.direction = Direction.NONE;
     }
 });
 DBConstraint.subclass('UserDBConstraint', {
     /**
      * Constraints that use a custom function to map multiple inputs to one output
      */
-    initialize: function ($super, strengthOrPredicateOrFormulas, predicateOrFormulasOrPlanner, formulasOrPlanner, planner) {
+    initialize: function($super, strengthOrPredicateOrFormulas, predicateOrFormulasOrPlanner, formulasOrPlanner, planner) {
         var strength, formulas, predicate;
         if (planner) { // 4-args
             strength = strengthOrPredicateOrFormulas;
@@ -447,13 +447,13 @@ DBConstraint.subclass('UserDBConstraint', {
             formulas = formulasOrPlanner;
         } else if (formulasOrPlanner) {
             // 3-args
-            if (typeof(formulasOrPlanner) == "function") {
+            if (typeof(formulasOrPlanner) == 'function') {
                 strength = strengthOrPredicateOrFormulas;
                 predicate = predicateOrFormulasOrPlanner;
                 formulas = formulasOrPlanner;
             } else {
                 planner = formulasOrPlanner;
-                if (typeof(strengthOrPredicateOrFormulas) == "function") {
+                if (typeof(strengthOrPredicateOrFormulas) == 'function') {
                     predicate = strengthOrPredicateOrFormulas;
                     formulas = predicateOrFormulasOrPlanner;
                 } else {
@@ -463,8 +463,8 @@ DBConstraint.subclass('UserDBConstraint', {
             }
         } else if (predicateOrFormulasOrPlanner) {
             // 2-args
-            if (typeof(strengthOrPredicateOrFormulas) == "function") {
-                if (typeof(predicateOrFormulasOrPlanner) == "function") {
+            if (typeof(strengthOrPredicateOrFormulas) == 'function') {
+                if (typeof(predicateOrFormulasOrPlanner) == 'function') {
                     predicate = strengthOrPredicateOrFormulas;
                     formulas = predicateOrFormulasOrPlanner;
                 } else {
@@ -491,15 +491,15 @@ DBConstraint.subclass('UserDBConstraint', {
     },
     formula: function(output, inputs, func) {
         if (inputs.include(output)) {
-            throw "output cannot be determined by itself"
+            throw 'output cannot be determined by itself';
         }
         var idx = this.outputs.indexOf(output),
             len = this.outputs.length;
         if (idx >= 0) {
-            throw "multiple formulas for " + output
+            throw 'multiple formulas for ' + output;
         }
         this.outputs.push(output);
-        inputs.each(function (input) {
+        inputs.each(function(input) {
             if (!this.inputs.include(input)) {
                 this.inputs.push(input);
             }
@@ -513,44 +513,44 @@ DBConstraint.subclass('UserDBConstraint', {
      * should flow based on the relative strength of the variables related,
      * and record that decision.
      */
-    chooseMethod: function (mark) {
+    chooseMethod: function(mark) {
         var weakest_output = null,
             weakest_strength = this.strength,
             out = null;
-        this.outputs.each(function (out) {
+        this.outputs.each(function(out) {
             if (out.mark != mark && DBStrength.stronger(weakest_strength, out.walkDBStrength)) {
                 weakest_strength = out.walkDBStrength;
                 weakest_output = out;
             }
         }.bind(this));
         this.out = weakest_output;
-        this.satisfied = (!!this.out)
+        this.satisfied = (!!this.out);
     },
 
     /**
      * Add this constraint to the constraint graph
      */
-    addToGraph: function () {
+    addToGraph: function() {
         var that = this;
-    	this.variables.each(function (ea) {
-    	    ea.addDBConstraint(that);
-    	});
-    	this.satisfied = false;
+            this.variables.each(function(ea) {
+                ea.addDBConstraint(that);
+            });
+            this.satisfied = false;
     },
 
     /**
      * Answer true if this constraint is satisfied in the current solution.
      */
-    isSatisfied: function () {
-	return this.satisfied;
+    isSatisfied: function() {
+        return this.satisfied;
     },
 
     /**
      * Mark the input variable with the given mark.
      */
-    markInputs: function (mark) {
+    markInputs: function(mark) {
         var out = this.out;
-        this.inputs.each(function (ea) {
+        this.inputs.each(function(ea) {
             if (ea !== out) {
                ea.mark = mark;
             }
@@ -562,49 +562,49 @@ DBConstraint.subclass('UserDBConstraint', {
      * 'stay', the value for the current output of this
      * constraint. Assume this constraint is satisfied.
      */
-    recalculate: function () {
+    recalculate: function() {
         var out = this.out;
         out.walkDBStrength = this.strength;
-        this.inputs.each(function (ea) {
+        this.inputs.each(function(ea) {
             out.walkDBStrength = DBStrength.weakestOf(out.walkDBStrength, ea.walkDBStrength);
         });
-        out.stay = this.inputs.all(function (ea) { return ea.stay });
+        out.stay = this.inputs.all(function(ea) { return ea.stay });
         if (out.stay) this.execute();
     },
 
     /**
      * Record the fact that this constraint is unsatisfied.
      */
-    markUnsatisfied: function () {
-	this.satisfied = false;
+    markUnsatisfied: function() {
+        this.satisfied = false;
     },
 
-    inputsKnown: function (mark) {
+    inputsKnown: function(mark) {
         var out = this.out;
-	return this.inputs.all(function (i) {
-	   return i === out || i.mark == mark || i.stay || i.determinedBy == null;
-	});
+        return this.inputs.all(function(i) {
+           return i === out || i.mark == mark || i.stay || i.determinedBy == null;
+        });
     },
 
-    removeFromGraph: function () {
+    removeFromGraph: function() {
         var that = this;
-	this.variables.each(function (ea) {
-	    ea.removeDBConstraint(that);
-	});
-	this.satisfied = false;
+        this.variables.each(function(ea) {
+            ea.removeDBConstraint(that);
+        });
+        this.satisfied = false;
     },
-    execute: function () {
+    execute: function() {
         if (!this.predicate || !this.predicate()) {
             var formula = this.formulas[this.outputs.indexOf(this.out)],
                 func = formula.func,
                 inputs = formula.inputs;
-            this.out.value = func.apply(null, inputs.collect(function (ea) {
+            this.out.value = func.apply(null, inputs.collect(function(ea) {
                 return ea.value;
             }).concat([this.out.value]));
         }
     },
     output: function() {
-        return this.out
+        return this.out;
     },
     get variables() {
         return this.outputs.concat(this.inputs).uniq();
@@ -622,42 +622,42 @@ BinaryDBConstraint.subclass('ScaleDBConstraint', {
      * this relationship but the scale factor and offset are considered
      * read-only.
      */
-    initialize: function ($super, src, scale, offset, dest, strength, planner) {
-	this.direction = Direction.NONE;
-	this.scale = scale;
-	this.offset = offset;
-	$super(src, dest, strength, planner);
+    initialize: function($super, src, scale, offset, dest, strength, planner) {
+        this.direction = Direction.NONE;
+        this.scale = scale;
+        this.offset = offset;
+        $super(src, dest, strength, planner);
     },
 
     /**
      * Adds this constraint to the constraint graph.
      */
-    addToGraph: function ($super) {
-	$super();
-	this.scale.addDBConstraint(this);
-	this.offset.addDBConstraint(this);
+    addToGraph: function($super) {
+        $super();
+        this.scale.addDBConstraint(this);
+        this.offset.addDBConstraint(this);
     },
 
-    removeFromGraph: function ($super) {
-	$super();
-	if (this.scale != null) this.scale.removeDBConstraint(this);
-	if (this.offset != null) this.offset.removeDBConstraint(this);
+    removeFromGraph: function($super) {
+        $super();
+        if (this.scale != null) this.scale.removeDBConstraint(this);
+        if (this.offset != null) this.offset.removeDBConstraint(this);
     },
 
-    markInputs: function ($super, mark) {
-	$super(mark);
-	this.scale.mark = this.offset.mark = mark;
+    markInputs: function($super, mark) {
+        $super(mark);
+        this.scale.mark = this.offset.mark = mark;
     },
 
     /**
      * Enforce this constraint. Assume that it is satisfied.
      */
-    execute: function () {
-	if (this.direction == Direction.FORWARD) {
-	    this.v2.value = this.v1.value * this.scale.value + this.offset.value;
-	} else {
-	    this.v1.value = (this.v2.value - this.offset.value) / this.scale.value;
-	}
+    execute: function() {
+        if (this.direction == Direction.FORWARD) {
+            this.v2.value = this.v1.value * this.scale.value + this.offset.value;
+        } else {
+            this.v1.value = (this.v2.value - this.offset.value) / this.scale.value;
+        }
     },
 
     /**
@@ -665,11 +665,11 @@ BinaryDBConstraint.subclass('ScaleDBConstraint', {
      * 'stay', the value for the current output of this constraint. Assume
      * this constraint is satisfied.
      */
-    recalculate: function () {
-	var ihn = this.input(), out = this.output();
-	out.walkDBStrength = DBStrength.weakestOf(this.strength, ihn.walkDBStrength);
-	out.stay = ihn.stay && this.scale.stay && this.offset.stay;
-	if (out.stay) this.execute();
+    recalculate: function() {
+        var ihn = this.input(), out = this.output();
+        out.walkDBStrength = DBStrength.weakestOf(this.strength, ihn.walkDBStrength);
+        out.stay = ihn.stay && this.scale.stay && this.offset.stay;
+        if (out.stay) this.execute();
     }
 });
 
@@ -686,8 +686,8 @@ BinaryDBConstraint.subclass('EqualityDBConstraint', {
     /**
      * Enforce this constraint. Assume that it is satisfied.
      */
-    execute: function () {
-	this.output().value = this.input().value;
+    execute: function() {
+        this.output().value = this.input().value;
     }
 });
 
@@ -702,31 +702,31 @@ Object.subclass('DBVariable', {
      * various parameters of interest to the DeltaBlue incremental
      * constraint solver.
      **/
-    initialize: function (name, initialValue, planner) {
+    initialize: function(name, initialValue, planner) {
         this.planner = planner;
-	this.value = initialValue;
-	this.constraints = new DBOrderedCollection();
-	this.determinedBy = null;
-	this.mark = 0;
-	this.walkDBStrength = DBStrength.WEAKEST;
-	this.stay = true;
-	this.name = name;
+        this.value = initialValue;
+        this.constraints = new DBOrderedCollection();
+        this.determinedBy = null;
+        this.mark = 0;
+        this.walkDBStrength = DBStrength.WEAKEST;
+        this.stay = true;
+        this.name = name;
     },
 
     /**
      * Add the given constraint to the set of all constraints that refer
      * this variable.
      */
-    addDBConstraint: function (c) {
-	this.constraints.add(c);
+    addDBConstraint: function(c) {
+        this.constraints.add(c);
     },
 
     /**
      * Removes all traces of c from this variable.
      */
-    removeDBConstraint: function (c) {
-	this.constraints.remove(c);
-	if (this.determinedBy == c) this.determinedBy = null;
+    removeDBConstraint: function(c) {
+        this.constraints.remove(c);
+        if (this.determinedBy == c) this.determinedBy = null;
     },
     assignValue: function(newValue) {
         var edit = new EditDBConstraint(this, DBStrength.REQUIRED, this.planner),
@@ -751,7 +751,7 @@ Object.subclass('DBPlanner', {
     /**
      * The DeltaBlue planner
      */
-    initialize: function () {
+    initialize: function() {
         this.currentMark = 0;
     },
 
@@ -769,11 +769,11 @@ Object.subclass('DBPlanner', {
      * the algorithm to avoid getting into an infinite loop even if the
      * constraint graph has an inadvertent cycle.
      */
-    incrementalAdd: function (c) {
-	var mark = this.newMark();
-	var overridden = c.satisfy(mark);
-	while (overridden != null)
-	    overridden = overridden.satisfy(mark);
+    incrementalAdd: function(c) {
+        var mark = this.newMark();
+        var overridden = c.satisfy(mark);
+        while (overridden != null)
+            overridden = overridden.satisfy(mark);
     },
 
     /**
@@ -787,27 +787,27 @@ Object.subclass('DBPlanner', {
      * unnecessarily adding and then overriding weak constraints.
      * Assume: c is satisfied.
      */
-    incrementalRemove: function (c) {
-	var out = c.output();
-	c.markUnsatisfied();
-	c.removeFromGraph();
-	var unsatisfied = this.removePropagateFrom(out);
-	var strength = DBStrength.REQUIRED;
-	do {
-	    for (var i = 0; i < unsatisfied.size(); i++) {
-		var u = unsatisfied.at(i);
-		if (u.strength == strength)
-		    this.incrementalAdd(u);
-	    }
-	    strength = strength.nextWeaker();
-	} while (strength != DBStrength.WEAKEST);
+    incrementalRemove: function(c) {
+        var out = c.output();
+        c.markUnsatisfied();
+        c.removeFromGraph();
+        var unsatisfied = this.removePropagateFrom(out);
+        var strength = DBStrength.REQUIRED;
+        do {
+            for (var i = 0; i < unsatisfied.size(); i++) {
+                var u = unsatisfied.at(i);
+                if (u.strength == strength)
+                    this.incrementalAdd(u);
+            }
+            strength = strength.nextWeaker();
+        } while (strength != DBStrength.WEAKEST);
     },
 
     /**
      * Select a previously unused mark value.
      */
-    newMark: function () {
-	return ++this.currentMark;
+    newMark: function() {
+        return ++this.currentMark;
     },
 
     /**
@@ -829,34 +829,34 @@ Object.subclass('DBPlanner', {
      * any constraint.
      * Assume: sources are all satisfied.
      */
-    makeDBPlan: function (sources) {
-	var mark = this.newMark();
-	var plan = new DBPlan();
-	var todo = sources;
-	while (todo.size() > 0) {
-	    var c = todo.removeFirst();
-	    if (c.output().mark != mark && c.inputsKnown(mark)) {
-		plan.addDBConstraint(c);
-		c.output().mark = mark;
-		this.addDBConstraintsConsumingTo(c.output(), todo, c);
-	    }
-	}
-	return plan;
+    makeDBPlan: function(sources) {
+        var mark = this.newMark();
+        var plan = new DBPlan();
+        var todo = sources;
+        while (todo.size() > 0) {
+            var c = todo.removeFirst();
+            if (c.output().mark != mark && c.inputsKnown(mark)) {
+                plan.addDBConstraint(c);
+                c.output().mark = mark;
+                this.addDBConstraintsConsumingTo(c.output(), todo, c);
+            }
+        }
+        return plan;
     },
 
     /**
      * Extract a plan for resatisfying starting from the output of the
      * given constraints, usually a set of input constraints.
      */
-    extractDBPlanFromDBConstraints: function (constraints) {
-	var sources = new DBOrderedCollection();
-	for (var i = 0; i < constraints.size(); i++) {
-	    var c = constraints.at(i);
-	    if (c.isInput() && c.isSatisfied())
-		// not in plan already and eligible for inclusion
-		sources.add(c);
-	}
-	return this.makeDBPlan(sources);
+    extractDBPlanFromDBConstraints: function(constraints) {
+        var sources = new DBOrderedCollection();
+        for (var i = 0; i < constraints.size(); i++) {
+            var c = constraints.at(i);
+            if (c.isInput() && c.isSatisfied())
+                // not in plan already and eligible for inclusion
+                sources.add(c);
+        }
+        return this.makeDBPlan(sources);
     },
 
     /**
@@ -872,19 +872,19 @@ Object.subclass('DBPlanner', {
      * the output constraint means that there is a path from the
      * constraint's output to one of its inputs.
      */
-    addPropagate: function (c, mark) {
-	var todo = new DBOrderedCollection();
-	todo.add(c);
-	while (todo.size() > 0) {
-	    var d = todo.removeFirst();
-	    if (d.output().mark == mark) {
-		this.incrementalRemove(c);
-		return false;
-	    }
-	    d.recalculate();
-	    this.addDBConstraintsConsumingTo(d.output(), todo);
-	}
-	return true;
+    addPropagate: function(c, mark) {
+        var todo = new DBOrderedCollection();
+        todo.add(c);
+        while (todo.size() > 0) {
+            var d = todo.removeFirst();
+            if (d.output().mark == mark) {
+                this.incrementalRemove(c);
+                return false;
+            }
+            d.recalculate();
+            this.addDBConstraintsConsumingTo(d.output(), todo);
+        }
+        return true;
     },
 
 
@@ -893,41 +893,41 @@ Object.subclass('DBPlanner', {
      * downstream of the given constraint. Answer a collection of
      * unsatisfied constraints sorted in order of decreasing strength.
      */
-    removePropagateFrom: function (out) {
-	out.determinedBy = null;
-	out.walkDBStrength = DBStrength.WEAKEST;
-	out.stay = true;
-	var unsatisfied = new DBOrderedCollection();
-	var todo = new DBOrderedCollection();
-	todo.add(out);
-	while (todo.size() > 0) {
-	    var v = todo.removeFirst();
-	    for (var i = 0; i < v.constraints.size(); i++) {
-		var c = v.constraints.at(i);
-		if (!c.isSatisfied())
-		    unsatisfied.add(c);
-	    }
-	    var determining = v.determinedBy;
-	    for (var i = 0; i < v.constraints.size(); i++) {
-		var next = v.constraints.at(i);
-		if (next != determining && next.isSatisfied()) {
-		    next.recalculate();
-		    todo.add(next.output());
-		}
-	    }
-	}
-	return unsatisfied;
+    removePropagateFrom: function(out) {
+        out.determinedBy = null;
+        out.walkDBStrength = DBStrength.WEAKEST;
+        out.stay = true;
+        var unsatisfied = new DBOrderedCollection();
+        var todo = new DBOrderedCollection();
+        todo.add(out);
+        while (todo.size() > 0) {
+            var v = todo.removeFirst();
+            for (var i = 0; i < v.constraints.size(); i++) {
+                var c = v.constraints.at(i);
+                if (!c.isSatisfied())
+                    unsatisfied.add(c);
+            }
+            var determining = v.determinedBy;
+            for (var i = 0; i < v.constraints.size(); i++) {
+                var next = v.constraints.at(i);
+                if (next != determining && next.isSatisfied()) {
+                    next.recalculate();
+                    todo.add(next.output());
+                }
+            }
+        }
+        return unsatisfied;
     },
 
-    addDBConstraintsConsumingTo: function (v, coll, not) {
-	var determining = v.determinedBy;
-	var cc = v.constraints;
-	for (var i = 0; i < cc.size(); i++) {
-	    var c = cc.at(i);
-	    if (c != determining && c.isSatisfied() && c != not) {
-		coll.add(c);
+    addDBConstraintsConsumingTo: function(v, coll, not) {
+        var determining = v.determinedBy;
+        var cc = v.constraints;
+        for (var i = 0; i < cc.size(); i++) {
+            var c = cc.at(i);
+            if (c != determining && c.isSatisfied() && c != not) {
+                coll.add(c);
             }
-	}
+        }
     }
 });
 /* --- *
@@ -941,26 +941,26 @@ Object.subclass('DBPlan', {
      * one or more changing inputs.
      */
     initialize: function() {
-	this.v = new DBOrderedCollection();
+        this.v = new DBOrderedCollection();
     },
 
-    addDBConstraint: function (c) {
-	this.v.add(c);
+    addDBConstraint: function(c) {
+        this.v.add(c);
     },
 
-    size: function () {
-	return this.v.size();
+    size: function() {
+        return this.v.size();
     },
 
-    constraintAt: function (index) {
-	return this.v.at(index);
+    constraintAt: function(index) {
+        return this.v.at(index);
     },
 
-    execute: function () {
-	for (var i = 0; i < this.size(); i++) {
-	    var c = this.constraintAt(i);
-	    c.execute();
-	}
+    execute: function() {
+        for (var i = 0; i < this.size(); i++) {
+            var c = this.constraintAt(i);
+            c.execute();
+        }
     }
 });
 /* --- *
@@ -986,7 +986,7 @@ function dbChainTest(n) {
 
   // Build chain of n equality constraints
   for (var i = 0; i <= n; i++) {
-    var name = "v" + i;
+    var name = 'v' + i;
     var v = new DBVariable(name);
     if (prev != null)
       new EqualityDBConstraint(prev, v, DBStrength.REQUIRED);
@@ -1004,7 +1004,7 @@ function dbChainTest(n) {
     first.value = i;
     plan.execute();
     if (last.value != i)
-      alert("Chain test failed.");
+      alert('Chain test failed.');
   }
 }
 
@@ -1016,32 +1016,32 @@ function dbChainTest(n) {
  */
 function dbProjectionTest(n) {
   planner = new DBPlanner();
-  var scale = new DBVariable("scale", 10);
-  var offset = new DBVariable("offset", 1000);
+  var scale = new DBVariable('scale', 10);
+  var offset = new DBVariable('offset', 1000);
   var src = null, dst = null;
 
   var dests = new DBOrderedCollection();
   for (var i = 0; i < n; i++) {
-    src = new DBVariable("src" + i, i);
-    dst = new DBVariable("dst" + i, i);
+    src = new DBVariable('src' + i, i);
+    dst = new DBVariable('dst' + i, i);
     dests.add(dst);
     new StayDBConstraint(src, DBStrength.NORMAL);
     new ScaleDBConstraint(src, scale, offset, dst, DBStrength.REQUIRED);
   }
 
   dbChange(src, 17);
-  if (dst.value != 1170) alert("Projection 1 failed");
+  if (dst.value != 1170) alert('Projection 1 failed');
   dbChange(dst, 1050);
-  if (src.value != 5) alert("Projection 2 failed");
+  if (src.value != 5) alert('Projection 2 failed');
   dbChange(scale, 5);
   for (var i = 0; i < n - 1; i++) {
     if (dests.at(i).value != i * 5 + 1000)
-      alert("Projection 3 failed");
+      alert('Projection 3 failed');
   }
   dbChange(offset, 2000);
   for (var i = 0; i < n - 1; i++) {
     if (dests.at(i).value != i * 5 + 2000)
-      alert("Projection 4 failed");
+      alert('Projection 4 failed');
   }
 }
 
@@ -1065,4 +1065,4 @@ function deltaBlue() {
   dbProjectionTest(100);
 }
 
-}) // end of module
+}); // end of module

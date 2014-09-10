@@ -65,728 +65,728 @@ module('users.timfelgentreff.cassowary.Hashtable').requires().toRun(function() {
  * 2011-10-24
 
  */
-	var FUNCTION = "function";
+    var FUNCTION = 'function';
 
 
 
-	var arrayRemoveAt = (typeof Array.prototype.splice == FUNCTION) ?
+    var arrayRemoveAt = (typeof Array.prototype.splice == FUNCTION) ?
 
-		function(arr, idx) {
+        function(arr, idx) {
 
-			arr.splice(idx, 1);
+            arr.splice(idx, 1);
 
-		} :
+        } :
 
 
 
-		function(arr, idx) {
+        function(arr, idx) {
 
-			var itemsAfterDeleted, i, len;
+            var itemsAfterDeleted, i, len;
 
-			if (idx === arr.length - 1) {
+            if (idx === arr.length - 1) {
 
-				arr.length = idx;
+                arr.length = idx;
 
-			} else {
+            } else {
 
-				itemsAfterDeleted = arr.slice(idx + 1);
+                itemsAfterDeleted = arr.slice(idx + 1);
 
-				arr.length = idx;
+                arr.length = idx;
 
-				for (i = 0, len = itemsAfterDeleted.length; i < len; ++i) {
+                for (i = 0, len = itemsAfterDeleted.length; i < len; ++i) {
 
-					arr[idx + i] = itemsAfterDeleted[i];
+                    arr[idx + i] = itemsAfterDeleted[i];
 
-				}
+                }
 
-			}
+            }
 
-		};
+        };
 
 
 
-	function hashObject(obj) {
+    function hashObject(obj) {
 
-		var hashCode;
+        var hashCode;
 
-		if (typeof obj == "string") {
+        if (typeof obj == 'string') {
 
-			return obj;
+            return obj;
 
-		} else if (typeof obj.hashCode == FUNCTION) {
+        } else if (typeof obj.hashCode == FUNCTION) {
 
-			// Check the hashCode method really has returned a string
+            // Check the hashCode method really has returned a string
 
-			hashCode = obj.hashCode();
+            hashCode = obj.hashCode();
 
-			return (typeof hashCode == "string") ? hashCode : hashObject(hashCode);
+            return (typeof hashCode == 'string') ? hashCode : hashObject(hashCode);
 
-		} else if (typeof obj.toString == FUNCTION) {
+        } else if (typeof obj.toString == FUNCTION) {
 
-			return obj.toString();
+            return obj.toString();
 
-		} else {
+        } else {
 
-			try {
+            try {
 
-				return String(obj);
+                return String(obj);
 
-			} catch (ex) {
+            } catch (ex) {
 
-				// For host objects (such as ActiveObjects in IE) that have no toString() method and throw an error when
+                // For host objects (such as ActiveObjects in IE) that have no toString() method and throw an error when
 
-				// passed to String()
+                // passed to String()
 
-				return Object.prototype.toString.call(obj);
+                return Object.prototype.toString.call(obj);
 
-			}
+            }
 
-		}
+        }
 
-	}
+    }
 
 
 
-	function equals_fixedValueHasEquals(fixedValue, variableValue) {
+    function equals_fixedValueHasEquals(fixedValue, variableValue) {
 
-		return fixedValue.equals(variableValue);
+        return fixedValue.equals(variableValue);
 
-	}
+    }
 
 
 
-	function equals_fixedValueNoEquals(fixedValue, variableValue) {
+    function equals_fixedValueNoEquals(fixedValue, variableValue) {
 
-		return (typeof variableValue.equals == FUNCTION) ?
+        return (typeof variableValue.equals == FUNCTION) ?
 
-			   variableValue.equals(fixedValue) : (fixedValue === variableValue);
+               variableValue.equals(fixedValue) : (fixedValue === variableValue);
 
-	}
+    }
 
 
 
-	function createKeyValCheck(kvStr) {
+    function createKeyValCheck(kvStr) {
 
-		return function(kv) {
+        return function(kv) {
 
-			if (kv === null) {
-			     debugger
+            if (kv === null) {
+                 debugger;
 
-				throw new Error("null is not a valid " + kvStr);
+                throw new Error('null is not a valid ' + kvStr);
 
-			} else if (typeof kv == "undefined") {
+            } else if (typeof kv == 'undefined') {
 
-				throw new Error(kvStr + " must not be undefined");
+                throw new Error(kvStr + ' must not be undefined');
 
-			}
+            }
 
-		};
+        };
 
-	}
+    }
 
 
 
-	var checkKey = createKeyValCheck("key"), checkValue = createKeyValCheck("value");
+    var checkKey = createKeyValCheck('key'), checkValue = createKeyValCheck('value');
 
 
 
-	/*----------------------------------------------------------------------------------------------------------------*/
+    /*----------------------------------------------------------------------------------------------------------------*/
 
 
 
-	/// Bucket utility funcs
+    /// Bucket utility funcs
 
-	var	EXISTENCE = 0, 
+    var EXISTENCE = 0,
 
-		ENTRY = 1, 
+        ENTRY = 1,
 
-		ENTRY_INDEX_AND_VALUE = 2;
+        ENTRY_INDEX_AND_VALUE = 2;
 
 
 
 
 
-	/// ---------------- Bucket
+    /// ---------------- Bucket
 
 
 
         Object.subclass('Bucket', 'default category', {
 
-		initialize: function(hash, firstKey, firstValue, equalityFunction) {
+        initialize: function(hash, firstKey, firstValue, equalityFunction) {
 
-	        	this[0] = hash;
+                this[0] = hash;
 
-			this.entries = [];
+            this.entries = [];
 
-			this.addEntry(firstKey, firstValue);
+            this.addEntry(firstKey, firstValue);
 
-	
 
-			if (equalityFunction !== null) {
 
-				this.getEqualityFunction = function() {
+            if (equalityFunction !== null) {
 
-					return equalityFunction;
+                this.getEqualityFunction = function() {
 
-				};
+                    return equalityFunction;
 
-			}
+                };
 
-		},
+            }
 
+        },
 
 
-		createBucketSearcher: function(mode) {
 
-			var that = this;
+        createBucketSearcher: function(mode) {
 
-			return function(key) {
+            var that = this;
 
-				var i = that.entries.length, entry, equals = that.getEqualityFunction(key);
+            return function(key) {
 
-				while (i--) {
+                var i = that.entries.length, entry, equals = that.getEqualityFunction(key);
 
-					entry = that.entries[i];
+                while (i--) {
 
-					if ( equals(key, entry[0]) ) {	
+                    entry = that.entries[i];
 
-						switch (mode) {
+                    if (equals(key, entry[0])) {
 
-						case EXISTENCE:
+                        switch (mode) {
 
-							return true;
+                        case EXISTENCE:
 
-						case ENTRY:
+                            return true;
 
-							return entry;
+                        case ENTRY:
 
-						case ENTRY_INDEX_AND_VALUE:
+                            return entry;
 
-							return [ i, entry[1] ];
+                        case ENTRY_INDEX_AND_VALUE:
 
-						}
+                            return [i, entry[1]];
 
-					}
+                        }
 
-				}
+                    }
 
-				return false;
+                }
 
-			};
+                return false;
 
-		},
+            };
 
-		
+        },
 
-		createBucketLister: function(entryProperty) {
 
-			var that = this;
 
-			return function(aggregatedArr) {
+        createBucketLister: function(entryProperty) {
 
-				var startIndex = aggregatedArr.length;
+            var that = this;
 
-				for (var i = 0, len = that.entries.length; i < len; ++i) {
+            return function(aggregatedArr) {
 
-					aggregatedArr[startIndex + i] = that.entries[i][entryProperty];
+                var startIndex = aggregatedArr.length;
 
-				}
+                for (var i = 0, len = that.entries.length; i < len; ++i) {
 
-			};
+                    aggregatedArr[startIndex + i] = that.entries[i][entryProperty];
 
-		},
+                }
 
+            };
 
+        },
 
-		getEqualityFunction: function(searchValue) {
 
-			return (typeof searchValue.equals == FUNCTION) ? equals_fixedValueHasEquals : equals_fixedValueNoEquals;
 
-		},
+        getEqualityFunction: function(searchValue) {
 
+            return (typeof searchValue.equals == FUNCTION) ? equals_fixedValueHasEquals : equals_fixedValueNoEquals;
 
+        },
 
-		getEntryForKey: function(key) {
 
-			return (this.createBucketSearcher(ENTRY))(key);
 
-		},
+        getEntryForKey: function(key) {
 
-	
+            return (this.createBucketSearcher(ENTRY))(key);
 
-		getEntryAndIndexForKey: function(key) {
+        },
 
-			return (this.createBucketSearcher(ENTRY_INDEX_AND_VALUE))(key);
 
-		},
 
+        getEntryAndIndexForKey: function(key) {
 
+            return (this.createBucketSearcher(ENTRY_INDEX_AND_VALUE))(key);
 
-		removeEntryForKey: function(key) {
+        },
 
-			var result = this.getEntryAndIndexForKey(key);
 
-			if (result) {
 
-				arrayRemoveAt(this.entries, result[0]);
+        removeEntryForKey: function(key) {
 
-				return result[1];
+            var result = this.getEntryAndIndexForKey(key);
 
-			}
+            if (result) {
 
-			return null;
+                arrayRemoveAt(this.entries, result[0]);
 
-		},
+                return result[1];
 
+            }
 
+            return null;
 
-		addEntry: function(key, value) {
+        },
 
-			this.entries[this.entries.length] = [key, value];
 
-		},
 
-		
+        addEntry: function(key, value) {
 
-		keys: function(aggregatedArr) {
+            this.entries[this.entries.length] = [key, value];
 
-			return (this.createBucketLister(0))(aggregatedArr);
+        },
 
-		},
 
 
+        keys: function(aggregatedArr) {
 
-		values: function(aggregatedArr) {
+            return (this.createBucketLister(0))(aggregatedArr);
 
-			return (this.createBucketLister(1))(aggregatedArr);
+        },
 
-		},
 
 
+        values: function(aggregatedArr) {
 
-		getEntries: function(entries) {
+            return (this.createBucketLister(1))(aggregatedArr);
 
-			var startIndex = entries.length;
+        },
 
-			for (var i = 0, len = this.entries.length; i < len; ++i) {
 
-				// Clone the entry stored in the bucket before adding to array
 
-				entries[startIndex + i] = this.entries[i].slice(0);
+        getEntries: function(entries) {
 
-			}
+            var startIndex = entries.length;
 
-		},
+            for (var i = 0, len = this.entries.length; i < len; ++i) {
 
+                // Clone the entry stored in the bucket before adding to array
 
+                entries[startIndex + i] = this.entries[i].slice(0);
 
-		containsKey: function(key) {
+            }
 
-			return (this.createBucketSearcher(EXISTENCE))(key);
+        },
 
-		},
 
 
+        containsKey: function(key) {
 
-		containsValue: function(value) {
+            return (this.createBucketSearcher(EXISTENCE))(key);
 
-			var i = this.entries.length;
+        },
 
-			while (i--) {
 
-				if ( value === this.entries[i][1] ) {
 
-					return true;
+        containsValue: function(value) {
 
-				}
+            var i = this.entries.length;
 
-			}
+            while (i--) {
 
-			return false;
+                if (value === this.entries[i][1]) {
 
-		}
+                    return true;
 
-	});
+                }
 
+            }
 
+            return false;
 
-	/*----------------------------------------------------------------------------------------------------------------*/
+        }
 
+    });
 
 
-	// Supporting functions for searching hashtable buckets
 
+    /*----------------------------------------------------------------------------------------------------------------*/
 
 
-	function searchBuckets(buckets, hash) {
 
-		var i = buckets.length, bucket;
+    // Supporting functions for searching hashtable buckets
 
-		while (i--) {
 
-			bucket = buckets[i];
 
-			if (hash === bucket[0]) {
+    function searchBuckets(buckets, hash) {
 
-				return i;
+        var i = buckets.length, bucket;
 
-			}
+        while (i--) {
 
-		}
+            bucket = buckets[i];
 
-		return null;
+            if (hash === bucket[0]) {
 
-	}
+                return i;
 
+            }
 
+        }
 
-	function getBucketForHash(bucketsByHash, hash) {
+        return null;
 
-		var bucket = bucketsByHash[hash];
+    }
 
 
 
-		// Check that this is a genuine bucket and not something inherited from the bucketsByHash's prototype
+    function getBucketForHash(bucketsByHash, hash) {
 
-		return ( bucket && (bucket instanceof Bucket) ) ? bucket : null;
+        var bucket = bucketsByHash[hash];
 
-	}
 
 
+        // Check that this is a genuine bucket and not something inherited from the bucketsByHash's prototype
 
+        return (bucket && (bucket instanceof Bucket)) ? bucket : null;
 
+    }
 
-	/*----------------------------------------------------------------------------------------------------------------*/
 
 
 
-	Object.subclass('Hashtable', 'default category', {
 
-		initialize: function(hashingFunctionParam, equalityFunctionParam) {
+    /*----------------------------------------------------------------------------------------------------------------*/
 
-			this.hashingFunctionParam = hashingFunctionParam;
 
-			this.equalityFunctionParam = equalityFunctionParam;
 
-			this.hasCustomEqualityFunction = (typeof equalityFunctionParam == FUNCTION);
+    Object.subclass('Hashtable', 'default category', {
 
-			this.buckets = [];
+        initialize: function(hashingFunctionParam, equalityFunctionParam) {
 
-			this.bucketsByHash = {};
+            this.hashingFunctionParam = hashingFunctionParam;
 
+            this.equalityFunctionParam = equalityFunctionParam;
 
+            this.hasCustomEqualityFunction = (typeof equalityFunctionParam == FUNCTION);
 
-		},
+            this.buckets = [];
 
+            this.bucketsByHash = {};
 
 
-		hashingFunction: function(key) {
 
-			return ((typeof this.hashingFunctionParam == FUNCTION) ? 
+        },
 
-					this.hashingFunctionParam : hashObject) (key);
 
-		},
 
+        hashingFunction: function(key) {
 
+            return ((typeof this.hashingFunctionParam == FUNCTION) ?
 
-		equalityFunction: function (arg1, arg2) {
+                    this.hashingFunctionParam : hashObject) (key);
 
-			
+        },
 
-			return ((this.hasCustomEqualityFunction) ? 
 
-					equalityFunctionParam : 
 
-					(function (a, b) { return a == b; })
+        equalityFunction: function(arg1, arg2) {
 
-				) (arg1, arg2);
 
-		},
 
+            return ((this.hasCustomEqualityFunction) ?
 
+                    equalityFunctionParam :
 
-		put: function(key, value) {
+                    (function(a, b) { return a == b; })
 
-			checkKey(key);
+                ) (arg1, arg2);
 
-			checkValue(value);
+        },
 
-			var hash = this.hashingFunction(key), bucket, bucketEntry, oldValue = null;
 
-	
 
-				// Check if a bucket exists for the bucket key
+        put: function(key, value) {
 
-			bucket = getBucketForHash(this.bucketsByHash, hash);
+            checkKey(key);
 
-			if (bucket) {
+            checkValue(value);
 
-					// Check this bucket to see if it already contains this key
+            var hash = this.hashingFunction(key), bucket, bucketEntry, oldValue = null;
 
-				bucketEntry = bucket.getEntryForKey(key);
 
-				if (bucketEntry) {
 
-					// This bucket entry is the current mapping of key to value, so replace old value and we're done.
+                // Check if a bucket exists for the bucket key
 
-					oldValue = bucketEntry[1];
+            bucket = getBucketForHash(this.bucketsByHash, hash);
 
-					bucketEntry[1] = value;		
+            if (bucket) {
 
-				} else {
+                    // Check this bucket to see if it already contains this key
 
-					// The bucket does not contain an entry for this key, so add one
+                bucketEntry = bucket.getEntryForKey(key);
 
-					bucket.addEntry(key, value);
+                if (bucketEntry) {
 
-				}
+                    // This bucket entry is the current mapping of key to value, so replace old value and we're done.
 
-			} else {
+                    oldValue = bucketEntry[1];
 
-					// No bucket exists for the key, so create one and put our key/value mapping in
+                    bucketEntry[1] = value;
 
-				bucket = new Bucket(hash, key, value, this.hasCustomEqualityFunction ? this.equalityFunction : null);
+                } else {
 
-				this.buckets[this.buckets.length] = bucket;
+                    // The bucket does not contain an entry for this key, so add one
 
-				this.bucketsByHash[hash] = bucket;
+                    bucket.addEntry(key, value);
 
-			}
+                }
 
-			return oldValue;
+            } else {
 
-		},
+                    // No bucket exists for the key, so create one and put our key/value mapping in
 
+                bucket = new Bucket(hash, key, value, this.hasCustomEqualityFunction ? this.equalityFunction : null);
 
+                this.buckets[this.buckets.length] = bucket;
 
-		get: function(key) {
+                this.bucketsByHash[hash] = bucket;
 
-			checkKey(key);
+            }
 
+            return oldValue;
 
+        },
 
-			var hash = this.hashingFunction(key);
 
 
+        get: function(key) {
 
-			// Check if a bucket exists for the bucket key
+            checkKey(key);
 
-			var bucket = getBucketForHash(this.bucketsByHash, hash);
 
-			if (bucket) {
 
-				// Check this bucket to see if it contains this key
+            var hash = this.hashingFunction(key);
 
-				var bucketEntry = bucket.getEntryForKey(key);
 
-				if (bucketEntry) {
 
-					// This bucket entry is the current mapping of key to value, so return the value.
+            // Check if a bucket exists for the bucket key
 
-					return bucketEntry[1];
+            var bucket = getBucketForHash(this.bucketsByHash, hash);
 
-				}
+            if (bucket) {
 
-			}
+                // Check this bucket to see if it contains this key
 
-			return null;
+                var bucketEntry = bucket.getEntryForKey(key);
 
-		},
+                if (bucketEntry) {
 
+                    // This bucket entry is the current mapping of key to value, so return the value.
 
+                    return bucketEntry[1];
 
-		containsKey: function(key) {
+                }
 
-			checkKey(key);
+            }
 
-			var bucketKey = this.hashingFunction(key);
+            return null;
 
+        },
 
 
-			// Check if a bucket exists for the bucket key
 
-			var bucket = getBucketForHash(this.bucketsByHash, bucketKey);
+        containsKey: function(key) {
 
+            checkKey(key);
 
+            var bucketKey = this.hashingFunction(key);
 
-			return bucket ? bucket.containsKey(key) : false;
 
-		},
 
+            // Check if a bucket exists for the bucket key
 
+            var bucket = getBucketForHash(this.bucketsByHash, bucketKey);
 
-		containsValue: function(value) {
 
-			checkValue(value);
 
-			var i = this.buckets.length;
+            return bucket ? bucket.containsKey(key) : false;
 
-			while (i--) {
+        },
 
-				if (this.buckets[i].containsValue(value)) {
 
-					return true;
 
-				}
+        containsValue: function(value) {
 
-			}
+            checkValue(value);
 
-			return false;
+            var i = this.buckets.length;
 
-		},
+            while (i--) {
 
+                if (this.buckets[i].containsValue(value)) {
 
+                    return true;
 
-		clear: function() {
+                }
 
-			this.buckets.length = 0;
+            }
 
-			this.bucketsByHash = {};
+            return false;
 
-		},
+        },
 
 
 
-		isEmpty: function() {
+        clear: function() {
 
-			return !this.buckets.length;
+            this.buckets.length = 0;
 
-		},
+            this.bucketsByHash = {};
 
+        },
 
 
 
+        isEmpty: function() {
 
-		createBucketAggregator: function(bucketFuncName) {
+            return !this.buckets.length;
 
-			var that = this;
+        },
 
-			return function() {
 
-				var aggregated = [], i = that.buckets.length;
 
-				while (i--) {
 
-					that.buckets[i][bucketFuncName](aggregated);
 
-				}
+        createBucketAggregator: function(bucketFuncName) {
 
-				return aggregated;
+            var that = this;
 
-			};
+            return function() {
 
-		},
+                var aggregated = [], i = that.buckets.length;
 
-		keys: function() {
+                while (i--) {
 
-			return (this.createBucketAggregator("keys"))();
+                    that.buckets[i][bucketFuncName](aggregated);
 
-		},
+                }
 
-		values: function() {
+                return aggregated;
 
-			return (this.createBucketAggregator("values"))();
+            };
 
-		},
+        },
 
-		entries: function() {
+        keys: function() {
 
-			return (this.createBucketAggregator("getEntries"))();
+            return (this.createBucketAggregator('keys'))();
 
-		},
+        },
 
+        values: function() {
 
+            return (this.createBucketAggregator('values'))();
 
-		remove: function(key) {
+        },
 
-			checkKey(key);
+        entries: function() {
 
+            return (this.createBucketAggregator('getEntries'))();
 
+        },
 
-			var hash = this.hashingFunction(key), bucketIndex, oldValue = null;
 
 
+        remove: function(key) {
 
-			// Check if a bucket exists for the bucket key
+            checkKey(key);
 
-			var bucket = getBucketForHash(this.bucketsByHash, hash);
 
 
+            var hash = this.hashingFunction(key), bucketIndex, oldValue = null;
 
-			if (bucket) {
 
-				// Remove entry from this bucket for this key
 
-				oldValue = bucket.removeEntryForKey(key);
+            // Check if a bucket exists for the bucket key
 
-				if (oldValue !== null) {
+            var bucket = getBucketForHash(this.bucketsByHash, hash);
 
-					// Entry was removed, so check if bucket is empty
 
-					if (!bucket.entries.length) {
 
-						// Bucket is empty, so remove it from the bucket collections
+            if (bucket) {
 
-						bucketIndex = searchBuckets(this.buckets, hash);
+                // Remove entry from this bucket for this key
 
-						arrayRemoveAt(this.buckets, bucketIndex);
+                oldValue = bucket.removeEntryForKey(key);
 
-						delete this.bucketsByHash[hash];
+                if (oldValue !== null) {
 
-					}
+                    // Entry was removed, so check if bucket is empty
 
-				}
+                    if (!bucket.entries.length) {
 
-			}
+                        // Bucket is empty, so remove it from the bucket collections
 
-			return oldValue;
+                        bucketIndex = searchBuckets(this.buckets, hash);
 
-		},
+                        arrayRemoveAt(this.buckets, bucketIndex);
 
+                        delete this.bucketsByHash[hash];
 
+                    }
 
-		size: function() {
+                }
 
-			var total = 0, i = this.buckets.length;
+            }
 
-			while (i--) {
+            return oldValue;
 
-				total += this.buckets[i].entries.length;
+        },
 
-			}
 
-			return total;
 
-		},
+        size: function() {
 
+            var total = 0, i = this.buckets.length;
 
+            while (i--) {
 
-		each: function(callback) {
+                total += this.buckets[i].entries.length;
 
-			var that = this;
+            }
 
-			var entries = that.entries(), i = entries.length, entry;
+            return total;
 
-			while (i--) {
+        },
 
-				entry = entries[i];
 
-				callback(entry[0], entry[1]);
 
-			}
+        each: function(callback) {
 
-		},
+            var that = this;
 
+            var entries = that.entries(), i = entries.length, entry;
 
+            while (i--) {
 
-		escapingEach: function(callback) {
+                entry = entries[i];
 
-			var that = this;
+                callback(entry[0], entry[1]);
+
+            }
+
+        },
+
+
+
+        escapingEach: function(callback) {
+
+            var that = this;
 
                         var entries = that.entries(), i = entries.length, entry;
 
-                        var context = {}  // GJB
+                        var context = {};  // GJB
 
                         while (i--) {
 
@@ -794,66 +794,66 @@ module('users.timfelgentreff.cassowary.Hashtable').requires().toRun(function() {
 
                                 context = callback(entry[0], entry[1]);
 
-				// 2011-10-21 fbo context can be falsey
+                // 2011-10-21 fbo context can be falsey
 
-                                if (context && context.hasOwnProperty("return")) { return context["return"]; }
-                                if (context && context.hasOwnProperty("retval")) { return context.retval; }
+                                if (context && context.hasOwnProperty('return')) { return context['return']; }
+                                if (context && context.hasOwnProperty('retval')) { return context.retval; }
 
-                                if (context && context.hasOwnProperty("break")) { break; }
+                                if (context && context.hasOwnProperty('break')) { break; }
 
-                        }   
+                        }
 
                 },
 
 
 
-		putAll: function(hashtable, conflictCallback) {
+        putAll: function(hashtable, conflictCallback) {
 
-			var that = this;
+            var that = this;
 
-			var entries = hashtable.entries();
+            var entries = hashtable.entries();
 
-			var entry, key, value, thisValue, i = entries.length;
+            var entry, key, value, thisValue, i = entries.length;
 
-			var hasConflictCallback = (typeof conflictCallback == FUNCTION);
+            var hasConflictCallback = (typeof conflictCallback == FUNCTION);
 
-			while (i--) {
+            while (i--) {
 
-				entry = entries[i];
+                entry = entries[i];
 
-				key = entry[0];
+                key = entry[0];
 
-				value = entry[1];
-
-
-
-				// Check for a conflict. The default behaviour is to overwrite the value for an existing key
-
-				if ( hasConflictCallback && (thisValue = that.get(key)) ) {
-
-					value = conflictCallback(key, thisValue, value);
-
-				}
-
-				that.put(key, value);
-
-			}
-
-		},
+                value = entry[1];
 
 
 
-		clone: function() {
+                // Check for a conflict. The default behaviour is to overwrite the value for an existing key
 
-			var that = this;
+                if (hasConflictCallback && (thisValue = that.get(key))) {
 
-			var clone = new Hashtable(this.hashingFunctionParam, this.equalityFunctionParam);
+                    value = conflictCallback(key, thisValue, value);
 
-			clone.putAll(that);
+                }
 
-			return clone;
+                that.put(key, value);
 
-		},
+            }
 
-	});
-}) // end of module
+        },
+
+
+
+        clone: function() {
+
+            var that = this;
+
+            var clone = new Hashtable(this.hashingFunctionParam, this.equalityFunctionParam);
+
+            clone.putAll(that);
+
+            return clone;
+
+        }
+
+    });
+}); // end of module

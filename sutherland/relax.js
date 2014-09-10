@@ -153,7 +153,7 @@ Relax.prototype.iterateForUpTo = function(tMillis) {
         didSomething = true;
       }
     });
-  } while(didSomething);
+  } while (didSomething);
 
   vars = {};
   constraintsForRelaxation.forEach(function(c) {
@@ -173,7 +173,7 @@ Relax.prototype.iterateForUpTo = function(tMillis) {
   while (computeStack.length > 0) {
     var entry = computeStack.pop();
     this.adjustVarForConstraint(entry.variable, entry.constraint);
-  };
+  }
 
   var error = this.getError();
   this.shouldRelax = error > this.epsilon;
@@ -188,4 +188,4 @@ function RelaxNode(expr, vars, solver) {
 }
 Global.RelaxNode = RelaxNode;
 
-}) // end of module
+}); // end of module

@@ -1,21 +1,25 @@
-module('users.timfelgentreff.babelsberg.cassowary_ext').requires('users.timfelgentreff.cassowary.DwarfCassowary').toRun(function() {
+module('users.timfelgentreff.babelsberg.cassowary_ext').
+requires('users.timfelgentreff.cassowary.DwarfCassowary').toRun(function() {
 
 Function.addMethods({
-    shouldBeTrue: function (priority, ctx) {
+    shouldBeTrue: function(priority, ctx) {
         if (!ctx) {
             ctx = priority;
             priority = undefined;
         }
-        return ClSimplexSolver.getInstance().always({priority: priority, ctx: ctx}, this);
+        return ClSimplexSolver.getInstance().
+                               always({priority: priority, ctx: ctx}, this);
     }
-})
+});
 
 ClSimplexSolver.addMethods({
     isConstraintObject: function() {
         return true;
     },
     constraintVariableFor: function(value, ivarname) {
-        if ((typeof(value) == "number") || (value === null) || (value instanceof Number)) {
+        if ((typeof(value) == 'number') ||
+            (value === null) ||
+            (value instanceof Number)) {
             var v = new ClVariable(value + 0 /* coerce back into primitive */);
             v.solver = this;
             v.stay();
@@ -28,7 +32,7 @@ ClSimplexSolver.addMethods({
         return ClStrength;
     },
     weight: 1000,
-    always: function (opts, func) {
+    always: function(opts, func) {
         var ctx = opts.ctx,
             priority = this.strength[opts.priority];
         func.varMapping = ctx;
@@ -41,15 +45,15 @@ ClSimplexSolver.addMethods({
 
 Object.extend(ClSimplexSolver, {
     getInstance: function() {
-        if (!this["$$instance"]) {
-            this["$$instance"] = new ClSimplexSolver();
-            this["$$instance"].setAutosolve(false);
+        if (!this['$$instance']) {
+            this['$$instance'] = new ClSimplexSolver();
+            this['$$instance'].setAutosolve(false);
         }
-        return this["$$instance"];
+        return this['$$instance'];
     },
 
     resetInstance: function() {
-        this["$$instance"] = undefined;
+        this['$$instance'] = undefined;
     }
 });
 
@@ -68,7 +72,7 @@ ClAbstractVariable.addMethods({
         if (this.stayConstraint) {
             try {
                 this.solver.removeConstraint(this.stayConstraint);
-            } catch(_) {
+            } catch (_) {
                 this.stayConstraint = null;
             }
         }
@@ -138,14 +142,14 @@ ClAbstractVariable.addMethods({
     cnIdentical: function(value) {
         return this.cnEquals(value); // the same for numbers
     },
-    
+
     prepareEdit: function() {
         this.solver.addEditVar(this);
     },
-    
+
     finishEdit: function() {
         // do nothing
-    },
+    }
 });
 
 ClLinearExpression.addMethods({
@@ -183,7 +187,7 @@ ClLinearExpression.addMethods({
         }
         return new ClLinearEquation(this, value);
     },
-    
+
   plus: function(expr /*ClLinearExpression*/) {
     if (typeof(expr) == 'string') {
         // XXX: Basically, we make numbers in strings readonly here
@@ -194,10 +198,10 @@ ClLinearExpression.addMethods({
       return this.clone().addExpression(expr, 1.0);
     } else if (expr instanceof ClVariable) {
       return this.clone().addVariable(expr, 1.0);
-    } else if (typeof(expr) == "number") {
+    } else if (typeof(expr) == 'number') {
       return this.clone().addExpression(new ClLinearExpression(expr), 1.0);
     } else {
-        throw "Not supported: plus with " + expr;
+        throw 'Not supported: plus with ' + expr;
     }
   },
   times: function(x) {
@@ -205,7 +209,7 @@ ClLinearExpression.addMethods({
         // XXX: Basically, we make numbers in strings readonly here
         x = parseFloat(x);
     }
-    
+
     if (typeof(x) == 'number') {
       return (this.clone()).multiplyMe(x);
     } else {
@@ -225,15 +229,15 @@ ClLinearExpression.addMethods({
         // XXX: Basically, we make numbers in strings readonly here
         expr = parseFloat(expr);
     }
-  
+
     if (expr instanceof ClLinearExpression) {
       return this.clone().addExpression(expr, -1.0);
     } else if (expr instanceof ClVariable) {
       return this.clone().addVariable(expr, -1.0);
-    } else if (typeof(expr) == "number") {
+    } else if (typeof(expr) == 'number') {
       return this.clone().addExpression(new ClLinearExpression(expr), -1.0);
     } else {
-        throw "Not supported: minus with " + expr;
+        throw 'Not supported: minus with ' + expr;
     }
   },
 
@@ -243,7 +247,7 @@ ClLinearExpression.addMethods({
         // XXX: Basically, we make numbers in strings readonly here
         x = parseFloat(x);
     }
-    
+
     if (typeof(x) == 'number') {
       if (CL.approx(x, 0.0)) {
         throw new ExCLNonlinearExpression();
@@ -255,9 +259,9 @@ ClLinearExpression.addMethods({
       }
       return this.times(1.0 / x._constant);
     } else {
-        throw "Not supported: divide with " + expr;
+        throw 'Not supported: divide with ' + expr;
     }
-  },
+  }
 });
 
 ClConstraint.addMethods({
@@ -277,14 +281,14 @@ ClConstraint.addMethods({
     cnOr: function(other) {
         return this;
     },
-    
+
     get solver() {
-        return this._solver || ClSimplexSolver.getInstance()
+        return this._solver || ClSimplexSolver.getInstance();
     },
-    
+
     set solver(value) {
         this._solver = value;
     }
 });
 
-}) // end of module
+}); // end of module

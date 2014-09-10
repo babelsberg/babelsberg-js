@@ -69,9 +69,9 @@ Object.subclass('HashSet', 'default category', {
 
         this.hashingFunction = hashingFunction;
 
-	this.equalityFunction = equalityFunction;
+    this.equalityFunction = equalityFunction;
 
-    	this.hashTable = new Hashtable(hashingFunction, equalityFunction);
+        this.hashTable = new Hashtable(hashingFunction, equalityFunction);
 
     },
 
@@ -240,8 +240,8 @@ Object.subclass('HashSet', 'default category', {
         }
 
     },
-    escapingEach: function (callback) {
+    escapingEach: function(callback) {
         return this.hashTable.escapingEach(callback);
-    },
+    }
 });
-}) // end of module
+}); // end of module
