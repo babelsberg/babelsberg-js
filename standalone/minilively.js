@@ -413,13 +413,13 @@ function contentLoaded(win, fn) {
     rem = doc.addEventListener ? 'removeEventListener' : 'detachEvent',
     pre = doc.addEventListener ? '' : 'on',
 
-    init = function(e) {
+    init = (function(e) {
         if (e.type == 'readystatechange' && doc.readyState != 'complete')
             return;
         (e.type == 'load' ? win : doc)[rem](pre + e.type, init, false);
         if (!done && (done = true))
             fn.call(win, e.type || e);
-    };,
+    }),
 
     poll = function() {
         try {
