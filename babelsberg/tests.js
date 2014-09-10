@@ -9,7 +9,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
                 obj: obj
             }
         }, function() {
-            obj.a + obj.b == 3
+            return obj.a + obj.b == 3;
         });
         this.assert(obj.a + obj.b == 3, "Solver failed")
     },
@@ -22,7 +22,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
                 obj: obj
             }
         }, function() {
-            obj.a >= 100
+            return obj.a >= 100;
         });
         this.assert(obj.a == 100);
         obj.a = 110;
@@ -40,7 +40,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
                 o: o
             }
         }, function() {
-            o.a.x + 100 <= o.b.x
+            return o.a.x + 100 <= o.b.x;
         });
         this.assert(pointA.x + 100 <= pointB.x, "Solver failed")
     },
@@ -54,7 +54,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
                 o: o
             }
         }, function() {
-            o.a.x + 100 <= o.b.x
+            return o.a.x + 100 <= o.b.x;
         });
         this.assert(pointA.x + 100 <= pointB.x, "Solver failed");
         pointA = pt(12, 12);
@@ -71,7 +71,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
                 obj: obj
             }
         }, function() {
-            obj.fahrenheit - 32 == obj.centigrade * 1.8
+            return obj.fahrenheit - 32 == obj.centigrade * 1.8;
         });
 
         this.assert(CL.approx(obj.fahrenheit - 32, obj.centigrade * 1.8));
@@ -104,7 +104,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
                 obj: obj
             }
         }, function() {
-            obj.a == obj.txt.getTextString()
+            return obj.a == obj.txt.getTextString();
         });
         this.assert(obj.a == obj.txt.getTextString());
         
@@ -122,7 +122,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
                 obj: obj
             }
         }, function() {
-            obj.a + obj.b == 3
+            return obj.a + obj.b == 3;
         });
         this.assert(obj.a + obj.b == 3, "Solver failed");
         obj.a = -5;
@@ -137,7 +137,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
                 obj: obj
             }
         }, function() {
-            obj.a + obj.b == 3
+            return obj.a + obj.b == 3;
         });
         this.assert(obj.a + obj.b == 3, "Solver failed");
         obj.a = -5;
@@ -181,7 +181,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
                 pt2: pt2
             }
         }, function() {
-            pt1.equals(pt2)
+            return pt1.equals(pt2);
         });
         this.assert(pt1.equals(pt2));
     },
@@ -198,7 +198,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
                 pt3: pt3
             }
         }, function() {
-            pt1.addPt(pt2).equals(pt3)
+            return pt1.addPt(pt2).equals(pt3);
         });
 
         this.assert(pt1.addPt(pt2).equals(pt3));
@@ -212,7 +212,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
                 obj: obj
             }
         }, function() {
-            obj.p.x >= 100 && obj.p.y >= 100
+            return obj.p.x >= 100 && obj.p.y >= 100;
         });
 
         this.assert(pt(100, 100).leqPt(obj.p));
@@ -234,9 +234,9 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
                 obj: obj
             }
         }, function() {
-            (obj.p.equals(obj.p2) &&
+            return (obj.p.equals(obj.p2) &&
              obj.p.x >= 100 &&
-             obj.p.y >= 100)
+             obj.p.y >= 100);
         });
 
         this.assert(pt(100, 100).leqPt(obj.p));
@@ -264,7 +264,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
                 obj: obj
             }
         }, function() {
-            (obj.p.equals(obj.p2.scaleBy(2)) &&
+            return (obj.p.equals(obj.p2.scaleBy(2)) &&
              obj.p.x >= 100 &&
              obj.p.y >= 100);
         });
@@ -440,7 +440,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
                     ctx: ctx
                 }
             }, function() {
-                ctx.a == ctx.b && ctx.c == ctx.d
+                return ctx.a == ctx.b && ctx.c == ctx.d;
             });
 
         this.assert(ctx.a == ctx.b && ctx.c == ctx.d);
@@ -455,12 +455,17 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
         var o = {string: "0",
                  number: 0};
 
-        (function () {
+        bbb.always({
+            solver: new DBPlanner(),
+            ctx: {
+                o: o
+            }, methods: function () {
+                o.string.formula([o.number], function (num) { return num + "" });
+                o.number.formula([o.string], function (str) { return parseInt(str) });
+            }
+        }, function () {
             return o.string == o.number + "";
-        }).shouldBeSatisfiedWith(function () {
-            o.string.formula([o.number], function (num) { return num + "" });
-            o.number.formula([o.string], function (str) { return parseInt(str) });
-        }, {o: o});
+        });
 
         this.assert(o.string === o.number + "");
         o.string = "1"
@@ -623,12 +628,17 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
         var o = {a: true,
                  b: 10};
 
-        (function () {
-            return o.a == (o.b > 15)
-        }).shouldBeSatisfiedWith(function () {
-            o.a.formula([o.b], function (b, a) { return b > 15 });
-            o.b.formula([o.a], function (a, b) { return a ? 16 : 15 });
-        }, {o: o});
+        bbb.always({
+            solver: new DBPlanner(),
+            ctx: {
+                o: o
+            }, methods: function () {
+                o.a.formula([o.b], function (b, a) { return b > 15 });
+                o.b.formula([o.a], function (a, b) { return a ? 16 : 15 });
+            }
+        }, function () {
+            return o.a == (o.b > 15);
+        });
 
         this.assert(!o.a, "deltablue changed a");
         o.b = 20;
@@ -644,13 +654,18 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
     testArithmetic: function() {
         var o = {x: 0, y: 0, z: 0};
 
-        (function () {
+        bbb.always({
+            solver: new DBPlanner(),
+            ctx: {
+                o: o
+            }, methods: function () {
+                o.x.formula([o.y, o.z], function (y, z) { debugger; return z - y });
+                o.y.formula([o.x, o.z], function (x, z) { debugger; return z - x });
+                o.z.formula([o.x, o.y], function (x, y) { debugger; return x + y });
+            }
+        }, function () {
             return o.x + o.y == o.z;
-        }).shouldBeSatisfiedWith(function () {
-            o.x.formula([o.y, o.z], function (y, z) { debugger; return z - y });
-            o.y.formula([o.x, o.z], function (x, z) { debugger; return z - x });
-            o.z.formula([o.x, o.y], function (x, y) { debugger; return x + y });
-        }, {o: o});
+        });
 
         this.assert(o.x + o.y == o.z);
         o.x = 10;
@@ -682,9 +697,6 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
         string.assignValue("12");
         this.assert(number.value === 12, "new value should propagate");
         this.assert(string.value === "12", "new value should stick");
-    },
-    setUp: function() {
-        DBPlanner.resetInstance()
     },
     testNoPredicate: function () {
         var db = new DBPlanner(),
@@ -721,17 +733,22 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
                 o: o
             }
         }, function() {
-            o.b >= 11
+            return o.b >= 11;
         });
         this.assert(o.a, "a unchanged");
         this.assert(o.b === 11, "b fixed");
 
-        (function () {
-            return o.a == (o.b > 15)
-        }).shouldBeSatisfiedWith(function () {
-            o.a.formula([o.b], function (b, a) { return b > 15 });
-            o.b.formula([o.a], function (a, b) { return a ? 16 : 15 });
-        }, {o: o});
+        bbb.always({
+            solver: new DBPlanner(),
+            ctx: {
+                o: o
+            }, methods: function () {
+                o.a.formula([o.b], function (b, a) { return b > 15 });
+                o.b.formula([o.a], function (a, b) { return a ? 16 : 15 });
+            }
+        }, function () {
+            return o.a == (o.b > 15);
+        });
         this.assert(!o.a, "deltablue is downstream from cassowary and has to change a");
         this.assert(o.b === 11, "deltablue is downstream from cassowary and has to change a");
 
@@ -888,17 +905,22 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
                 o: o
             }
         }, function() {
-            o.b + o.c >= 20
+            return o.b + o.c >= 20;
         });
         this.assert(o.a, "a unchanged");
         this.assert(o.b === 15, "b fixed " + o.b);
 
-        (function () {
-            return o.a == (o.b > 15)
-        }).shouldBeSatisfiedWith(function () {
-            o.a.formula([o.b], function (b, a) { return b > 15 });
-            o.b.formula([o.a], function (a, b) { return a ? 16 : 15 });
-        }, {o: o});
+        bbb.always({
+            solver: new DBPlanner(),
+            ctx: {
+                o: o
+            }, methods: function () {
+                o.a.formula([o.b], function (b, a) { return b > 15 });
+                o.b.formula([o.a], function (a, b) { return a ? 16 : 15 });
+            }
+        }, function () {
+            return o.a == (o.b > 15);
+        });
         this.assert(!o.a, "deltablue is downstream from cassowary and has to change a to " + o.a);
         this.assert(o.b === 15, "deltablue is downstream from cassowary and has to change a");
 
