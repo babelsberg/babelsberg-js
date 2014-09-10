@@ -2,19 +2,28 @@ module('users.timfelgentreff.babelsberg.tests').requires('lively.TestFramework',
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
     testSimple: function () {
-        ClSimplexSolver.resetInstance();
         var obj = {a: 2, b: 3};
-        (function () {
-            return obj.a + obj.b == 3;
-        }).shouldBeTrue({obj: obj});
+        bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            obj.a + obj.b == 3
+        });
         this.assert(obj.a + obj.b == 3, "Solver failed")
     },
 
     testInequality: function() {
         var obj = {a: 8};
-        (function () {
-            return obj.a >= 100
-        }).shouldBeTrue({obj: obj});
+        bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            obj.a >= 100
+        });
         this.assert(obj.a == 100);
         obj.a = 110;
         this.assert(obj.a == 110);
@@ -25,19 +34,28 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         var pointA = pt(1,2),
             pointB = pt(2,3),
             o = {a: pointA, b: pointB};
-        (function () {
-            return o.a.x + 100 <= o.b.x;
-        }).shouldBeTrue({o: o});
+        bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                o: o
+            }
+        }, function() {
+            o.a.x + 100 <= o.b.x
+        });
         this.assert(pointA.x + 100 <= pointB.x, "Solver failed")
     },
     testSimplePathInvalidation: function () {
-        ClSimplexSolver.resetInstance();
         var pointA = pt(1,2),
             pointB = pt(2,3),
             o = {a: pointA, b: pointB};
-        (function () {
-            return o.a.x + 100 <= o.b.x;
-        }).shouldBeTrue({o: o});
+        bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                o: o
+            }
+        }, function() {
+            o.a.x + 100 <= o.b.x
+        });
         this.assert(pointA.x + 100 <= pointB.x, "Solver failed");
         pointA = pt(12, 12);
         o.a = pointA;
@@ -45,13 +63,16 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
     },
 
     testTemperatureExample: function() {
-        ClSimplexSolver.resetInstance();
-
         var obj = {fahrenheit: 212, centigrade: 100};
 
-        (function () {
-            return obj.fahrenheit - 32 == obj.centigrade * 1.8;
-        }).shouldBeTrue({obj: obj});
+        bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            obj.fahrenheit - 32 == obj.centigrade * 1.8
+        });
 
         this.assert(CL.approx(obj.fahrenheit - 32, obj.centigrade * 1.8));
         obj.fahrenheit = 100;
@@ -77,9 +98,14 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
             };
         obj.txt.setTextString("5");
 
-        (function () {
-            return obj.a == obj.txt.getTextString();
-        }).shouldBeTrue({obj: obj});
+        bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            obj.a == obj.txt.getTextString()
+        });
         this.assert(obj.a == obj.txt.getTextString());
         
         obj.txt.setTextString("15");
@@ -90,9 +116,14 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
     testSimpleAssign: function () {
         ClSimplexSolver.resetInstance();
         var obj = {a: 2, b: 3};
-        (function () {
-            return obj.a + obj.b == 3;
-        }).shouldBeTrue({obj: obj});
+        bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            obj.a + obj.b == 3
+        });
         this.assert(obj.a + obj.b == 3, "Solver failed");
         obj.a = -5;
         this.assert(obj.a + obj.b == 3, "Constraint violated after assignment");
@@ -100,9 +131,14 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
 
     testAssignStay: function() {
         var obj = {a: 2, b: 3};
-        (function () {
-            return obj.a + obj.b == 3;
-        }).shouldBeTrue({obj: obj});
+        bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            obj.a + obj.b == 3
+        });
         this.assert(obj.a + obj.b == 3, "Solver failed");
         obj.a = -5;
         this.assert(obj.a + obj.b == 3, "Constraint violated after assignment");
@@ -138,9 +174,15 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
     testPointEquals: function() {
         var pt1 = pt(10, 10),
             pt2 = pt(20, 20);
-        (function () {
-            return pt1.equals(pt2);
-        }).shouldBeTrue({pt1: pt1, pt2: pt2});
+        bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                pt1: pt1,
+                pt2: pt2
+            }
+        }, function() {
+            pt1.equals(pt2)
+        });
         this.assert(pt1.equals(pt2));
     },
 
@@ -148,18 +190,30 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         var pt1 = pt(10, 10),
             pt2 = pt(20, 20),
             pt3 = pt(0, 0);
-        (function () {
-            return pt1.addPt(pt2).equals(pt3);
-        }).shouldBeTrue({pt1: pt1, pt2: pt2, pt3: pt3});
+        bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                pt1: pt1,
+                pt2: pt2,
+                pt3: pt3
+            }
+        }, function() {
+            pt1.addPt(pt2).equals(pt3)
+        });
 
         this.assert(pt1.addPt(pt2).equals(pt3));
     },
 
     testPointAssignment: function() {
         var obj = {p: pt(10, 10)};
-        (function () {
-            return obj.p.x >= 100 && obj.p.y >= 100;
-        }).shouldBeTrue({obj: obj});
+        bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            obj.p.x >= 100 && obj.p.y >= 100
+        });
 
         this.assert(pt(100, 100).leqPt(obj.p));
 
@@ -174,11 +228,16 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
 
     testPointAssignmentComplex: function() {
         var obj = {p: pt(10, 10), p2: pt(20, 20)};
-        (function () {
-            return (obj.p.equals(obj.p2) &&
-                    obj.p.x >= 100 &&
-                    obj.p.y >= 100);
-        }).shouldBeTrue({obj: obj});
+        bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            (obj.p.equals(obj.p2) &&
+             obj.p.x >= 100 &&
+             obj.p.y >= 100)
+        });
 
         this.assert(pt(100, 100).leqPt(obj.p));
         this.assert(obj.p.equals(obj.p2));
@@ -199,11 +258,16 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
 
     testPointAssignmentComplexScaled: function() {
         var obj = {p: pt(10, 10), p2: pt(20, 20)};
-        (function () {
-            return (obj.p.equals(obj.p2.scaleBy(2)) &&
-                    obj.p.x >= 100 &&
-                    obj.p.y >= 100);
-        }).shouldBeTrue({obj: obj});
+        bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            (obj.p.equals(obj.p2.scaleBy(2)) &&
+             obj.p.x >= 100 &&
+             obj.p.y >= 100);
+        });
 
         this.assert(pt(100, 100).leqPt(obj.p));
         this.assert(obj.p.equals(obj.p2.scaleBy(2)));
@@ -370,17 +434,18 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
 
     testConjunction: function() {
         var ctx = {a: 10, b: 100, c: 1000, d: 10000},
-            constraint = (function () {
-                return ctx.a == ctx.b && ctx.c == ctx.d
-            }).shouldBeTrue({ctx: ctx});
+            constraint = bbb.always({
+                solver: new ClSimplexSolver(),
+                ctx: {
+                    ctx: ctx
+                }
+            }, function() {
+                ctx.a == ctx.b && ctx.c == ctx.d
+            });
 
         this.assert(ctx.a == ctx.b && ctx.c == ctx.d);
         // should have two primitive constraints
         this.assert(constraint.constraintobjects.length == 2);
-    },
-
-    setUp: function() {
-        ClSimplexSolver.resetInstance();
     }
 });
 
@@ -650,7 +715,14 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
         var o = {a: true,
                  b: 10};
 
-        (function () { return o.b >= 11 }).shouldBeTrue({o: o});
+        bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                o: o
+            }
+        }, function() {
+            o.b >= 11
+        });
         this.assert(o.a, "a unchanged");
         this.assert(o.b === 11, "b fixed");
 
@@ -810,7 +882,14 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
                  b: 10,
                  c: 5};
 
-        (function () { return o.b + o.c >= 20 }).shouldBeTrue({o: o});
+        bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                o: o
+            }
+        }, function() {
+            o.b + o.c >= 20
+        });
         this.assert(o.a, "a unchanged");
         this.assert(o.b === 15, "b fixed " + o.b);
 
