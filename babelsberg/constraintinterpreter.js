@@ -1,5 +1,4 @@
-module('users.timfelgentreff.babelsberg.constraintinterpreter').requires('users.timfelgentreff.jsinterpreter.Interpreter', 'cop.Layers', 'users.timfelgentreff.babelsberg.cassowary_ext', 'users.timfelgentreff.babelsberg.deltablue_ext', 'users.timfelgentreff.babelsberg.csp_ext', 'users.timfelgentreff.babelsberg.core_ext', 'users.timfelgentreff.babelsberg.src_transform', 'users.timfelgentreff.babelsberg.babelsberg-lively','users.timfelgentreff.sutherland.relax_bbb',
-'users.timfelgentreff.babelsberg.couldnotsatisfyerror').toRun(function() {
+module('users.timfelgentreff.babelsberg.constraintinterpreter').requires('users.timfelgentreff.jsinterpreter.Interpreter', 'cop.Layers', 'users.timfelgentreff.babelsberg.cassowary_ext', 'users.timfelgentreff.babelsberg.deltablue_ext', 'users.timfelgentreff.babelsberg.csp_ext', 'users.timfelgentreff.babelsberg.core_ext', 'users.timfelgentreff.babelsberg.src_transform', 'users.timfelgentreff.babelsberg.babelsberg-lively','users.timfelgentreff.sutherland.relax_bbb').toRun(function() {
 
 /**
  * The interface to create, maintain and remove constraints.
@@ -240,8 +239,8 @@ Object.subclass("Babelsberg", {
             if(!opts.postponeEnabling) { constraint.enable(); }
 			return constraint;
 		} catch(e) {
-			if(e instanceof CouldNotSatisfyError && typeof opts.onError  === "function") {
-				bbb.addCallback(opts.onError, opts.onError.constraint);
+			if(typeof opts.onError  === "function") {
+				bbb.addCallback(opts.onError, opts.onError.constraint, [e]);
 			} else {
 				throw e;
 			}
@@ -696,8 +695,8 @@ Object.subclass('ConstrainedVariable', {
 				var catchingConstraint = this._constraints.find(function(constraint) {
 					return typeof constraint.onError  === "function";
 				});
-				if(e instanceof CouldNotSatisfyError && catchingConstraint) {
-					bbb.addCallback(catchingConstraint.onError, catchingConstraint);
+				if(catchingConstraint) {
+					bbb.addCallback(catchingConstraint.onError, catchingConstraint, [e]);
 				} else {
 					throw e;
 				}

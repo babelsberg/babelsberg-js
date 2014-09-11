@@ -1369,34 +1369,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
 });
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
-    testCassowaryThrowsACouldNotSatisfyError: function () {
-        var obj = {a:0, b:10},
-			s = new ClSimplexSolver(),
-			couldNotSatisfyErrorThrown = false;
-
-		bbb.always({
-			solver: s,
-			ctx: {
-				bbb: bbb,
-				obj: obj,
-				_$_self: this.doitContext || this
-			}
-		}, function() {
-			return obj.a == 0;;
-		});
-		
-		// not satisfiable assignment
-		try {
-			obj.a = 10;
-		} catch(e) {
-			if(e instanceof CouldNotSatisfyError) {
-				couldNotSatisfyErrorThrown = true;
-			}
-		}
-		
-		this.assert(couldNotSatisfyErrorThrown, "no CouldNotSatisfyError was thrown, when expected; obj.a: " + obj.a);
-    },
-    testCallOnError: function () {
+    testOnErrorCassowaryConstraintConstruction: function () {
         var obj = {a: 0},
 			onErrorCalled = false;
 
@@ -1430,7 +1403,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
 	
 		this.assert(onErrorCalled, "onError was not called; obj.a: " + obj.a);
     },
-    testCallOnErrorAssignment: function () {
+    testOnErrorCassowaryAssignment: function () {
         var obj = {a: 0},
 			onErrorCalled = false;
 
@@ -1453,7 +1426,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
 		
 		this.assert(onErrorCalled, "onError was not called; obj.a: " + obj.a);
     },
-    _testDeltaBlueConstraintConstruction: function () {
+    _testOnErrorDeltaBlueConstraintConstruction: function () {
         var obj = {int: 17, str: "17"},
 			onErrorCalled = false;
 
@@ -1490,15 +1463,17 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
 		
 		this.assert(onErrorCalled, "onError was not called; obj.a: " + obj.a);
     },
-    testCSPConstraintConstruction: function () {
+    testOnErrorCSPConstraintConstruction: function () {
         var pt = {x: 5, y: 2},
-			onErrorCalled = false;
+			onErrorCalled = false,
+			errorMessage = "";
 
 		bbb.defaultSolver = new csp.Solver();
 	    
         bbb.always({
-			onError: function() {
+			onError: function(e) {
 				onErrorCalled = true;
+				errorMessage = e.message;
 			},
             ctx: {
                 pt: pt,
@@ -1509,8 +1484,9 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
         });
 	    
 		bbb.always({
-			onError: function() {
+			onError: function(e) {
 				onErrorCalled = true;
+				errorMessage = e.message;
 			},
 			ctx: {
 				pt: pt,
@@ -1521,16 +1497,19 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
 		});
 	
 	    this.assert(onErrorCalled, "onError was not called");
+	    this.assert(errorMessage === "constraint cannot be satisfied", "an unexpected error was thrown, message: " + errorMessage);
     },
-    testCSPAssignment: function () {
+    testOnErrorCSPAssignment: function () {
         var pt = {x: 1, y: 2},
-			onErrorCalled = false;
+			onErrorCalled = false,
+			errorMessage = "";
 
 		bbb.defaultSolver = new csp.Solver();
 	    
         bbb.always({
-			onError: function() {
+			onError: function(e) {
 				onErrorCalled = true;
+				errorMessage = e.message;
 			},
             ctx: {
                 pt: pt,
@@ -1545,16 +1524,19 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
 		pt.x = 5;
 	
 	    this.assert(onErrorCalled, "onError was not called");
+	    this.assert(errorMessage === "assigned value is not contained in domain", "an unexpected error was thrown, message: " + errorMessage);
     },
-    testRelaxConstraintConstruction: function () {
+    testOnErrorRelaxConstraintConstruction: function () {
         var pt = {x: 5},
-			onErrorCalled = false;
+			onErrorCalled = false,
+			errorMessage = "";
 
 		bbb.defaultSolver = new Relax();
 	    
         bbb.always({
-			onError: function() {
+			onError: function(e) {
 				onErrorCalled = true;
+				errorMessage = e.message;
 			},
             ctx: {
                 pt: pt,
@@ -1565,8 +1547,9 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
         });
 	    
 		bbb.always({
-			onError: function() {
+			onError: function(e) {
 				onErrorCalled = true;
+				errorMessage = e.message;
 			},
 			ctx: {
 				pt: pt,
@@ -1577,6 +1560,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
 		});
 	
 	    this.assert(onErrorCalled, "onError was not called");
+	    this.assert(errorMessage === "Could not satisfy constraint", "an unexpected error was thrown, message: " + errorMessage);
     }
 });
 

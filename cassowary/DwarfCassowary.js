@@ -1,4 +1,4 @@
-module('users.timfelgentreff.cassowary.DwarfCassowary').requires('users.timfelgentreff.cassowary.HashSet', 'users.timfelgentreff.babelsberg.couldnotsatisfyerror').toRun(function() {
+module('users.timfelgentreff.cassowary.DwarfCassowary').requires('users.timfelgentreff.cassowary.HashSet').toRun(function() {
 // FILE: EDU.Washington.grad.gjb.cassowary
 // package EDU.Washington.grad.gjb.cassowary;
 
@@ -1605,7 +1605,7 @@ ClTableau.subclass('ClSimplexSolver', 'default category', {
     if (!CL.approx(azTableauRow.constant(), 0.0)) {
       this.removeRow(az);
       this.removeColumn(av);
-      throw new CouldNotSatisfyError("A required constraint cannot be satisfied");
+      throw new ExCLRequiredFailure();
     }
     var e = this.rowExpression(av);
     if (e != null) {
@@ -1687,7 +1687,7 @@ ClTableau.subclass('ClSimplexSolver', 'default category', {
     if (rv !== undefined) return rv;
 
     if (!CL.approx(expr.constant(), 0.0)) {
-      throw new CouldNotSatisfyError("A required constraint cannot be satisfied");
+      throw new ExCLRequiredFailure();
     }
     if (coeff > 0.0) {
       expr.multiplyMe(-1);

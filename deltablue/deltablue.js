@@ -1,4 +1,4 @@
-module('users.timfelgentreff.deltablue.deltablue').requires('users.timfelgentreff.babelsberg.couldnotsatisfyerror').toRun(function() {
+module('users.timfelgentreff.deltablue.deltablue').requires().toRun(function() {
 
 // Copyright 2008 the V8 project authors. All rights reserved.
 // Copyright 1996 John Maloney and Mario Wolczko.
@@ -168,7 +168,6 @@ Object.subclass('DBConstraint', {
 	this.chooseMethod(mark);
 	if (!this.isSatisfied()) {
 	    if (this.strength == DBStrength.REQUIRED) {
-			//throw new CouldNotSatisfyError("Could not satisfy a required constraint!");
 			alert("Could not satisfy a required constraint!");
         }
 	    return null;
