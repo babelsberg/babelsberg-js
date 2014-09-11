@@ -186,5 +186,7 @@ RelaxNode.prototype.tan = function(r) {
     );
 };
 
+RelaxNode.prototype.enable = function() { /* ignored */ };
+RelaxNode.prototype.disable = function() { /* ignored */ };
 
 }); // end of module

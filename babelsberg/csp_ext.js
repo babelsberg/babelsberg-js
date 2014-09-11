@@ -1,5 +1,4 @@
-module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff.csp.csp').
-toRun(function() {
+module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff.csp.csp').toRun(function() {
 
     JSLoader.loadJs(module('users.timfelgentreff.csp.underscore-min').uri());
 
@@ -41,11 +40,7 @@ toRun(function() {
                     // we actually want to constraint the parent of this property
                     theParent = cobj.obj;
                     this.__takeNext__ = true;
-                    cParent = this.constraintVariableFor(
-                        cobj.obj,
-                        cobj.parentConstrainedVariable.ivarname,
-                        cobj.parentConstrainedVariable
-                    );
+                    cParent = this.constraintVariableFor(cobj.obj, cobj.parentConstrainedVariable.ivarname, cobj.parentConstrainedVariable);
                     cobj.parentConstrainedVariable.externalVariables(this, cParent);
                     // XXX HACK?
                     delete cParent.__cvar__;
@@ -78,19 +73,23 @@ toRun(function() {
         weight: 1000,
         always: function(opts, func) {
             func.varMapping = opts.ctx;
+            func.allowTests = true;
             func.allowUnsolvableOperations = true;
             var cobj = new Constraint(func, this);
+            cobj.allowFailing = true;
             if (!this.__domainDefinition__) {
                 var constraint = this.p.addConstraint([], func);
                 var satisfiable = this.p.getSolution({});
                 if (!satisfiable) {
                     this.p.removeConstraint(constraint);
-                    throw 'constraint cannot be satisfied';
+                    throw new Error('constraint cannot be satisfied');
                 }
             } else {
                 delete this.__domainDefinition__;
             }
-        }
+            return cobj;
+        },
+        solve: function() { /* ignored */ }
     });
     Object.extend(csp.Solver, {
         weight: 1000,
@@ -122,8 +121,7 @@ toRun(function() {
             this.cspname = csp.Solver.getUniqueName();
             this.cspvariable = this.solver.p.addVariable(this.cspname, domain);
 
-            var valueToAssign = this.domain.indexOf(currentValue) > -1 ?
-                currentValue : this.domain[0];
+            var valueToAssign = this.domain.indexOf(currentValue) > -1 ? currentValue : this.domain[0];
             this.solver.p.solver.assignments[this.cspname] = valueToAssign;
         },
 
@@ -131,7 +129,7 @@ toRun(function() {
             // throw error if assigned value does not match the corresponding domain
             var inDomain = this.domain.indexOf(value) > -1;
             if (!inDomain) {
-                throw 'assigned value is not contained in domain';
+                throw new Error('assigned value is not contained in domain');
             }
 
             // save previous assignments for possible later restoration.
@@ -146,7 +144,7 @@ toRun(function() {
             if (!satisfiable) {
                 // restore assignments
                 _.extend(this.solver.p.solver.assignments, save);
-                throw 'assignment makes constraints not satisfiable';
+                throw new Error('assignment makes constraints not satisfiable');
             }
         },
 
@@ -165,7 +163,6 @@ toRun(function() {
             return true;
         }
     });
-
 
     Number.prototype.__defineGetter__(csp.Solver.DomainMethod, function() {
         return this;

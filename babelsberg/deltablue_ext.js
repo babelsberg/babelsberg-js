@@ -2,23 +2,6 @@ module('users.timfelgentreff.babelsberg.deltablue_ext').
 requires('users.timfelgentreff.deltablue.deltablue').
 toRun(function() {
 
-Function.addMethods({
-    shouldBeSatisfiedWith: function(priority, methods, ctx) {
-        // method for deltablue constraint (for now)
-        if (!ctx) {
-            ctx = methods;
-            methods = priority;
-            priority = DBStrength.required;
-        }
-        return DBPlanner.getInstance().always({
-            priority: priority,
-            methods: methods,
-            ctx: ctx
-        }, this);
-    }
-});
-
-
 DBPlanner.addMethods({
     isConstraintObject: function() {
         return true;
@@ -63,7 +46,6 @@ DBPlanner.addMethods({
             cobj.addPrimitiveConstraint(constraint);
         }
         cobj.priority = priority;
-        cobj.enable();
         return cobj;
     },
 

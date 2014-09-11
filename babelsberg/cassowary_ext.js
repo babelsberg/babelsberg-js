@@ -1,17 +1,6 @@
 module('users.timfelgentreff.babelsberg.cassowary_ext').
 requires('users.timfelgentreff.cassowary.DwarfCassowary').toRun(function() {
 
-Function.addMethods({
-    shouldBeTrue: function(priority, ctx) {
-        if (!ctx) {
-            ctx = priority;
-            priority = undefined;
-        }
-        return ClSimplexSolver.getInstance().
-                               always({priority: priority, ctx: ctx}, this);
-    }
-});
-
 ClSimplexSolver.addMethods({
     isConstraintObject: function() {
         return true;
@@ -38,7 +27,6 @@ ClSimplexSolver.addMethods({
         func.varMapping = ctx;
         var constraint = new Constraint(func, this);
         constraint.priority = priority;
-        constraint.enable();
         return constraint;
     }
 });
