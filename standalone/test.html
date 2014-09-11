@@ -51,6 +51,9 @@
 	<script src="test_harness.js"></script>
 	<script src="../reactive/reactive_test.js"></script>
 	<script src="../babelsberg/tests.js"></script>
+	<script src="../ohshima/ElectricalComponents.js"></script>
+	<script src="../ohshima/ElectricalComponentsTests.js"></script>
+	<script src="../ohshima/ElectricalCircuitTests.js"></script>
 	<!-- // src transform -->
 	<script src="../babelsberg/uglify.js"></script>
 	<script src="../babelsberg/src_transform.js"></script>
@@ -75,6 +78,9 @@
 		new users.timfelgentreff.reactive.reactive_test.TriggerTest().runAll();
 		new users.timfelgentreff.reactive.reactive_test.LayerActivationTest().runAll();
 		new users.timfelgentreff.reactive.reactive_test.ScopedConstraintsTest().runAll();
+
+		new users.ohshima.ElectricalCircuitTests.Test1().runAll();
+		new users.ohshima.ElectricalComponentsTests.Test1().runAll();
 	</script>
 	
 	<script type="text/babelsbergscript">
