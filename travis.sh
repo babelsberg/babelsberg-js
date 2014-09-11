@@ -3,7 +3,8 @@ if [ "$TYPE" == "Lively" ]; then
     git clone git://github.com/LivelyKernel/LivelyKernel.git
     mkdir LivelyKernel/users
     ln -s $PWD LivelyKernel/users/timfelgentreff
-	
+    ln -s $PWD/ohshima LivelyKernel/users/ohshima
+
     npm install jsdoc@"<=3.3.0"
 	./node_modules/.bin/jsdoc -c jsdoc_conf.json -d docs
 	cd docs
@@ -19,7 +20,7 @@ if [ "$TYPE" == "Lively" ]; then
     npm install
     node bin/lk-server --no-partsbin-check &
     sleep 15
-    sed -i 's/var testList = baseTests;/var testList = [\"users.timfelgentreff.babelsberg.tests\"]; browserTests = [];/' run_tests.js
+    sed -i 's/var testList = baseTests;/var testList = [\"users.timfelgentreff.babelsberg.tests\", \"users.ohshima.ElectricalCircuitTests\", \"users.ohshima.ElectricalComponentsTests\"]; browserTests = [];/' run_tests.js
     DISPLAY=:1 npm test
     exitcode=$?
 
