@@ -100,10 +100,6 @@ window.pt = (function (x, y) {
 
 window.rect = (function() {});
 
-window.alertOK = (function(msg) {
-    console.log(msg);
-});
-
 Object.subclass("Color", {
     initialize: function(r, g, b, a) {
         this.r = r || 0;
