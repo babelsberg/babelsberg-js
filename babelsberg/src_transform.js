@@ -235,8 +235,7 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
     }
 
 });
-
-    if (lively && lively.morphic && lively.morphic.Morph && lively.morphic.CodeEditor) {
+    if(lively && lively.morphic && lively.morphic.CodeEditor) {
         cop.create("AddScriptWithFakeOriginalLayer").refineClass(lively.morphic.Morph, {
             addScript: function (funcOrString, origSource) {
                 var originalFunction;
@@ -246,7 +245,7 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
                 return result;
             },
         });
-    
+
         cop.create("ConstraintSyntaxLayer").refineClass(lively.morphic.CodeEditor, {
             doSave: function () {
                 if (this.owner instanceof lively.ide.BrowserPanel) {
@@ -277,7 +276,7 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
                             endIdx = this.textString.indexOf("}", endIdx + 1);
                         }
                     }
-    
+                    
                     if (fragments.length !== 0) {
                         var textPos = 0;
                         var newTextString = fragments.inject("", function (memo, fragment) {
@@ -312,6 +311,7 @@ module('users.timfelgentreff.babelsberg.src_transform').requires("cop.Layers", "
             }
         });
         ConstraintSyntaxLayer.beGlobal();
+
     }
     
 }) // end of module

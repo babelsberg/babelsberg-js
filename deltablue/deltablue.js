@@ -168,8 +168,8 @@ Object.subclass('DBConstraint', {
 	this.chooseMethod(mark);
 	if (!this.isSatisfied()) {
 	    if (this.strength == DBStrength.REQUIRED) {
-		alert("Could not satisfy a required constraint!");
-            }
+			alert("Could not satisfy a required constraint!");
+        }
 	    return null;
 	}
 	this.markInputs(mark);

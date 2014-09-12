@@ -42,9 +42,18 @@
 	<!-- // Babelsberg/js -->
 	<script src="../babelsberg/core_ext.js"></script>
 	<script src="../babelsberg/constraintinterpreter.js"></script>
+	<!-- // Relax -->
+	<script src="../sutherland/relax.js"></script>
+	<script src="../sutherland/relax_bbb.js"></script>
+	<!-- // reactive: assert, trigger, layer.activeOn, layer.always, ... -->
+	<script src="../reactive/reactive.js"></script>
 	<!-- // Tests -->
 	<script src="test_harness.js"></script>
+	<script src="../reactive/reactive_test.js"></script>
 	<script src="../babelsberg/tests.js"></script>
+	<script src="../ohshima/ElectricalComponents.js"></script>
+	<script src="../ohshima/ElectricalComponentsTests.js"></script>
+	<script src="../ohshima/ElectricalCircuitTests.js"></script>
 	<!-- // src transform -->
 	<script src="../babelsberg/uglify.js"></script>
 	<script src="../babelsberg/src_transform.js"></script>
@@ -59,14 +68,19 @@
 		obj.a = 10;
 		console.log(obj.a, obj.b);
 		
-		ct = new users.timfelgentreff.babelsberg.tests.ConstraintTest();
-		ct.runAll();
-		p = new users.timfelgentreff.babelsberg.tests.PropagationTest();
-		p.runAll();
-		it = new users.timfelgentreff.babelsberg.tests.InteractionTest();
-		it.runAll();
-		cspt = new users.timfelgentreff.babelsberg.tests.CSPTest();
-		cspt.runAll();
+		new users.timfelgentreff.babelsberg.tests.ConstraintTest().runAll();
+		new users.timfelgentreff.babelsberg.tests.PropagationTest().runAll();
+		new users.timfelgentreff.babelsberg.tests.InteractionTest().runAll();
+		new users.timfelgentreff.babelsberg.tests.CSPTest().runAll();
+		new users.timfelgentreff.babelsberg.tests.OnErrorTest().runAll();
+
+		new users.timfelgentreff.reactive.reactive_test.AssertTest().runAll();
+		new users.timfelgentreff.reactive.reactive_test.TriggerTest().runAll();
+		new users.timfelgentreff.reactive.reactive_test.LayerActivationTest().runAll();
+		new users.timfelgentreff.reactive.reactive_test.ScopedConstraintsTest().runAll();
+
+		new users.ohshima.ElectricalCircuitTests.Test1().runAll();
+		new users.ohshima.ElectricalComponentsTests.Test1().runAll();
 	</script>
 	
 	<script type="text/babelsbergscript">

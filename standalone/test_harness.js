@@ -7,6 +7,17 @@ Object.subclass("TestCase", {
 	    throw new Error("Assertion failed " + msg);
 	}
     },
+    assertEquals: function (left, right, msg) {
+	if (!left == right) {
+	    throw new Error("Expected " + left + " and " + right + " to be equal. " + msg);
+	}
+    },
+    assertEqualsEpsilon: function(a, b, msg) {
+        var eps = 0.01;
+        if (Math.abs(a-b) <= eps) return;
+        if (a == b) return;
+        this.assert(false, (msg ? msg : '') + ' (' + a +' != ' + b +')');
+    },
     runAll: function () {
 	for (var l in this) {
 	    if (l.match(/^test/)) {

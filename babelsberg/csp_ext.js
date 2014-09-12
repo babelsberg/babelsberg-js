@@ -73,19 +73,23 @@ module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff
 	    weight: 1000,
 	    always: function (opts, func) {
 	    	func.varMapping = opts.ctx;
+	    	func.allowTests = true;
 	    	func.allowUnsolvableOperations = true;
 	    	var cobj = new Constraint(func, this);
+	    	cobj.allowFailing = true;
 	    	if(!this.__domainDefinition__) {
 		    	var constraint  = this.p.addConstraint([], func);
 		    	var satisfiable = this.p.getSolution({});
 		    	if(!satisfiable) {
 		    		this.p.removeConstraint(constraint);
-		    		throw "constraint cannot be satisfied";
+		    		throw new Error("constraint cannot be satisfied");
 		    	}
 	    	} else {
 	    		delete this.__domainDefinition__;
 	    	}
-	    }
+			return cobj;
+	    },
+		solve: function() { /* ignored */ }
 	});
 	Object.extend(csp.Solver, {
 		weight: 1000,
@@ -125,7 +129,7 @@ module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff
 	    	// throw error if assigned value does not match the corresponding domain
 	    	var inDomain = this.domain.indexOf(value) > -1;
 	    	if(!inDomain) {
-	    		throw "assigned value is not contained in domain";
+	    		throw new Error("assigned value is not contained in domain");
 	    	}
 	    	
 	    	// save previous assignments for possible later restoration.
@@ -140,7 +144,7 @@ module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff
 	    	if(!satisfiable) {
 	    		// restore assignments
 	    		_.extend(this.solver.p.solver.assignments, save);
-	    		throw "assignment makes constraints not satisfiable";
+	    		throw new Error("assignment makes constraints not satisfiable");
 	    	}
 	    },
 
@@ -159,7 +163,6 @@ module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff
 	    	return true;
 	    }
 	});
-	
 
 	Number.prototype.__defineGetter__(csp.Solver.DomainMethod, function () {
 		return this;
