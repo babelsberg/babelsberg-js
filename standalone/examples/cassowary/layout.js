@@ -3,8 +3,8 @@ contentLoaded(window, function() {
 	console.log = function (args) {
 		consoleLog.apply(console, arguments);
 		var c = document.getElementById('console');
-		c.innerText = "Console\n" + args + "\n" + 
-				c.innerText.slice("Console\n".length, c.innerText.indexOf("\n", 500));
+		c.textContent = "Console\n" + args + "\n" + 
+				c.textContent.slice("Console\n".length, c.textContent.indexOf("\n", 500));
 	};
 
 	// setup canvas
@@ -48,21 +48,23 @@ contentLoaded(window, function() {
 	var editorCallback = function() {
 		bbb.defaultSolver = new (eval(solverSelect.value))();
 		
-		// remove old constraints
-		Object.keys(window.rects).each(function(name) {
-			bbb.unconstrainAll(window.rects[name]);
-		});
+		setTimeout(function () {
+			// remove old constraints
+			Object.keys(window.rects).each(function(name) {
+				bbb.unconstrainAll(window.rects[name]);
+			});
 
-		codeEditor.style.border = "3px solid green";
-		try {
-			Babelsberg.execute(this.value, window.rects);
-		} catch (e) {
-			codeEditor.style.border = "3px solid red";
-			throw e;
-		}
-		
-		// rerender for immediate changes
-		canvas.renderAll();
+			codeEditor.style.border = "3px solid green";
+			try {
+				Babelsberg.execute(this.value, window.rects);
+			} catch (e) {
+				codeEditor.style.border = "3px solid red";
+				throw e;
+			}
+			
+			// rerender for immediate changes
+			canvas.renderAll();
+		}.bind(this), 100);
 	};
 	
 	codeEditor.onkeyup = editorCallback;
