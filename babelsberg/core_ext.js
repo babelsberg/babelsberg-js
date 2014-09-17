@@ -5,12 +5,12 @@ Function.addMethods({
 
 
 
-    varMap: function (obj) {
+    varMap: function(obj) {
         this.varMapping = obj;
         return this;
-    },
-})
+    }
+});
 
 
 
-}) // end of module
+}); // end of module
