@@ -2,6 +2,6 @@
 CWD="$(readlink -f `dirname "$0"`)"
 cd $CWD/..
 
-node $TRAVIS_BUILD_DIR/standalone/zombietest.js
+node standalone/zombietest.js
 exitcode=$?
 exit $exitcode
