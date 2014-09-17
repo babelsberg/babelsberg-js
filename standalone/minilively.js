@@ -423,6 +423,13 @@ if (!window.module) {
         this.splice(idx, 1);
     });
 
+    Array.prototype.remove = (function(obj) {
+        var idx = this.indexOf(obj);
+        if (idx >= 0) {
+            this.removeAt(idx);
+        }
+    });
+
     window.alertOK = (function(msg) {
         console.log(msg);
     });
