@@ -1271,8 +1271,8 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
             name = this.visit(node.slotName),
             cobj = (obj ? obj[ConstrainedVariable.ThisAttrName] : undefined),
             cvar;
-        if (obj === Global
-            /*|| (obj instanceof lively.Module) *//*|| (typeof(obj) == "string")*/) {
+        if (obj === Global ||
+            (obj instanceof lively.Module) /*|| (typeof(obj) == "string")*/) {
             return obj[name];
         }
         if (obj && obj.isConstraintObject) {
