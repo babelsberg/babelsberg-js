@@ -108,8 +108,10 @@ if (!window.module) {
     window.Config = {};
     window.cop = {};
     window.Global = window;
-    window.lively = window;
-    lively.Module = function() { return null; };
+    var Module = function() { return null; };
+    window.lively = new Module();
+    lively.Class = Class;
+    lively.Module = Module;
     window.dbgOn = (function(b) { if (b) { debugger } });
 
     function __oldNamespace(spec, context) {

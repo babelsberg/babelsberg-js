@@ -94,7 +94,7 @@ Object.subclass("lively.morphic.Text", {
     }
 });
 
-window.pt = (function (x, y) {
+lively.pt = window.pt = (function (x, y) {
     return new lively.Point(x,y);
 });
 
