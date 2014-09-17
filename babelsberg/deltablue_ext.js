@@ -117,7 +117,11 @@ DBVariable.addMethods({
     },
 
     stay: function(strength) {
-        var cn = new StayDBConstraint(this, strength || DBStrength.WEAK_DEFAULT, this.planner);
+        var cn = new StayDBConstraint(
+            this,
+            strength || DBStrength.WEAK_DEFAULT,
+            this.planner
+        );
         cn.enable();
         this._stayConstraint = cn;
         return cn;

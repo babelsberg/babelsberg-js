@@ -1,4 +1,5 @@
-module('users.timfelgentreff.sutherland.relax_bbb').requires('users.timfelgentreff.sutherland.relax').toRun(function() {
+module('users.timfelgentreff.sutherland.relax_bbb').
+    requires('users.timfelgentreff.sutherland.relax').toRun(function() {
 
 
 // Babelsberg required interface
@@ -16,7 +17,9 @@ Relax.prototype.always = function(opts, func) {
 };
 
 Relax.prototype.constraintVariableFor = function(value, ivarname) {
-    if ((typeof(value) == 'number') || (value === null) || (value instanceof Number)) {
+    if ((typeof(value) == 'number') ||
+            (value === null) ||
+            (value instanceof Number)) {
         var name = ivarname + ':' + Strings.newUUID();
         var v = new RelaxNode('vars[\"' + name + '\"]', [name], this);
         this.addVar(name, value);
@@ -77,7 +80,8 @@ RelaxNode.prototype.cnIdentical = RelaxNode.prototype.cnEquals;
 
 RelaxNode.prototype.cnGeq = function(r) {
     return new RelaxNode(
-        '((' + this.expr + ' >= ' + _expr(r) + ') ? 0 : Math.abs(' + this.expr + ' - (' + _expr(r) + ')))',
+        '((' + this.expr + ' >= ' + _expr(r) +
+            ') ? 0 : Math.abs(' + this.expr + ' - (' + _expr(r) + ')))',
         this.vars.concat(r.vars).uniq(),
         this.solver
     );
@@ -85,7 +89,8 @@ RelaxNode.prototype.cnGeq = function(r) {
 
 RelaxNode.prototype.cnLeq = function(r) {
     return new RelaxNode(
-        '((' + this.expr + ' <= ' + _expr(r) + ') ? 0 : Math.abs(' + this.expr + ' - (' + _expr(r) + ')))',
+        '((' + this.expr + ' <= ' + _expr(r) +
+            ') ? 0 : Math.abs(' + this.expr + ' - (' + _expr(r) + ')))',
         this.vars.concat(r.vars).uniq(),
         this.solver
     );
@@ -94,7 +99,8 @@ RelaxNode.prototype.cnLeq = function(r) {
 RelaxNode.prototype.cnLess = function(r) {
     return new RelaxNode(
         '((' + this.expr + ' < ' + _expr(r) + ') ? 0 : ((' +
-            this.expr + ' + (' + _expr(r) + ' * ' + this.solver.epsilon + ')) - (' + _expr(r) + ')))',
+            this.expr + ' + (' + _expr(r) +
+            ' * ' + this.solver.epsilon + ')) - (' + _expr(r) + ')))',
         this.vars.concat(r.vars).uniq(),
         this.solver
     );
@@ -103,7 +109,8 @@ RelaxNode.prototype.cnLess = function(r) {
 RelaxNode.prototype.cnGreater = function(r) {
     return new RelaxNode(
         '((' + this.expr + ' > ' + _expr(r) + ') ? 0 : ((' +
-            _expr(r) + ' + (' + _expr(r) + ' * ' + this.solver.epsilon + ')) - (' + this.expr + ')))',
+            _expr(r) + ' + (' + _expr(r) +
+            ' * ' + this.solver.epsilon + ')) - (' + this.expr + ')))',
         this.vars.concat(r.vars).uniq(),
         this.solver
     );
@@ -111,10 +118,10 @@ RelaxNode.prototype.cnGreater = function(r) {
 
 RelaxNode.prototype.cnNeq = function(r) {
     return new RelaxNode(
-        '((Math.abs(' + this.expr + ' - ' + _expr(r) + ') > ' + this.solver.epsilon + ') ' +
-        '? 0 : Math.abs((' +
-            _expr(r) + ' + (' +
-                _expr(r) + ' * ' + this.solver.epsilon + ')) - (' + this.expr + ')))',
+        '((Math.abs(' + this.expr + ' - ' + _expr(r) +
+            ') > ' + this.solver.epsilon + ') ' + '? 0 : Math.abs((' + _expr(r) +
+            ' + (' + _expr(r) + ' * ' + this.solver.epsilon +
+            ')) - (' + this.expr + ')))',
         this.vars.concat(r.vars).uniq(),
         this.solver
     );

@@ -348,14 +348,20 @@ DBConstraint.subclass('BinaryDBConstraint', {
      */
     chooseMethod: function(mark) {
         if (this.v1.mark == mark) {
-            this.direction = (this.v2.mark != mark && DBStrength.stronger(this.strength, this.v2.walkDBStrength)) ?
-                Direction.FORWARD :
-                Direction.NONE;
+            if (this.v2.mark != mark &&
+                DBStrength.stronger(this.strength, this.v2.walkDBStrength)) {
+                this.direction = Direction.FORWARD;
+            } else {
+                this.direction = Direction.NONE;
+            }
         }
         if (this.v2.mark == mark) {
-            this.direction = (this.v1.mark != mark && DBStrength.stronger(this.strength, this.v1.walkDBStrength)) ?
-                Direction.BACKWARD :
-                Direction.NONE;
+            if (this.v1.mark != mark &&
+                DBStrength.stronger(this.strength, this.v1.walkDBStrength)) {
+                this.direction = Direction.BACKWARD;
+            } else {
+                this.direction = Direction.NONE;
+            }
         }
         if (DBStrength.weaker(this.v1.walkDBStrength, this.v2.walkDBStrength)) {
             this.direction = DBStrength.stronger(this.strength, this.v1.walkDBStrength) ?
@@ -439,7 +445,11 @@ DBConstraint.subclass('UserDBConstraint', {
     /**
      * Constraints that use a custom function to map multiple inputs to one output
      */
-    initialize: function($super, strengthOrPredicateOrFormulas, predicateOrFormulasOrPlanner, formulasOrPlanner, planner) {
+    initialize: function($super,
+                         strengthOrPredicateOrFormulas,
+                         predicateOrFormulasOrPlanner,
+                         formulasOrPlanner,
+                         planner) {
         var strength, formulas, predicate;
         if (planner) { // 4-args
             strength = strengthOrPredicateOrFormulas;
@@ -518,7 +528,8 @@ DBConstraint.subclass('UserDBConstraint', {
             weakest_strength = this.strength,
             out = null;
         this.outputs.each(function(out) {
-            if (out.mark != mark && DBStrength.stronger(weakest_strength, out.walkDBStrength)) {
+            if (out.mark != mark &&
+                DBStrength.stronger(weakest_strength, out.walkDBStrength)) {
                 weakest_strength = out.walkDBStrength;
                 weakest_output = out;
             }
@@ -566,7 +577,10 @@ DBConstraint.subclass('UserDBConstraint', {
         var out = this.out;
         out.walkDBStrength = this.strength;
         this.inputs.each(function(ea) {
-            out.walkDBStrength = DBStrength.weakestOf(out.walkDBStrength, ea.walkDBStrength);
+            out.walkDBStrength = DBStrength.weakestOf(
+                out.walkDBStrength,
+                ea.walkDBStrength
+            );
         });
         out.stay = this.inputs.all(function(ea) { return ea.stay });
         if (out.stay) this.execute();

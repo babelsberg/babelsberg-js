@@ -67,7 +67,9 @@ Relax.prototype.constraintChanged = function(c) {
 };
 
 Relax.prototype.removeConstraint = function(unwantedConstraint) {
-  this.constraints = this.constraints.filter(function(c) { return c !== unwantedConstraint; });
+  this.constraints = this.constraints.filter(function(c) {
+      return c !== unwantedConstraint;
+  });
 };
 
 Relax.prototype.getError = function(optConstraints) {
@@ -102,7 +104,8 @@ Relax.prototype.derivative = function(c, v) {
 
 Relax.prototype.adjustVarForConstraint = function(v, c) {
   var count = 0;
-  while (count++ < this.maxIterationsForOnePassMethodSolver && c.errorFn(this.vars) > this.epsilon) {
+  while (count++ < this.maxIterationsForOnePassMethodSolver &&
+         c.errorFn(this.vars) > this.epsilon) {
     var m = this.derivative(c, v);
     var b = c.errorFn(this.vars) - m * this.vars[v];
     var value = -b / m;
@@ -149,7 +152,9 @@ Relax.prototype.iterateForUpTo = function(tMillis) {
       });
       if (numConstraintsFound == 1 && theConstraint.vars.length > 1) {
         computeStack.push({variable: v, constraint: theConstraint});
-        constraintsForRelaxation = constraintsForRelaxation.filter(function(c) { return c !== theConstraint; });
+        constraintsForRelaxation = constraintsForRelaxation.filter(function(c) {
+            return c !== theConstraint;
+        });
         didSomething = true;
       }
     });
@@ -165,8 +170,12 @@ Relax.prototype.iterateForUpTo = function(tMillis) {
 
   var t0 = Date.now();
   var count = 0;
-  while (this.getError(constraintsForRelaxation) > this.epsilon && (Date.now() - t0) < tMillis) {
-    this.adjustVarForConstraints(vars[getRandomInt(0, vars.length)], constraintsForRelaxation);
+  while (this.getError(constraintsForRelaxation) > this.epsilon &&
+         (Date.now() - t0) < tMillis) {
+    this.adjustVarForConstraints(
+        vars[getRandomInt(0, vars.length)],
+        constraintsForRelaxation
+    );
     count++;
   }
 

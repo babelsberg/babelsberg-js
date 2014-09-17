@@ -28,7 +28,9 @@ toRun(function() {
         hasContextInArgs: function(alwaysNode) {
             if (alwaysNode.args.length == 2) {
                 if (!alwaysNode.args[0] instanceof UglifyJS.AST_Object) {
-                    throw new SyntaxError("first argument of call to `always' must be an object");
+                    throw new SyntaxError(
+                        "first argument of call to `always' must be an object"
+                    );
                 }
                 return alwaysNode.args[0].properties.any(function(ea) {
                     return ea.key === 'ctx';
@@ -48,7 +50,8 @@ toRun(function() {
                     //   1. are not declared (var) BEFORE the always
                     //   2. are first referenced (globals, specials, etc) AFTER the always
                     return (ea.init && (ea.init.start.pos > alwaysNode.start.pos)) ||
-                           (ea.orig && ea.orig[0] && (ea.orig[0].start.pos > alwaysNode.end.pos));
+                           (ea.orig && ea.orig[0] &&
+                            (ea.orig[0].start.pos > alwaysNode.end.pos));
                 });
                 enclosed.push({name: '_$_self'}); // always include this
             }
@@ -94,10 +97,6 @@ toRun(function() {
                 if (self.isAlways(node)) {
                     var node = self.createCallFor(node);
                     self.ensureContextFor(ast, node);
-                    // if (node.args.length != 1 && node.args.length != 2) {
-                    //     throw SyntaxError("call to `always' must have 1..2 arguments");
-                    // }
-                    // self.ensureContextFor(ast, node);
                     self.isTransformed = true;
                     return node;
                 }
@@ -120,7 +119,9 @@ toRun(function() {
         var ast = UglifyJS.parse(code);
             ast.figure_out_scope(),
             transformed = false;
-        var transformedAst = ast.transform(new UglifyJS.TreeTransformer(null, function(node) {
+        var transformedAst = ast.transform(new UglifyJS.TreeTransformer(
+            null,
+            function(node) {
                 if (node instanceof UglifyJS.AST_Call &&
                     node.expression instanceof UglifyJS.AST_Dot &&
                     node.expression.property === 'addScript' &&
@@ -270,11 +271,14 @@ toRun(function() {
                         try {
                             var str = t.transform(this.textString.slice(idx, endIdx + 1));
                             var line;
-                            lines.some(function(ary) { line = ary[0]; return ary[1] > idx });
+                            lines.some(function(ary) {
+                                line = ary[0]; return ary[1] > idx;
+                            });
                             var indent = new Array(line.indexOf('always:') + 1).join(' ');
                             str = str.split('\n').inject('', function(acc, line) {
                                 return acc + '\n' + indent + line;
-                            }).slice('\n'.length + indent.length); // remove first newline+indent
+                            }).slice('\n'.length + indent.length);
+                            // remove first newline+indent
                             fragments.push([idx + 1, endIdx, str]);
                             idx = this.textString.indexOf('always:', idx + 2);
                             endIdx = this.textString.indexOf('}', idx + 2);
@@ -286,11 +290,16 @@ toRun(function() {
 
                     if (fragments.length !== 0) {
                         var textPos = 0;
-                        var newTextString = fragments.inject('', function(memo, fragment) {
-                            var r = this.textString.slice(textPos, fragment[0]) + fragment[2];
-                            textPos = fragment[1] + 1;
-                            return memo + r;
-                        }.bind(this));
+                        var newTextString = fragments.inject(
+                            '',
+                            function(memo, fragment) {
+                                var r = this.textString.slice(
+                                    textPos,
+                                    fragment[0]
+                                ) + fragment[2];
+                                textPos = fragment[1] + 1;
+                                return memo + r;
+                            }.bind(this));
                         newTextString += this.textString.slice(textPos);
                         this.textString = newTextString;
                     }

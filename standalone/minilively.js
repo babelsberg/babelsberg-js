@@ -22,7 +22,8 @@ if (!window.module) {
         all: function(object, predicate) {
             var a = [];
             for (var name in object) {
-                if ((object.__lookupGetter__(name) || !Object.isFunction(object[name])) &&
+                if ((object.__lookupGetter__(name) ||
+                     !Object.isFunction(object[name])) &&
                     (predicate ? predicate(name, object) : true)) {
                     a.push(name);
                 }
@@ -42,7 +43,11 @@ if (!window.module) {
         own: function(object) {
             var a = [];
             for (var name in object) {
-                if (object.hasOwnProperty(name) && (object.__lookupGetter__(name) || !Object.isFunction(object[name]))) a.push(name);
+                if (object.hasOwnProperty(name) &&
+                    (object.__lookupGetter__(name) ||
+                     !Object.isFunction(object[name]))) {
+                    a.push(name);
+                }
             }
             return a;
         },
@@ -72,7 +77,9 @@ if (!window.module) {
 
         ownValues: function(obj) {
             var values = [];
-            for (var name in obj) if (obj.hasOwnProperty(name)) values.push(obj[name]);
+            for (var name in obj) {
+                if (obj.hasOwnProperty(name)) values.push(obj[name]);
+            }
             return values;
         },
 
@@ -110,14 +117,17 @@ if (!window.module) {
         context = context || window;
         spec = spec.valueOf();
         if (typeof spec === 'object') {
-            if (typeof spec.length === 'number') {//assume an array-like object
+            if (typeof spec.length === 'number') {
+                //assume an array-like object
                 for (i = 0, N = spec.length; i < N; i++) {
                     return namespace(spec[i], context);
                 }
-            } else {//spec is a specification object e.g, {com: {trifork: ['model,view']}}
+            } else {
+                //spec is a specification object
                 for (i in spec) if (spec.hasOwnProperty(i)) {
                     context[i] = context[i];
-                    return namespace(spec[i], context[i]);//recursively descend tree
+                    //recursively descend tree
+                    return namespace(spec[i], context[i]);
                 }
             }
         } else if (typeof spec === 'string') {
@@ -161,7 +171,8 @@ if (!window.module) {
                 object === Number) {
                 return true;
             }
-            return (object instanceof Function) && (object.superclass !== undefined);
+            return (object instanceof Function) &&
+                (object.superclass !== undefined);
         },
         namespaceFor: function Class$namespaceFor(className) {
             // get the namespace object given the qualified name
@@ -192,8 +203,11 @@ if (!window.module) {
             }
 
             var klass;
-            if (className && targetScope[shortName] && (targetScope[shortName].superclass === this)) {
-                // preserve the class to allow using the subclass construct in interactive development
+            if (className &&
+                targetScope[shortName] &&
+                (targetScope[shortName].superclass === this)) {
+                // preserve the class to allow using the subclass
+                // construct in interactive development
                 klass = targetScope[shortName];
             } else {
                 klass = function() {
@@ -202,13 +216,13 @@ if (!window.module) {
                 };
                 klass.name = shortName;
                 klass.superclass = this;
-                var protoclass = function() { }; // that's the constructor of the new prototype object
+                var protoclass = function() { };
                 protoclass.prototype = this.prototype;
                 klass.prototype = new protoclass();
                 klass.prototype.constructor = klass;
-                klass.prototype.constructor.type = className; // KP: .name would be better but js ignores .name on anonymous functions
-                klass.prototype.constructor.displayName = className; // for debugging, because name can not be assigned
-                if (className) targetScope[shortName] = klass; // otherwise it's anonymous
+                klass.prototype.constructor.type = className;
+                klass.prototype.constructor.displayName = className;
+                if (className) targetScope[shortName] = klass;
 
                 // remember the module that contains the class def
                 if (Global.lively && lively.Module && lively.Module.current)
@@ -228,7 +242,9 @@ if (!window.module) {
             var args = arguments;
             for (var i = 0; i < args.length; i++) {
                 if (!Object.isString(args[i])) { // ignore categories
-                    this.addCategorizedMethods(args[i] instanceof Function ? (args[i])() : args[i]);
+                    this.addCategorizedMethods(
+                        args[i] instanceof Function ? (args[i])() : args[i]
+                    );
                 }
             }
         },
@@ -254,8 +270,10 @@ if (!window.module) {
                 // But they're not full-blown functions and don't
                 // inherit argumentNames from Function.prototype
 
-                var hasSuperCall = ancestor && Object.isFunction(value) &&
-                    value.argumentNames && value.argumentNames().first() == '$super';
+                var hasSuperCall = (ancestor &&
+                                    Object.isFunction(value) &&
+                                    value.argumentNames &&
+                                    value.argumentNames().first() == '$super');
                 if (hasSuperCall) {
                     // wrapped in a function to save the value of 'method' for advice
                     (function() {
@@ -264,14 +282,24 @@ if (!window.module) {
                             return function callSuper() {
                                 var method = ancestor[m];
                                 if (!method)
-                                    throw new Error(Strings.format('Trying to call super of' +
-                                                                   '%s>>%s but super method non existing in %s',
-                                                                   className, m, ancestor.constructor.type));
+                                    throw new Error(
+                                        Strings.format(
+                                            'Trying to call super of %s>>%s ' +
+                                                'but no super method in %s',
+                                            className,
+                                            m,
+                                            ancestor.constructor.type
+                                        )
+                                    );
                                 return method.apply(this, arguments);
                             };
                         })(property);
 
-                        advice.methodName = '$super:' + (this.superclass ? this.superclass.type + '>>' : '') + property;
+                        advice.methodName = ('$super:' +
+                                             (this.superclass ?
+                                              this.superclass.type + '>>' :
+                                              '') +
+                                             property);
 
                         value = Object.extend(advice.wrap(method), {
                             valueOf: function() { return method },
@@ -285,18 +313,10 @@ if (!window.module) {
 
                 this.prototype[property] = value;
 
-                if (property === 'formals') { // rk FIXME remove this cruft
-                    // special property (used to be pins, but now called formals to disambiguate old and new style
-                    Class.addPins(this, value);
-                } else if (Object.isFunction(value)) {
+                if (Object.isFunction(value)) {
                     // remember name for profiling in WebKit
                     value.displayName = className + '$' + property;
-
                     for (; value; value = value.originalFunction) {
-                        if (value.methodName) {
-                            //console.log("class " + this.prototype.constructor.type
-                            // + " borrowed " + value.qualifiedMethodName());
-                        }
                         value.declaredClass = this.prototype.constructor.type;
                         value.methodName = property;
                     }
@@ -313,10 +333,15 @@ if (!window.module) {
 
     window.Strings = {
         newUUID: function() {
-            var id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            }).toUpperCase();
+            var id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
+                    /[xy]/g,
+                function(c) {
+                    var r = Math.random() * 16 | 0,
+                        v = (c == 'x' ?
+                             r :
+                             (r & 0x3 | 0x8));
+                    return v.toString(16);
+                }).toUpperCase();
             return id;
         },
 
@@ -327,7 +352,9 @@ if (!window.module) {
         // adapted from firebug lite
         formatFromArray: function Strings$formatFromArray(objects) {
             var self = objects.shift();
-            if (!self) { console.log('Error in Strings>>formatFromArray, first arg is undefined'); }
+            if (!self) {
+                console.log('Error in Strings>>formatFromArray, arg1 undefined');
+            }
 
             function appendText(object, string) {
                 return '' + object;
@@ -346,7 +373,13 @@ if (!window.module) {
                 return Objects.inspect(value);
             }
 
-            var appenderMap = {s: appendText, d: appendInteger, i: appendInteger, f: appendFloat, o: appendObject};
+            var appenderMap = {
+                s: appendText,
+                d: appendInteger,
+                i: appendInteger,
+                f: appendFloat,
+                o: appendObject
+            };
             var reg = /((^%|[^\\]%)(\d+)?(\.)([a-zA-Z]))|((^%|[^\\]%)([a-zA-Z]))/;
 
             function parseFormat(fmt) {

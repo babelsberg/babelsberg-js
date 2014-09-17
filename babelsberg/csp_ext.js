@@ -1,4 +1,5 @@
-module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff.csp.csp').toRun(function() {
+module('users.timfelgentreff.babelsberg.csp_ext').
+    requires('users.timfelgentreff.csp.csp').toRun(function() {
 
     JSLoader.loadJs(module('users.timfelgentreff.csp.underscore-min').uri());
 
@@ -23,7 +24,10 @@ module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff
                 domain: domain
             };
 
-            var bbbConstraintVariable = ConstrainedVariable.newConstraintVariableFor(obj, varname);
+            var bbbConstraintVariable = ConstrainedVariable.newConstraintVariableFor(
+                obj,
+                varname
+            );
             bbbConstraintVariable.ensureExternalVariableFor(this);
             Constraint.current = temp;
 
@@ -40,7 +44,11 @@ module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff
                     // we actually want to constraint the parent of this property
                     theParent = cobj.obj;
                     this.__takeNext__ = true;
-                    cParent = this.constraintVariableFor(cobj.obj, cobj.parentConstrainedVariable.ivarname, cobj.parentConstrainedVariable);
+                    cParent = this.constraintVariableFor(
+                        cobj.obj,
+                        cobj.parentConstrainedVariable.ivarname,
+                        cobj.parentConstrainedVariable
+                    );
                     cobj.parentConstrainedVariable.externalVariables(this, cParent);
                     // XXX HACK?
                     delete cParent.__cvar__;
@@ -121,7 +129,9 @@ module('users.timfelgentreff.babelsberg.csp_ext').requires('users.timfelgentreff
             this.cspname = csp.Solver.getUniqueName();
             this.cspvariable = this.solver.p.addVariable(this.cspname, domain);
 
-            var valueToAssign = this.domain.indexOf(currentValue) > -1 ? currentValue : this.domain[0];
+            var valueToAssign = this.domain.indexOf(currentValue) > -1 ?
+                currentValue :
+                this.domain[0];
             this.solver.p.solver.assignments[this.cspname] = valueToAssign;
         },
 

@@ -42,7 +42,8 @@ Object.subclass('Babelsberg', {
             return;
         }
         if (!cGetter.isConstraintAccessor || !cSetter.isConstraintAccessor) {
-            throw 'too many accessors - unconstrain only works for the very simple case now';
+            throw 'too many accessors - ' +
+                'unconstrain only works for the very simple case now';
         }
         ConstrainedVariable.deleteConstraintVariableFor(obj, accessor);
         var newName = cvar.newIvarname;
@@ -74,12 +75,17 @@ Object.subclass('Babelsberg', {
     unconstrainAll: function(obj) {
         if (obj && obj instanceof Object) {
             Object.keys(obj).each(function(property, index) {
-                var cvar = ConstrainedVariable.findConstraintVariableFor(obj, property);
+                var cvar = ConstrainedVariable.findConstraintVariableFor(
+                    obj,
+                    property
+                );
                 if (!cvar) return;
                 var cGetter = obj.__lookupGetter__(property),
                     cSetter = obj.__lookupSetter__(property);
                 if (!cGetter && !cSetter) return;
-                if (!cGetter.isConstraintAccessor || !cSetter.isConstraintAccessor) return;
+                if (!cGetter.isConstraintAccessor || !cSetter.isConstraintAccessor) {
+                    return;
+                }
 
                 bbb.unconstrain(obj, property);
             });
@@ -98,7 +104,9 @@ Object.subclass('Babelsberg', {
      * @public
      * @param {Object} obj An object that is modified quite often.
      * @param {string[]} accessors The property names of the properties that are modified.
-     * @return {function} A callback that can be used to assign new values to the given properties.
+     * @return {function} {
+     *    A callback that can be used to assign new values to the given properties.
+     * }
      * @example Example usage of bbb.edit
      * var s = new DBPlanner(),
      *     obj = {int: 42, str: "42"};
@@ -145,10 +153,10 @@ Object.subclass('Babelsberg', {
                     accessors.each(function(a) {
                         cVars[a].suggestValue(cVars[a].externalValue);
                         // extVars[a] = extVars[a]; // set the value,
-                                                 // propagates change to other property accessors
-                                                 // calls the setters
-                                                 // does not recurse into solvers, because they have already
-                                                 // adopted the correct value
+                        // propagates change to other property
+                        // accessors calls the setters does not
+                        // recurse into solvers, because they have
+                        // already adopted the correct value
                     });
                 }
             };
@@ -156,14 +164,20 @@ Object.subclass('Babelsberg', {
         accessors.each(function(accessor) {
             var cvar = ConstrainedVariable.findConstraintVariableFor(obj, accessor);
             if (!cvar) {
-                throw 'Cannot edit ' + obj + '["' + accessor + '"], because it isn\'t constrained';
+                throw 'Cannot edit ' + obj + '["' + accessor +
+                    '"], because it isn\'t constrained';
             }
             var evars = Properties.values(cvar._externalVariables);
             if (evars.compact().length < evars.length) {
-                throw 'Cannot edit ' + obj + '["' + accessor + '"], because it is in a recalculate relation';
+                throw 'Cannot edit ' + obj + '["' + accessor +
+                    '"], because it is in a recalculate relation';
             }
-            if (cvar.solvers.any(function(s) { return !Object.isFunction(s.beginEdit) })) {
-                throw 'Cannot edit ' + obj + '["' + accessor + '"], because it is in a no-edit solver';
+            var hasEditSolver = cvar.solvers.any(function(s) {
+                return !Object.isFunction(s.beginEdit);
+            });
+            if (hasEditSolver) {
+                throw 'Cannot edit ' + obj + '["' + accessor +
+                    '"], because it is in a no-edit solver';
             }
             cVars[accessor] = cvar;
             extVars[accessor] = evars;
@@ -178,7 +192,8 @@ Object.subclass('Babelsberg', {
     },
 
     /**
-     * Marks the given object as readonly. This functionality is only supported for some solvers.
+     * Marks the given object as readonly. This functionality is only
+     * supported for some solvers.
      * @function Babelsberg#readonly
      * @public
      * @param {Object} obj The object that should not be modified.
@@ -187,7 +202,8 @@ Object.subclass('Babelsberg', {
      *     pt = {x: 1, y: 2, z: 3};
      *
      * // The x and y coordinate of the point should sum up to its z coordinate.
-     * // Cassowary is not allowed to change the value of pt.y in order to fulfill this constraint.
+     * // Cassowary is not allowed to change the value of pt.y in order to
+     * // fulfill this constraint.
      * always: { solver: s
      *     pt.x + bbb.readonly(pt.y) == pt.z
      * }
@@ -220,7 +236,10 @@ Object.subclass('Babelsberg', {
      * @param {Object} opts An options object to configure the constraint construction.
      * @param {Object} opts.ctx The local scope in which the given function is executed.
      * @param {Object} [opts.solver] The solver to maintain the constraint.
-     * @param {boolean} [opts.allowTests=false] If true, allows to specify assertions rather than solvable constraints.
+     * @param {boolean} {
+     *     [opts.allowTests=false] If true, allows to specify assertions
+     *     rather than solvable constraints.
+     * }
      * @param {boolean} [opts.allowUnsolvableOperations=false] If true, allows the use of operations that are not supported by the solver.
      * @param {boolean} [opts.debugging=false] If true, calls debugger at certain points during constraint construction.
      * @param {function} func The constraint to be fulfilled.
@@ -305,7 +324,8 @@ users.timfelgentreff.jsinterpreter.Send.addMethods({
     }
 });
 
-cop.create('ConstraintConstructionLayer').refineObject(users.timfelgentreff.jsinterpreter, {
+cop.create('ConstraintConstructionLayer').
+        refineObject(users.timfelgentreff.jsinterpreter, {
     get InterpreterVisitor() {
         return ConstraintInterpreterVisitor;
     }
@@ -332,7 +352,9 @@ cop.create('ConstraintConstructionLayer').refineObject(users.timfelgentreff.jsin
             cvar.ensureExternalVariableFor(Constraint.current.solver);
             cvar.addToConstraint(Constraint.current);
             if (cvar.isSolveable()) {
-                Constraint.current.addPrimitiveConstraint(cvar.externalVariable.cnEquals(value));
+                Constraint.current.addPrimitiveConstraint(
+                    cvar.externalVariable.cnEquals(value)
+                );
             }
         }
     }
@@ -415,7 +437,8 @@ Object.subclass('Constraint', {
     },
 
     /**
-     * Enables this constraint. This is done automatically after constraint construction by most solvers.
+     * Enables this constraint. This is done automatically after
+     * constraint construction by most solvers.
      * @function Constraint#enable
      * @public
      */
@@ -441,19 +464,25 @@ Object.subclass('Constraint', {
                 );
             } else {
                 throw new Error(
-                    'Constraint expression returned true, but was not marked as test. If ' +
-                        'you expected this to be solveable, check that there are no operations ' +
-                        'in this that cannot be solved by the selected solver (e.g. Cassowary ' +
-                        "does not support `<', only `<='). Otherwise, if you think this is ok, " +
-                        "you must pass `allowTests: true' as option to the constraint."
+                    'Constraint expression returned true, but was not marked as test. ' +
+                        'If you expected this to be solveable, check that there are ' +
+                        'no operations in this that cannot be solved by the selected ' +
+                        "solver (e.g. Cassowary does not support `<', only `<='). " +
+                        'Otherwise, if you think this is ok, you must pass ' +
+                        "`allowTests: true' as option to the constraint."
                 );
             }
         } else if (obj === false) {
             if (!this.allowFailing) {
-                throw new Error('Constraint expression returned false, no solver available to fix it');
+                throw new Error(
+                    'Constraint expression returned false, no solver available to fix it'
+                );
             }
         } else if (!obj.enable) {
-            var e = new Error('Constraint expression returned an object that does not respond to #enable');
+            var e = new Error(
+                'Constraint expression returned an ' +
+                    'object that does not respond to #enable'
+            );
             e.obj = obj;
             e.constraint = this;
             throw e;
@@ -465,7 +494,8 @@ Object.subclass('Constraint', {
     },
 
     /**
-     * Disables this constraint. It is not further maintained until its {@link Constraint#enable|re-enabling}.
+     * Disables this constraint. It is not further maintained until
+     * its {@link Constraint#enable|re-enabling}.
      * @function Constraint#disable
      * @public
      */
@@ -511,7 +541,8 @@ Object.subclass('Constraint', {
             assignments.each(function(ea) {
                 try {
                     self.enableConstraintObject(ea);
-                } catch (_) { // if the assignment cannot be completely satisfied, make it strong
+                } catch (_) {
+                    // if the assignment cannot be completely satisfied, make it strong
                     self.enableConstraintObject(ea, self.solver.strength.strong);
                 }
             });
@@ -524,7 +555,10 @@ Object.subclass('Constraint', {
                 this._enabled = true; // force disable to run
                 this.disable();
                 assignments.invoke('disable');
-                assignments.invoke('enable', this.solver.strength && this.solver.strength.strong);
+                assignments.invoke(
+                    'enable',
+                    this.solver.strength && this.solver.strength.strong
+                );
                 this.enable();
             } finally {
                 assignments.invoke('disable');
@@ -591,7 +625,9 @@ Object.subclass('ConstrainedVariable', {
             obj.__defineSetter__(this.newIvarname, existingSetter);
         }
         // assign old value to new slot
-        if (!existingGetter && !existingSetter && this.obj.hasOwnProperty(this.ivarname)) {
+        if (!existingGetter &&
+            !existingSetter &&
+            this.obj.hasOwnProperty(this.ivarname)) {
             this.setValue(obj[ivarname]);
         }
 
@@ -622,7 +658,10 @@ Object.subclass('ConstrainedVariable', {
         this.cachedDefiningSolver = null;
         this.cachedDefiningVar = null;
         if (!eVar && eVar !== null) { // don't try to create an external variable twice
-            this.externalVariables(solver, solver.constraintVariableFor(value, this.ivarname, this));
+            this.externalVariables(
+                solver,
+                solver.constraintVariableFor(value, this.ivarname, this)
+            );
         }
     },
 
@@ -644,7 +683,8 @@ Object.subclass('ConstrainedVariable', {
         if (value !== this.storedValue) {
             var callSetters = !ConstrainedVariable.$$optionalSetters;
             var priorValue = this.storedValue;
-            ConstrainedVariable.$$optionalSetters = ConstrainedVariable.$$optionalSetters || [];
+            ConstrainedVariable.$$optionalSetters =
+                ConstrainedVariable.$$optionalSetters || [];
             try {
                 var solver = this.definingSolver;
                 recursionGuard(
@@ -657,9 +697,10 @@ Object.subclass('ConstrainedVariable', {
                             try {
                                 if (solver && source) {
                                     solver.weight += 987654321; // XXX Magic Number
-                                    this.findTransitiveConnectedVariables().each(function(cvar) {
-                                        cvar.setDownstreamReadonly(true);
-                                    });
+                                    this.findTransitiveConnectedVariables().
+                                        each(function(cvar) {
+                                            cvar.setDownstreamReadonly(true);
+                                        });
                                 }
                                 wasReadonly = eVar.isReadonly();
                                 eVar.setReadonly(false);
@@ -680,7 +721,9 @@ Object.subclass('ConstrainedVariable', {
                                 if (this.isSolveable()) {
                                     var getterSetterPair = this.findOptionalSetter();
                                     if (getterSetterPair) {
-                                        ConstrainedVariable.$$optionalSetters.push(getterSetterPair);
+                                        ConstrainedVariable.$$optionalSetters.push(
+                                            getterSetterPair
+                                        );
                                     }
                                 }
                                 this.setValue(value);
@@ -954,7 +997,8 @@ Object.subclass('ConstrainedVariable', {
     }
 });
 
-users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterpreterVisitor', {
+users.timfelgentreff.jsinterpreter.InterpreterVisitor.
+        subclass('ConstraintInterpreterVisitor', {
 
     binaryExpressionMap: {
         // operation: [method, reverseMethod (or undefined)]
@@ -1017,7 +1061,8 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
 
                 var altOp = this.alternativeExpressionsMap[op];
                 if (altOp) {
-                    if (l[this.binaryExpressionMap[altOp][0]] || r[this.binaryExpressionMap[altOp][1]]) {
+                    if (l[this.binaryExpressionMap[altOp][0]] ||
+                        r[this.binaryExpressionMap[altOp][1]]) {
                         alternative = altOp;
                     }
                 }
@@ -1026,9 +1071,11 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
                 alternative = Constraint.current.solver.alternativeOperationFor(op);
             }
 
-            msg += ". If you want to allow this, pass `allowUnsolvableOperations' to the constraint.";
+            msg += ". If you want to allow this, pass `allowUnsolvableOperations'" +
+                'to the constraint.';
             if (alternative) {
-                msg += ' You can also rewrite the code to use ' + alternative + ' instead.';
+                msg += ' You can also rewrite the code to use ' +
+                    alternative + ' instead.';
             }
             throw new Error(msg);
         }
@@ -1047,7 +1094,8 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
             condVal = this.getConstraintObjectValue(condVal);
             if (!condVal) {
                 condVal = cop.withoutLayers([ConstraintConstructionLayer], function() {
-                    // XXX: this will cause GetSlot to call $super, so we don't get constrainded vars
+                    // XXX: this will cause GetSlot to call $super, so
+                    // we don't get constrainded vars
                     return self.visit(node.condExpr);
                 });
                 debugger;
@@ -1087,7 +1135,8 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
 
     invoke: function($super, node, recv, func, argValues) {
         if (!func && (!recv || !recv.isConstraintObject)) {
-            var error = 'No such method: ' + recv + '.' + (node.property && node.property.value);
+            var error = 'No such method: ' + recv + '.' +
+                (node.property && node.property.value);
             alert(error);
             throw new Error(error);
         }
@@ -1156,8 +1205,12 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
         if (leftVal === undefined) leftVal = 0;
         if (rightVal === undefined) rightVal = 0;
 
-        var rLeftVal = leftVal.isConstraintObject ? this.getConstraintObjectValue(leftVal) : leftVal,
-            rRightVal = rightVal.isConstraintObject ? this.getConstraintObjectValue(rightVal) : rightVal;
+        var rLeftVal = leftVal.isConstraintObject ?
+            this.getConstraintObjectValue(leftVal) :
+            leftVal,
+            rRightVal = rightVal.isConstraintObject ?
+            this.getConstraintObjectValue(rightVal) :
+            rightVal;
         switch (node.name) {
             case '&&':
                 if (!leftVal) return leftVal;
@@ -1172,22 +1225,27 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
                 }
                 return rightVal;
             case '-':
-                if (rightVal.isConstraintObject && rightVal.plus && Object.isNumber(leftVal)) {
+                if (rightVal.isConstraintObject &&
+                    rightVal.plus &&
+                    Object.isNumber(leftVal)) {
                     return rightVal.plus(-leftVal);
                 } // special case for reversing minus - allowed to fall through to default
             case 'in':
                 if (node.name != '-') {
                     if (leftVal.isConstraintObject && leftVal.cnIn) {
                         return leftVal.cnIn(rightVal);
-                    } // special case for reversing minus - allowed to fall through to default
+                    } // special case for reversing minus - allowed to
+                      // fall through to default
                     // TODO: rightVal->contains if !leftVal.isConstraintObject
                 }
             default:
                 var method = this.binaryExpressionMap[node.name];
                 if (method) {
-                    if (leftVal.isConstraintObject && typeof(leftVal[method[0]]) == 'function') {
+                    if (leftVal.isConstraintObject &&
+                        typeof(leftVal[method[0]]) == 'function') {
                         return leftVal[method[0]](rightVal);
-                    } else if (rightVal.isConstraintObject && typeof(rightVal[method[1]]) == 'function') {
+                    } else if (rightVal.isConstraintObject &&
+                               typeof(rightVal[method[1]]) == 'function') {
                         return rightVal[method[1]](leftVal);
                     } else {
                         return this.errorIfUnsolvable(
@@ -1213,7 +1271,8 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
             name = this.visit(node.slotName),
             cobj = (obj ? obj[ConstrainedVariable.ThisAttrName] : undefined),
             cvar;
-        if (obj === Global || (obj instanceof lively.Module) /*|| (typeof(obj) == "string")*/) {
+        if (obj === Global ||
+            (obj instanceof lively.Module) /*|| (typeof(obj) == "string")*/) {
             return obj[name];
         }
         if (obj && obj.isConstraintObject) {
@@ -1237,23 +1296,36 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
             if (!retval || !retval.isConstraintObject) {
                 var toS = Object.prototype.toString, objStr, retStr;
                 try { objStr = obj.toString() } catch (e) { objStr = toS.apply(obj) }
-                try { retStr = retval.toString() } catch (e) { retStr = toS.apply(retval) }
+                try {
+                    retStr = retval.toString();
+                } catch (e) {
+                    retStr = toS.apply(retval);
+                }
                 console.log(
                     Constraint.current.solver.constructor.name +
-                        ' cannot reason about the variable ' + objStr + '[' + name + '], a ' +
-                        retStr + ' of type ' +
-                        (typeof(retval) == 'object' ? retval.constructor.name : typeof(retval))
+                        ' cannot reason about the variable ' + objStr + '[' +
+                        name + '], a ' + retStr + ' of type ' +
+                        (typeof(retval) == 'object' ?
+                         retval.constructor.name :
+                         typeof(retval))
                 );
                 Constraint.current.haltIfDebugging();
             }
             if (retval) {
                 switch (typeof(retval)) {
-                case 'object': retval[ConstrainedVariable.ThisAttrName] = cvar; break;
-                case 'number': new Number(retval)[ConstrainedVariable.ThisAttrName] = cvar; break;
-                case 'string': new String(retval)[ConstrainedVariable.ThisAttrName] = cvar; break;
+                case 'object':
+                    retval[ConstrainedVariable.ThisAttrName] = cvar;
+                    break;
+                case 'number':
+                    new Number(retval)[ConstrainedVariable.ThisAttrName] = cvar;
+                    break;
+                case 'string':
+                    new String(retval)[ConstrainedVariable.ThisAttrName] = cvar;
+                    break;
                 case 'boolean': break;
-                default: throw 'Error - we cannot store the constrained var attribute on ' +
-                               retval + ' of type ' + typeof(retval);
+                default: throw 'Error - ' +
+                        'we cannot store the constrained var attribute on ' +
+                        retval + ' of type ' + typeof(retval);
                 }
             }
             return retval;
@@ -1280,7 +1352,8 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.subclass('ConstraintInterp
 
 
     shouldInterpret: function(frame, func) {
-        if (func.sourceModule === Global.users.timfelgentreff.babelsberg.constraintinterpreter) {
+        if (func.sourceModule ===
+                Global.users.timfelgentreff.babelsberg.constraintinterpreter) {
             return false;
         }
         if (func.declaredClass === 'Babelsberg') {

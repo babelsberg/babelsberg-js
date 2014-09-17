@@ -101,7 +101,8 @@ module('users.timfelgentreff.csp.csp').requires().toRun(function() {
     this.assignments = {};
   };
 
-  RecursiveBacktrackingSolver.prototype.getSolution = function(csp, restrictedDomains) {
+  RecursiveBacktrackingSolver.prototype.getSolution = function(csp,
+                                                               restrictedDomains) {
     var satisfiable = this.solve(csp.variables, csp.constraints, restrictedDomains);
 
     return satisfiable;
@@ -111,7 +112,9 @@ module('users.timfelgentreff.csp.csp').requires().toRun(function() {
     return this.assignments[name];
   };
 
-  RecursiveBacktrackingSolver.prototype.solve = function(variables, constraints, restrictedDomains) {
+  RecursiveBacktrackingSolver.prototype.solve = function(variables,
+                                                         constraints,
+                                                         restrictedDomains) {
     var domainByName = this.prepareSolving(variables, restrictedDomains);
 
     var fulfilled = this.recursiveSolve(constraints, domainByName);
@@ -119,13 +122,15 @@ module('users.timfelgentreff.csp.csp').requires().toRun(function() {
     return fulfilled;
   };
 
-  RecursiveBacktrackingSolver.prototype.prepareSolving = function(variables, restrictedDomains) {
+  RecursiveBacktrackingSolver.prototype.prepareSolving = function(variables,
+                                                                  restrictedDomains) {
     var domainByName = _.defaults(restrictedDomains, variables);
 
     return domainByName;
   };
 
-  RecursiveBacktrackingSolver.prototype.recursiveSolve = function(constraints, domainByName) {
+  RecursiveBacktrackingSolver.prototype.recursiveSolve = function(constraints,
+                                                                  domainByName) {
     if (_.size(domainByName) === 0) {
       var fulfilled = this.checkAssignments(constraints);
       return fulfilled;

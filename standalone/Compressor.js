@@ -5,8 +5,9 @@ module('users.timfelgentreff.standalone.Compressor').requires().toRun(function()
     Object.extend(users.timfelgentreff.standalone.Compressor, {
         combineSources: function(sources) {
             var fullSource = sources.inject('', function(acc, s) {
-                    var content = new WebResource(URL.ensureAbsoluteCodeBaseURL(this.pathFor(s))).
-                                        forceUncached().get().content;
+                    var content = new WebResource(
+                        URL.ensureAbsoluteCodeBaseURL(this.pathFor(s))
+                    ).forceUncached().get().content;
                     if (content.startsWith('<')) throw s; // not found
                     return acc + '\n;;\n' + content;
                 }.bind(this)),
@@ -20,7 +21,10 @@ module('users.timfelgentreff.standalone.Compressor').requires().toRun(function()
         },
 
         doAction: function(spec, name) {
-            this.writeCombinedSources(this.combineSources(this.sources(spec)), name);
+            this.writeCombinedSources(
+                this.combineSources(this.sources(spec)),
+                name
+            );
         },
 
 
