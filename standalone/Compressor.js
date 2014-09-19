@@ -77,6 +77,7 @@ module('users.timfelgentreff.standalone.Compressor').requires().toRun(function()
                 'z3/CommandLineZ3',
                 'z3/StrZ3',
                 'z3/emz3/EmZ3'],
+            reactive: ['reactive/reactive'],
             tests: ['standalone/test_harness']
         },
         sources: function(list) {
