@@ -186,5 +186,8 @@ RelaxNode.prototype.tan = function(r) {
     )
 }
 
+RelaxNode.prototype.cnOr = function (r) {
+    return this;
+}
 
 }) // end of module
