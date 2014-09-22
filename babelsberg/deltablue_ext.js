@@ -1,21 +1,6 @@
-module('users.timfelgentreff.babelsberg.deltablue_ext').requires('users.timfelgentreff.deltablue.deltablue').toRun(function() {
-
-Function.addMethods({
-    shouldBeSatisfiedWith: function(priority, methods, ctx) {
-        // method for deltablue constraint (for now)
-        if (!ctx) {
-            ctx = methods;
-            methods = priority;
-            priority = DBStrength.required;
-        }
-        return DBPlanner.getInstance().always({
-            priority: priority,
-            methods: methods,
-            ctx: ctx
-        }, this);
-    }
-});
-
+module('users.timfelgentreff.babelsberg.deltablue_ext').
+requires('users.timfelgentreff.deltablue.deltablue').
+toRun(function() {
 
 DBPlanner.addMethods({
     isConstraintObject: function() {
@@ -43,25 +28,24 @@ DBPlanner.addMethods({
         }
         methods.varMapping = ctx;
         var cobj = new Constraint(methods, planner);
-        var formulas = cobj.constraintvariables.collect(function (v) {
+        var formulas = cobj.constraintvariables.collect(function(v) {
             var v = v.externalVariables(planner);
             return v ? v.removeFormula() : null;
         }).compact();
 
         if (formulas.length > 0) {
-            var constraint = new UserDBConstraint(priority, func, function (c) {
-                formulas.each(function (m) {
-                    var inputs = m.inputs.select(function (input) {
-                        return input instanceof DBVariable
+            var constraint = new UserDBConstraint(priority, func, function(c) {
+                formulas.each(function(m) {
+                    var inputs = m.inputs.select(function(input) {
+                        return input instanceof DBVariable;
                     });
                     dbgOn(inputs.length !== m.inputs.length);
                     c.formula(m.output, inputs, m.func);
                 });
             }, planner);
             cobj.addPrimitiveConstraint(constraint);
-        };
+        }
         cobj.priority = priority;
-        cobj.enable();
         return cobj;
     },
 
@@ -81,42 +65,42 @@ DBPlanner.addMethods({
 
     beginEdit: function() {
         if (this.currentEditPlan) {
-            throw "Trying to run nested edits - this isn't supported"
+            throw "Trying to run nested edits - this isn't supported";
         }
         if (!this.currentEdits) {
-            throw "No edit variables - cannot beginEdit"
+            throw 'No edit variables - cannot beginEdit';
         }
         this.currentEditPlan = this.extractDBPlanFromDBConstraints(this.currentEdits);
     },
     endEdit: function() {
         if (this.currentEdits && this.currentEdits.length !== 0) {
-            this.currentEdits.elms.each(function (edit) {
+            this.currentEdits.elms.each(function(edit) {
                 edit.destroyDBConstraint();
-            })
+            });
         }
         this.currentEditPlan = null;
     },
     resolveArray: function(newValues) {
         if (!this.currentEdits) {
-            throw "resolveArray only valid in edit"
+            throw 'resolveArray only valid in edit';
         }
-        this.currentEdits.elms.each(function (edit, idx) {
+        this.currentEdits.elms.each(function(edit, idx) {
             edit.myOutput.value = newValues[idx];
-        })
+        });
         this.currentEditPlan.execute();
     }
-})
+});
 
 Object.extend(DBPlanner, {
     getInstance: function() {
-        if (!this["$$instance"]) {
-            this["$$instance"] = new DBPlanner();
+        if (!this['$$instance']) {
+            this['$$instance'] = new DBPlanner();
         }
-        return this["$$instance"];
+        return this['$$instance'];
     },
 
     resetInstance: function() {
-        this["$$instance"] = undefined;
+        this['$$instance'] = undefined;
     }
 });
 
@@ -133,7 +117,11 @@ DBVariable.addMethods({
     },
 
     stay: function(strength) {
-        var cn = new StayDBConstraint(this, strength || DBStrength.WEAK_DEFAULT, this.planner);
+        var cn = new StayDBConstraint(
+            this,
+            strength || DBStrength.WEAK_DEFAULT,
+            this.planner
+        );
         cn.enable();
         this._stayConstraint = cn;
         return cn;
@@ -154,20 +142,20 @@ DBVariable.addMethods({
     },
 
 
-    formula: function (inputs, func) {
+    formula: function(inputs, func) {
         if (!Constraint.current) {
-            throw "invalid outside constraint construction"
+            throw 'invalid outside constraint construction';
         }
         // var constraint = new Constraint(func, Constraint.current.solver),
         //     inputs = constraint.constraintvariables
         if (this.__formula__) {
-            throw "two formulas for the same variable " + this;
+            throw 'two formulas for the same variable ' + this;
         }
         this.__formula__ = {output: this, inputs: inputs, func: func};
     },
 
 
-    removeFormula: function () {
+    removeFormula: function() {
         var f = this.__formula__;
         this.__formula__ = undefined;
         if (!f) {
@@ -184,7 +172,7 @@ DBVariable.addMethods({
         if (this._stayConstraint) {
             try {
                 this.planner.removeConstraint(this._stayConstraint);
-            } catch(_) {
+            } catch (_) {
                 this._stayConstraint = null;
             }
         }
@@ -193,7 +181,7 @@ DBVariable.addMethods({
     suggestValue: function(value) {
         this.assignValue(value);
     },
-    
+
     prepareEdit: function() {
         if (this.editConstraint) {
             // ignore?
@@ -201,28 +189,33 @@ DBVariable.addMethods({
             this.editConstraint = this.planner.addEditVar(this);
         }
     },
-    
+
     finishEdit: function() {
         this.editConstraint = null;
     },
     cnIdentical: function(other) {
         if (!(other instanceof DBVariable)) {
-            other = new DBVariable("___", other, this.planner);
+            other = new DBVariable('___', other, this.planner);
             var stay = new StayDBConstraint(other, DBStrength.required, this.planner);
             stay.enable(DBStrength.required);
         }
-        return new EqualityDBConstraint(this, other, DBStrength.required, Constraint.current.solver);
+        return new EqualityDBConstraint(
+            this,
+            other,
+            DBStrength.required,
+            Constraint.current.solver
+        );
     },
     cnEquals: function(other) {
         if (!(other instanceof DBVariable)) {
-            other = new DBVariable("constant/" + other, other, this.planner);
+            other = new DBVariable('constant/' + other, other, this.planner);
             Constraint.current.addPrimitiveConstraint(
                 new StayDBConstraint(other, DBStrength.required, this.planner)
             );
         }
-        
+
         var self = this;
-        cloneFunc = function (fromObj) {
+        cloneFunc = function(fromObj) {
             if (fromObj.clone) {
                 return fromObj.clone();
             } else if (fromObj.copy) {
@@ -230,10 +223,10 @@ DBVariable.addMethods({
             } else {
                 return fromObj; // regress to identity constraint
             }
-        }
-        
+        };
+
         return new UserDBConstraint(
-            function (c) {
+            function(c) {
                 c.formula(self, [other], cloneFunc);
                 c.formula(other, [self], cloneFunc);
             },
@@ -245,36 +238,36 @@ DBVariable.addMethods({
     },
     equals: function(argument) {
         return this.cnEquals(argument);
-    },
-})
+    }
+});
 
 
 DBConstraint.addMethods({
-    isConstraintObject: function () {
+    isConstraintObject: function() {
         return true;
     },
 
-    enable: function (priority) {
+    enable: function(priority) {
         this.strength = priority || this.strength;
-        this.addDBConstraint()
+        this.addDBConstraint();
     },
 
-    disable: function () {
-        this.destroyDBConstraint()
+    disable: function() {
+        this.destroyDBConstraint();
     },
-    
-    cnOr: function (other) {
+
+    cnOr: function(other) {
         return this; // assume we can satisfy this
     }
 });
 EqualityDBConstraint.addMethods({
-    setExecuteFunction: function (func) {
+    setExecuteFunction: function(func) {
         var orig = this.execute.$originalFunction || this.execute;
         func.$originalFunction = orig;
         this.execute = func;
     },
-    
-    unsetExecuteFunction: function () {
+
+    unsetExecuteFunction: function() {
         this.execute = this.execute.$originalFunction || this.execute;
     }
-});}) // end of module
+});}); // end of module

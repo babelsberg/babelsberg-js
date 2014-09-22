@@ -22,12 +22,12 @@ TestCase.subclass('users.ohshima.ElectricalComponentsTests.Test1',
 
         r.lead1.current = 5.0;
         this.assertEquals(r.lead2.current, -5.0, "r lead2 current");
-        show({l1v: r.lead1.voltage, l1c: r.lead1.current, l2v: r.lead2.voltage, l2c: r.lead2.current})
+        // show({l1v: r.lead1.voltage, l1c: r.lead1.current, l2v: r.lead2.voltage, l2c: r.lead2.current})
     },
     testBattery1: function() {
         var b = new users.ohshima.ElectricalComponents.Battery(5.0);
         b.lead1.voltage = 0.0;
-        show({l1v: b.lead1.voltage, l1c: b.lead1.current, l2v: b.lead2.voltage, l2c: b.lead2.current, rs: b.supplyVoltage})
+        // show({l1v: b.lead1.voltage, l1c: b.lead1.current, l2v: b.lead2.voltage, l2c: b.lead2.current, rs: b.supplyVoltage})
         this.assertEquals(b.lead1.voltage, 0.0, "b lead1 voltage");
         this.assertEquals(b.lead2.voltage, 5.0, "b lead2 voltage");
     },

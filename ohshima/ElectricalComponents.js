@@ -1,5 +1,7 @@
 module('users.ohshima.ElectricalComponents').requires('users.timfelgentreff.babelsberg.constraintinterpreter').toRun(function() {
 
+var solver = new ClSimplexSolver();
+
 Object.subclass('users.ohshima.ElectricalComponents.Component',
 'initialization', {
     initialize: function($super) {
@@ -22,9 +24,9 @@ users.ohshima.ElectricalComponents.Component.subclass('users.ohshima.ElectricalC
     initialize: function($super) {
         this.lead1 = this.newLead();
         this.lead2 = this.newLead();
-        (function () {
+        bbb.always({ctx: {self: this}, solver: solver}, (function () {
             return self.lead1.current + self.lead2.current == 0.0;
-        }).shouldBeTrue({self: this});
+        }));
     },
 });
 
@@ -33,9 +35,9 @@ users.ohshima.ElectricalComponents.TwoLeadedObject.subclass('users.ohshima.Elect
     initialize: function($super, resistance) {
         $super();
         this.resistance = resistance;
-        (function () {
+        bbb.always({ctx: {self: this, resistance: this.resistance}, solver: solver}, (function () {
             return ((self.lead2.voltage - self.lead1.voltage) == self.lead2.current * resistance)
-        }).shouldBeTrue({self: this, resistance: this.resistance});
+        }));
     },
 });
 
@@ -44,9 +46,9 @@ users.ohshima.ElectricalComponents.TwoLeadedObject.subclass('users.ohshima.Elect
     initialize: function($super, supplyVoltage) {
         $super();
         this.supplyVoltage = supplyVoltage;
-        (function () {
+        bbb.always({ctx: {self: this, supplyVoltage: this.supplyVoltage}, solver: solver}, (function () {
             return (self.lead2.voltage - self.lead1.voltage == supplyVoltage)
-        }).shouldBeTrue({self: this, supplyVoltage: this.supplyVoltage});
+        }));
     },
 });
 
@@ -55,9 +57,9 @@ users.ohshima.ElectricalComponents.Component.subclass('users.ohshima.ElectricalC
     initialize: function($super) {
         $super();
         this.lead = this.newLead();
-        (function () {
+        bbb.always({ctx: {self: this}, solver: solver}, (function () {
             return (self.lead.voltage == 0.0) && (self.lead.current == 0.0)
-        }).shouldBeTrue({self: this});
+        }));
     },
 });
 
@@ -65,9 +67,9 @@ users.ohshima.ElectricalComponents.TwoLeadedObject.subclass('users.ohshima.Elect
 'initialization', {
     initialize: function($super) {
         $super();
-        (function () {
+        bbb.always({ctx: {self: this}, solver: solver}, (function () {
             return (self.lead1.voltage == self.lead2.voltage)
-        }).shouldBeTrue({self: this});
+        }));
     },
 });
 
@@ -75,9 +77,9 @@ users.ohshima.ElectricalComponents.TwoLeadedObject.subclass('users.ohshima.Elect
 'initialization', {
     initialize: function($super) {
         $super();
-        (function () {
+        bbb.always({ctx: {self: this}, solver: solver}, (function () {
             return (self.lead1.voltage == self.lead2.voltage)
-        }).shouldBeTrue({self: this});
+        }));
     },
 });
 
@@ -86,9 +88,9 @@ users.ohshima.ElectricalComponents.TwoLeadedObject.subclass('users.ohshima.Elect
     initialize: function($super) {
         $super();
         this.readingVoltage = 0.0;
-        (function () {
+        bbb.always({ctx: {self: this}, solver: solver}, (function () {
             return (self.lead1.current == 0.0 && ((self.lead2.voltage - self.lead1.voltage) == self.readingVoltage)) 
-        }).shouldBeTrue({self: this});
+        }));
     },
 });
 
@@ -103,33 +105,33 @@ Object.extend(users.ohshima.ElectricalComponents.Lead, {
         return this['componentConnect' + len].apply(this, $A(arguments))
     },
     componentConnect1: function(lead1) {
-        (function () {
+        bbb.always({ctx: {lead1: lead1}, solver: solver}, (function () {
             return lead1.current == 0.0;
-        }).shouldBeTrue({lead1: lead1})
+        }))
     },
     componentConnect2: function(lead1, lead2) {
-        (function () {
+        bbb.always({ctx: {lead1: lead1, lead2: lead2}, solver: solver}, (function () {
             return (lead1.voltage == lead2.voltage)
-        }).shouldBeTrue({lead1: lead1, lead2: lead2});
-        (function () {
+        }));
+        bbb.always({ctx: {lead1: lead1, lead2: lead2}, solver: solver}, (function () {
             return lead1.current + lead2.current == 0.0;
-        }).shouldBeTrue({lead1: lead1, lead2: lead2})
+        }));
     },
     componentConnect3: function(lead1, lead2, lead3) {
-        (function () {
+        bbb.always({ctx: {lead1: lead1, lead2: lead2, lead3: lead3}, solver: solver}, (function () {
             return (lead1.voltage == lead2.voltage) && (lead1.voltage == lead3.voltage)
-        }).shouldBeTrue({lead1: lead1, lead2: lead2, lead3: lead3});
-        (function () {
+        }));
+        bbb.always({ctx: {lead1: lead1, lead2: lead2, lead3: lead3}, solver: solver}, (function () {
             return lead1.current + lead2.current + lead3.current == 0.0;
-        }).shouldBeTrue({lead1: lead1, lead2: lead2, lead3: lead3})
+        }));
     },
     componentConnect4: function(lead1, lead2, lead3, lead4) {
-        (function () {
+        bbb.always({ctx: {lead1: lead1, lead2: lead2, lead3: lead3, lead4: lead4}, solver: solver}, (function () {
             return (lead1.voltage == lead2.voltage) && (lead1.voltage == lead3.voltage) && (lead1.voltage == lead4.voltage)
-        }).shouldBeTrue({lead1: lead1, lead2: lead2, lead3: lead3, lead4: lead4});
-        (function () {
+        }));
+        bbb.always({ctx: {lead1: lead1, lead2: lead2, lead3: lead3, lead4: lead4}, solver: solver}, (function () {
             return lead1.current + lead2.current + lead3.current + lead4.current == 0.0;
-        }).shouldBeTrue({lead1: lead1, lead2: lead2, lead3: lead3, lead4: lead4})
+        }))
     }
 });
 
