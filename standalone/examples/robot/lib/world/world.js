@@ -43,6 +43,7 @@ Object.subclass("World", {
 	/*
 	 * Manage GameObjects
 	 */
+	spawn: function(gameObject) { gameObject.addToWorld(this); },
 	addGameObject: function(entity) { this.gameObjects.push(entity); },
 	getGameObjects: function() { return this.gameObjects; }
 });
