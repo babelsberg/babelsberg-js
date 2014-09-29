@@ -883,14 +883,22 @@ Object.subclass('ConstrainedVariable', {
             }
         });
 
-        this.setValue(value);
-        // recalc
-        this._constraints.each(function(c) {
-            var eVar = this.externalVariables(c.solver);
-            if (!eVar) {
-                c.recalculate();
-            }
-        }.bind(this));
+        if (!this.isValueClass()) {
+            this.setValue(value);
+            this._constraints.each(function(c) {
+                var eVar = this.externalVariables(c.solver);
+                if (!eVar) {
+                    c.recalculate();
+                }
+            }.bind(this));
+        } else {
+            recursionGuard(this, "$$valueClassUpdate", function () {
+                for (key in this.storedValue[ConstrainedVariable.AttrName]) {
+                    var cvar = this.storedValue[ConstrainedVariable.AttrName][key];
+                    cvar.suggestValue(value[key]);
+                }
+            }, this);
+        }
     },
 
 
