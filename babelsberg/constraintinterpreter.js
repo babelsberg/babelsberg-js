@@ -892,7 +892,7 @@ Object.subclass('ConstrainedVariable', {
                 }
             }.bind(this));
         } else {
-            recursionGuard(this, "$$valueClassUpdate", function () {
+            recursionGuard(this, '$$valueClassUpdate', function() {
                 for (key in this.storedValue[ConstrainedVariable.AttrName]) {
                     var cvar = this.storedValue[ConstrainedVariable.AttrName][key];
                     cvar.suggestValue(value[key]);
@@ -949,11 +949,11 @@ Object.subclass('ConstrainedVariable', {
     isSolveable: function() {
         return !!this.externalVariable;
     },
-    
+
     isValueClass: function() {
         // TODO: add more value classes
         return !this.isSolveable() &&
-            this.storedValue instanceof lively.Point
+            this.storedValue instanceof lively.Point;
     },
 
     get storedValue() {
