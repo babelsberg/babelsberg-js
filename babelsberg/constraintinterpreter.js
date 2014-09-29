@@ -731,7 +731,7 @@ Object.subclass('ConstrainedVariable', {
                                         );
                                     }
                                 }
-                                this.setValue(value);
+                                // this.setValue(value);
                                 this.updateDownstreamVariables(value);
                                 this.updateConnectedVariables();
                             } catch (e) {
