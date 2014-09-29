@@ -248,6 +248,8 @@ Object.subclass('Babelsberg', {
         try {
             var solver = opts.solver || this.defaultSolver,
                 constraint;
+
+
             func.allowTests = (opts.allowTests === true);
             func.allowUnsolvableOperations = (opts.allowUnsolvableOperations === true);
             func.debugging = opts.debugging;
@@ -615,6 +617,9 @@ Object.subclass('ConstrainedVariable', {
         dbgOn(!solver);
         this.ensureExternalVariableFor(solver);
 
+        this.wrapProperties(obj, solver);
+    },
+    wrapProperties: function(obj, solver) {
         var existingSetter = obj.__lookupSetter__(this.ivarname),
             existingGetter = obj.__lookupGetter__(this.ivarname);
 
@@ -628,11 +633,11 @@ Object.subclass('ConstrainedVariable', {
         if (!existingGetter &&
             !existingSetter &&
             this.obj.hasOwnProperty(this.ivarname)) {
-            this.setValue(obj[ivarname]);
+            this.setValue(obj[this.ivarname]);
         }
 
         try {
-            obj.__defineGetter__(ivarname, function() {
+            obj.__defineGetter__(this.ivarname, function() {
                 return this.getValue();
             }.bind(this));
         } catch (e) { /* Firefox raises for Array.length */ }
@@ -643,7 +648,7 @@ Object.subclass('ConstrainedVariable', {
             return;
         }
 
-        obj.__defineSetter__(ivarname, function(newValue) {
+        obj.__defineSetter__(this.ivarname, function(newValue) {
             return this.suggestValue(newValue, 'source');
         }.bind(this));
         var newSetter = obj.__lookupSetter__(this.ivarname);
