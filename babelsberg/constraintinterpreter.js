@@ -941,6 +941,12 @@ Object.subclass('ConstrainedVariable', {
     isSolveable: function() {
         return !!this.externalVariable;
     },
+    
+    isValueClass: function() {
+        // TODO: add more value classes
+        return !this.isSolveable() &&
+            this.storedValue instanceof lively.Point
+    },
 
     get storedValue() {
         return this.obj[this.newIvarname];
