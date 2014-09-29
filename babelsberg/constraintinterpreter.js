@@ -923,7 +923,7 @@ Object.subclass('ConstrainedVariable', {
                 var s = eVar.__solver__;
                 solvers.push(s);
             }
-        });
+        }).uniq();
         return solvers;
     },
     get definingExternalVariable() {
