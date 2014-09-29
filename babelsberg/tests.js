@@ -287,9 +287,16 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         this.assert(obj.p2.equals(pt(200, 200)),
                     "Expected " + obj.p2 + " to equal 200@200");
 
-        obj.p2 = pt(15, 15);
+        try {
+            obj.p2 = pt(15, 15);
+        } catch(_) {
+            this.assert(obj.p.equals(obj.p2.scaleBy(2)));
+            this.assert(obj.p2.equals(pt(200, 200)));
+        }
+        this.assert(obj.p2.equals(pt(200, 200)));
+        obj.p2 = pt(50, 50);
         this.assert(obj.p.equals(obj.p2.scaleBy(2)));
-        this.assert(obj.p2.equals(pt(50, 50)));
+        this.assert(obj.p2.equals(pt(200, 200)));
     },
 
     testSimpleReadonly: function() {
