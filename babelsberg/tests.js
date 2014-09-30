@@ -287,7 +287,14 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         this.assert(obj.p2.equals(pt(200, 200)),
                     "Expected " + obj.p2 + " to equal 200@200");
 
-        obj.p2 = pt(15, 15);
+        try {
+            obj.p2 = pt(15, 15);
+        } catch(_) {
+            this.assert(obj.p.equals(obj.p2.scaleBy(2)));
+            this.assert(obj.p2.equals(pt(200, 200)));
+        }
+        this.assert(obj.p2.equals(pt(200, 200)));
+        obj.p2 = pt(50, 50);
         this.assert(obj.p.equals(obj.p2.scaleBy(2)));
         this.assert(obj.p2.equals(pt(50, 50)));
     },
@@ -578,10 +585,9 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
         this.assert(r1.getPosition().equals(r2.getPosition()));
         this.assert(r1.getPosition().equals(pt(5,5)));
         
-        this.assert(r2setPositionCalls === 1); // once above
-        // XXX: Optimize this!
-        this.assert(r1setPositionCalls === 1); // call each setter just once per satisfaction
         this.assert(r1setPositionValue.equals(pt(5,5)));
+        this.assertEquals(r1setPositionCalls, 1, "too many calls for r1"); // call each setter just once per
+        this.assertEquals(r2setPositionCalls, 2, "too many calls for r2"); // once above
     },
     testIdentity: function() {
         var db = new DBPlanner(),

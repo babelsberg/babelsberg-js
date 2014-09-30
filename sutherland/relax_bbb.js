@@ -193,6 +193,10 @@ RelaxNode.prototype.tan = function(r) {
     );
 };
 
+RelaxNode.prototype.cnOr = function(r) {
+    return this;
+};
+
 RelaxNode.prototype.enable = function() { /* ignored */ };
 RelaxNode.prototype.disable = function() { /* ignored */ };
 
