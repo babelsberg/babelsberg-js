@@ -446,6 +446,7 @@ Object.subclass('Constraint', {
      */
     enable: function() {
         if (!this._enabled) {
+            Constraint.globalCounter++;
             this.constraintobjects.each(function(ea) {
                 this.enableConstraintObject(ea);
             }.bind(this));
@@ -504,6 +505,7 @@ Object.subclass('Constraint', {
      */
     disable: function() {
         if (this._enabled) {
+            Constraint.globalCounter++;
             this.constraintobjects.each(function(ea) {
                 try {ea.disable()} catch (e) {}
             });
@@ -596,8 +598,9 @@ Object.extend(Constraint, {
 
     get current() {
         return this._current;
-    }
+    },
 
+    globalCounter: 0
 });
 recursionGuard = function(obj, key, func, context) {
     if (!obj[key]) {
@@ -857,9 +860,17 @@ Object.subclass('ConstrainedVariable', {
         }
     },
     findTransitiveConnectedVariables: function(ary) {
+        if (this.$$lastTransitiveSearch === Constraint.globalCounter) {
+            return this.$$lastTransitiveAry;
+        } else {
+            this.$$lastTransitiveAry = this._findTransitiveConnectedVariables(ary || []);
+            this.$$lastTransitiveSearch = Constraint.globalCounter;
+            return this.$$lastTransitiveAry;
+        }
+    },
+    _findTransitiveConnectedVariables: function(ary) {
         // XXX soooo slowwww
         var self = this;
-        if (!ary) ary = [];
         if (ary.indexOf(this) !== -1) return;
 
         ary.push(this);
