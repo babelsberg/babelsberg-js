@@ -460,6 +460,7 @@ Object.subclass('Constraint', {
     enableConstraintObject: function(obj, optPriority) {
         if (obj === true) {
             if (this.allowTests) {
+                this.isTest = true;
                 alertOK(
                     'Warning: Constraint expression returned true. ' +
                         'Re-running whenever the value changes'
@@ -513,6 +514,12 @@ Object.subclass('Constraint', {
     recalculate: function() {
         // TODO: Fix this so it uses the split-stay result, i.e. just
         // increase the stay for the newly assigned value
+        if (this.isTest && !this.solver) {
+            debugger
+            // TODO: If this is a test and there is no solver,
+            // we can safely just run this as an assert
+        }
+
         var enabled = this._enabled,
             cvars = this.constraintvariables,
             self = this,
