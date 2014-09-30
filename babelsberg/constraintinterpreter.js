@@ -1206,7 +1206,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
             } else if (func === Math.cos && argValues[0].cos) {
                 return this.invoke(node, argValues[0], argValues[0].cos, []);
             } else {
-                return $super(node, recv, func, argValues);
+                return $super(node, recv, func, argValues.map(this.getConstraintObjectValue));
             }
         } else {
             return cop.withLayers([ConstraintConstructionLayer], function() {
@@ -1293,6 +1293,9 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         if (obj === Global ||
             (obj instanceof lively.Module) /*|| (typeof(obj) == "string")*/) {
             return obj[name];
+        }
+        if (name && name.isConstraintObject) {
+            name = this.getConstraintObjectValue(name);
         }
         if (obj && obj.isConstraintObject) {
             if (obj['cn' + name]) {
