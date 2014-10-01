@@ -17,13 +17,13 @@ Object.subclass("GameObject", {
 
 		this.radius = 5;
 		this.extent = extent;
-		this.maxSpeed = 3;
+		this.speed = 3;
 	},
 
 	update: function(dt) {
 	    this.prevPosition.set(this.position);
 
-        var deltaPos = this.velocity.normalizedCopy().mulFloat(dt*this.maxSpeed);
+        var deltaPos = this.velocity.normalizedCopy().mulFloat(dt*this.speed);
         this.position.addSelf(deltaPos);
 
         if(typeof this.animation !== "undefined")
@@ -49,20 +49,42 @@ Object.subclass("GameObject", {
 });
 
 // possible constraints:
+// ---
 // - your direction should be normalized
-// - your speed is limited to maxSpeed
+// - your speed is limited to maxSpeed (cannot adjust speed?)
 // - your velocity is direction.mulFloat(dt*speed)
 GameObject.subclass("Tank", {
 	initialize: function($super, world, pos) {
 	    $super(world, "tank", pos, new Vector2(2, 2), 1);
 
 		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [0,1,2,3]);
-		//this.initConstraints(world);
+		this.speed = 16 / 6 * world.map.tileSize.x;
+
+		this.initConstraints(world);
     },
     initConstraints: function(world) {
         var that = this,
-            map = world.map,
-            db = new DBPlanner();
+            map = world.map;
+
+        // constraint:
+        // - do not be on a wall tile
+        bbb.assert({
+            onError: function(error) {
+                if(!error instanceof ContinuousAssertError) {
+                    throw error;
+                }
+            },
+            ctx: {
+                that: that,
+                map: map
+            }
+        }, function() {
+            var pp = that.prevPosition.divVector(map.tileSize).floor();
+            var pos = that.position.divVector(map.tileSize).floor();
+            return map.tiles[pos.y][pos.x].canWalkThrough();
+        });
+
+        /*
         // pos -> coords
         bbb.always({
             solver: db,
@@ -104,7 +126,6 @@ GameObject.subclass("Tank", {
         });
         console.log(that.coordinates, map.get(that.coordinates),that.collisionTiles.upperLeft.index)
 
-        /*
         var cassowary = new ClSimplexSolver();
         bbb.always({
             solver: cassowary,
@@ -122,26 +143,31 @@ GameObject.subclass("Tank", {
 });
 
 Tank.subclass("PlayerTank", {
-	update: function($super, dt) {
-	    $super(dt);
-	}
+	initialize: function($super, world, pos) {
+	    $super(world, pos);
+
+		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [0,1,2,3]);
+    }
 });
 
 Tank.subclass("CPUTank", {
     initialize: function($super, world, pos) {
         $super(world, pos);
 
-        this.velocity.set(new Vector2(0,0));
+		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [4,5,6,7]);
+
+        // immobilize for now
+        this.velocity.set(new Vector2(-1,1));
     },
+
 	update: function($super, dt) {
-	    this.velocity.rotateSelf(Math.PI/180*(Math.random()-0.5)*5);
+	    // adjust direction randomly
+	    this.velocity.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
 
 	    $super(dt);
 	}
 });
 
-// possible constraints
-// - do not be on a wall tile
 GameObject.subclass("Bullet", {
 	initialize: function($super, world, pos, vel, maxReflections) {
 	    $super(world, "bullet", pos, new Vector2(0.5, 0.5), 0.25);
@@ -151,6 +177,9 @@ GameObject.subclass("Bullet", {
 
         this.maxReflections = maxReflections || 2;
         this.reflectionCount = 0;
+
+   		this.speed = 16 / 3.7 * world.map.tileSize.x;
+
 		this.initConstraints(world);
 	},
 
@@ -159,6 +188,10 @@ GameObject.subclass("Bullet", {
             map = this.world.map,
             db = new DBPlanner();
 
+        // constraint idea:
+        // separate this into 2 constraints
+        // one constraint that triggers the vertical reflection
+        // the other just listens on the y-coordinate for the horizontal reflection
         bbb.trigger({
             callback: function() {
                 if(that.reflectionCount++ == that.maxReflections) {
@@ -173,10 +206,9 @@ GameObject.subclass("Bullet", {
                 map: map
             }
         }, function() {
-            var x = Math.floor(that.position.x / map.tileSize.x);
-            var px = Math.floor(that.prevPosition.x / map.tileSize.x);
-            var py = Math.floor(that.prevPosition.y / map.tileSize.y);
-            return map.tiles[py][px].canFlyThrough() && !(map.tiles[py][x].canFlyThrough());
+            var pp = that.prevPosition.divVector(map.tileSize).floor();
+            var x = that.position.divVector(map.tileSize).floor().x;
+            return map.tiles[pp.y][pp.x].canFlyThrough() && !(map.tiles[pp.y][x].canFlyThrough());
         });
         bbb.trigger({
             callback: function() {
@@ -192,10 +224,9 @@ GameObject.subclass("Bullet", {
                 map: map
             }
         }, function() {
-            var px = Math.floor(that.prevPosition.x / map.tileSize.x);
-            var py = Math.floor(that.prevPosition.y / map.tileSize.y);
-            var y = Math.floor(that.position.y / map.tileSize.y);
-            return map.tiles[py][px].canFlyThrough() && !(map.tiles[y][px].canFlyThrough());
+            var pp = that.prevPosition.divVector(map.tileSize).floor();
+            var y = that.position.divVector(map.tileSize).floor().y;
+            return map.tiles[pp.y][pp.x].canFlyThrough() && !(map.tiles[y][pp.x].canFlyThrough());
         });
 
         /*
@@ -213,48 +244,6 @@ GameObject.subclass("Bullet", {
             }, function() {
             return that.position.divVector(world.map.tileSize).floor().equals(that.coordinates);
         });
-
-        bbb.always({
-            solver: db,
-            ctx: {
-                world: world,
-                that: this
-            }, methods: function() {
-                that.coordinates.x.formula([], function() {
-                    return 0;
-                });
-            }
-        }, function() {
-            return that.coordinates.x >= 0;
-        });
         */
-	},
-	update: function($super, dt) {
-	    $super(dt);
-
-	    /*
-        if(!this.getTile(this.position).canFlyThrough()) {
-            if(this.maxReflections == 0) {
-                //this.world.gameObjects.remove(this);
-            } else {
-                //this.maxReflections--;
-                //this.reflect();
-            }
-        }
-        */
-	},
-	// constraint idea:
-	// separate this into 2 constraints
-	// one constraint that triggers the vertical reflection
-	// the other just listens on the y-coordinate for the horizontal reflection
-	/*
-	reflect: function() {
-	    if(!this.getTile(new Vector2(this.position.x, this.prevPosition.y)).canFlyThrough()) {
-	        this.velocity.x *= -1;
-	    }
-	    if(!this.getTile(new Vector2(this.prevPosition.x, this.position.y)).canFlyThrough()) {
-	        this.velocity.y *= -1;
-	    }
 	}
-	*/
 });
