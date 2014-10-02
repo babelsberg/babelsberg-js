@@ -398,9 +398,6 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.TriggerTest', {
 		this.assert(!domino2.standing, "domino2 still stands");
 		this.assert(!domino3.standing, "domino3 still stands");
 	},
-	// TODO
-    testInteractingWithAssertions: function() {
-	},
     testImmediateTrigger: function() {
     	var p = new this.Player(-5);
     	
