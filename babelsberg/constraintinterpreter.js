@@ -897,6 +897,7 @@ Object.subclass('ConstrainedVariable', {
             if (ea !== defVar) {
                 ea.setReadonly(false);
                 ea.suggestValue(value);
+                // TODO: shouldn't we assign the old readonly-value here
                 ea.setReadonly(true);
             }
         });
