@@ -32,14 +32,17 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 				}
 				throw e;
 			}
-			
+
 			// re-constrain variables
-			var bbbConstraint = this.solver.constraint.bbbConstraint;
-			var enabled = bbbConstraint._enabled;
-			bbbConstraint.initialize(bbbConstraint.predicate, bbbConstraint.solver);
-			bbbConstraint.addPrimitiveConstraint(this.solver.constraint);
-			if(enabled) bbbConstraint.enable();
-			
+			if (typeof(value) == 'object' || typeof(value) == 'function') {
+			    // only recalculate to reconstraint complex objects
+                var bbbConstraint = this.solver.constraint.bbbConstraint;
+                var enabled = bbbConstraint._enabled;
+                bbbConstraint.initialize(bbbConstraint.predicate, bbbConstraint.solver);
+                bbbConstraint.addPrimitiveConstraint(this.solver.constraint);
+                if(enabled) bbbConstraint.enable();
+			}
+
 	    	return this.__val__;
 	    },
 	    value: function() {
