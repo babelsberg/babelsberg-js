@@ -689,19 +689,16 @@ Object.subclass('ConstrainedVariable', {
         }
 
         if (value !== this.storedValue) {
-            var callSetters = !ConstrainedVariable.$$optionalSetters;
-            var priorValue = this.storedValue;
+            var callSetters = !ConstrainedVariable.$$optionalSetters,
+                priorValue = this.storedValue,
+                solver = this.definingSolver;
+
             ConstrainedVariable.$$optionalSetters =
                 ConstrainedVariable.$$optionalSetters || [];
-            try {
-                var solver = this.definingSolver;
-                if (this.isSolveable()) {
-                    value = this.solveForPrimarySolver(value, solver, source);
-                }
-                if (value !== this.storedValue) {
-                    value = this.solveForConnectedVariables(value, priorValue, source);
-                }
 
+            try {
+                value = this.solveForPrimarySolver(value, solver, source);
+                value = this.solveForConnectedVariables(value, priorValue, source);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
                 var catchingConstraint = this._constraints.find(function(constraint) {
@@ -729,47 +726,51 @@ Object.subclass('ConstrainedVariable', {
     },
 
     solveForPrimarySolver: function(value, solver, source) {
-        (function() {
-            var wasReadonly = false,
-            // recursionGuard per externalVariable?
-            eVar = this.definingExternalVariable;
-            try {
-                if (solver && source) {
-                    solver.weight += 987654321; // XXX Magic Number
-                    this.findTransitiveConnectedVariables().
-                        each(function(cvar) {
-                            cvar.setDownstreamReadonly(true);
-                        });
+        if (this.isSolveable()) {
+            (function() {
+                var wasReadonly = false,
+                // recursionGuard per externalVariable?
+                eVar = this.definingExternalVariable;
+                try {
+                    if (solver && source) {
+                        solver.weight += 987654321; // XXX Magic Number
+                        this.findTransitiveConnectedVariables().
+                            each(function(cvar) {
+                                cvar.setDownstreamReadonly(true);
+                            });
+                    }
+                    wasReadonly = eVar.isReadonly();
+                    eVar.setReadonly(false);
+                    eVar.suggestValue(value);
+                    value = this.externalValue;
+                } finally {
+                    eVar.setReadonly(wasReadonly);
                 }
-                wasReadonly = eVar.isReadonly();
-                eVar.setReadonly(false);
-                eVar.suggestValue(value);
-                value = this.externalValue;
-            } finally {
-                eVar.setReadonly(wasReadonly);
-            }
-        }).bind(this).recursionGuard(
-            ConstrainedVariable.isSuggestingValue,
-            this.__uuid__
-        );
+            }).bind(this).recursionGuard(
+                ConstrainedVariable.isSuggestingValue,
+                this.__uuid__
+            );
+        }
         return value;
     },
 
     solveForConnectedVariables: function(value, priorValue, source) {
-        (function() {
-            try {
-                // this.setValue(value);
-                this.updateDownstreamVariables(value);
-                this.updateConnectedVariables();
-            } catch (e) {
-                if (source) {
-                    // is freeing the recursionGuard here necessary?
-                    this.$$isStoring = false;
-                    value = this.suggestValue(priorValue, source);
+        if (value !== this.storedValue) {
+            (function() {
+                try {
+                    // this.setValue(value);
+                    this.updateDownstreamVariables(value);
+                    this.updateConnectedVariables();
+                } catch (e) {
+                    if (source) {
+                        // is freeing the recursionGuard here necessary?
+                        this.$$isStoring = false;
+                        value = this.suggestValue(priorValue, source);
+                    }
+                    throw e; // XXX: Lively checks type, so wrap for top-level
                 }
-                throw e; // XXX: Lively checks type, so wrap for top-level
-            }
-        }).bind(this).recursionGuard(this, '$$isStoring');;
+            }).bind(this).recursionGuard(this, '$$isStoring');
+        }
     },
 
     findAndOptionallyCallSetters: function(callSetters) {
