@@ -243,46 +243,55 @@ Object.subclass('Babelsberg', {
      * @param {function} func The constraint to be fulfilled.
      */
     always: function(opts, func) {
-        try {
-            var solver = opts.solver || this.defaultSolver,
-                constraint;
+        var constraint = null,
+            solvers = this.chooseSolvers(opts.solver),
+            errors = [];
 
+        func.allowTests = (opts.allowTests === true);
+        func.allowUnsolvableOperations = (opts.allowUnsolvableOperations === true);
+        func.debugging = opts.debugging;
+        func.onError = opts.onError;
 
-            func.allowTests = (opts.allowTests === true);
-            func.allowUnsolvableOperations = (opts.allowUnsolvableOperations === true);
-            func.debugging = opts.debugging;
-            func.onError = opts.onError;
-
-            if (!solver) { // throw "Must explicitely pass a solver for now";
-                var errors = [];
-                bbb.defaultSolvers.some(function(solver) {
-                    try {
-                        constraint = solver.always(opts, func);
-                        return true;
-                    } catch (e) {
-                        errors.push('\n' + solver.constructor.name + ': ' + e);
-                        return false;
-                    }
-                });
-                if (!constraint) {
-                    throw new Error(
-                        'Must explicitely pass a solver for this constraint. ' +
-                            'The errors for the tried solvers were:' + errors
-                    );
-                }
-            } else {
+        solvers.some(function(solver) {
+            try {
                 constraint = solver.always(opts, func);
+            } catch (e) {
+                errors.push(e);
+                return false;
             }
-            if (!opts.postponeEnabling) { constraint.enable(); }
-            return constraint;
-        } catch (e) {
+            try {
+                if (!opts.postponeEnabling) constraint.enable();
+            } catch (e) {
+                constraint.disable();
+                constraint = null;
+                return false;
+            }
+            return true;
+        });
+
+        if (!constraint) {
             if (typeof opts.onError === 'function') {
-                bbb.addCallback(opts.onError, opts.onError.constraint, [e]);
+                bbb.addCallback(opts.onError, opts.onError.constraint, errors);
             } else {
-                throw e;
+                bbb.addCallback(function (e) {
+                    e.errors = Array.from(arguments); throw e
+                }, null, errors);
             }
-        } finally {
-            bbb.processCallbacks();
+        }
+        bbb.processCallbacks();
+        return constraint;
+    },
+
+    chooseSolvers: function(optSolver) {
+        if (optSolver) {
+            return [optSolver];
+        } else if (this.defaultSolver) {
+            return [this.defaultSolver]
+        } else if (this.defaultSolvers.length > 0) {
+            return this.defaultSolvers;
+        } else {
+            return [];
+            // throw new Error('Must pass a solver, or set defaultSolver.');
         }
     },
 
