@@ -695,8 +695,8 @@ Object.subclass('ConstrainedVariable', {
                 ConstrainedVariable.$$optionalSetters || [];
             try {
                 var solver = this.definingSolver;
-                (function() {
-                    if (this.isSolveable()) {
+                if (this.isSolveable()) {
+                    (function() {
                         var wasReadonly = false,
                         // recursionGuard per externalVariable?
                         eVar = this.definingExternalVariable;
@@ -715,13 +715,13 @@ Object.subclass('ConstrainedVariable', {
                         } finally {
                             eVar.setReadonly(wasReadonly);
                         }
-                    }
-                }).bind(this).recursionGuard(
-                    ConstrainedVariable.isSuggestingValue,
-                    this.__uuid__
-                );
-                (function() {
-                    if (value !== this.storedValue) {
+                    }).bind(this).recursionGuard(
+                        ConstrainedVariable.isSuggestingValue,
+                        this.__uuid__
+                    );
+                }
+                if (value !== this.storedValue) {
+                    (function() {
                         try {
                             if (this.isSolveable()) {
                                 var getterSetterPair = this.findOptionalSetter();
@@ -742,29 +742,29 @@ Object.subclass('ConstrainedVariable', {
                             }
                             throw e; // XXX: Lively checks type, so wrap for top-level
                         }
-                    }
-                }).bind(this).recursionGuard(this, '$$isStoring');;
+                    }).bind(this).recursionGuard(this, '$$isStoring');;
+                }
                 if (callSetters) {
-                    ConstrainedVariable.$$callingSetters = true;
-                    var recvs = [],
-                        setters = [];
-                    ConstrainedVariable.$$optionalSetters.each(function(ea) {
-                        var recvIdx = recvs.indexOf(ea.recv);
-                        if (recvIdx === -1) {
-                            recvIdx = recvs.length;
-                            recvs.push(ea.recv);
-                        }
-                        setters[recvIdx] = setters[recvIdx] || [];
-                        // If we have already called this setter for this recv, skip
-                        if (setters[recvIdx].indexOf(ea.setter) !== -1) return;
-                        setters[recvIdx].push(ea.setter);
-                        try {
-                            ea.recv[ea.setter](ea.recv[ea.getter]());
-                        } catch (e) {
-                            alert(e);
-                        }
-                    });
-                    ConstrainedVariable.$$callingSetters = false;
+                    (function() {
+                        var recvs = [],
+                            setters = [];
+                        ConstrainedVariable.$$optionalSetters.each(function(ea) {
+                            var recvIdx = recvs.indexOf(ea.recv);
+                            if (recvIdx === -1) {
+                                recvIdx = recvs.length;
+                                recvs.push(ea.recv);
+                            }
+                            setters[recvIdx] = setters[recvIdx] || [];
+                            // If we have already called this setter for this recv, skip
+                            if (setters[recvIdx].indexOf(ea.setter) !== -1) return;
+                            setters[recvIdx].push(ea.setter);
+                            try {
+                                ea.recv[ea.setter](ea.recv[ea.getter]());
+                            } catch (e) {
+                                alert(e);
+                            }
+                        });
+                    }).recursionGuard(ConstrainedVariable, "$$callingSetters");
                 }
             } catch (e) {
                 var catchingConstraint = this._constraints.find(function(constraint) {
