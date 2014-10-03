@@ -21,9 +21,7 @@ Object.subclass('Babelsberg', {
         this.callbacks = [];
     },
 
-    isConstraintObject: function() {
-        return true;
-    },
+    isConstraintObject: true,
 
     /**
      * Removes the listener on the given property of the given object.
