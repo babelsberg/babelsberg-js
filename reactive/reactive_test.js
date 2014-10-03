@@ -367,38 +367,7 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.AssertTest', {
 		this.assert(pt.x == 100, "constraint construction did not modified variable, pt.x: " + pt.x);
 		this.assert(pt.y == 2, "constraint construction modified variable, pt.y: " + pt.y);
     },
-	testInteractingSolvers_FailOnConstraintConstruction: function() {
-	    var pt = {x: 1, y: 2};
 
-        bbb.always({
-            solver: new DBPlanner(),
-            ctx: {
-                pt: pt
-            },
-            methods: function() {
-                pt.x.formula([pt.y], function(y) {
-                    return y;
-                });
-                pt.y.formula([pt.x], function(x) {
-                    return x;
-                });
-            }
-        }, function() {
-            return pt.x == pt.y;
-        });
-
-        bbb.always({
-            solver: new ClSimplexSolver(),
-            ctx: {
-                pt: pt
-            }
-        }, function() {
-            return pt.x == 100;
-        });
-
-		this.assert(pt.x == 100, "constraint construction did not modified the variable, pt.x: " + pt.x);
-		this.assert(pt.x == pt.y, "delta blue constraint not fulfilled, pt.x: " + pt.x + ", pt.y: " + pt.y);
-	}
 });
 
 TestCase.subclass('users.timfelgentreff.reactive.reactive_test.TriggerTest', {
