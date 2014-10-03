@@ -796,7 +796,7 @@ Object.subclass('ConstrainedVariable', {
             return {recv: this.recv, getter: this.getter, setter: this.setter};
         } else {
             if (this.parentConstrainedVariable) {
-                return this.parentConstrainedVariable.findOptionalSetter();
+                this.setter = return this.parentConstrainedVariable.findOptionalSetter();
             }
         }
     },
