@@ -815,13 +815,14 @@ Object.subclass('ConstrainedVariable', {
     },
 
     findOptionalSetter: function() {
+        if (this.setterObj) return this.setterObj;
+
         if (this.setter) {
-            return {recv: this.recv, getter: this.getter, setter: this.setter};
-        } else {
-            if (this.parentConstrainedVariable) {
-                return this.setter = this.parentConstrainedVariable.findOptionalSetter();
-            }
+            this.setterObj = {recv: this.recv, getter: this.getter, setter: this.setter};
+        } else if (this.parentConstrainedVariable) {
+            this.setterObj = this.parentConstrainedVariable.findOptionalSetter();
         }
+        return this.setterObj;
     },
 
     ensureClearSetters: function(callSetters) {
