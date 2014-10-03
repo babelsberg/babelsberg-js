@@ -686,9 +686,7 @@ Object.subclass('ConstrainedVariable', {
     suggestValue: function(value, source) {
         if (ConstrainedVariable.$$callingSetters) {
             return value;
-        }
-
-        if (value !== this.storedValue) {
+        } else if (value !== this.storedValue) {
             var callSetters = !ConstrainedVariable.$$optionalSetters,
                 priorValue = this.storedValue,
                 solver = this.definingSolver;
@@ -701,23 +699,11 @@ Object.subclass('ConstrainedVariable', {
                 value = this.solveForConnectedVariables(value, priorValue, source);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
-                var catchingConstraint = this._constraints.find(function(constraint) {
-                    return typeof constraint.onError === 'function';
-                });
-                if (catchingConstraint) {
-                    bbb.addCallback(catchingConstraint.onError, catchingConstraint, [e]);
-                } else {
-                    throw e;
-                }
+                this.addErrorCallback(e);
             } finally {
-                if (callSetters) {
-                    ConstrainedVariable.$$optionalSetters = null;
-                }
+                this.ensureClearSetters(callSetters);
                 if (solver && source) {
-                    solver.weight -= 987654321; // XXX Magic Number
-                    this.findTransitiveConnectedVariables().each(function(cvar) {
-                        cvar.setDownstreamReadonly(false);
-                    });
+                    this.bumpSolverWeight(solver, "down");
                 }
             }
             bbb.processCallbacks();
@@ -733,11 +719,7 @@ Object.subclass('ConstrainedVariable', {
                 eVar = this.definingExternalVariable;
                 try {
                     if (solver && source) {
-                        solver.weight += 987654321; // XXX Magic Number
-                        this.findTransitiveConnectedVariables().
-                            each(function(cvar) {
-                                cvar.setDownstreamReadonly(true);
-                            });
+                        this.bumpSolverWeight(solver, "up");
                     }
                     wasReadonly = eVar.isReadonly();
                     eVar.setReadonly(false);
@@ -752,6 +734,17 @@ Object.subclass('ConstrainedVariable', {
             );
         }
         return value;
+    },
+
+    bumpSolverWeight: function(solver, direction) {
+        if (direction == "up") {
+            solver.weight += 987654321; // XXX Magic Number
+        } else {
+            solver.weight -= 987654321;
+        }
+        this.findTransitiveConnectedVariables().each(function(cvar) {
+            cvar.setDownstreamReadonly(direction == "up");
+        });
     },
 
     solveForConnectedVariables: function(value, priorValue, source) {
@@ -787,6 +780,17 @@ Object.subclass('ConstrainedVariable', {
         }
     },
 
+    addErrorCallback: function(e) {
+        var catchingConstraint = this._constraints.find(function(constraint) {
+            return typeof constraint.onError === 'function';
+        });
+        if (catchingConstraint) {
+            bbb.addCallback(catchingConstraint.onError, catchingConstraint, [e]);
+        } else {
+            throw e;
+        }
+    },
+
     callSetters: function() {
         var recvs = [],
         setters = [];
@@ -815,6 +819,12 @@ Object.subclass('ConstrainedVariable', {
             if (this.parentConstrainedVariable) {
                 return this.setter = this.parentConstrainedVariable.findOptionalSetter();
             }
+        }
+    },
+
+    ensureClearSetters: function(callSetters) {
+        if (callSetters) {
+            ConstrainedVariable.$$optionalSetters = null;
         }
     },
 
