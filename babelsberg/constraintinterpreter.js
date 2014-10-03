@@ -721,16 +721,16 @@ Object.subclass('ConstrainedVariable', {
                     );
                 }
                 if (value !== this.storedValue) {
+                    if (this.isSolveable()) {
+                        var getterSetterPair = this.findOptionalSetter();
+                        if (getterSetterPair) {
+                            ConstrainedVariable.$$optionalSetters.push(
+                                getterSetterPair
+                            );
+                        }
+                    }
                     (function() {
                         try {
-                            if (this.isSolveable()) {
-                                var getterSetterPair = this.findOptionalSetter();
-                                if (getterSetterPair) {
-                                    ConstrainedVariable.$$optionalSetters.push(
-                                        getterSetterPair
-                                    );
-                                }
-                            }
                             // this.setValue(value);
                             this.updateDownstreamVariables(value);
                             this.updateConnectedVariables();
