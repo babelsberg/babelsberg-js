@@ -276,29 +276,9 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.AssertTest', {
 		);
 		this.assert(pt.x === 11, "assignment to variable was reverted(2), pt.x: " + pt.x);
     },
-	// TODO
-	testIntegrationWithOtherSolvers: function() {
-	    var pt = {x: 1, y: 2, z: 3};
-	    var callbackCalled = false;
+	testIntegrationWithOtherSolvers_FailOnAssignment: function() {
+	    var pt = {x: 1, y: 2};
 
-    	bbb.always({
-			solver: new ClSimplexSolver(),
-    		ctx: {
-    			pt: pt
-    		}
-    	}, function() {
-   			return pt.y == pt.z;
-    	});
-    	bbb.trigger({
-			callback: function() {
-			    callbackCalled = true;
-			},
-    		ctx: {
-    			pt: pt
-    		}
-    	}, function() {
-   			return pt.z == 10;
-    	});
     	bbb.always({
 			solver: new ClSimplexSolver(),
     		ctx: {
@@ -307,9 +287,117 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.AssertTest', {
     	}, function() {
    			return pt.x == pt.y;
     	});
+    	bbb.assert({
+			message: "expected error",
+    		ctx: {
+    			pt: pt
+    		}
+    	}, function() {
+   			return pt.x <= 10;
+    	});
 
-        pt.x = 10;
-		this.assert(callbackCalled, "callback was not called");
+        // invalid assignment
+		this.assertWithError(
+			ContinuousAssertError,
+			function() { pt.x = 100; },
+			"no ContinuousAssertError was thrown"
+		);
+		this.assert(pt.x == 100, "assignment did not work, pt.x: " + pt.x);
+		this.assert(pt.y == 100, "constraint did not work, pt.y: " + pt.y);
+    },
+	testIntegrationWithOtherSolvers_FailOnAssertionConstraintConstruction: function() {
+	    var pt = {x: 1, y: 2};
+
+    	bbb.always({
+			solver: new ClSimplexSolver(),
+    		ctx: {
+    			pt: pt
+    		}
+    	}, function() {
+   			return pt.x == pt.y;
+    	});
+    	pt.x = 100;
+
+		this.assertWithError(
+			ContinuousAssertError,
+			function() {
+                bbb.assert({
+                    message: "expected error",
+                    ctx: {
+                        pt: pt
+                    }
+                }, function() {
+                    return pt.x <= 10;
+                });
+			},
+			"no ContinuousAssertError was thrown"
+		);
+
+		this.assert(pt.x == 100, "constraint construction modified variable, pt.x: " + pt.x);
+		this.assert(pt.y == 100, "constraint construction modified variable, pt.y: " + pt.y);
+    },
+	testIntegrationWithOtherSolvers_FailOnConstraintConstruction: function() {
+	    var pt = {x: 1, y: 2};
+
+        bbb.assert({
+            message: "expected error",
+            ctx: {
+                pt: pt
+            }
+        }, function() {
+            return pt.x <= 10;
+        });
+
+		this.assertWithError(
+			ContinuousAssertError,
+			function() {
+                bbb.always({
+                    solver: new ClSimplexSolver(),
+                    ctx: {
+                        pt: pt
+                    }
+                }, function() {
+                    return pt.x == 100;
+                });
+                console.log(pt.x, pt.y);
+			},
+			"no ContinuousAssertError was thrown"
+		);
+
+		this.assert(pt.x == 100, "constraint construction did not modified variable, pt.x: " + pt.x);
+		this.assert(pt.y == 2, "constraint construction modified variable, pt.y: " + pt.y);
+    },
+	testInteractingSolvers_FailOnConstraintConstruction: function() {
+	    var pt = {x: 1, y: 2};
+
+        bbb.always({
+            solver: new DBPlanner(),
+            ctx: {
+                pt: pt
+            },
+            methods: function() {
+                pt.x.formula([pt.y], function(y) {
+                    return y;
+                });
+                pt.y.formula([pt.x], function(x) {
+                    return x;
+                });
+            }
+        }, function() {
+            return pt.x == pt.y;
+        });
+
+        bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                pt: pt
+            }
+        }, function() {
+            return pt.x == 100;
+        });
+
+		this.assert(pt.x == 100, "constraint construction did not modified the variable, pt.x: " + pt.x);
+		this.assert(pt.x == pt.y, "delta blue constraint not fulfilled, pt.x: " + pt.x + ", pt.y: " + pt.y);
 	}
 });
 
@@ -587,7 +675,7 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.LayerActivationTe
     testLayerActivationSolver: function() {
 		// TODO: rename trigger in test for clarification
 		var the = {
-			trigger: false,
+			condition: false,
 			answer: function() {
 				return 17;
 			}
@@ -605,15 +693,15 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.LayerActivationTe
 					the: the
 				}
 			}, function() {
-				return the.trigger === true;
+				return the.condition === true;
 			});
 
 		this.assert(the.answer() === 17, "not the correct answer, but " + the.answer());
 		
-		the.trigger = true;
+		the.condition = true;
 		this.assert(the.answer() === 42, "layer not correctly activated, the.answer(): " + the.answer());
 		
-		the.trigger = false;
+		the.condition = false;
 		this.assert(the.answer() === 17, "layer not correctly de-activated, the.answer(): " + the.answer());
 	},
 	// TODO
