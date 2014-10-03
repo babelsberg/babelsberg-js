@@ -304,14 +304,12 @@ Object.subclass('Babelsberg', {
     },
 
     processCallbacks: function() {
-        recursionGuard(bbb, 'isProcessingCallbacks',
-            function() {
-                while (bbb.callbacks.length > 0) {
-                    var cb = bbb.callbacks.shift();
-                    cb.func.apply(cb.context, cb.args);
-                }
-            }, this
-        );
+        (function() {
+            while (bbb.callbacks.length > 0) {
+                var cb = bbb.callbacks.shift();
+                cb.func.apply(cb.context, cb.args);
+            }
+        }).recursionGuard(bbb, 'isProcessingCallbacks');
     }
 });
 
@@ -408,9 +406,6 @@ Object.subclass('Constraint', {
             this.constraintvariables.push(v);
         }
     },
-
-
-
     get predicate() {
         return this._predicate;
     },
@@ -453,7 +448,7 @@ Object.subclass('Constraint', {
      */
     enable: function() {
         if (!this._enabled) {
-            Constraint.globalCounter++;
+            Constraint.transitiveVariablesGuard.tick();
             this.constraintobjects.each(function(ea) {
                 this.enableConstraintObject(ea);
             }.bind(this));
@@ -512,7 +507,7 @@ Object.subclass('Constraint', {
      */
     disable: function() {
         if (this._enabled) {
-            Constraint.globalCounter++;
+            Constraint.transitiveVariablesGuard.tick();
             this.constraintobjects.each(function(ea) {
                 try {ea.disable()} catch (e) {}
             });
@@ -607,18 +602,9 @@ Object.extend(Constraint, {
         return this._current;
     },
 
-    globalCounter: 0
+    transitiveVariablesGuard: new Guard()
 });
-recursionGuard = function(obj, key, func, context) {
-    if (!obj[key]) {
-        try {
-            obj[key] = true;
-            func.call(context);
-        } finally {
-            obj[key] = false;
-        }
-    }
-};
+
 Object.subclass('ConstrainedVariable', {
     initialize: function(obj, ivarname, optParentCVar) {
         this.__uuid__ = Strings.newUUID();
@@ -709,60 +695,55 @@ Object.subclass('ConstrainedVariable', {
                 ConstrainedVariable.$$optionalSetters || [];
             try {
                 var solver = this.definingSolver;
-                recursionGuard(
-                    ConstrainedVariable.isSuggestingValue, this.__uuid__,
-                    function() {
-                        if (this.isSolveable()) {
-                            var wasReadonly = false,
-                                // recursionGuard per externalVariable?
-                                eVar = this.definingExternalVariable;
-                            try {
-                                if (solver && source) {
-                                    solver.weight += 987654321; // XXX Magic Number
-                                    this.findTransitiveConnectedVariables().
-                                        each(function(cvar) {
-                                            cvar.setDownstreamReadonly(true);
-                                        });
-                                }
-                                wasReadonly = eVar.isReadonly();
-                                eVar.setReadonly(false);
-                                eVar.suggestValue(value);
-                                value = this.externalValue;
-                            } finally {
-                                eVar.setReadonly(wasReadonly);
+                (function() {
+                    if (this.isSolveable()) {
+                        var wasReadonly = false,
+                        // recursionGuard per externalVariable?
+                        eVar = this.definingExternalVariable;
+                        try {
+                            if (solver && source) {
+                                solver.weight += 987654321; // XXX Magic Number
+                                this.findTransitiveConnectedVariables().
+                                    each(function(cvar) {
+                                        cvar.setDownstreamReadonly(true);
+                                    });
                             }
+                            wasReadonly = eVar.isReadonly();
+                            eVar.setReadonly(false);
+                            eVar.suggestValue(value);
+                            value = this.externalValue;
+                        } finally {
+                            eVar.setReadonly(wasReadonly);
                         }
-                    },
-                    this
+                    }
+                }).bind(this).recursionGuard(
+                    ConstrainedVariable.isSuggestingValue,
+                    this.__uuid__
                 );
-                recursionGuard(
-                    this, '$$isStoring',
-                    function() {
-                        if (value !== this.storedValue) {
-                            try {
-                                if (this.isSolveable()) {
-                                    var getterSetterPair = this.findOptionalSetter();
-                                    if (getterSetterPair) {
-                                        ConstrainedVariable.$$optionalSetters.push(
-                                            getterSetterPair
-                                        );
-                                    }
+                (function() {
+                    if (value !== this.storedValue) {
+                        try {
+                            if (this.isSolveable()) {
+                                var getterSetterPair = this.findOptionalSetter();
+                                if (getterSetterPair) {
+                                    ConstrainedVariable.$$optionalSetters.push(
+                                        getterSetterPair
+                                    );
                                 }
-                                // this.setValue(value);
-                                this.updateDownstreamVariables(value);
-                                this.updateConnectedVariables();
-                            } catch (e) {
-                                if (source) {
-                                    // is freeing the recursionGuard here necessary?
-                                    this.$$isStoring = false;
-                                    value = this.suggestValue(priorValue, source);
-                                }
-                                throw e; // XXX: Lively checks type, so wrap for top-level
                             }
+                            // this.setValue(value);
+                            this.updateDownstreamVariables(value);
+                            this.updateConnectedVariables();
+                        } catch (e) {
+                            if (source) {
+                                // is freeing the recursionGuard here necessary?
+                                this.$$isStoring = false;
+                                value = this.suggestValue(priorValue, source);
+                            }
+                            throw e; // XXX: Lively checks type, so wrap for top-level
                         }
-                    },
-                    this
-                );
+                    }
+                }).bind(this).recursionGuard(this, '$$isStoring');;
                 if (callSetters) {
                     ConstrainedVariable.$$callingSetters = true;
                     var recvs = [],
@@ -867,13 +848,9 @@ Object.subclass('ConstrainedVariable', {
         }
     },
     findTransitiveConnectedVariables: function(ary) {
-        if (this.$$lastTransitiveSearch === Constraint.globalCounter) {
-            return this.$$lastTransitiveAry;
-        } else {
-            this.$$lastTransitiveAry = this._findTransitiveConnectedVariables(ary || []);
-            this.$$lastTransitiveSearch = Constraint.globalCounter;
-            return this.$$lastTransitiveAry;
-        }
+        return Constraint.transitiveVariablesGuard.call(this.__uuid__, function () {
+            return this._findTransitiveConnectedVariables(ary || []);
+        }.bind(this));
     },
     _findTransitiveConnectedVariables: function(ary) {
         // XXX soooo slowwww
@@ -918,12 +895,12 @@ Object.subclass('ConstrainedVariable', {
                 }
             }.bind(this));
         } else {
-            recursionGuard(this, '$$valueClassUpdate', function() {
+            (function() {
                 for (key in this.storedValue[ConstrainedVariable.AttrName]) {
                     var cvar = this.storedValue[ConstrainedVariable.AttrName][key];
                     cvar.suggestValue(value[key]);
                 }
-            }, this);
+            }).bind(this).recursionGuard(this, '$$valueClassUpdate');
         }
     },
 
