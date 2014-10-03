@@ -459,6 +459,13 @@ Object.subclass('Constraint', {
             }
             this._enabled = true;
             this.solver.solve();
+
+            this.constraintvariables.map(function(ea) {
+                ea.solveForConnectedVariables(ea.getValue());
+                // FIXME: we should call setters here, too, but that
+                // needs more refactoring
+                // ea.findAndOptionallyCallSetters(true);
+            });
         }
     },
 
