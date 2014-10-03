@@ -262,6 +262,7 @@ Object.subclass('Babelsberg', {
             try {
                 if (!opts.postponeEnabling) constraint.enable();
             } catch (e) {
+                errors.push(e);
                 constraint.disable();
                 constraint = null;
                 return false;
@@ -274,7 +275,8 @@ Object.subclass('Babelsberg', {
                 bbb.addCallback(opts.onError, opts.onError.constraint, errors);
             } else {
                 bbb.addCallback(function (e) {
-                    e.errors = Array.from(arguments); throw e
+                    e.errors = Array.from(arguments);
+                    throw e;
                 }, null, errors);
             }
         }
