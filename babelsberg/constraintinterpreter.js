@@ -274,7 +274,7 @@ Object.subclass('Babelsberg', {
             if (typeof opts.onError === 'function') {
                 bbb.addCallback(opts.onError, opts.onError.constraint, errors);
             } else {
-                bbb.addCallback(function (e) {
+                bbb.addCallback(function(e) {
                     e.errors = Array.from(arguments);
                     throw e;
                 }, null, errors);
@@ -288,7 +288,7 @@ Object.subclass('Babelsberg', {
         if (optSolver) {
             return [optSolver];
         } else if (this.defaultSolver) {
-            return [this.defaultSolver]
+            return [this.defaultSolver];
         } else if (this.defaultSolvers.length > 0) {
             return this.defaultSolvers;
         } else {
@@ -528,7 +528,7 @@ Object.subclass('Constraint', {
         // TODO: Fix this so it uses the split-stay result, i.e. just
         // increase the stay for the newly assigned value
         if (this.isTest && !this.solver) {
-            debugger
+            debugger;
             // TODO: If this is a test and there is no solver,
             // we can safely just run this as an assert
         }
@@ -712,7 +712,7 @@ Object.subclass('ConstrainedVariable', {
             } finally {
                 this.ensureClearSetters(callSetters);
                 if (solver && source) {
-                    this.bumpSolverWeight(solver, "down");
+                    this.bumpSolverWeight(solver, 'down');
                 }
             }
             bbb.processCallbacks();
@@ -728,7 +728,7 @@ Object.subclass('ConstrainedVariable', {
                 eVar = this.definingExternalVariable;
                 try {
                     if (solver && source) {
-                        this.bumpSolverWeight(solver, "up");
+                        this.bumpSolverWeight(solver, 'up');
                     }
                     wasReadonly = eVar.isReadonly();
                     eVar.setReadonly(false);
@@ -746,13 +746,13 @@ Object.subclass('ConstrainedVariable', {
     },
 
     bumpSolverWeight: function(solver, direction) {
-        if (direction == "up") {
+        if (direction == 'up') {
             solver.weight += 987654321; // XXX Magic Number
         } else {
             solver.weight -= 987654321;
         }
         this.findTransitiveConnectedVariables().each(function(cvar) {
-            cvar.setDownstreamReadonly(direction == "up");
+            cvar.setDownstreamReadonly(direction == 'up');
         });
     },
 
@@ -785,7 +785,7 @@ Object.subclass('ConstrainedVariable', {
             }
         }
         if (callSetters) {
-            this.callSetters.recursionGuard(ConstrainedVariable, "$$callingSetters");
+            this.callSetters.recursionGuard(ConstrainedVariable, '$$callingSetters');
         }
     },
 
@@ -885,7 +885,7 @@ Object.subclass('ConstrainedVariable', {
         }
     },
     findTransitiveConnectedVariables: function(ary) {
-        return Constraint.transitiveVariablesGuard.call(this.__uuid__, function () {
+        return Constraint.transitiveVariablesGuard.call(this.__uuid__, function() {
             return this._findTransitiveConnectedVariables(ary || []);
         }.bind(this));
     },
@@ -1246,7 +1246,8 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
             } else if (func === Math.cos && argValues[0].cos) {
                 return this.invoke(node, argValues[0], argValues[0].cos, []);
             } else {
-                return $super(node, recv, func, argValues.map(this.getConstraintObjectValue));
+                return $super(node, recv, func,
+                              argValues.map(this.getConstraintObjectValue));
             }
         } else {
             return cop.withLayers([ConstraintConstructionLayer], function() {

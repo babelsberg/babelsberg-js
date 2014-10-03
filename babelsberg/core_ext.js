@@ -14,10 +14,10 @@ Function.addMethods({
                 obj[key] = false;
             }
         }
-    },
+    }
 });
 
-Object.subclass("Guard", {
+Object.subclass('Guard', {
     initialize: function() {
         this.counter = 0;
         this.lastCall = {};
