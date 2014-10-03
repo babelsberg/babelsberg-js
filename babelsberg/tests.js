@@ -586,7 +586,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
         this.assert(r1.getPosition().equals(pt(5,5)));
         
         this.assert(r1setPositionValue.equals(pt(5,5)));
-        this.assertEquals(r1setPositionCalls, 1, "too many calls for r1"); // call each setter just once per
+        this.assertEquals(r1setPositionCalls, 2, "too many calls for r1"); // call each setter just once per
         this.assertEquals(r2setPositionCalls, 2, "too many calls for r2"); // once above
     },
     testIdentity: function() {
