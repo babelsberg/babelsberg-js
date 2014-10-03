@@ -696,76 +696,13 @@ Object.subclass('ConstrainedVariable', {
             try {
                 var solver = this.definingSolver;
                 if (this.isSolveable()) {
-                    (function() {
-                        var wasReadonly = false,
-                        // recursionGuard per externalVariable?
-                        eVar = this.definingExternalVariable;
-                        try {
-                            if (solver && source) {
-                                solver.weight += 987654321; // XXX Magic Number
-                                this.findTransitiveConnectedVariables().
-                                    each(function(cvar) {
-                                        cvar.setDownstreamReadonly(true);
-                                    });
-                            }
-                            wasReadonly = eVar.isReadonly();
-                            eVar.setReadonly(false);
-                            eVar.suggestValue(value);
-                            value = this.externalValue;
-                        } finally {
-                            eVar.setReadonly(wasReadonly);
-                        }
-                    }).bind(this).recursionGuard(
-                        ConstrainedVariable.isSuggestingValue,
-                        this.__uuid__
-                    );
+                    value = this.solveForPrimarySolver(value, solver, source);
                 }
                 if (value !== this.storedValue) {
-                    if (this.isSolveable()) {
-                        var getterSetterPair = this.findOptionalSetter();
-                        if (getterSetterPair) {
-                            ConstrainedVariable.$$optionalSetters.push(
-                                getterSetterPair
-                            );
-                        }
-                    }
-                    (function() {
-                        try {
-                            // this.setValue(value);
-                            this.updateDownstreamVariables(value);
-                            this.updateConnectedVariables();
-                        } catch (e) {
-                            if (source) {
-                                // is freeing the recursionGuard here necessary?
-                                this.$$isStoring = false;
-                                value = this.suggestValue(priorValue, source);
-                            }
-                            throw e; // XXX: Lively checks type, so wrap for top-level
-                        }
-                    }).bind(this).recursionGuard(this, '$$isStoring');;
+                    value = this.solveForConnectedVariables(value, priorValue, source);
                 }
-                if (callSetters) {
-                    (function() {
-                        var recvs = [],
-                            setters = [];
-                        ConstrainedVariable.$$optionalSetters.each(function(ea) {
-                            var recvIdx = recvs.indexOf(ea.recv);
-                            if (recvIdx === -1) {
-                                recvIdx = recvs.length;
-                                recvs.push(ea.recv);
-                            }
-                            setters[recvIdx] = setters[recvIdx] || [];
-                            // If we have already called this setter for this recv, skip
-                            if (setters[recvIdx].indexOf(ea.setter) !== -1) return;
-                            setters[recvIdx].push(ea.setter);
-                            try {
-                                ea.recv[ea.setter](ea.recv[ea.getter]());
-                            } catch (e) {
-                                alert(e);
-                            }
-                        });
-                    }).recursionGuard(ConstrainedVariable, "$$callingSetters");
-                }
+
+                this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
                 var catchingConstraint = this._constraints.find(function(constraint) {
                     return typeof constraint.onError === 'function';
@@ -789,6 +726,85 @@ Object.subclass('ConstrainedVariable', {
             bbb.processCallbacks();
         }
         return value;
+    },
+
+    solveForPrimarySolver: function(value, solver, source) {
+        (function() {
+            var wasReadonly = false,
+            // recursionGuard per externalVariable?
+            eVar = this.definingExternalVariable;
+            try {
+                if (solver && source) {
+                    solver.weight += 987654321; // XXX Magic Number
+                    this.findTransitiveConnectedVariables().
+                        each(function(cvar) {
+                            cvar.setDownstreamReadonly(true);
+                        });
+                }
+                wasReadonly = eVar.isReadonly();
+                eVar.setReadonly(false);
+                eVar.suggestValue(value);
+                value = this.externalValue;
+            } finally {
+                eVar.setReadonly(wasReadonly);
+            }
+        }).bind(this).recursionGuard(
+            ConstrainedVariable.isSuggestingValue,
+            this.__uuid__
+        );
+        return value;
+    },
+
+    solveForConnectedVariables: function(value, priorValue, source) {
+        (function() {
+            try {
+                // this.setValue(value);
+                this.updateDownstreamVariables(value);
+                this.updateConnectedVariables();
+            } catch (e) {
+                if (source) {
+                    // is freeing the recursionGuard here necessary?
+                    this.$$isStoring = false;
+                    value = this.suggestValue(priorValue, source);
+                }
+                throw e; // XXX: Lively checks type, so wrap for top-level
+            }
+        }).bind(this).recursionGuard(this, '$$isStoring');;
+    },
+
+    findAndOptionallyCallSetters: function(callSetters) {
+        if (this.isSolveable()) {
+            var getterSetterPair = this.findOptionalSetter();
+            if (getterSetterPair) {
+                ConstrainedVariable.$$optionalSetters.push(
+                    getterSetterPair
+                );
+            }
+        }
+        if (callSetters) {
+            this.callSetters.recursionGuard(ConstrainedVariable, "$$callingSetters");
+        }
+    },
+
+    callSetters: function() {
+        var recvs = [],
+        setters = [];
+        ConstrainedVariable.$$optionalSetters.each(function(ea) {
+            var recvIdx = recvs.indexOf(ea.recv);
+            if (recvIdx === -1) {
+                recvIdx = recvs.length;
+                recvs.push(ea.recv);
+            }
+            setters[recvIdx] = setters[recvIdx] || [];
+            // If we have already called this setter for this recv, skip
+            if (setters[recvIdx].indexOf(ea.setter) !== -1) return;
+            setters[recvIdx].push(ea.setter);
+            try {
+                ea.recv[ea.setter](ea.recv[ea.getter]());
+            } catch (e) {
+                alert(e);
+            }
+        });
     },
 
     findOptionalSetter: function() {
