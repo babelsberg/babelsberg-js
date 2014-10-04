@@ -7,7 +7,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	 ***************************************************************/
 	
 	Object.subclass("ReactiveSolver", {
-	    isConstraintObject: function() { return true; },
+	    isConstraintObject: true,
 	    constraintVariableFor: function(value, ivarname, bbbCVar) {
 	    	return new ReactiveSolver.Variable(this, value, ivarname, bbbCVar);
 	    },
@@ -15,7 +15,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	});
 	
 	Object.subclass("ReactiveSolver.Variable", {
-	    isConstraintObject: function() { return true; },
+	    isConstraintObject: true,
 		initialize: function(solver, value, ivarname, bbbCVar) {
 			this.solver = solver;
 			this.__val__ = value;
@@ -60,7 +60,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	});
 	
 	Object.subclass("ReactiveSolver.PrimitiveConstraint", {
-	    isConstraintObject: function() { return true; },
+	    isConstraintObject: true,
 	    initialize: function(variable, args) {
 			this.enabled = false;
 	    	this.solver = variable.solver;
@@ -74,7 +74,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	});
 	
 	Object.subclass("ReactiveSolver.Constraint", {
-	    isConstraintObject: function() { return true; },
+	    isConstraintObject: true,
 	    initialize: function(solver, bbbConstraint, func) {
 			this.enabled = false;
 	    	this.solver = solver;
