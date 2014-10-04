@@ -450,7 +450,7 @@ Object.subclass('Constraint', {
      */
     enable: function() {
         if (!this._enabled) {
-            Constraint.transitiveVariablesGuard.tick();
+            Constraint.constraintCountGuard.tick();
             this.constraintobjects.each(function(ea) {
                 this.enableConstraintObject(ea);
             }.bind(this));
@@ -516,7 +516,7 @@ Object.subclass('Constraint', {
      */
     disable: function() {
         if (this._enabled) {
-            Constraint.transitiveVariablesGuard.tick();
+            Constraint.constraintCountGuard.tick();
             this.constraintobjects.each(function(ea) {
                 try {ea.disable()} catch (e) {}
             });
@@ -611,7 +611,7 @@ Object.extend(Constraint, {
         return this._current;
     },
 
-    transitiveVariablesGuard: new Guard()
+    constraintCountGuard: new Guard()
 });
 
 Object.subclass('ConstrainedVariable', {
@@ -885,7 +885,7 @@ Object.subclass('ConstrainedVariable', {
         }
     },
     findTransitiveConnectedVariables: function(ary) {
-        return Constraint.transitiveVariablesGuard.call(this.__uuid__, function() {
+        return Constraint.constraintCountGuard.call(this.__uuid__, function() {
             return this._findTransitiveConnectedVariables(ary || []);
         }.bind(this));
     },
