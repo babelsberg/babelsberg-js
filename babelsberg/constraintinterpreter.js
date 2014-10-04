@@ -450,7 +450,7 @@ Object.subclass('Constraint', {
      */
     enable: function() {
         if (!this._enabled) {
-            Constraint.constraintCountGuard.tick();
+            Constraint.enabledConstraintsGuard.tick();
             this.constraintobjects.each(function(ea) {
                 this.enableConstraintObject(ea);
             }.bind(this));
@@ -516,7 +516,7 @@ Object.subclass('Constraint', {
      */
     disable: function() {
         if (this._enabled) {
-            Constraint.constraintCountGuard.tick();
+            Constraint.enabledConstraintsGuard.tick();
             this.constraintobjects.each(function(ea) {
                 try {ea.disable()} catch (e) {}
             });
@@ -611,7 +611,7 @@ Object.extend(Constraint, {
         return this._current;
     },
 
-    constraintCountGuard: new Guard()
+    enabledConstraintsGuard: new Guard()
 });
 
 Object.subclass('ConstrainedVariable', {
@@ -672,8 +672,6 @@ Object.subclass('ConstrainedVariable', {
         var eVar = this.externalVariables(solver),
             value = this.obj[this.ivarname];
 
-        this.cachedDefiningSolver = null;
-        this.cachedDefiningVar = null;
         if (!eVar && eVar !== null) { // don't try to create an external variable twice
             this.externalVariables(
                 solver,
@@ -865,8 +863,6 @@ Object.subclass('ConstrainedVariable', {
     setDownstreamReadonly: function(bool) {
         if (bool && !this.$$downstreamReadonlyVars) {
             // flushCaches
-            this.cachedDefiningSolver = null;
-            this.cachedDefiningVar = null;
             var defVar = this.definingExternalVariable;
             this.$$downstreamReadonlyVars = [];
             this.eachExternalVariableDo(function(eVar) {
@@ -885,7 +881,7 @@ Object.subclass('ConstrainedVariable', {
         }
     },
     findTransitiveConnectedVariables: function(ary) {
-        return Constraint.constraintCountGuard.call(this.__uuid__, function() {
+        return Constraint.enabledConstraintsGuard.call(this.__uuid__, function() {
             return this._findTransitiveConnectedVariables(ary || []);
         }.bind(this));
     },
@@ -949,7 +945,6 @@ Object.subclass('ConstrainedVariable', {
         constraint.addConstraintVariable(this);
     },
     get definingSolver() {
-        // if (!this.cachedDefiningSolver) {
             var solver = {weight: -1000};
             this.eachExternalVariableDo(function(eVar) {
                 if (eVar) {
@@ -959,10 +954,7 @@ Object.subclass('ConstrainedVariable', {
                     }
                 }
             });
-            // this.cachedDefiningSolver = solver;
             return solver;
-        // }
-        // return this.cachedDefiningSolver;
     },
     get solvers() {
         var solvers = [];
@@ -975,10 +967,6 @@ Object.subclass('ConstrainedVariable', {
         return solvers;
     },
     get definingExternalVariable() {
-        // if (!this.cachedDefiningVar) {
-        //     this.cachedDefiningVar = this.externalVariables(this.definingSolver);
-        // }
-        // return this.cachedDefiningVar;
         return this.externalVariables(this.definingSolver);
     },
 
