@@ -1052,6 +1052,32 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
 		this.assert(pt.x == 100, "constraint construction did not modified the variable, pt.x: " + pt.x);
 		this.assert(pt.x == pt.y, "delta blue constraint not fulfilled, pt.x: " + pt.x + ", pt.y: " + pt.y);
 	},
+    testConstraintConstructionTwoSolvers: function () {
+        var pt = {x: 15, y: 2};
+	    
+		bbb.always({
+			solver: new ClSimplexSolver(),
+			ctx: {
+				pt: pt
+			}
+		}, function() {
+			return pt.y == pt.x;;
+		});
+		console.log(pt.x, pt.y);
+		this.assert(pt.x == pt.y, "constraint not satisfied after constraint construction (1)");
+
+		bbb.always({
+			solver: new ClSimplexSolver(),
+			ctx: {
+				pt: pt
+			}
+		}, function() {
+			return pt.y == 2;;
+		});
+		console.log(pt.x, pt.y);
+		this.assert(pt.x == pt.y, "constraint not satisfied after constraint construction (2)");
+		this.assert(pt.y == 2, "constraint not satisfied after constraint construction (3), pt.y: " + pt.y);
+    },
 
     xxxTestEdit: function() {
         var obj = {a: 0, b: 1, c: "2"},
