@@ -31,8 +31,12 @@ Object.subclass('Guard', {
         }
         return this.cachedResult;
     },
-    tick: function() {
-        this.counter++;
+    tick: function(arg) {
+        if (arg) {
+            this.counter = arg;
+        } else {
+            this.counter++;
+        }
     }
 });
 

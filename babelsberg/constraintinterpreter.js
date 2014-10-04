@@ -697,15 +697,15 @@ Object.subclass('ConstrainedVariable', {
             return value;
         } else if (value !== this.storedValue) {
             var callSetters = !ConstrainedVariable.$$optionalSetters,
-                priorValue = this.storedValue,
+                oldValue = this.storedValue,
                 solver = this.definingSolver;
 
             ConstrainedVariable.$$optionalSetters =
                 ConstrainedVariable.$$optionalSetters || [];
 
             try {
-                value = this.solveForPrimarySolver(value, solver, source);
-                value = this.solveForConnectedVariables(value, priorValue, source);
+                value = this.solveForPrimarySolver(value, oldValue, solver, source);
+                value = this.solveForConnectedVariables(value, oldValue, solver, source);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
                 this.addErrorCallback(e);
@@ -720,7 +720,7 @@ Object.subclass('ConstrainedVariable', {
         return value;
     },
 
-    solveForPrimarySolver: function(value, solver, source) {
+    solveForPrimarySolver: function(value, priorValue, solver, source) {
         if (this.isSolveable()) {
             (function() {
                 var wasReadonly = false,
@@ -756,13 +756,13 @@ Object.subclass('ConstrainedVariable', {
         });
     },
 
-    solveForConnectedVariables: function(value, priorValue, source) {
+    solveForConnectedVariables: function(value, priorValue, solver, source) {
         if (value !== this.storedValue) {
             (function() {
                 try {
                     // this.setValue(value);
-                    this.updateDownstreamVariables(value);
-                    this.updateConnectedVariables();
+                    this.updateDownstreamVariables(value, solver);
+                    this.updateConnectedVariables(value, solver);
                 } catch (e) {
                     if (source) {
                         // is freeing the recursionGuard here necessary?
