@@ -40,4 +40,17 @@ Object.subclass('Guard', {
     }
 });
 
+Object.extend(Strings, {
+    safeToString: function(obj) {
+        var toS = Object.prototype.toString,
+            str;
+        try {
+            if (obj.toString) str = obj.toString();
+        } catch (e) {
+            str = toS.apply(obj);
+        }
+        return str;
+    }
+});
+
 }); // end of module

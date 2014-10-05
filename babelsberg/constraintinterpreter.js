@@ -1366,13 +1366,8 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         } else {
             var retval = obj[name];
             if (!retval || !retval.isConstraintObject) {
-                var toS = Object.prototype.toString, objStr, retStr;
-                try { objStr = obj.toString() } catch (e) { objStr = toS.apply(obj) }
-                try {
-                    retStr = retval.toString();
-                } catch (e) {
-                    retStr = toS.apply(retval);
-                }
+                var objStr = Strings.safeToString(obj),
+                    retStr = Strings.safeToString(retval);
                 console.log(
                     Constraint.current.solver.constructor.name +
                         ' cannot reason about the variable ' + objStr + '[' +
