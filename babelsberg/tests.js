@@ -1052,11 +1052,44 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
 		this.assert(pt.x == 100, "constraint construction did not modified the variable, pt.x: " + pt.x);
 		this.assert(pt.x == pt.y, "delta blue constraint not fulfilled, pt.x: " + pt.x + ", pt.y: " + pt.y);
 	},
-    testConstraintConstructionTwoSolvers: function () {
-        var pt = {x: 15, y: 2};
+    testConstraintConstructionTwoSolvers2: function () {
+        var pt = {x: 15, y: 2},
+            s1 = new ClSimplexSolver(),
+            s2 = new ClSimplexSolver();
+        s1.weight = 100;
+        s2.weight = 200;
 	    
 		bbb.always({
-			solver: new ClSimplexSolver(),
+			solver: s2,
+			ctx: {
+				pt: pt
+			}
+		}, function() {
+			return pt.y == 2;;
+		});
+		this.assert(pt.y == 2, "constraint not satisfied after constraint construction (1), pt.y: " + pt.y);
+
+		bbb.always({
+			solver: s1,
+			ctx: {
+				pt: pt
+			}
+		}, function() {
+			return pt.y == pt.x;;
+		});
+		this.assert(pt.x == pt.y, "constraint not satisfied after constraint construction (2)");
+		this.assert(pt.y == 2, "constraint not satisfied after constraint construction (3), pt.y: " + pt.y);
+    },
+
+    testConstraintConstructionTwoSolvers: function () {
+        var pt = {x: 15, y: 2},
+            s1 = new ClSimplexSolver(),
+            s2 = new ClSimplexSolver();
+        s1.weight = 100;
+        s2.weight = 200;
+	    
+		bbb.always({
+			solver: s1,
 			ctx: {
 				pt: pt
 			}
@@ -1067,7 +1100,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
 		this.assert(pt.x == pt.y, "constraint not satisfied after constraint construction (1)");
 
 		bbb.always({
-			solver: new ClSimplexSolver(),
+			solver: s2,
 			ctx: {
 				pt: pt
 			}
