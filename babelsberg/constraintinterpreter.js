@@ -461,7 +461,7 @@ Object.subclass('Constraint', {
             this._enabled = true;
             this.solver.solve();
 
-            this.constraintvariables.map(function(ea) {
+            this.constraintvariables.each(function(ea) {
                 var value = ea.getValue();
                 if (value != this.storedValue) {
                     // solveForConnectedVariables might eventually
