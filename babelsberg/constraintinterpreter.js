@@ -987,16 +987,19 @@ Object.subclass('ConstrainedVariable', {
     get storedValue() {
         return this.obj[this.newIvarname];
     },
+
     get externalValue() {
         var value;
-        if (typeof(this.externalVariable.value) == 'function') {
-            value = this.externalVariable.value();
-        } else {
-            value = this.externalVariable.value;
-        }
-        return value;
+        return this.pvtGetExternalValue(this.externalVariable);
     },
 
+    pvtGetExternalValue: function(evar) {
+        if (typeof(evar.value) == 'function') {
+            return evar.value();
+        } else {
+            return evar.value;
+        }
+    },
 
     setValue: function(value) {
         this.obj[this.newIvarname] = value;
