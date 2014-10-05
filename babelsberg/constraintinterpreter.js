@@ -630,6 +630,7 @@ Object.subclass('ConstrainedVariable', {
         this.parentConstrainedVariable = optParentCVar;
         this._constraints = [];
         this._externalVariables = {};
+        this._isSolveable = false;
         var value = obj[ivarname],
             solver = this.currentSolver;
 
@@ -988,12 +989,12 @@ Object.subclass('ConstrainedVariable', {
         return this.externalVariables(this.definingSolver);
     },
 
-
-
-
-
     isSolveable: function() {
-        return !!this.externalVariable;
+        return Constraint.current ? !!this.externalVariable : this._isSolveable;
+    },
+
+    _resetIsSolveable: function() {
+        this._isSolveable = !!this.definingExternalVariable;
     },
 
     isValueClass: function() {
@@ -1061,6 +1062,7 @@ Object.subclass('ConstrainedVariable', {
                 value.__cvar__ = this;
             }
             this._externalVariables[solver.__uuid__] = value || null;
+            this._resetIsSolveable();
         }
     }
 });
