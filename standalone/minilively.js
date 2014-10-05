@@ -334,19 +334,23 @@ if (!window.module) {
     });
 
     var lutUUID = [];
-    for (var i=0; i<256; i++) lutUUID[i] = (i<16?'0':'')+(i).toString(16);
+    for (var i = 0; i < 256; i++) lutUUID[i] = (i < 16 ? '0' : '') + (i).toString(16);
     window.Strings = {
         newUUID: function() {
             // fastest implementation I found. Stolen from
             // http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
-            var d0 = Math.random()*0xffffffff|0;
-            var d1 = Math.random()*0xffffffff|0;
-            var d2 = Math.random()*0xffffffff|0;
-            var d3 = Math.random()*0xffffffff|0;
-            return lutUUID[d0&0xff]+lutUUID[d0>>8&0xff]+lutUUID[d0>>16&0xff]+lutUUID[d0>>24&0xff]+'-'+
-                lutUUID[d1&0xff]+lutUUID[d1>>8&0xff]+'-'+lutUUID[d1>>16&0x0f|0x40]+lutUUID[d1>>24&0xff]+'-'+
-                lutUUID[d2&0x3f|0x80]+lutUUID[d2>>8&0xff]+'-'+lutUUID[d2>>16&0xff]+lutUUID[d2>>24&0xff]+
-                lutUUID[d3&0xff]+lutUUID[d3>>8&0xff]+lutUUID[d3>>16&0xff]+lutUUID[d3>>24&0xff];
+            var d0 = Math.random() * 0xffffffff | 0;
+            var d1 = Math.random() * 0xffffffff | 0;
+            var d2 = Math.random() * 0xffffffff | 0;
+            var d3 = Math.random() * 0xffffffff | 0;
+            return lutUUID[d0 & 0xff] + lutUUID[d0 >> 8 & 0xff] +
+                lutUUID[d0 >> 16 & 0xff] + lutUUID[d0 >> 24 & 0xff] + '-' +
+                lutUUID[d1 & 0xff] + lutUUID[d1 >> 8 & 0xff] + '-' +
+                lutUUID[d1 >> 16 & 0x0f | 0x40] + lutUUID[d1 >> 24 & 0xff] + '-' +
+                lutUUID[d2 & 0x3f | 0x80] + lutUUID[d2 >> 8 & 0xff] + '-' +
+                lutUUID[d2 >> 16 & 0xff] + lutUUID[d2 >> 24 & 0xff] +
+                lutUUID[d3 & 0xff] + lutUUID[d3 >> 8 & 0xff] +
+                lutUUID[d3 >> 16 & 0xff] + lutUUID[d3 >> 24 & 0xff];
         },
 
         format: function Strings$format() {
