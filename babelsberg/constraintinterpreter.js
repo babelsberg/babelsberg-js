@@ -275,6 +275,7 @@ Object.subclass('Babelsberg', {
                 bbb.addCallback(opts.onError, opts.onError.constraint, errors);
             } else {
                 bbb.addCallback(function(e) {
+                    e = e || new Error('No solver available!');
                     e.errors = Array.from(arguments);
                     throw e;
                 }, null, errors);
