@@ -1024,9 +1024,9 @@ Object.subclass('ConstrainedVariable', {
     },
     eachExternalVariableDo: function(func) {
         func.bind(this);
-        for (key in this._externalVariables) {
+        for (var key in this._externalVariables) {
             var eVar = this._externalVariables[key];
-            if (eVar) { func(eVar, key); }
+            if (eVar) { func(eVar); }
         }
     },
 
