@@ -461,10 +461,16 @@ Object.subclass('Constraint', {
             this.solver.solve();
 
             this.constraintvariables.map(function(ea) {
-                ea.solveForConnectedVariables(ea.getValue());
-                // FIXME: we should call setters here, too, but that
-                // needs more refactoring
-                // ea.findAndOptionallyCallSetters(true);
+                var value = ea.getValue();
+                if (value != this.storedValue) {
+                    // solveForConnectedVariables might eventually
+                    // call updateDownstreamExternalVariables, too.
+                    // We need this first, however, for the case when
+                    // this newly enabled constraint is the new
+                    // highest-weight solver
+                    ea.updateDownstreamExternalVariables(value);
+                    ea.solveForConnectedVariables(value);
+                }
             });
         }
     },
@@ -909,34 +915,45 @@ Object.subclass('ConstrainedVariable', {
     },
 
     updateDownstreamVariables: function(value) {
-        var defVar = this.definingExternalVariable;
-        this.eachExternalVariableDo(function(ea) {
-            if (ea !== defVar) {
-                ea.setReadonly(false);
-                ea.suggestValue(value);
-                // TODO: shouldn't we assign the old readonly-value here
-                ea.setReadonly(true);
-            }
-        });
+        this.updateDownstreamExternalVariables(value);
 
         if (!this.isValueClass()) {
-            this.setValue(value);
-            this._constraints.each(function(c) {
-                var eVar = this.externalVariables(c.solver);
-                if (!eVar) {
-                    c.recalculate();
-                }
-            }.bind(this));
+            this.recalculateDownstreamConstraints(value);
         } else {
-            (function() {
-                for (key in this.storedValue[ConstrainedVariable.AttrName]) {
-                    var cvar = this.storedValue[ConstrainedVariable.AttrName][key];
-                    cvar.suggestValue(value[key]);
-                }
-            }).bind(this).recursionGuard(this, '$$valueClassUpdate');
+            this.updateValueClassParts(value);
         }
     },
 
+    updateDownstreamExternalVariables: function(value) {
+        var defVar = this.definingExternalVariable;
+        this.eachExternalVariableDo(function(ea) {
+            if (ea !== defVar) {
+                var wasReadonly = ea.isReadonly();
+                ea.setReadonly(false);
+                ea.suggestValue(value);
+                ea.setReadonly(wasReadonly);
+            }
+        });
+    },
+
+    recalculateDownstreamConstraints: function(value) {
+        this.setValue(value);
+        this._constraints.each(function(c) {
+            var eVar = this.externalVariables(c.solver);
+            if (!eVar) {
+                c.recalculate();
+            }
+        }.bind(this));
+    },
+
+    updateValueClassParts: function(value) {
+        (function() {
+            for (key in this.storedValue[ConstrainedVariable.AttrName]) {
+                var cvar = this.storedValue[ConstrainedVariable.AttrName][key];
+                cvar.suggestValue(value[key]);
+            }
+        }).bind(this).recursionGuard(this, '$$valueClassUpdate');
+    },
 
     addToConstraint: function(constraint) {
         if (!this._constraints.include(constraint)) {
