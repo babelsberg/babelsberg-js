@@ -68,6 +68,7 @@ window.onload = function() {
         ));
 
         player = new PlayerTank(world, new Vector2(15, 12), input);
+        player.controls = new PlayerControls(player, world, input, viewport);
         world.spawn(player);
         cpu = new CPUTank(world, new Vector2(28, 6))
         world.spawn(cpu);
@@ -106,23 +107,6 @@ window.onload = function() {
 		if(input.state("zoomOut")) {
 			viewport.zoomOut();
 		}
-
-        // player fires a bullet
-        if(input.pressed("leftclick")) {
-            var direction = viewport.screenToWorldCoordinates(input.mouse)
-                .sub(player.position)
-                .normalizedCopy();
-            var bullet = new Bullet(world,
-                player.position.add(direction.mulFloat(player.radius + 0.25 + player.speed * dt)),
-                direction);
-            world.getGameObjects().each(function(other) {
-                bullet.onCollisionWith(other, function(bullet, other) {
-                    bullet.destroy();
-                    other.destroy();
-                });
-            });
-            world.spawn(bullet);
-        }
 
 		// update
 		world.update(dt);

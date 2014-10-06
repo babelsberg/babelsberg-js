@@ -185,15 +185,43 @@ Tank.subclass("PlayerTank", {
     },
 
 	update: function($super, dt) {
-	    var input = this.input;
-        // move player tank
-        player.velocity.set(Vector2.Zero);
-        if(input.state("up")) player.velocity.addSelf(new Vector2(0, -1));
-        if(input.state("left")) player.velocity.addSelf(new Vector2(-1, 0));
-        if(input.state("down")) player.velocity.addSelf(new Vector2(0, 1));
-        if(input.state("right")) player.velocity.addSelf(new Vector2(1, 0));
+	    this.controls && this.controls.update(dt);
 
    	    $super(dt);
+    }
+});
+
+Object.subclass("PlayerControls", {
+    initialize: function(player, world, input, viewport) {
+        this.player = player;
+        this.world = world;
+        this.input = input;
+        this.viewport = viewport;
+    },
+    update: function(dt) {
+        // move player tank
+        player.velocity.set(Vector2.Zero);
+        if(this.input.state("up")) this.player.velocity.addSelf(new Vector2(0, -1));
+        if(this.input.state("left")) this.player.velocity.addSelf(new Vector2(-1, 0));
+        if(this.input.state("down")) this.player.velocity.addSelf(new Vector2(0, 1));
+        if(this.input.state("right")) this.player.velocity.addSelf(new Vector2(1, 0));
+
+        // player fires a bullet
+        if(this.input.pressed("leftclick")) {
+            var direction = this.viewport.screenToWorldCoordinates(this.input.mouse)
+                .sub(player.position)
+                .normalizedCopy();
+            var bullet = new Bullet(this.world,
+                player.position.add(direction.mulFloat(player.radius + 0.25 + player.speed * dt)),
+                direction);
+            this.world.getGameObjects().each(function(other) {
+                bullet.onCollisionWith(other, function(bullet, other) {
+                    bullet.destroy();
+                    other.destroy();
+                });
+            });
+            this.world.spawn(bullet);
+        }
     }
 });
 
