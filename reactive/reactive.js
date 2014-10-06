@@ -21,15 +21,16 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 			this.__val__ = value;
 		},
 	    suggestValue: function(value) {
+			if(this.__val__ === value) { return value; }
 			var prev = this.__val__;
 	    	this.__val__ = value;
 			try {
 				this.solver.solve();
 			} catch(e) {
 				// revert value in case of a violated assertion
-				//if(e instanceof ContinuousAssertError) {
-				//	this.__val__ = prev;
-				//}
+				if(e instanceof ContinuousAssertError) {
+					this.__val__ = prev;
+				}
 				throw e;
 			}
 
@@ -122,9 +123,9 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 			try {
 				if(!opts.postponeEnabling) { cobj.enable(); }
 			} catch(e) {
-				//if(e instanceof ContinuousAssertError) {
-				//	cobj.disable();
-				//}
+				if(e instanceof ContinuousAssertError) {
+					cobj.disable();
+				}
 				throw e;
 			}
 	        return cobj;
