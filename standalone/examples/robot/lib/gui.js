@@ -9,6 +9,27 @@ var Gui = function(world, input, player, viewport) {
     this.bubbles = [0.2, 0.4, 0.6, 0.8, 1.0].map(function(t, i) {
         var bubble = new Gui.Bubble(t == 1.0 ? crossHairsAnimation : bubbleAnimation, t, world, input, player, viewport);
         // TODO: add constraints here
+        bbb.always({
+            solver: new DBPlanner(),
+            ctx: {
+                bubble: bubble,
+                player: player,
+                input: input,
+                t: t,
+                viewport: viewport
+            },
+            methods: function() {
+                bubble.position.formula([input.mouse, input.mouse.x, input.mouse.y, player.position, player.position.x, player.position.y], function(mouse, mouseX, mouseY, srcPosition, srcPositionX, srcPositionY) {
+                    return mouse.mulFloat(t).add(
+                        viewport.worldToScreenCoordinates(srcPosition).mulFloat(1-t)
+                    );
+                });
+            } }, function() {
+            var r = bubble.position.equals(input.mouse.mulFloat(t).add(
+                viewport.worldToScreenCoordinates(player.position).mulFloat(1-t)
+            ));
+            return r;
+        });
         return bubble;
     });
 
@@ -38,11 +59,6 @@ Gui.Bubble = function(animation, t, world, input, player, viewport) {
 
 Gui.Bubble.prototype.update = function(dt) {
     this.animation.update(dt);
-    this.position.set(
-        this.input.mouse.mulFloat(this.t).add(
-            this.viewport.worldToScreenCoordinates(this.player.position).mulFloat(1-this.t)
-        )
-    );
 };
 
 Gui.Bubble.prototype.draw = function(renderer) {
