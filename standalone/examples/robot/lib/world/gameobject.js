@@ -16,7 +16,7 @@ Object.subclass("GameObject", {
 
         this.velocity = Vector2.Zero.copy();
 
-		this.radius = 5;
+		this.radius = radius;
 		this.extent = extent;
 		this.speed = 3;
 	},

@@ -72,6 +72,30 @@ window.onload = function() {
         cpu = new CPUTank(world, new Vector2(28, 6))
         world.spawn(cpu);
 
+        var onCollisionWith = function(that, other, callback) {
+            bbb.trigger({
+                callback: function() {
+                    callback.call(this, that, other);
+                },
+                ctx: {
+                    that: that,
+                    other: other
+                }
+            }, function() {
+                return that.position.distance(other.position) <= that.radius + other.radius;
+            });
+        };
+
+        onCollisionWith(player, cpu, function(player, cpu) {
+            var desiredDistance = player.radius + cpu.radius,
+                distVector = cpu.position.sub(player.position),
+                realDistance = distVector.length(),
+                moveVector = distVector.mulFloat((desiredDistance - realDistance) / 1.9);
+            cpu.position.addSelf(moveVector);
+            player.position.subSelf(moveVector);
+            console.log(realDistance, "push", player.position.distance(cpu.position, player.radius + cpu.radius));
+        });
+
         gui = new Gui(world, input, player, viewport);
 	};
 
@@ -97,17 +121,20 @@ window.onload = function() {
 			viewport.zoomOut();
 		}
 
-        // move tank
+        // move player tank
         player.velocity.set(Vector2.Zero);
         if(input.state("up")) player.velocity.addSelf(new Vector2(0, -1));
         if(input.state("left")) player.velocity.addSelf(new Vector2(-1, 0));
         if(input.state("down")) player.velocity.addSelf(new Vector2(0, 1));
         if(input.state("right")) player.velocity.addSelf(new Vector2(1, 0));
 
+        // player fires a bullet
         if(input.pressed("leftclick")) {
             var bullet = new Bullet(world,
                 player.position.copy(),
-                viewport.screenToWorldCoordinates(input.mouse).sub(player.position).normalizedCopy());
+                viewport.screenToWorldCoordinates(input.mouse)
+                    .sub(player.position)
+                    .normalizedCopy());
             world.spawn(bullet);
         }
 		// update
