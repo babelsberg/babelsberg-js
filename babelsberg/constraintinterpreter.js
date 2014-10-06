@@ -698,10 +698,10 @@ Object.subclass('ConstrainedVariable', {
         }
     },
 
-    suggestValue: function(value, source) {
+    suggestValue: function(value, source, force) {
         if (ConstrainedVariable.$$callingSetters) {
             return value;
-        } else if (value !== this.storedValue) {
+        } else if (force || value !== this.storedValue) {
             var callSetters = !ConstrainedVariable.$$optionalSetters,
                 oldValue = this.storedValue,
                 solver = this.definingSolver;
@@ -710,10 +710,13 @@ Object.subclass('ConstrainedVariable', {
                 ConstrainedVariable.$$optionalSetters || [];
 
             try {
-                value = this.solveForPrimarySolver(value, oldValue, solver, source);
-                value = this.solveForConnectedVariables(value, oldValue, solver, source);
+                this.solveForPrimarySolver(value, oldValue, solver, source, force);
+                this.solveForConnectedVariables(value, oldValue, solver, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
+                if (this.getValue() !== oldValue) {
+                    throw "solving failed, but variable changed to " + this.getValue() + ' from ' + oldValue;
+                }
                 this.addErrorCallback(e);
             } finally {
                 this.ensureClearSetters(callSetters);
@@ -739,7 +742,6 @@ Object.subclass('ConstrainedVariable', {
                     wasReadonly = eVar.isReadonly();
                     eVar.setReadonly(false);
                     eVar.suggestValue(value);
-                    value = this.externalValue;
                 } finally {
                     eVar.setReadonly(wasReadonly);
                 }
@@ -748,7 +750,6 @@ Object.subclass('ConstrainedVariable', {
                 this.__uuid__
             );
         }
-        return value;
     },
 
     bumpSolverWeight: function(solver, direction) {
@@ -762,8 +763,8 @@ Object.subclass('ConstrainedVariable', {
         });
     },
 
-    solveForConnectedVariables: function(value, priorValue, solver, source) {
-        if (value !== this.storedValue) {
+    solveForConnectedVariables: function(value, priorValue, solver, source, force) {
+        if (force || value !== this.storedValue) {
             (function() {
                 try {
                     // this.setValue(value);
@@ -773,7 +774,7 @@ Object.subclass('ConstrainedVariable', {
                     if (source) {
                         // is freeing the recursionGuard here necessary?
                         this.$$isStoring = false;
-                        value = this.suggestValue(priorValue, source);
+                        this.suggestValue(priorValue, source, 'force');
                     }
                     throw e; // XXX: Lively checks type, so wrap for top-level
                 }
