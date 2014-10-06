@@ -133,6 +133,9 @@ Object.subclass("lively.morphic.Morph", {
 Object.extend(lively.morphic.Morph, {
         makeRectangle: function(x, y /* ... ignored */) {
                 return new lively.morphic.Morph(x, y);
+        },
+        makeCircle: function(point /* ... ignored */) {
+                return new lively.morphic.Morph(point.x, point.y);
         }
 });
 

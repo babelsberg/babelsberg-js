@@ -225,6 +225,33 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         this.assert(pt(100, 100).leqPt(obj.p));
         this.assert(obj.p.x === 150, "point assignment failed to keep the new point intact");
     },
+    testLivelyPtIsValueClass: function() {
+        var c = new ClSimplexSolver();
+        
+        var m = lively.morphic.Morph.makeCircle(pt(1,1), 10);
+        
+        var old = m.getPosition();
+        m.setPosition(pt(100,100));
+        this.assert(old !== m.getPosition());
+        
+        bbb.always({
+            solver: c,
+            ctx: {
+                c: c,
+                m: m,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return m.getPosition().leqPt(pt(21, 21));;
+        });
+        
+        this.assert(m.getPosition().equals(pt(21,21)));
+        var old = m.getPosition();
+        m.setPosition(pt(10,10));
+        this.assert(m.getPosition().equals(pt(10,10)));
+        this.assert(old === m.getPosition());
+    },
 
     testPointAssignmentComplex: function() {
         var obj = {p: pt(10, 10), p2: pt(20, 20)};
@@ -269,16 +296,16 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
              obj.p.y >= 100);
         });
 
-        this.assert(pt(100, 100).leqPt(obj.p));
-        this.assert(obj.p.equals(obj.p2.scaleBy(2)));
+        this.assert(pt(100, 100).leqPt(obj.p), 'Expected ' + obj.p + ' to be >= pt(100,100)');
+        this.assert(obj.p.equals(obj.p2.scaleBy(2)), 'Expected ' + obj.p + ' to equal ' + obj.p2 + ' times 2');
 
         obj.p.x = 150;
-        this.assert(pt(100, 100).leqPt(obj.p));
-        this.assert(obj.p.x === 150);
-        this.assert(obj.p.equals(obj.p2.scaleBy(2)));
+        this.assert(pt(100, 100).leqPt(obj.p), 'Expected ' + obj.p + ' to be >= pt(100,100)');
+        this.assert(obj.p.x === 150, 'Expected ' + obj.p + '.x to = 150');
+        this.assert(obj.p.equals(obj.p2.scaleBy(2)), 'Expected ' + obj.p + ' to equal ' + obj.p2 + ' times 2');
 
         obj.p = pt(150, 100);
-        this.assert(obj.p.equals(obj.p2.scaleBy(2)));
+        this.assert(obj.p.equals(obj.p2.scaleBy(2)), 'Expected ' + obj.p + ' to equal ' + obj.p2 + ' times 2');
         this.assert(obj.p.equals(pt(150, 100)), "point assignment failed to keep the new point intact");
 
         obj.p2 = pt(200, 200);
@@ -290,7 +317,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         try {
             obj.p2 = pt(15, 15);
         } catch(_) {
-            this.assert(obj.p.equals(obj.p2.scaleBy(2)));
+            this.assert(obj.p.equals(obj.p2.scaleBy(2)), 'Expected ' + obj.p + ' to equal ' + obj.p2 + ' times 2');
             this.assert(obj.p2.equals(pt(200, 200)));
         }
         this.assert(obj.p2.equals(pt(200, 200)));
@@ -586,7 +613,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
         this.assert(r1.getPosition().equals(pt(5,5)));
         
         this.assert(r1setPositionValue.equals(pt(5,5)));
-        this.assertEquals(r1setPositionCalls, 1, "too many calls for r1"); // call each setter just once per
+        this.assertEquals(r1setPositionCalls, 2, "too many calls for r1"); // call each setter just once per
         this.assertEquals(r2setPositionCalls, 2, "too many calls for r2"); // once above
     },
     testIdentity: function() {
@@ -934,6 +961,217 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
         this.assert(o.a, "deltablue changed a");
         this.assert(o.b === 19, "cassowary updated this");
     },
+    testDynamicRegionsOnPoints: function() {
+        var c = new ClSimplexSolver(),
+            d = new DBPlanner();
+        var e1 = lively.morphic.Morph.makeCircle(pt(0,0), 10),
+            e2 = lively.morphic.Morph.makeCircle(pt(0,0), 10),
+            e3 = lively.morphic.Morph.makeCircle(pt(20,20), 10),
+            e4 = lively.morphic.Morph.makeCircle(pt(20,20), 10);
+        
+        bbb.always({
+            solver: c,
+            ctx: {
+                c: c,
+                e2: e2,
+                e1: e1,
+                e3: e3,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return e2.getPosition().equals(e1.getPosition().addPt(e3.getPosition()).scaleBy(.5));;
+        });
+
+        this.assert(e1.getPosition().equals(pt(0,0)), "1a " + e1.getPosition());
+        this.assert(e2.getPosition().equals(pt(10,10)), "2a " + e2.getPosition());
+        this.assert(e3.getPosition().equals(pt(20,20)), "3a " + e3.getPosition());
+
+        e1.setPosition(pt(5,5));
+        this.assert(e1.getPosition().equals(pt(5,5)), "1b " + e1.getPosition());
+        this.assert(e2.getPosition().equals(pt(12.5,12.5)), "2b " + e2.getPosition());
+        this.assert(e3.getPosition().equals(pt(20,20)), "3b " + e3.getPosition());
+
+        bbb.always({
+            solver: d,
+            ctx: {
+                d: d,
+                e1: e1,
+                e4: e4,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return e1.getPosition().equals(e4.getPosition());;
+        });
+
+        this.assert(e1.getPosition().equals(pt(20,20)), "1c " + e1.getPosition());
+        this.assert(e2.getPosition().equals(pt(20,20)), "2c " + e2.getPosition());
+        this.assert(e3.getPosition().equals(pt(20,20)), "3c " + e3.getPosition());
+        this.assert(e4.getPosition().equals(pt(20,20)), "4c " + e4.getPosition());
+
+        e4.setPosition(pt(5,5));
+        this.assert(e1.getPosition().equals(pt(5,5)), "1d " + e1.getPosition());
+        this.assert(e2.getPosition().equals(pt(12.5,12.5)), "2d " + e2.getPosition());
+        this.assert(e3.getPosition().equals(pt(20,20)), "3d " + e3.getPosition());
+        this.assert(e4.getPosition().equals(pt(5,5)), "4d " + e4.getPosition());
+
+        e1.setPosition(pt(0,0));
+        this.assert(e1.getPosition().equals(pt(0,0)), "1e " + e1.getPosition());
+        this.assert(e2.getPosition().equals(pt(10,10)), "2e " + e2.getPosition());
+        this.assert(e3.getPosition().equals(pt(20,20)), "3e " + e3.getPosition());
+        this.assert(e4.getPosition().equals(pt(0,0)), "4e " + e4.getPosition());
+    },
+
+    testDynamicRegionsOnPoints2: function() {
+        var c = new ClSimplexSolver(),
+            c2 = new ClSimplexSolver();
+        var e1 = lively.morphic.Morph.makeCircle(pt(0,0), 10),
+            e2 = lively.morphic.Morph.makeCircle(pt(0,0), 10),
+            e3 = lively.morphic.Morph.makeCircle(pt(20,20), 10),
+            e4 = lively.morphic.Morph.makeCircle(pt(20,20), 10);
+
+        bbb.always({
+            solver: c,
+            ctx: {
+                c: c,
+                e2: e2,
+                e1: e1,
+                e3: e3,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return e2.getPosition().equals(e1.getPosition().addPt(e3.getPosition()).scaleBy(.5));;
+        });
+
+        this.assert(e1.getPosition().equals(pt(0,0)), "1a " + e1.getPosition());
+        this.assert(e2.getPosition().equals(pt(10,10)), "2a " + e2.getPosition());
+        this.assert(e3.getPosition().equals(pt(20,20)), "3a " + e3.getPosition());
+
+        e1.setPosition(pt(5,5));
+        this.assert(e1.getPosition().equals(pt(5,5)), "1b " + e1.getPosition());
+        this.assert(e2.getPosition().equals(pt(12.5,12.5)), "2b " + e2.getPosition());
+        this.assert(e3.getPosition().equals(pt(20,20)), "3b " + e3.getPosition());
+
+        bbb.always({
+            solver: c2,
+            ctx: {
+                e1: e1,
+                e4: e4,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return e1.getPosition().equals(e4.getPosition());;
+        });
+
+        this.assert(e1.getPosition().equals(pt(5,5)), "1c " + e1.getPosition());
+        this.assert(e2.getPosition().equals(pt(12.5,12.5)), "2c " + e2.getPosition());
+        this.assert(e3.getPosition().equals(pt(20,20)), "3c " + e3.getPosition());
+        this.assert(e4.getPosition().equals(pt(5,5)), "4c " + e4.getPosition());
+
+        e4.setPosition(pt(5,5));
+        this.assert(e1.getPosition().equals(pt(5,5)), "1d " + e1.getPosition());
+        this.assert(e2.getPosition().equals(pt(12.5,12.5)), "2d " + e2.getPosition());
+        this.assert(e3.getPosition().equals(pt(20,20)), "3d " + e3.getPosition());
+        this.assert(e4.getPosition().equals(pt(5,5)), "4d " + e4.getPosition());
+
+        e1.setPosition(pt(0,0));
+        this.assert(e1.getPosition().equals(pt(0,0)), "1e " + e1.getPosition());
+        this.assert(e2.getPosition().equals(pt(10,10)), "2e " + e2.getPosition());
+        this.assert(e3.getPosition().equals(pt(20,20)), "3e " + e3.getPosition());
+        this.assert(e4.getPosition().equals(pt(0,0)), "4e " + e4.getPosition());
+    },
+
+        testInteractingSolvers_FailOnConstraintConstruction: function() {
+            var pt = {x: 1, y: 2};
+
+        bbb.always({
+            solver: new DBPlanner(),
+            ctx: {
+                pt: pt
+            },
+            methods: function() {
+                pt.x.formula([pt.y], function(y) {
+                    return y;
+                });
+                pt.y.formula([pt.x], function(x) {
+                    return x;
+                });
+            }
+        }, function() {
+            return pt.x == pt.y;
+        });
+
+        bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                pt: pt
+            }
+        }, function() {
+            return pt.x == 100;
+        });
+
+                this.assert(pt.x == 100, "constraint construction did not modified the variable, pt.x: " + pt.x);
+                this.assert(pt.x == pt.y, "delta blue constraint not fulfilled, pt.x: " + pt.x + ", pt.y: " + pt.y);
+        },
+    testConstraintConstructionTwoSolvers2: function () {
+        var pt = {x: 15, y: 2},
+            s1 = new ClSimplexSolver(),
+            s2 = new ClSimplexSolver();
+        s1.weight = 100;
+        s2.weight = 200;
+
+                bbb.always({
+                        solver: s2,
+                        ctx: {
+                                pt: pt
+                        }
+                }, function() {
+                        return pt.y == 2;;
+                });
+                this.assert(pt.y == 2, "constraint not satisfied after constraint construction (1), pt.y: " + pt.y);
+
+                bbb.always({
+                        solver: s1,
+                        ctx: {
+                                pt: pt
+                        }
+                }, function() {
+                        return pt.y == pt.x;;
+                });
+                this.assert(pt.x == pt.y, "constraint not satisfied after constraint construction (2)");
+                this.assert(pt.y == 2, "constraint not satisfied after constraint construction (3), pt.y: " + pt.y);
+    },
+
+    testConstraintConstructionTwoSolvers: function () {
+        var pt = {x: 15, y: 2},
+            s1 = new ClSimplexSolver(),
+            s2 = new ClSimplexSolver();
+        s1.weight = 100;
+        s2.weight = 200;
+
+                bbb.always({
+                        solver: s1,
+                        ctx: {
+                                pt: pt
+                        }
+                }, function() {
+                        return pt.y == pt.x;;
+                });
+                console.log(pt.x, pt.y);
+                this.assert(pt.x == pt.y, "constraint not satisfied after constraint construction (1)");
+
+                bbb.always({
+                        solver: s2,
+                        ctx: {
+                                pt: pt
+                        }
+                }, function() {
+                        return pt.y == 2;;
+                });
+                console.log(pt.x, pt.y);
+                this.assert(pt.x == pt.y, "constraint not satisfied after constraint construction (2)");
+                this.assert(pt.y == 2, "constraint not satisfied after constraint construction (3), pt.y: " + pt.y);
+    },
+
     xxxTestEdit: function() {
         var obj = {a: 0, b: 1, c: "2"},
             cassowary = new ClSimplexSolver(),

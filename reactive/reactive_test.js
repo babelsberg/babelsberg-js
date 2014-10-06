@@ -72,7 +72,7 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.AssertTest', {
 			"no ContinuousAssertError was thrown"
 		);
 		this.assert(pt.x === 0, "modified unassigned variable, pt.x: " + pt.x);
-		this.assert(pt.y === -1, "assignment did not work, pt.y: " + pt.y);
+		this.assert(pt.y === 2, "revert did not work, pt.y: " + pt.y);
     },
 	testFailOnConstraintConstruction: function() {
     	var pt = {x: 1, y: 2};
@@ -94,14 +94,8 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.AssertTest', {
 		this.assert(pt.x === 1, "assertion construction modified variable, pt.x: " + pt.x);
 		this.assert(pt.y === 2, "assertion construction modified variable, pt.y: " + pt.y);
 
-		// invalid assignment
-		this.assertWithError(
-			ContinuousAssertError,
-			function() {
-				pt.x = 0;
-			},
-			"no ContinuousAssertError was thrown(2)"
-		);
+		// valid assignment
+		pt.x = 0;
 		this.assert(pt.x === 0, "assignment did not work, pt.x: " + pt.x);
 		this.assert(pt.y === 2, "modified unassigned variable, pt.y: " + pt.y);
     },
@@ -137,7 +131,7 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.AssertTest', {
 		);
 		this.assert(pt1.x === 2, "modified unassigned variable, pt1.x: " + pt1.x);
 		this.assert(pt1.y === 3, "modified unassigned variable, pt1.y: " + pt1.y);
-		this.assert(pt2.x === 3, "assignment did not work, pt2.x: " + pt2.x);
+		this.assert(pt2.x === -1, "assignment not reverted, pt2.x: " + pt2.x);
 		this.assert(pt2.y === 7, "modified unassigned variable, pt2.y: " + pt2.y);
 	},
 	testComplexObject: function() {
@@ -163,21 +157,21 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.AssertTest', {
 			},
 			"no ContinuousAssertError was thrown (1)"
 		);
-		this.assert(rect.origin.x === 3, "assignment did not work, rect.origin.x: " + rect.origin.x);
-		this.assert(rect.origin.y === 4.5, "assignment did not work, rect.origin.y: " + rect.origin.y);
+		this.assert(rect.origin.x === 0, "assignment not reverted, rect.origin.x: " + rect.origin.x);
+		this.assert(rect.origin.y === 0, "assignment not reverted, rect.origin.y: " + rect.origin.y);
 		this.assert(rect.extent.x === 5, "assignment modified unrelated variables, rect.extent.x: " + rect.extent.x);
 		this.assert(rect.extent.y === 5, "assignment modified unrelated variables, rect.extent.y: " + rect.extent.y);
 		this.assert(pt.x === 4, "assignment modified unrelated variables, pt.x: " + pt.x);
 		this.assert(pt.y === 4, "assignment modified unrelated variables, pt.y: " + pt.y);
 
-        // go back into a valid state
-		pt.y = 5;
-		this.assert(rect.origin.x === 3, "assignment modified unrelated variables, rect.origin.x: " + rect.origin.x);
-		this.assert(rect.origin.y === 4.5, "assignment modified unrelated variables, rect.origin.y: " + rect.origin.y);
+        // valid assignment
+		pt.y = 4.5;
+		this.assert(rect.origin.x === 0, "assignment modified unrelated variables, rect.origin.x: " + rect.origin.x);
+		this.assert(rect.origin.y === 0, "assignment modified unrelated variables, rect.origin.y: " + rect.origin.y);
 		this.assert(rect.extent.x === 5, "assignment modified unrelated variables, rect.extent.x: " + rect.extent.x);
 		this.assert(rect.extent.y === 5, "assignment modified unrelated variables, rect.extent.y: " + rect.extent.y);
 		this.assert(pt.x === 4, "assignment modified unrelated variables, pt.x: " + pt.x);
-		this.assert(pt.y === 5, "assignment did not work, pt.y: " + pt.y);
+		this.assert(pt.y === 4.5, "assignment did not work, pt.y: " + pt.y);
 
 		this.assertWithError(
 			ContinuousAssertError,
@@ -186,12 +180,12 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.AssertTest', {
 			},
 			"no ContinuousAssertError was thrown (2)"
 		);
-		this.assert(rect.origin.x === 4.5, "assignment did not work, rect.origin.x: " + rect.origin.x);
-		this.assert(rect.origin.y === 4.5, "assignment modified unrelated variables, rect.origin.y: " + rect.origin.y);
+		this.assert(rect.origin.x === 0, "assignment not reverted, rect.origin.x: " + rect.origin.x);
+		this.assert(rect.origin.y === 0, "assignment modified unrelated variables, rect.origin.y: " + rect.origin.y);
 		this.assert(rect.extent.x === 5, "assignment modified unrelated variables, rect.extent.x: " + rect.extent.x);
 		this.assert(rect.extent.y === 5, "assignment modified unrelated variables, rect.extent.y: " + rect.extent.y);
 		this.assert(pt.x === 4, "assignment modified unrelated variables, pt.x: " + pt.x);
-		this.assert(pt.y === 5, "assignment modified unrelated variables, pt.y: " + pt.y);
+		this.assert(pt.y === 4.5, "assignment modified unrelated variables, pt.y: " + pt.y);
 
 		rect.origin = new _Point(3,3);
 		this.assert(rect.origin.x === 3, "assignment did not work, rect.origin.x: " + rect.origin.x);
@@ -199,7 +193,7 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.AssertTest', {
 		this.assert(rect.extent.x === 5, "assignment modified unrelated variables, rect.extent.x: " + rect.extent.x);
 		this.assert(rect.extent.y === 5, "assignment modified unrelated variables, rect.extent.y: " + rect.extent.y);
 		this.assert(pt.x === 4, "assignment modified unrelated variables, pt.x: " + pt.x);
-		this.assert(pt.y === 5, "assignment modified unrelated variables, pt.y: " + pt.y);
+		this.assert(pt.y === 4.5, "assignment modified unrelated variables, pt.y: " + pt.y);
 
 		this.assertWithError(
 			ContinuousAssertError,
@@ -208,12 +202,12 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.AssertTest', {
 			},
 			"newly assigned point was not re-constrained"
 		);
-		this.assert(rect.origin.x === 4.5, "assignment modified unrelated variables, rect.origin.x: " + rect.origin.x);
+		this.assert(rect.origin.x === 3, "assignment was not reverted, rect.origin.x: " + rect.origin.x);
 		this.assert(rect.origin.y === 3, "assignment modified unrelated variables, rect.origin.y: " + rect.origin.y);
 		this.assert(rect.extent.x === 5, "assignment modified unrelated variables, rect.extent.x: " + rect.extent.x);
 		this.assert(rect.extent.y === 5, "assignment modified unrelated variables, rect.extent.y: " + rect.extent.y);
 		this.assert(pt.x === 4, "assignment modified unrelated variables, pt.x: " + pt.x);
-		this.assert(pt.y === 5, "assignment did not work, pt.y: " + pt.y);
+		this.assert(pt.y === 4.5, "assignment modified unrelated variables, pt.y: " + pt.y);
     },
 	testInvalidAssignment: function() {
     	var pt = {x: 1, y: 2};
@@ -233,9 +227,9 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.AssertTest', {
 			"no ContinuousAssertError was thrown"
 		);
 		this.assert(pt.x === 1, "another variable was modified, pt.x: " + pt.x);
-		this.assert(pt.y === -1, "assignment to variable did not work, pt.y: " + pt.y);
+		this.assert(pt.y === 2, "assignment not reverted, pt.y: " + pt.y);
     },
-	testMultipleAssertionsOnSameObjectNoReset: function() {
+	testMultipleAssertionsOnSameObject: function() {
     	var pt = {x: 1, y: 2};
 
     	bbb.assert({
@@ -266,7 +260,7 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.AssertTest', {
 			function() { pt.x = -1; },
 			"no ContinuousAssertError was thrown"
 		);
-		this.assert(pt.x === -1, "assignment to variable was reverted(1), pt.x: " + pt.x);
+		this.assert(pt.x === 7, "assignment not reverted(1), pt.x: " + pt.x);
 
 		// invalid assignment with respect to second assertion
 		this.assertWithError(
@@ -274,19 +268,23 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.AssertTest', {
 			function() { pt.x = 11; },
 			"no ContinuousAssertError was thrown"
 		);
-		this.assert(pt.x === 11, "assignment to variable was reverted(2), pt.x: " + pt.x);
+		this.assert(pt.x === 7, "assignment not reverted(2), pt.x: " + pt.x);
     },
 	testIntegrationWithOtherSolvers_FailOnAssignment: function() {
-	    var pt = {x: 1, y: 2};
+	    var pt = {x: 1, y: 2},
+			cassowary = new ClSimplexSolver();
 
+		cassowary.weight = -999;
     	bbb.always({
-			solver: new ClSimplexSolver(),
+			solver: cassowary,
     		ctx: {
     			pt: pt
     		}
     	}, function() {
    			return pt.x == pt.y;
     	});
+		var eX = pt.x, eY = pt.y;
+		this.assert(eX == eY, "Cassowary doesnt work");
     	bbb.assert({
 			message: "expected error",
     		ctx: {
@@ -302,8 +300,41 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.AssertTest', {
 			function() { pt.x = 100; },
 			"no ContinuousAssertError was thrown"
 		);
-		this.assert(pt.x == 100, "assignment did not work, pt.x: " + pt.x);
-		this.assert(pt.y == 100, "constraint did not work, pt.y: " + pt.y);
+		this.assert(pt.x == eX, "assignment did not work, pt.x: " + pt.x);
+		this.assert(pt.y == eY, "constraint did not work, pt.y: " + pt.y);
+    },
+	testIntegrationWithOtherSolvers_FailOnAssignment2: function() {
+	    var pt = {x: 1, y: 2},
+			cassowary = new ClSimplexSolver();
+
+		cassowary.weight = 10000;
+    	bbb.always({
+			solver: cassowary,
+    		ctx: {
+    			pt: pt
+    		}
+    	}, function() {
+   			return pt.x == pt.y;
+    	});
+		var eX = pt.x, eY = pt.y;
+		this.assert(eX == eY, "Cassowary doesnt work");
+    	bbb.assert({
+			message: "expected error",
+    		ctx: {
+    			pt: pt
+    		}
+    	}, function() {
+   			return pt.x <= 10;
+    	});
+
+        // invalid assignment
+		this.assertWithError(
+			ContinuousAssertError,
+			function() { pt.x = 100; },
+			"no ContinuousAssertError was thrown"
+		);
+		this.assert(pt.x == eX, "assignment did not work, pt.x: " + pt.x);
+		this.assert(pt.y == eY, "constraint did not work, pt.y: " + pt.y);
     },
 	testIntegrationWithOtherSolvers_FailOnAssertionConstraintConstruction: function() {
 	    var pt = {x: 1, y: 2};
@@ -347,9 +378,11 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.AssertTest', {
         }, function() {
             return pt.x <= 10;
         });
+		this.assert(pt.x == 1, "constraint construction modified variable, pt.x: " + pt.x);
+		this.assert(pt.y == 2, "constraint construction modified variable, pt.y: " + pt.y);
 
 		this.assertWithError(
-			ContinuousAssertError,
+			Error,
 			function() {
                 bbb.always({
                     solver: new ClSimplexSolver(),
@@ -361,44 +394,13 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.AssertTest', {
                 });
                 console.log(pt.x, pt.y);
 			},
-			"no ContinuousAssertError was thrown"
+			"no Error was thrown"
 		);
 
-		this.assert(pt.x == 100, "constraint construction did not modified variable, pt.x: " + pt.x);
+		this.assert(pt.x == 1, "constraint construction modified variable, pt.x: " + pt.x);
 		this.assert(pt.y == 2, "constraint construction modified variable, pt.y: " + pt.y);
     },
-	testInteractingSolvers_FailOnConstraintConstruction: function() {
-	    var pt = {x: 1, y: 2};
 
-        bbb.always({
-            solver: new DBPlanner(),
-            ctx: {
-                pt: pt
-            },
-            methods: function() {
-                pt.x.formula([pt.y], function(y) {
-                    return y;
-                });
-                pt.y.formula([pt.x], function(x) {
-                    return x;
-                });
-            }
-        }, function() {
-            return pt.x == pt.y;
-        });
-
-        bbb.always({
-            solver: new ClSimplexSolver(),
-            ctx: {
-                pt: pt
-            }
-        }, function() {
-            return pt.x == 100;
-        });
-
-		this.assert(pt.x == 100, "constraint construction did not modified the variable, pt.x: " + pt.x);
-		this.assert(pt.x == pt.y, "delta blue constraint not fulfilled, pt.x: " + pt.x + ", pt.y: " + pt.y);
-	}
 });
 
 TestCase.subclass('users.timfelgentreff.reactive.reactive_test.TriggerTest', {
@@ -851,7 +853,7 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.ScopedConstraints
 			},
 			"no ContinuousAssertError was thrown"
 		);
-		this.assert(temperature.celsius === -1000, "assignment did not work; temperature.celsius: " + temperature.celsius);
+		this.assert(temperature.celsius === 10, "revert did not work; temperature.celsius: " + temperature.celsius);
 	},
     testScopedAssertBreaksImmediatly: function() {
 		var temperature = {

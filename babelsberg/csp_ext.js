@@ -4,9 +4,7 @@ module('users.timfelgentreff.babelsberg.csp_ext').
     JSLoader.loadJs(module('users.timfelgentreff.csp.underscore-min').uri());
 
     Object.subclass('csp.Solver', {
-        isConstraintObject: function() {
-            return true;
-        },
+        isConstraintObject: true,
 
         initialize: function() {
             this.p = new _csp.DiscreteProblem();
@@ -109,9 +107,7 @@ module('users.timfelgentreff.babelsberg.csp_ext').
     });
 
     Object.subclass('csp.Variable', {
-        isConstraintObject: function() {
-            return true;
-        },
+        isConstraintObject: true,
 
         initialize: function(solver, varname, value, domain) {
             this.solver = solver;

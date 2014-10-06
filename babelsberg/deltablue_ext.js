@@ -3,9 +3,7 @@ requires('users.timfelgentreff.deltablue.deltablue').
 toRun(function() {
 
 DBPlanner.addMethods({
-    isConstraintObject: function() {
-        return true;
-    },
+    isConstraintObject: true,
     constraintVariableFor: function(value, ivarname) {
         return new DBVariable(ivarname, value, this);
     },
@@ -112,9 +110,7 @@ Object.extend(DBStrength, {
 });
 
 DBVariable.addMethods({
-    isConstraintObject: function() {
-        return true;
-    },
+    isConstraintObject: true,
 
     stay: function(strength) {
         var cn = new StayDBConstraint(
@@ -243,9 +239,7 @@ DBVariable.addMethods({
 
 
 DBConstraint.addMethods({
-    isConstraintObject: function() {
-        return true;
-    },
+    isConstraintObject: true,
 
     enable: function(priority) {
         this.strength = priority || this.strength;
