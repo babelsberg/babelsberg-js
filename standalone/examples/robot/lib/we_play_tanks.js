@@ -67,7 +67,7 @@ window.onload = function() {
             new Vector2(150, 150)
         ));
 
-        player = new PlayerTank(world, new Vector2(15, 12));
+        player = new PlayerTank(world, new Vector2(15, 12), input);
         world.spawn(player);
         cpu = new CPUTank(world, new Vector2(28, 6))
         world.spawn(cpu);
@@ -107,13 +107,6 @@ window.onload = function() {
 			viewport.zoomOut();
 		}
 
-        // move player tank
-        player.velocity.set(Vector2.Zero);
-        if(input.state("up")) player.velocity.addSelf(new Vector2(0, -1));
-        if(input.state("left")) player.velocity.addSelf(new Vector2(-1, 0));
-        if(input.state("down")) player.velocity.addSelf(new Vector2(0, 1));
-        if(input.state("right")) player.velocity.addSelf(new Vector2(1, 0));
-
         // player fires a bullet
         if(input.pressed("leftclick")) {
             var direction = viewport.screenToWorldCoordinates(input.mouse)
@@ -130,6 +123,7 @@ window.onload = function() {
             });
             world.spawn(bullet);
         }
+
 		// update
 		world.update(dt);
 		gui.update(dt);

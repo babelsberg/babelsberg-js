@@ -177,13 +177,22 @@ GameObject.subclass("Tank", {
 });
 
 Tank.subclass("PlayerTank", {
-	initialize: function($super, world, pos) {
+	initialize: function($super, world, pos, input) {
 	    $super(world, pos);
 
+        this.input = input;
 		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [0,1,2,3]);
     },
 
 	update: function($super, dt) {
+	    var input = this.input;
+        // move player tank
+        player.velocity.set(Vector2.Zero);
+        if(input.state("up")) player.velocity.addSelf(new Vector2(0, -1));
+        if(input.state("left")) player.velocity.addSelf(new Vector2(-1, 0));
+        if(input.state("down")) player.velocity.addSelf(new Vector2(0, 1));
+        if(input.state("right")) player.velocity.addSelf(new Vector2(1, 0));
+
    	    $super(dt);
     }
 });
