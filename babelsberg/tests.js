@@ -296,16 +296,16 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
              obj.p.y >= 100);
         });
 
-        this.assert(pt(100, 100).leqPt(obj.p));
-        this.assert(obj.p.equals(obj.p2.scaleBy(2)));
+        this.assert(pt(100, 100).leqPt(obj.p), 'Expected ' + obj.p + ' to be >= pt(100,100)');
+        this.assert(obj.p.equals(obj.p2.scaleBy(2)), 'Expected ' + obj.p + ' to equal ' + obj.p2 + ' times 2');
 
         obj.p.x = 150;
-        this.assert(pt(100, 100).leqPt(obj.p));
-        this.assert(obj.p.x === 150);
-        this.assert(obj.p.equals(obj.p2.scaleBy(2)));
+        this.assert(pt(100, 100).leqPt(obj.p), 'Expected ' + obj.p + ' to be >= pt(100,100)');
+        this.assert(obj.p.x === 150, 'Expected ' + obj.p + '.x to = 150');
+        this.assert(obj.p.equals(obj.p2.scaleBy(2)), 'Expected ' + obj.p + ' to equal ' + obj.p2 + ' times 2');
 
         obj.p = pt(150, 100);
-        this.assert(obj.p.equals(obj.p2.scaleBy(2)));
+        this.assert(obj.p.equals(obj.p2.scaleBy(2)), 'Expected ' + obj.p + ' to equal ' + obj.p2 + ' times 2');
         this.assert(obj.p.equals(pt(150, 100)), "point assignment failed to keep the new point intact");
 
         obj.p2 = pt(200, 200);
@@ -317,7 +317,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         try {
             obj.p2 = pt(15, 15);
         } catch(_) {
-            this.assert(obj.p.equals(obj.p2.scaleBy(2)));
+            this.assert(obj.p.equals(obj.p2.scaleBy(2)), 'Expected ' + obj.p + ' to equal ' + obj.p2 + ' times 2');
             this.assert(obj.p2.equals(pt(200, 200)));
         }
         this.assert(obj.p2.equals(pt(200, 200)));
