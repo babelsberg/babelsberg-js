@@ -116,14 +116,17 @@ window.onload = function() {
 
         // player fires a bullet
         if(input.pressed("leftclick")) {
+            var direction = viewport.screenToWorldCoordinates(input.mouse)
+                .sub(player.position)
+                .normalizedCopy();
             var bullet = new Bullet(world,
-                player.position.copy(),
-                viewport.screenToWorldCoordinates(input.mouse)
-                    .sub(player.position)
-                    .normalizedCopy());
-            bullet.onCollisionWith(cpu, function(bullet, cpu) {
-                bullet.destroy();
-                cpu.destroy();
+                player.position.add(direction.mulFloat(player.radius + 0.25 + player.speed * dt)),
+                direction);
+            world.getGameObjects().each(function(other) {
+                bullet.onCollisionWith(other, function(bullet, other) {
+                    bullet.destroy();
+                    other.destroy();
+                });
             });
             world.spawn(bullet);
         }
