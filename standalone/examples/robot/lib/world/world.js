@@ -1,5 +1,6 @@
 Object.subclass("World", {
 	initialize: function(boundary) {
+	    this.updateCount = 0;
 		this.boundary = boundary;
 		this.gameObjects = [];
 		this.map = new Map(new Vector2(2,2),
@@ -25,10 +26,10 @@ Object.subclass("World", {
 	},
 	
 	update: function(dt) {
-		var objectCount = this.gameObjects.length;
-		for(var i = 0; i < objectCount; i++) {
-			this.gameObjects[i].update(dt);
-		}
+	    this.updateCount++;
+		this.gameObjects.forEach(function(gameObject) {
+		    gameObject.update(dt)
+		});
 	},
 	
 	draw: function(renderer) {
@@ -43,8 +44,7 @@ Object.subclass("World", {
 	/*
 	 * Manage GameObjects
 	 */
-	spawn: function(gameObject) { gameObject.addToWorld(this); },
-	addGameObject: function(entity) { this.gameObjects.push(entity); },
+	spawn: function(gameObject) { this.gameObjects.push(gameObject); },
 	getGameObjects: function() { return this.gameObjects; }
 });
 
@@ -56,6 +56,7 @@ Object.subclass("Map", {
                 return new Tile(tileIndex);
             });
         });
+		this.size = new Vector2(this.tiles[0].length, this.tiles.length);
         this.spriteSheet = new AnimationSheet("assets/tileset.png", 32, 32);
 	},
 
@@ -70,12 +71,32 @@ Object.subclass("Map", {
                 );
             }, this);
 		}, this);
+	},
+
+	get: function(coords) {
+	    return this.tiles[coords.y][coords.x];
+	},
+
+	positionToCoordinates: function(pos) {
+        return pos
+            .divVector(this.tileSize)
+            .floor();
+	},
+
+	coordinatesToPosition: function(coords) {
+	    return this.tiles[coords.y][coords.x];
 	}
 });
 
 Object.subclass("Tile", {
 	initialize: function(index) {
 		this.index = index;
+	},
+	canWalkThrough: function() {
+	    return this.index == 0;
+	},
+	canFlyThrough: function() {
+	    return this.index != 1;
 	}
 });
 

@@ -5,6 +5,7 @@ Object.subclass("GameObject", {
 
 		this.position = pos;
         this.prevPosition = pos.copy();
+
 		this.coordinates = Vector2.Zero.copy().sub(new Vector2(-1,-1));
 		this.collisionTiles = {
     		upperLeft:false,
@@ -32,19 +33,21 @@ Object.subclass("GameObject", {
 	
 	draw: function(renderer) {
 		if(typeof this.animation !== "undefined") {
-			var halfSize = this.extent.divFloat(2);
-			var aabb = new AABB(
-				this.position.sub(halfSize),
-				this.position.add(halfSize)
-			);
-			this.animation.draw(renderer, aabb);
+			this.animation.draw(renderer, this.getWorldAABB(), this.velocity.getDirectedAngle(Vector2.Zero) * 180/Math.PI);
 		}
-
-		renderer.drawLine(this.position, this.position.add(this.velocity.mulFloat(5)), "red", 1, 3);
 	},
 
 	getTile: function(pos) {
 	    return this.world.map.get(this.world.map.positionToCoordinates(pos));
+	},
+
+	getWorldAABB: function() {
+        var halfSize = this.extent.divFloat(2);
+        var aabb = new AABB(
+            this.position.sub(halfSize),
+            this.position.add(halfSize)
+        );
+        return aabb;
 	}
 });
 
@@ -57,8 +60,10 @@ GameObject.subclass("Tank", {
 	initialize: function($super, world, pos) {
 	    $super(world, "tank", pos, new Vector2(2, 2), 1);
 
-		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [0,1,2,3]);
 		this.speed = 16 / 6 * world.map.tileSize.x;
+
+        this.turretAngle = 40;
+        this.turretAnimation = new Animation(new AnimationSheet("assets/turret.png", 18, 18), 0.4, [0,1,2,3]);
 
 		this.initConstraints(world);
     },
@@ -79,7 +84,6 @@ GameObject.subclass("Tank", {
                 map: map
             }
         }, function() {
-            var pp = that.prevPosition.divVector(map.tileSize).floor();
             var pos = that.position.divVector(map.tileSize).floor();
             return map.tiles[pos.y][pos.x].canWalkThrough();
         });
@@ -139,6 +143,16 @@ GameObject.subclass("Tank", {
                    ((that.collisionTiles).bottomRight).index  == 0;
         });
         */
+	},
+
+	update: function($super, dt) {
+	    $super(dt);
+        this.turretAnimation.update(dt);
+	},
+
+	draw: function($super, renderer) {
+	    $super(renderer);
+		this.turretAnimation.draw(renderer, this.getWorldAABB(), this.turretAngle);
 	}
 });
 
@@ -147,6 +161,10 @@ Tank.subclass("PlayerTank", {
 	    $super(world, pos);
 
 		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [0,1,2,3]);
+    },
+
+	update: function($super, dt) {
+   	    $super(dt);
     }
 });
 
@@ -156,7 +174,6 @@ Tank.subclass("CPUTank", {
 
 		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [4,5,6,7]);
 
-        // immobilize for now
         this.velocity.set(new Vector2(-1,1));
     },
 
@@ -228,22 +245,5 @@ GameObject.subclass("Bullet", {
             var y = that.position.divVector(map.tileSize).floor().y;
             return map.tiles[pp.y][pp.x].canFlyThrough() && !(map.tiles[y][pp.x].canFlyThrough());
         });
-
-        /*
-        // pos -> coords
-        bbb.always({
-            solver: db,
-            ctx: {
-               world: world,
-               that: this
-            }, methods: function() {
-               that.coordinates.formula([that.position, that.position.x, that.position.y], function(pos) {
-                   return pos.divVector(world.map.tileSize).floor();
-               });
-            }
-            }, function() {
-            return that.position.divVector(world.map.tileSize).floor().equals(that.coordinates);
-        });
-        */
 	}
 });
