@@ -11,7 +11,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    constraintVariableFor: function(value, ivarname, bbbCVar) {
 	    	return new ReactiveSolver.Variable(this, value, ivarname, bbbCVar);
 	    },
-	    weight: 10
+	    weight: 10000
 	});
 	
 	Object.subclass("ReactiveSolver.Variable", {

@@ -378,9 +378,11 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.AssertTest', {
         }, function() {
             return pt.x <= 10;
         });
+		this.assert(pt.x == 1, "constraint construction modified variable, pt.x: " + pt.x);
+		this.assert(pt.y == 2, "constraint construction modified variable, pt.y: " + pt.y);
 
 		this.assertWithError(
-			ContinuousAssertError,
+			Error,
 			function() {
                 bbb.always({
                     solver: new ClSimplexSolver(),
@@ -392,10 +394,10 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.AssertTest', {
                 });
                 console.log(pt.x, pt.y);
 			},
-			"no ContinuousAssertError was thrown"
+			"no Error was thrown"
 		);
 
-		this.assert(pt.x == 100, "constraint construction did not modified variable, pt.x: " + pt.x);
+		this.assert(pt.x == 1, "constraint construction modified variable, pt.x: " + pt.x);
 		this.assert(pt.y == 2, "constraint construction modified variable, pt.y: " + pt.y);
     },
 
