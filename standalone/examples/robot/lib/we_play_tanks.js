@@ -43,14 +43,14 @@ window.onload = function() {
 		new Vector2(60, 60 * canvas.height/canvas.width)
 	);
 
-    // debugdraw velocities if debug button is pressed
+    // do not debugdraw velocities if debug button is pressed
     cop.create("debugLayer")
         .activeOn({
             ctx: {
                 input: input
             }
         }, function() {
-            return input.state("debug") === true;
+            return input.state("debug") !== true;
         })
         .refineClass(GameObject, {
             draw: function(renderer) {
@@ -72,21 +72,7 @@ window.onload = function() {
         cpu = new CPUTank(world, new Vector2(28, 6))
         world.spawn(cpu);
 
-        var onCollisionWith = function(that, other, callback) {
-            bbb.trigger({
-                callback: function() {
-                    callback.call(this, that, other);
-                },
-                ctx: {
-                    that: that,
-                    other: other
-                }
-            }, function() {
-                return that.position.distance(other.position) <= that.radius + other.radius;
-            });
-        };
-
-        onCollisionWith(player, cpu, function(player, cpu) {
+        player.onCollisionWith(cpu, function(player, cpu) {
             var desiredDistance = player.radius + cpu.radius,
                 distVector = cpu.position.sub(player.position),
                 realDistance = distVector.length(),
@@ -135,6 +121,10 @@ window.onload = function() {
                 viewport.screenToWorldCoordinates(input.mouse)
                     .sub(player.position)
                     .normalizedCopy());
+            bullet.onCollisionWith(cpu, function(bullet, cpu) {
+                bullet.destroy();
+                cpu.destroy();
+            });
             world.spawn(bullet);
         }
 		// update

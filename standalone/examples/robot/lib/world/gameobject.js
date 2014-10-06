@@ -48,7 +48,27 @@ Object.subclass("GameObject", {
             this.position.add(halfSize)
         );
         return aabb;
-	}
+	},
+
+    onCollisionWith: function(other, callback) {
+        var that = this;
+
+        bbb.trigger({
+            callback: function() {
+                callback.call(this, that, other);
+            },
+            ctx: {
+                that: that,
+                other: other
+            }
+        }, function() {
+            return that.position.distance(other.position) <= that.radius + other.radius;
+        });
+    },
+
+    destroy: function() {
+        this.world.gameObjects.remove(this);
+    }
 });
 
 // possible constraints:
@@ -213,7 +233,7 @@ GameObject.subclass("Bullet", {
             callback: function() {
                 if(that.reflectionCount++ == that.maxReflections) {
                     this.disable();
-                    that.world.gameObjects.remove(that);
+                    that.destroy();
                 } else {
                     that.velocity.x *= -1;
                 }
