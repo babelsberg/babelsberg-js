@@ -64,6 +64,11 @@ module('users.timfelgentreff.cassowary.Hashtable').requires().toRun(function() {
         } else if (typeof obj.toString == FUNCTION) {
             return obj.toString();
         } else {
+            return safeToString(obj);
+        }
+
+        // moving try-catch into its own function, for V8 opt benefit
+        function safeToString(obj) {
             try {
                 return String(obj);
             } catch (ex) {

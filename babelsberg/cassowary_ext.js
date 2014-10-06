@@ -2,9 +2,7 @@ module('users.timfelgentreff.babelsberg.cassowary_ext').
 requires('users.timfelgentreff.cassowary.DwarfCassowary').toRun(function() {
 
 ClSimplexSolver.addMethods({
-    isConstraintObject: function() {
-        return true;
-    },
+    isConstraintObject: true,
     constraintVariableFor: function(value, ivarname) {
         if ((typeof(value) == 'number') ||
             (value === null) ||
@@ -46,9 +44,7 @@ Object.extend(ClSimplexSolver, {
 });
 
 ClAbstractVariable.addMethods({
-    isConstraintObject: function() {
-        return true;
-    },
+    isConstraintObject: true,
 
     stay: function(strength) {
         var cn = new ClStayConstraint(this, strength || ClStrength.weak, 1.0);
@@ -141,9 +137,7 @@ ClAbstractVariable.addMethods({
 });
 
 ClLinearExpression.addMethods({
-    isConstraintObject: function() {
-        return true;
-    },
+    isConstraintObject: true,
 
     cnGeq: function(value) {
         if (typeof(value) == 'string') {
@@ -253,9 +247,7 @@ ClLinearExpression.addMethods({
 });
 
 ClConstraint.addMethods({
-    isConstraintObject: function() {
-        return true;
-    },
+    isConstraintObject: true,
 
     enable: function(strength) {
         if (strength) {

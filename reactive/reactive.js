@@ -7,20 +7,21 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	 ***************************************************************/
 	
 	Object.subclass("ReactiveSolver", {
-	    isConstraintObject: function() { return true; },
+	    isConstraintObject: true,
 	    constraintVariableFor: function(value, ivarname, bbbCVar) {
 	    	return new ReactiveSolver.Variable(this, value, ivarname, bbbCVar);
 	    },
-	    weight: 10
+	    weight: 10000
 	});
 	
 	Object.subclass("ReactiveSolver.Variable", {
-	    isConstraintObject: function() { return true; },
+	    isConstraintObject: true,
 		initialize: function(solver, value, ivarname, bbbCVar) {
 			this.solver = solver;
 			this.__val__ = value;
 		},
 	    suggestValue: function(value) {
+			if(this.__val__ === value) { return value; }
 			var prev = this.__val__;
 	    	this.__val__ = value;
 			try {
@@ -32,14 +33,17 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 				}
 				throw e;
 			}
-			
+
 			// re-constrain variables
-			var bbbConstraint = this.solver.constraint.bbbConstraint;
-			var enabled = bbbConstraint._enabled;
-			bbbConstraint.initialize(bbbConstraint.predicate, bbbConstraint.solver);
-			bbbConstraint.addPrimitiveConstraint(this.solver.constraint);
-			if(enabled) bbbConstraint.enable();
-			
+			if (typeof(value) == 'object' || typeof(value) == 'function') {
+			    // only recalculate to reconstraint complex objects
+                var bbbConstraint = this.solver.constraint.bbbConstraint;
+                var enabled = bbbConstraint._enabled;
+                bbbConstraint.initialize(bbbConstraint.predicate, bbbConstraint.solver);
+                bbbConstraint.addPrimitiveConstraint(this.solver.constraint);
+                if(enabled) bbbConstraint.enable();
+			}
+
 	    	return this.__val__;
 	    },
 	    value: function() {
@@ -57,7 +61,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	});
 	
 	Object.subclass("ReactiveSolver.PrimitiveConstraint", {
-	    isConstraintObject: function() { return true; },
+	    isConstraintObject: true,
 	    initialize: function(variable, args) {
 			this.enabled = false;
 	    	this.solver = variable.solver;
@@ -71,7 +75,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	});
 	
 	Object.subclass("ReactiveSolver.Constraint", {
-	    isConstraintObject: function() { return true; },
+	    isConstraintObject: true,
 	    initialize: function(solver, bbbConstraint, func) {
 			this.enabled = false;
 	    	this.solver = solver;

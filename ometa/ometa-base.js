@@ -116,6 +116,18 @@ OMeta = {
       this.input.memo[rule] = memoRec = {ans: this[rule].call(this), nextInput: this.input}
       if (failer.used) {
         var sentinel = this.input
+        this._applyTryRules(origInput, rule, sentinel, memoRec);
+      }
+    }
+    else if (memoRec instanceof Failer) {
+      memoRec.used = true
+      throw fail
+    }
+    this.input = memoRec.nextInput
+    return memoRec.ans
+  },
+
+    _applyTryRules: function(origInput, rule, sentinel, memoRec) {
         while (true) {
           try {
             this.input = origInput
@@ -131,14 +143,6 @@ OMeta = {
             break
           }
         }
-      }
-    }
-    else if (memoRec instanceof Failer) {
-      memoRec.used = true
-      throw fail
-    }
-    this.input = memoRec.nextInput
-    return memoRec.ans
   },
 
   // note: _applyWithArgs and _superApplyWithArgs are not memoized, so they can't be left-recursive
