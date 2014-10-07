@@ -27,7 +27,7 @@ Object.subclass("World", {
         player = new PlayerTank(this, new Vector2(15, 12));
         this.spawn(player);
 
-        [new Vector2(40, 12),new Vector2(40, 10),new Vector2(42, 12),new Vector2(42, 10), new Vector2(10, 26), new Vector2(40, 26)].each(function(enemyPosition) {
+        [new Vector2(40, 12), new Vector2(10, 26), new Vector2(40, 26)].each(function(enemyPosition) {
             var cpu = new CPUTank(this, enemyPosition);
             this.spawn(cpu);
         }, this)

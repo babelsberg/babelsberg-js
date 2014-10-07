@@ -132,7 +132,7 @@ GameObject.subclass("Tank", {
                     moveVector = distVector.mulFloat((desiredDistance - realDistance) / 1.9);
                 tank.position.addSelf(moveVector);
                 that.position.subSelf(moveVector);
-                console.log(realDistance, "push", that.position.distance(tank.position, that.radius + tank.radius));
+                //console.log(realDistance, "post", that.position.distance(tank.position, that.radius + tank.radius));
             });
         });
 
@@ -243,7 +243,17 @@ Object.subclass("PlayerControls", {
                 direction);
             this.world.getGameObjects().each(function(other) {
                 bullet.onCollisionWith(other, function(bullet, other) {
-                    //if(bullet.alive && other.alive) {
+                    // {
+                        // 3 possibilities to avoid this to happen more than one time:
+                        // 1. in collision callback:
+                        //     if(bullet.alive && other.alive)
+                        //     but get not rid of the actual constraint -> slow with more and more bullets
+                        // 2. layer each game object
+                        //     layer.activeOn(bullet in world)
+                        //     but collision callback is linked to 2 game objects
+                        // 3. in collision callback
+                        //     bullet.unconstrainAND_DISABLE_ALL() to disable all linked constraints
+                        //     very general; we instead keep track of these manually and disable all constraints on destroy
                         bullet.destroy();
                         other.destroy();
                     //}
@@ -266,7 +276,7 @@ Tank.subclass("CPUTank", {
 	update: function($super, dt) {
 	    // adjust direction randomly
 	    this.velocity.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
-
+        //this.velocity.set(player.position.sub(this.position));
 	    $super(dt);
 	}
 });
