@@ -36,7 +36,7 @@ Object.subclass("GameObject", {
 	
 	draw: function(renderer) {
 		if(typeof this.animation !== "undefined") {
-			this.animation.draw(renderer, this.getWorldAABB(), this.velocity.getDirectedAngle(Vector2.Zero) * 180/Math.PI);
+			this.animation.draw(renderer, this.getWorldAABB(), this.velocity.getDirectedAngle(new Vector2(1,0)));
 		}
 	},
 
@@ -95,7 +95,7 @@ GameObject.subclass("Tank", {
 
 		this.speed = 16 / 6 * world.map.tileSize.x;
 
-        this.turretAngle = 40;
+        this.turretDirection = new Vector2(1,1);
         this.turretAnimation = new Animation(new AnimationSheet("assets/turret.png", 18, 18), 0.4, [0,1,2,3]);
 
 		this.initConstraints(world);
@@ -200,7 +200,9 @@ GameObject.subclass("Tank", {
 
 	draw: function($super, renderer) {
 	    $super(renderer);
-		this.turretAnimation.draw(renderer, this.getWorldAABB(), this.turretAngle);
+		this.turretAnimation.draw(
+		    renderer, this.getWorldAABB(), this.turretDirection.getDirectedAngle(new Vector2(1,0))
+		);
 	}
 });
 
@@ -243,20 +245,18 @@ Object.subclass("PlayerControls", {
                 direction);
             this.world.getGameObjects().each(function(other) {
                 bullet.onCollisionWith(other, function(bullet, other) {
-                    // {
-                        // 3 possibilities to avoid this to happen more than one time:
-                        // 1. in collision callback:
-                        //     if(bullet.alive && other.alive)
-                        //     but get not rid of the actual constraint -> slow with more and more bullets
-                        // 2. layer each game object
-                        //     layer.activeOn(bullet in world)
-                        //     but collision callback is linked to 2 game objects
-                        // 3. in collision callback
-                        //     bullet.unconstrainAND_DISABLE_ALL() to disable all linked constraints
-                        //     very general; we instead keep track of these manually and disable all constraints on destroy
-                        bullet.destroy();
-                        other.destroy();
-                    //}
+                    // 3 possibilities to avoid this to happen more than one time:
+                    // 1. in collision callback:
+                    //     if(bullet.alive && other.alive)
+                    //     but get not rid of the actual constraint -> slow with more and more bullets
+                    // 2. layer each game object
+                    //     layer.activeOn(bullet in world)
+                    //     but collision callback is linked to 2 game objects
+                    // 3. in collision callback
+                    //     bullet.unconstrainAND_DISABLE_ALL() to disable all linked constraints
+                    //     very general; we instead keep track of these manually and disable all constraints on destroy
+                    bullet.destroy();
+                    other.destroy();
                 });
             });
             this.world.spawn(bullet);
