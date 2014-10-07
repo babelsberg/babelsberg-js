@@ -67,22 +67,7 @@ window.onload = function() {
             new Vector2(150, 150)
         ));
 
-        player = new PlayerTank(world, new Vector2(15, 12), input);
         player.controls = new PlayerControls(player, world, input, viewport);
-        world.spawn(player);
-        cpu = new CPUTank(world, new Vector2(28, 6))
-        world.spawn(cpu);
-
-        player.onCollisionWith(cpu, function(player, cpu) {
-            var desiredDistance = player.radius + cpu.radius,
-                distVector = cpu.position.sub(player.position),
-                realDistance = distVector.length(),
-                moveVector = distVector.mulFloat((desiredDistance - realDistance) / 1.9);
-            cpu.position.addSelf(moveVector);
-            player.position.subSelf(moveVector);
-            console.log(realDistance, "push", player.position.distance(cpu.position, player.radius + cpu.radius));
-        });
-
         gui = new Gui(world, input, player, viewport);
 	};
 

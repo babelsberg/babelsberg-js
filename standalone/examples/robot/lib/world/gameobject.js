@@ -20,8 +20,8 @@ Object.subclass("GameObject", {
 		this.extent = extent;
 		this.speed = 3;
 
-		this.alive = true;
 		this.constraints = [];
+		this.alive = true;
 	},
 
 	update: function(dt) {
@@ -53,6 +53,7 @@ Object.subclass("GameObject", {
         return aabb;
 	},
 
+    // define a callback that should be triggered when this object is colliding with a second game object
     onCollisionWith: function(other, callback) {
         var that = this;
 
@@ -65,9 +66,11 @@ Object.subclass("GameObject", {
                 other: other
             }
         }, function() {
+            // use simple spheres for collision
             return that.position.distance(other.position) <= that.radius + other.radius;
         });
 
+        // track this constraint on both game objects
         this.constraints.push(onCollision);
         other.constraints.push(onCollision);
     },
@@ -116,6 +119,21 @@ GameObject.subclass("Tank", {
         }, function() {
             var pos = that.position.divVector(map.tileSize).floor();
             return map.tiles[pos.y][pos.x].canWalkThrough();
+        });
+
+        // assumption: tanks are inserted first into the world
+        world.getGameObjects().each(function(tank) {
+            // constraint:
+            // - solve collisions
+            that.onCollisionWith(tank, function(that, tank) {
+                var desiredDistance = that.radius + tank.radius,
+                    distVector = tank.position.sub(that.position),
+                    realDistance = distVector.length(),
+                    moveVector = distVector.mulFloat((desiredDistance - realDistance) / 1.9);
+                tank.position.addSelf(moveVector);
+                that.position.subSelf(moveVector);
+                console.log(realDistance, "push", that.position.distance(tank.position, that.radius + tank.radius));
+            });
         });
 
         /*
@@ -190,7 +208,6 @@ Tank.subclass("PlayerTank", {
 	initialize: function($super, world, pos, input) {
 	    $super(world, pos);
 
-        this.input = input;
 		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [0,1,2,3]);
     },
 
