@@ -12,6 +12,7 @@ Object.subclass("Input", {
 		this.isUsingKeyboard = false;
 		this.isUsingAccelerometer = false;
 		this.mouse = Vector2.Zero.copy();
+		this.position = Vector2.Zero.copy();
 		this.accel = {
 			x: 0,
 			y: 0,
