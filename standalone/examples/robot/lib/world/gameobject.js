@@ -207,7 +207,7 @@ GameObject.subclass("Tank", {
 });
 
 Tank.subclass("PlayerTank", {
-	initialize: function($super, world, pos, input) {
+	initialize: function($super, world, pos) {
 	    $super(world, pos);
 
 		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [0,1,2,3]);
@@ -226,6 +226,23 @@ Object.subclass("PlayerControls", {
         this.world = world;
         this.input = input;
         this.viewport = viewport;
+
+        // constraint:
+        // - the player tanks turret follows the mouse
+		var turretConstraint = bbb.always({
+            solver: new DBPlanner(),
+            ctx: {
+                player: player,
+                input: input
+            },
+            methods: function() {
+                player.turretDirection.formula([input.position, input.position.x, input.position.y, player.position, player.position.x, player.position.y], function(mousePosition, mousePositionX, mousePositionY, playerPosition, playerPositionX, playerPositionY) {
+                    return mousePosition.sub(playerPosition);
+                });
+            } }, function() {
+                return player.turretDirection.equals((input.mouse).sub(player.position));
+		});
+		player.constraints.push(turretConstraint);
     },
     update: function(dt) {
         // move player tank
@@ -273,7 +290,7 @@ Tank.subclass("CPUTank", {
         this.velocity.set(new Vector2(-1,1));
 
         // constraint:
-        // - keep velocity direction and turret direction in synch
+        // - keep velocity direction and turret direction in sync
         var that = this;
         var turretConstraint = bbb.always({
             solver: new DBPlanner(),

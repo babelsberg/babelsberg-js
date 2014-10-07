@@ -43,6 +43,23 @@ window.onload = function() {
 		new Vector2(60, 60 * canvas.height/canvas.width)
 	);
 
+    // constraint:
+    // - keep input position in world and mouse on screen in sync
+    bbb.always({
+        solver: new DBPlanner(),
+        ctx: {
+            input: input,
+            viewport: viewport
+        },
+        methods: function() {
+            input.position.formula([input.mouse, input.mouse.x, input.mouse.y], function(mouse, mouseX, mouseY) {
+                return viewport.screenToWorldCoordinates(mouse);
+            });
+        }
+    }, function() {
+        return input.position.equals(viewport.screenToWorldCoordinates(input.mouse));
+    });
+
     // do not debugdraw velocities if debug button is pressed
     cop.create("debugLayer")
         .activeOn({
@@ -69,24 +86,6 @@ window.onload = function() {
 
         player.controls = new PlayerControls(player, world, input, viewport);
         gui = new Gui(world, input, player, viewport);
-
-        // constraint:
-        // - the player tanks turret follows the mouse
-		var turretConstraint = bbb.always({
-            solver: new DBPlanner(),
-            ctx: {
-                player: player,
-                input: input,
-                viewport: viewport
-            },
-            methods: function() {
-                player.turretDirection.formula([input.mouse, input.mouse.x, input.mouse.y, player.position, player.position.x, player.position.y], function(mouse, mouseX, mouseY, srcPosition, srcPositionX, srcPositionY) {
-                    return viewport.screenToWorldCoordinates(input.mouse).sub(player.position);
-                });
-            } }, function() {
-                return player.turretDirection.equals(viewport.screenToWorldCoordinates(input.mouse).sub(player.position));
-		});
-		player.constraints.push(turretConstraint);
 	};
 
 	// frame update
