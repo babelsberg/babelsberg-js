@@ -271,6 +271,23 @@ Tank.subclass("CPUTank", {
 		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [4,5,6,7]);
 
         this.velocity.set(new Vector2(-1,1));
+
+        // constraint:
+        // - keep velocity direction and turret direction in synch
+        var that = this;
+        var turretConstraint = bbb.always({
+            solver: new DBPlanner(),
+            ctx: {
+                that: that
+            },
+            methods: function() {
+                that.turretDirection.formula([that.velocity, that.velocity.x, that.velocity.y], function(velocity, velocityX, velocityY) {
+                    return velocity;
+                });
+            }
+        }, function() {
+            return that.turretDirection.equals(that.velocity);
+        });
     },
 
 	update: function($super, dt) {

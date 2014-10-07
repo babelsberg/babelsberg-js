@@ -69,6 +69,23 @@ window.onload = function() {
 
         player.controls = new PlayerControls(player, world, input, viewport);
         gui = new Gui(world, input, player, viewport);
+
+        // constraint:
+        // - the player tanks turret follows the mouse
+		var turretConstraint = bbb.always({
+            solver: new DBPlanner(),
+            ctx: {
+                player: player,
+                input: input,
+                viewport: viewport
+            },
+            methods: function() {
+                player.turretDirection.formula([input.mouse, input.mouse.x, input.mouse.y, player.position, player.position.x, player.position.y], function(mouse, mouseX, mouseY, srcPosition, srcPositionX, srcPositionY) {
+                    return viewport.screenToWorldCoordinates(input.mouse).sub(player.position);
+                });
+            } }, function() {
+                return player.turretDirection.equals(viewport.screenToWorldCoordinates(input.mouse).sub(player.position));
+		});
 	};
 
 	// frame update
