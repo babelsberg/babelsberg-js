@@ -19,6 +19,9 @@ Object.subclass("GameObject", {
 		this.radius = radius;
 		this.extent = extent;
 		this.speed = 3;
+
+		this.alive = true;
+		this.constraints = [];
 	},
 
 	update: function(dt) {
@@ -53,7 +56,7 @@ Object.subclass("GameObject", {
     onCollisionWith: function(other, callback) {
         var that = this;
 
-        bbb.trigger({
+        var onCollision = bbb.trigger({
             callback: function() {
                 callback.call(this, that, other);
             },
@@ -64,9 +67,16 @@ Object.subclass("GameObject", {
         }, function() {
             return that.position.distance(other.position) <= that.radius + other.radius;
         });
+
+        this.constraints.push(onCollision);
+        other.constraints.push(onCollision);
     },
 
     destroy: function() {
+        this.constraints.each(function(constraint) {
+            constraint.disable();
+        });
+        this.alive = false;
         this.world.gameObjects.remove(this);
     }
 });
@@ -216,8 +226,10 @@ Object.subclass("PlayerControls", {
                 direction);
             this.world.getGameObjects().each(function(other) {
                 bullet.onCollisionWith(other, function(bullet, other) {
-                    bullet.destroy();
-                    other.destroy();
+                    //if(bullet.alive && other.alive) {
+                        bullet.destroy();
+                        other.destroy();
+                    //}
                 });
             });
             this.world.spawn(bullet);
@@ -266,7 +278,7 @@ GameObject.subclass("Bullet", {
         // separate this into 2 constraints
         // one constraint that triggers the vertical reflection
         // the other just listens on the y-coordinate for the horizontal reflection
-        bbb.trigger({
+        var vertical = bbb.trigger({
             callback: function() {
                 if(that.reflectionCount++ == that.maxReflections) {
                     this.disable();
@@ -284,11 +296,11 @@ GameObject.subclass("Bullet", {
             var x = that.position.divVector(map.tileSize).floor().x;
             return map.tiles[pp.y][pp.x].canFlyThrough() && !(map.tiles[pp.y][x].canFlyThrough());
         });
-        bbb.trigger({
+        var horizontal = bbb.trigger({
             callback: function() {
                 if(that.reflectionCount++ == that.maxReflections) {
                     this.disable();
-                    that.world.gameObjects.remove(that);
+                    that.destroy();
                 } else {
                     that.velocity.y *= -1;
                 }
@@ -302,5 +314,7 @@ GameObject.subclass("Bullet", {
             var y = that.position.divVector(map.tileSize).floor().y;
             return map.tiles[pp.y][pp.x].canFlyThrough() && !(map.tiles[y][pp.x].canFlyThrough());
         });
+
+        this.constraints.push(vertical, horizontal);
 	}
 });
