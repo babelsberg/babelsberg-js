@@ -86,6 +86,7 @@ window.onload = function() {
             } }, function() {
                 return player.turretDirection.equals(viewport.screenToWorldCoordinates(input.mouse).sub(player.position));
 		});
+		player.constraints.push(turretConstraint);
 	};
 
 	// frame update

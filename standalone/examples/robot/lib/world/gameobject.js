@@ -288,6 +288,8 @@ Tank.subclass("CPUTank", {
         }, function() {
             return that.turretDirection.equals(that.velocity);
         });
+
+        this.constraints.push(turretConstraint);
     },
 
 	update: function($super, dt) {
