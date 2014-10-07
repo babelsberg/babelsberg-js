@@ -112,7 +112,7 @@ if (window.Config && window.Config.codeBase) {
 } else {
     Object.extend(CommandLineZ3, {
         get z3Path() {
-            throw "Standalone deployment must define CommandLineZ3.z3Path";
+            console.error("Standalone deployment must define CommandLineZ3.z3Path");
         }
     });
 }
