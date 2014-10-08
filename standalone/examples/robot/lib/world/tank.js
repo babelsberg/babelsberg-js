@@ -20,6 +20,8 @@ GameObject.subclass("Tank", {
         // constraint:
         // - do not be on a wall tile
         bbb.assert({
+            // collision solving is already provided by the babelsberg.assert
+            // method and its ability the revert to a valid state
             onError: function(error) {
                 if(!error instanceof ContinuousAssertError) {
                     throw error;
@@ -30,6 +32,7 @@ GameObject.subclass("Tank", {
                 map: map
             }
         }, function() {
+            // collision detection against the current tile
             var pos = that.position.divVector(map.tileSize).floor();
             return map.tiles[pos.y][pos.x].canWalkThrough();
         });

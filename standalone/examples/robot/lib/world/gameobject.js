@@ -66,7 +66,9 @@ Object.subclass("GameObject", {
                 other: other
             }
         }, function() {
-            // use simple spheres for collision
+            // use simple spheres for collision detection
+            // remember: this is only the detection of a collision
+            // if a collision occurs, it is solved by the given callback
             return that.position.distance(other.position) <= that.radius + other.radius;
         });
 
