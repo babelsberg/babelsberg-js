@@ -11,11 +11,11 @@ GameObject.subclass("Tank", {
         this.turretDirection = new Vector2(1,1);
         this.turretAnimation = new Animation(new AnimationSheet("assets/turret.png", 18, 18), 0.4, [0,1,2,3]);
 
-		this.initConstraints(world);
+		this.initConstraints();
     },
-    initConstraints: function(world) {
+    initConstraints: function() {
         var that = this,
-            map = world.map;
+            map = this.world.map;
 
         // constraint:
         // - do not be on a wall tile
@@ -35,7 +35,7 @@ GameObject.subclass("Tank", {
         });
 
         // assumption: tanks are inserted first into the world
-        world.getGameObjects().each(function(tank) {
+        this.world.getGameObjects().each(function(tank) {
             // constraint:
             // - solve collisions
             that.onCollisionWith(tank, function(that, tank) {

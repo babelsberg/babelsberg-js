@@ -10,10 +10,10 @@ GameObject.subclass("Bullet", {
 
    		this.speed = 16 / 3.7 * world.map.tileSize.x;
 
-		this.initConstraints(world);
+		this.initConstraints();
 	},
 
-	initConstraints: function(world) {
+	initConstraints: function() {
         var that = this,
             map = this.world.map,
             db = new DBPlanner();
