@@ -107,6 +107,8 @@ GameObject.subclass("Tank", {
 	},
 
 	update: function($super, dt) {
+	    this.controls && this.controls.update(dt);
+
 	    $super(dt);
         this.turretAnimation.update(dt);
 	},
@@ -148,12 +150,6 @@ Tank.subclass("PlayerTank", {
 	    $super(world, pos);
 
 		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [0,1,2,3]);
-    },
-
-	update: function($super, dt) {
-	    this.controls && this.controls.update(dt);
-
-   	    $super(dt);
     }
 });
 
@@ -225,12 +221,6 @@ Tank.subclass("CPUTank", {
 
         this.constraints.push(turretConstraint);
         */
-    },
-
-	update: function($super, dt) {
-	    this.controls && this.controls.update(dt);
-
-	    $super(dt);
 	}
 });
 
