@@ -17,7 +17,7 @@ window.onload = function() {
 	
 	var renderer = new Renderer(canvas);
 	
-	var input = new Input(canvasId);
+	input = new Input(canvasId);
 	input.initKeyboard();
 	input.initMouse();
 
@@ -37,6 +37,7 @@ window.onload = function() {
 	input.bind(Input.KEY.MWHEEL_DOWN, "zoomOut");
 
 	input.bind(Input.KEY.P, "debug");
+	input.bind(Input.KEY.X, "enemyFire");
 
 	var viewport = new Viewport(
 		new Vector2(30, 30* canvas.height/canvas.width),

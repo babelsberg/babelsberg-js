@@ -198,12 +198,14 @@ Tank.subclass("CPUTank", {
     initialize: function($super, world, pos) {
         $super(world, pos);
 
+        this.controls = new CPUControls(this, world);
 		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [4,5,6,7]);
 
         this.velocity.set(new Vector2(-1,1));
 
         // constraint:
         // - keep velocity direction and turret direction in sync
+        /*
         var that = this;
         var turretConstraint = bbb.always({
             solver: new DBPlanner(),
@@ -220,12 +222,56 @@ Tank.subclass("CPUTank", {
         });
 
         this.constraints.push(turretConstraint);
+        */
     },
 
 	update: function($super, dt) {
-	    // adjust direction randomly
-	    this.velocity.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
-        //this.velocity.set(player.position.sub(this.position));
+	    this.controls && this.controls.update(dt);
+
 	    $super(dt);
 	}
+});
+
+Object.subclass("CPUControls", {
+    initialize: function(tank, world) {
+        this.tank = tank;
+        this.world = world;
+
+        this.tank.turretDirection.rotateSelf(0);
+    },
+    update: function(dt) {
+	    // adjust direction randomly
+	    this.tank.velocity.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
+        //this.velocity.set(player.position.sub(this.position));
+
+        // adjust turret direction randomly
+        this.tank.turretDirection.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
+
+        //return;
+
+        // enemy fires a bullet
+        if(input.pressed("enemyFire")) {
+            var direction = this.tank.turretDirection.normalizedCopy();
+            var bullet = new Bullet(this.world,
+                this.tank.position.add(direction.mulFloat(this.tank.radius + 0.25 + this.tank.speed * dt)),
+                direction);
+            this.world.getGameObjects().each(function(other) {
+                bullet.onCollisionWith(other, function(bullet, other) {
+                    // 3 possibilities to avoid this to happen more than one time:
+                    // 1. in collision callback:
+                    //     if(bullet.alive && other.alive)
+                    //     but get not rid of the actual constraint -> slow with more and more bullets
+                    // 2. layer each game object
+                    //     layer.activeOn(bullet in world)
+                    //     but collision callback is linked to 2 game objects
+                    // 3. in collision callback
+                    //     bullet.unconstrainAND_DISABLE_ALL() to disable all linked constraints
+                    //     very general; we instead keep track of these manually and disable all constraints on destroy
+                    bullet.destroy();
+                    other.destroy();
+                });
+            });
+            this.world.spawn(bullet);
+        }
+    }
 });
