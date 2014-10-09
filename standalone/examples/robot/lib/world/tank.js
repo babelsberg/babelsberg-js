@@ -119,7 +119,7 @@ GameObject.subclass("Tank", {
 	draw: function($super, renderer) {
 	    $super(renderer);
 		this.turretAnimation.draw(
-		    renderer, this.getWorldAABB(), this.turretDirection.getDirectedAngle(new Vector2(1,0))
+		    renderer, this.getWorldAABB(true), this.turretDirection.getDirectedAngle(new Vector2(1,0))
 		);
 	},
 
@@ -199,7 +199,7 @@ Tank.subclass("CPUTank", {
     initialize: function($super, world, pos) {
         $super(world, pos);
 
-        this.controls = new CPUControls(this, world);
+        this.controls = new BrownTurret(this, world);
 		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [4,5,6,7]);
 
         this.velocity.set(new Vector2(-1,1));
@@ -232,19 +232,46 @@ Object.subclass("CPUControls", {
         this.tank = tank;
         this.world = world;
 
-        this.tank.turretDirection.rotateSelf(0);
+        this.turretRotationSpeed = 45 * Math.PI / 180;
     },
     update: function(dt) {
-	    // adjust direction randomly
-	    this.tank.velocity.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
-        //this.velocity.set(player.position.sub(this.position));
+        this.turretUpdate(dt);
+        this.movementUpdate(dt);
+        this.fireUpdate(dt);
+    }
+});
 
-        // adjust turret direction randomly
-        this.tank.turretDirection.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
-
+CPUControls.subclass("BrownTurret", {
+    initialize: function($super, tank, world) {
+        $super(tank, world);
+        this.rotationDirection = 1;
+    },
+    turretUpdate: function(dt) {
+        if(Math.random() < 0.02) {
+            this.rotationDirection *= -1;
+        }
+        this.tank.turretDirection.rotateSelf(this.rotationDirection * this.turretRotationSpeed * dt);
+    },
+    movementUpdate: function(dt) {
+	    this.tank.velocity.set(Vector2.Zero);
+    },
+    fireUpdate: function() {
         // enemy fires a bullet
         if(input.pressed("enemyFire")) {
             this.tank.fireBullet(this.world, dt);
         }
     }
 });
+CPUControls.subclass("GraySoldier", {
+    turretUpdate: function(dt) {
+        // adjust turret direction randomly
+        this.tank.turretDirection.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
+    },
+    movementUpdate: function() {
+	    // adjust direction randomly
+	    this.tank.velocity.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
+        //this.velocity.set(player.position.sub(this.position));
+    }
+
+});
+CPUControls.subclass("TealHunter", {});
