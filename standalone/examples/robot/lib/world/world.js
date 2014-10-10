@@ -1,6 +1,5 @@
 Object.subclass("World", {
 	initialize: function(boundary, input, viewport) {
-	    this.updateCount = 0;
 		this.boundary = boundary;
 		this.gameObjects = [];
 		this.map = new Map(new Vector2(2,2),
@@ -40,7 +39,6 @@ Object.subclass("World", {
 	},
 	
 	update: function(dt) {
-	    this.updateCount++;
 		this.gameObjects.forEach(function(gameObject) {
 		    gameObject.update(dt)
 		});
