@@ -22,14 +22,11 @@ Object.subclass("GameObject", {
         var deltaPos = this.velocity.normalizedCopy().mulFloat(dt*this.speed);
         this.position.addSelf(deltaPos);
 
-        if(typeof this.animation !== "undefined")
-            this.animation.update(dt);
+        this.animation.update(dt);
 	},
 	
 	draw: function(renderer) {
-		if(typeof this.animation !== "undefined") {
-			this.animation.draw(renderer, this.getWorldAABB(), this.velocity.getDirectedAngle(new Vector2(1,0)));
-		}
+		this.animation.draw(renderer, this.getWorldAABB(), this.velocity.getDirectedAngle(new Vector2(1,0)));
 	},
 
 	getTile: function(pos) {

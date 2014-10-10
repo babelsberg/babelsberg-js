@@ -114,6 +114,10 @@ CPUControls.subclass("TealHunter", {
             tile = tank.getTile(pos);
         }
         tile.marked = "red";
+
+        if(tank.getTile(player.position).marked) {
+            this.tank.fireBullet(this.world, dt);
+        };
     }
 });
 
