@@ -8,7 +8,7 @@ GameObject.subclass("Bullet", {
         this.maxReflections = maxReflections || 2;
         this.reflectionCount = 0;
 
-   		this.speed = 16 / 3.7 * world.map.tileSize.x;
+   		this.speed = Bullet.SPEED_NORMAL * world.map.tileSize.x;
 
 		this.initConstraints();
 	},
@@ -62,3 +62,6 @@ GameObject.subclass("Bullet", {
         this.constraints.push(vertical, horizontal);
 	}
 });
+
+Bullet.SPEED_NORMAL = 16 / 3.7;
+Bullet.SPEED_FAST = 1.5 * Bullet.SPEED_NORMAL;

@@ -6,7 +6,7 @@ GameObject.subclass("Tank", {
 	initialize: function($super, world, pos) {
 	    $super(world, "tank", pos, new Vector2(2, 2), 1);
 
-		this.speed = 16 / 6 * world.map.tileSize.x;
+		this.speed = Tank.SPEED_NORMAL * world.map.tileSize.x;
 
         this.turretDirection = new Vector2(1,0.5);
         this.turretAnimation = new Animation(new AnimationSheet("assets/turret.png", 18, 18), 0.4, [0,1,2,3]);
@@ -352,3 +352,7 @@ CPUControls.subclass("TealHunter", {
         };
     }
 });
+
+Tank.SPEED_NORMAL = 16 / 6;
+Tank.SPEED_SLOW = 0.5 * Tank.SPEED_NORMAL;
+Tank.SPEED_FAST = 1.5 * Tank.SPEED_NORMAL;
