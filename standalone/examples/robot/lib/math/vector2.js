@@ -277,8 +277,8 @@ Vector2.prototype.toPolar = function() {
 
 Vector2.prototype.signum = function() {
 	return new Vector2(
-		this.x.sign(),
-		this.y.sign()
+		this.x > 0 ? 1 : this.x < 0 ? -1 : 0,
+		this.y > 0 ? 1 : this.y < 0 ? -1 : 0
 	);
 };
 
@@ -287,6 +287,10 @@ Vector2.prototype.absolute = function() {
 		Math.abs(this.x),
 		Math.abs(this.y)
 	);
+};
+
+Vector2.prototype.swapXY = function() {
+	return new Vector2(this.y, this.x);
 };
 
 

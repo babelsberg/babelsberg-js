@@ -8,7 +8,7 @@ GameObject.subclass("Tank", {
 
 		this.speed = 16 / 6 * world.map.tileSize.x;
 
-        this.turretDirection = new Vector2(1,1);
+        this.turretDirection = new Vector2(1,0.5);
         this.turretAnimation = new Animation(new AnimationSheet("assets/turret.png", 18, 18), 0.4, [0,1,2,3]);
 
 		this.initConstraints();
@@ -196,10 +196,10 @@ Object.subclass("PlayerControls", {
 });
 
 Tank.subclass("CPUTank", {
-    initialize: function($super, world, pos) {
+    initialize: function($super, world, pos, Controls) {
         $super(world, pos);
 
-        this.controls = new BrownTurret(this, world);
+        this.controls = new (Controls)(this, world);
 		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [4,5,6,7]);
 
         this.velocity.set(new Vector2(-1,1));
@@ -241,6 +241,27 @@ Object.subclass("CPUControls", {
     }
 });
 
+Object.subclass("Line", {
+    initialize: function(a, b) {
+        this.a = a;
+        this.b = b;
+    }
+});
+
+Object.extend(Line, {
+    forRay: function(pos, dir) {
+        var a = dir.y / dir.x;
+        var b = pos.y - a * pos.x;
+        return new Line(a, b);
+    }
+});
+
+Object.subclass("Ray", {
+    initialize: function(pos, dir, ricochet) {
+
+    }
+});
+
 CPUControls.subclass("BrownTurret", {
     initialize: function($super, tank, world) {
         $super(tank, world);
@@ -255,23 +276,161 @@ CPUControls.subclass("BrownTurret", {
     movementUpdate: function(dt) {
 	    this.tank.velocity.set(Vector2.Zero);
     },
-    fireUpdate: function() {
+    // fire on line of sight
+    fireUpdate: function(dt) {
+        var world = this.world;
+        var map = world.map;
+        var tank = this.tank;
+        var pos = tank.position.copy();
+        var dir = tank.turretDirection.normalizedCopy();
+
+        var tile = tank.getTile(pos);
+        while(tile.canFlyThrough()) {
+            tile.marked = "yellow";
+            pos.addSelf(dir);
+            tile = tank.getTile(pos);
+        }
+        tile.marked = "red";
+
+        if(tank.getTile(player.position).marked) {
+            this.tank.fireBullet(this.world, dt);
+        };
+
+
+        // modified bresenham algorithm
+        /* signum function */
+        function sgn(x){
+          return (x > 0) ? 1 : (x < 0) ? -1 : 0;
+        }
+
+        function gbham(xstart, ystart, xend, yend)
+        /*--------------------------------------------------------------
+         * Bresenham-Algorithmus: Linien auf Rastergeräten zeichnen
+         *
+         * Eingabeparameter:
+         *    int xstart, ystart        = Koordinaten des Startpunkts
+         *    int xend, yend            = Koordinaten des Endpunkts
+         *
+         * Ausgabe:
+         *    void SetPixel(int x, int y) setze ein Pixel in der Grafik
+         *         (wird in dieser oder aehnlicher Form vorausgesetzt)
+         *---------------------------------------------------------------
+         */
+        {
+            var x, y, t, dx, dy, incx, incy, pdx, pdy, ddx, ddy, es, el, err;
+
+        /* Entfernung in beiden Dimensionen berechnen */
+           dx = xend - xstart;
+           dy = yend - ystart;
+
+        /* Vorzeichen des Inkrements bestimmen */
+           incx = sgn(dx);
+           incy = sgn(dy);
+           if(dx<0) dx = -dx;
+           if(dy<0) dy = -dy;
+
+        /* feststellen, welche Entfernung größer ist */
+           if(dx > dy) {
+              /* x ist schnelle Richtung */
+              pdx=incx; pdy=0;    /* pd. ist Parallelschritt */
+              ddx=incx; ddy=incy; /* dd. ist Diagonalschritt */
+              es =dy;   el =dx;   /* Fehlerschritte schnell, langsam */
+           } else {
+              /* y ist schnelle Richtung */
+              pdx=0;    pdy=incy; /* pd. ist Parallelschritt */
+              ddx=incx; ddy=incy; /* dd. ist Diagonalschritt */
+              es =dx;   el =dy;   /* Fehlerschritte schnell, langsam */
+           }
+
+        /* Initialisierungen vor Schleifenbeginn */
+           x = xstart;
+           y = ystart;
+           err = el/2;
+           SetPixel(x,y);
+
+        /* Pixel berechnen */
+           for(t=0; t<el; ++t) /* t zaehlt die Pixel, el ist auch Anzahl */
+           {
+              /* Aktualisierung Fehlerterm */
+              err -= es;
+              if(err<0)
+              {
+                  /* Fehlerterm wieder positiv (>=0) machen */
+                  err += el;
+                  /* Schritt in langsame Richtung, Diagonalschritt */
+                  x += ddx;
+                  y += ddy;
+              } else
+              {
+                  /* Schritt in schnelle Richtung, Parallelschritt */
+                  x += pdx;
+                  y += pdy;
+              }
+              SetPixel(x,y);
+           }
+        } /* gbham() */
+
+        function SetPixel(x,y) {
+            var tile = map.get(new Vector2(x,y));
+            tile.marked = "yellow";
+        }
+
+        var endOfLine = tank.position.add(tank.turretDirection.normalizedCopy().mulFloat(20));
+        //gbham(tank.position.x, tank.position.y, endOfLine.x, endOfLine.y);
+
         // enemy fires a bullet
         if(input.pressed("enemyFire")) {
             this.tank.fireBullet(this.world, dt);
         }
     }
 });
+
 CPUControls.subclass("GraySoldier", {
     turretUpdate: function(dt) {
         // adjust turret direction randomly
         this.tank.turretDirection.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
     },
-    movementUpdate: function() {
+    movementUpdate: function(dt) {
 	    // adjust direction randomly
 	    this.tank.velocity.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
         //this.velocity.set(player.position.sub(this.position));
+    },
+    fireUpdate: function(dt) {
+        var angle = this.tank.turretDirection.getDirectedAngle(player.position.sub(this.tank.position));
+        var sight = angle < 2 && angle > -2;
+        if(sight) {
+            console.log("FIRE!", angle, this.tank.turretDirection.x, this.tank.turretDirection.y, player.position.sub(this.tank.position).x, player.position.sub(this.tank.position).y);
+            this.tank.fireBullet(this.world, dt);
+        }
     }
-
 });
-CPUControls.subclass("TealHunter", {});
+
+CPUControls.subclass("TealHunter", {
+    turretUpdate: function(dt) {
+        // turret strongly seek the player
+        this.tank.turretDirection.set(player.position.sub(this.tank.position));
+    },
+    movementUpdate: function(dt) {
+	    // adjust direction randomly
+	    this.tank.velocity.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
+    },
+    fireUpdate: function(dt) {
+        var world = this.world;
+        var map = world.map;
+        var tank = this.tank;
+        var pos = tank.position.copy();
+        var dir = tank.turretDirection.normalizedCopy();
+
+        var tile = tank.getTile(pos);
+        while(tile.canFlyThrough()) {
+            tile.marked = "yellow";
+            pos.addSelf(dir);
+            tile = tank.getTile(pos);
+        }
+        tile.marked = "red";
+
+        if(tank.getTile(player.position).marked) {
+            this.tank.fireBullet(this.world, dt);
+        };
+    }
+});

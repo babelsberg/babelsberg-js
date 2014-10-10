@@ -27,10 +27,12 @@ Object.subclass("World", {
         player = new PlayerTank(this, new Vector2(15, 12));
         this.spawn(player);
 
-        [new Vector2(40, 12), new Vector2(10, 26), new Vector2(40, 26)].each(function(enemyPosition) {
-            var cpu = new CPUTank(this, enemyPosition);
-            this.spawn(cpu);
-        }, this)
+        var cpu = new CPUTank(this, new Vector2(41, 13), BrownTurret);
+        this.spawn(cpu);
+        var cpu = new CPUTank(this, new Vector2(10, 26), GraySoldier);
+        this.spawn(cpu);
+        var cpu = new CPUTank(this, new Vector2(40, 26), TealHunter);
+        this.spawn(cpu);
 	},
 	
 	update: function(dt) {
@@ -77,6 +79,15 @@ Object.subclass("Map", {
                     new AABB(min, min.add(this.tileSize)),
                     tile.index
                 );
+                if(tile.marked) {
+                    renderer.drawRectangle(
+                        min.add(this.tileSize.mulFloat(0.5)),
+                        25,
+                        tile.marked,
+                        1
+                    );
+                }
+                tile.marked = false;
             }, this);
 		}, this);
 	},
@@ -107,4 +118,3 @@ Object.subclass("Tile", {
 	    return this.index != 1;
 	}
 });
-
