@@ -1,5 +1,5 @@
 Object.subclass("World", {
-	initialize: function(boundary) {
+	initialize: function(boundary, input, viewport) {
 	    this.updateCount = 0;
 		this.boundary = boundary;
 		this.gameObjects = [];
@@ -25,6 +25,7 @@ Object.subclass("World", {
 		);
 
         player = new PlayerTank(this, new Vector2(5, 12));
+        player.controls = new PlayerControls(player, this, input, viewport);
         this.spawn(player);
 
         var cpu = new CPUTank(this, new Vector2(41, 13), BrownTurret);

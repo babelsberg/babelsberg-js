@@ -83,9 +83,8 @@ window.onload = function() {
         world = new World(new AABB(
             new Vector2(-150, -150),
             new Vector2(150, 150)
-        ));
+        ), input, viewport);
 
-        player.controls = new PlayerControls(player, world, input, viewport);
         gui = new Gui(world, input, player, viewport);
 	};
 
