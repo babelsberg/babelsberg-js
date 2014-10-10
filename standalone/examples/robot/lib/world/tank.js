@@ -196,10 +196,9 @@ Object.subclass("PlayerControls", {
 });
 
 Tank.subclass("CPUTank", {
-    initialize: function($super, world, pos, Controls) {
+    initialize: function($super, world, pos) {
         $super(world, pos);
 
-        this.controls = new (Controls)(this, world);
 		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [4,5,6,7]);
 
         this.velocity.set(new Vector2(-1,1));
@@ -241,6 +240,7 @@ Object.subclass("CPUControls", {
     }
 });
 
+/*
 Object.subclass("Line", {
     initialize: function(a, b) {
         this.a = a;
@@ -261,6 +261,7 @@ Object.subclass("Ray", {
 
     }
 });
+*/
 
 CPUControls.subclass("BrownTurret", {
     initialize: function($super, tank, world) {

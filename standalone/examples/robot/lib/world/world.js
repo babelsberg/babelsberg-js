@@ -28,11 +28,14 @@ Object.subclass("World", {
         player.controls = new PlayerControls(player, this, input, viewport);
         this.spawn(player);
 
-        var cpu = new CPUTank(this, new Vector2(41, 13), BrownTurret);
+        var cpu = new CPUTank(this, new Vector2(41, 13));
+        cpu.controls = new BrownTurret(cpu, this);
         this.spawn(cpu);
-        var cpu = new CPUTank(this, new Vector2(10, 26), GreySoldier);
+        var cpu = new CPUTank(this, new Vector2(10, 26));
+        cpu.controls = new GreySoldier(cpu, this);
         this.spawn(cpu);
-        var cpu = new CPUTank(this, new Vector2(40, 26), TealHunter);
+        var cpu = new CPUTank(this, new Vector2(40, 26));
+        cpu.controls = new TealHunter(cpu, this);
         this.spawn(cpu);
 	},
 	

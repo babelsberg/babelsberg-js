@@ -15,7 +15,7 @@ window.onload = function() {
 	canvas.style.left = "0px";
 	canvas.style["z-index"] = -1;
 	
-	renderer = new Renderer(canvas);
+	var renderer = new Renderer(canvas);
 	
 	input = new Input(canvasId);
 	input.initKeyboard();
@@ -110,12 +110,12 @@ window.onload = function() {
 			viewport.zoomOut();
 		}
 
-		renderer.clear();
 		// update
 		world.update(dt);
 		gui.update(dt);
 
 		// drawing
+		renderer.clear();
 		renderer.withViewport(viewport, function() {
 			world.draw(renderer);
 		});
