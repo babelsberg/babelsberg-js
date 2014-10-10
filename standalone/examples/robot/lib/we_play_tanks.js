@@ -17,7 +17,7 @@ window.onload = function() {
 	
 	var renderer = new Renderer(canvas);
 	
-	input = new Input(canvasId);
+	var input = new Input(canvasId);
 	input.initKeyboard();
 	input.initMouse();
 

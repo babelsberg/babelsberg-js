@@ -23,17 +23,17 @@ Object.subclass("World", {
 		 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
 		);
 
-        player = new PlayerTank(this, new Vector2(5, 12));
+        player = new PlayerTank(this, new Vector2(5, 12), Vector2.Zero.copy(), new Vector2(1,0.5));
         player.controls = new PlayerControls(player, this, input, viewport);
         this.spawn(player);
 
-        var cpu = new CPUTank(this, new Vector2(41, 13));
+        var cpu = new CPUTank(this, new Vector2(41, 13), Vector2.Zero.copy(), new Vector2(1,0.5));
         cpu.controls = new BrownTurret(cpu, this);
         this.spawn(cpu);
-        var cpu = new CPUTank(this, new Vector2(10, 26));
+        var cpu = new CPUTank(this, new Vector2(10, 26), Vector2.Zero.copy(), new Vector2(1,0.5));
         cpu.controls = new GreySoldier(cpu, this);
         this.spawn(cpu);
-        var cpu = new CPUTank(this, new Vector2(40, 26));
+        var cpu = new CPUTank(this, new Vector2(40, 26), Vector2.Zero.copy(), new Vector2(1,0.5));
         cpu.controls = new TealHunter(cpu, this);
         this.spawn(cpu);
 	},

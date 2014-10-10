@@ -1,20 +1,12 @@
 Object.subclass("GameObject", {
-	initialize: function(world, name, pos, extent, radius) {
+	initialize: function(world, name, pos, extent, radius, vel) {
 	    this.world = world;
 		this.name = name;
 
 		this.position = pos;
         this.prevPosition = pos.copy();
 
-		this.coordinates = Vector2.Zero.copy().sub(new Vector2(-1,-1));
-		this.collisionTiles = {
-    		upperLeft:false,
-    		bottomLeft:true,
-    		upperRight:true,
-    		bottomRight:true
-		};
-
-        this.velocity = Vector2.Zero.copy();
+        this.velocity = vel;
 
 		this.radius = radius;
 		this.extent = extent;

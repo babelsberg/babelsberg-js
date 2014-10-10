@@ -3,12 +3,12 @@
 // - your speed is limited to maxSpeed (cannot adjust speed?)
 // - your velocity is direction.mulFloat(dt*speed)
 GameObject.subclass("Tank", {
-	initialize: function($super, world, pos) {
-	    $super(world, "tank", pos, new Vector2(2, 2), 1);
+	initialize: function($super, world, pos, vel, dir) {
+	    $super(world, "tank", pos, new Vector2(2, 2), 1, vel);
 
 		this.speed = Tank.SPEED_NORMAL * world.map.tileSize.x;
 
-        this.turretDirection = new Vector2(1,0.5);
+        this.turretDirection = dir;
         this.turretAnimation = new Animation(new AnimationSheet("assets/turret.png", 18, 18), 0.4, [0,1,2,3]);
 
 		this.initConstraints();
@@ -149,11 +149,42 @@ GameObject.subclass("Tank", {
 });
 
 Tank.subclass("PlayerTank", {
-	initialize: function($super, world, pos) {
-	    $super(world, pos);
+	initialize: function($super, world, pos, vel, dir) {
+	    $super(world, pos, vel, dir);
 
 		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [0,1,2,3]);
     }
+});
+
+Tank.subclass("CPUTank", {
+    initialize: function($super, world, pos, vel, dir) {
+        $super(world, pos, vel, dir);
+
+		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [4,5,6,7]);
+
+        this.velocity.set(new Vector2(-1,1));
+
+        // constraint:
+        // - keep velocity direction and turret direction in sync
+        /*
+        var that = this;
+        var turretConstraint = bbb.always({
+            solver: new DBPlanner(),
+            ctx: {
+                that: that
+            },
+            methods: function() {
+                that.turretDirection.formula([that.velocity, that.velocity.x, that.velocity.y], function(velocity, velocityX, velocityY) {
+                    return velocity;
+                });
+            }
+        }, function() {
+            return that.turretDirection.equals(that.velocity);
+        });
+
+        this.constraints.push(turretConstraint);
+        */
+	}
 });
 
 Object.subclass("PlayerControls", {
@@ -193,37 +224,6 @@ Object.subclass("PlayerControls", {
             player.fireBullet(this.world, dt);
         }
     }
-});
-
-Tank.subclass("CPUTank", {
-    initialize: function($super, world, pos) {
-        $super(world, pos);
-
-		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [4,5,6,7]);
-
-        this.velocity.set(new Vector2(-1,1));
-
-        // constraint:
-        // - keep velocity direction and turret direction in sync
-        /*
-        var that = this;
-        var turretConstraint = bbb.always({
-            solver: new DBPlanner(),
-            ctx: {
-                that: that
-            },
-            methods: function() {
-                that.turretDirection.formula([that.velocity, that.velocity.x, that.velocity.y], function(velocity, velocityX, velocityY) {
-                    return velocity;
-                });
-            }
-        }, function() {
-            return that.turretDirection.equals(that.velocity);
-        });
-
-        this.constraints.push(turretConstraint);
-        */
-	}
 });
 
 Object.subclass("CPUControls", {
