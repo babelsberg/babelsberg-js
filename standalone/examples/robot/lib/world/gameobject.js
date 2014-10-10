@@ -83,6 +83,6 @@ Object.subclass("GameObject", {
             constraint.disable();
         });
         this.alive = false;
-        this.world.gameObjects.remove(this);
+        this.world.remove(this);
     }
 });

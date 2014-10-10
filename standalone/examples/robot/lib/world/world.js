@@ -40,24 +40,21 @@ Object.subclass("World", {
 	
 	update: function(dt) {
 		this.gameObjects.forEach(function(gameObject) {
-		    gameObject.update(dt)
+		    gameObject.update(dt);
 		});
 	},
 	
 	draw: function(renderer) {
 		this.map.draw(renderer);
 
-		var objectCount = this.gameObjects.length;
-		for(var i = 0; i < objectCount; i++) {
-			this.gameObjects[i].draw(renderer);
-		}
+		this.gameObjects.forEach(function(gameObject) {
+		    gameObject.draw(renderer);
+		});
 	},
 
-	/*
-	 * Manage GameObjects
-	 */
 	spawn: function(gameObject) { this.gameObjects.push(gameObject); },
-	getGameObjects: function() { return this.gameObjects; }
+	getGameObjects: function() { return this.gameObjects; },
+	remove: function(gameObject) { this.gameObjects.remove(gameObject); }
 });
 
 Object.subclass("Map", {
