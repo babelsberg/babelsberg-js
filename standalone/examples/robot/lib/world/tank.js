@@ -35,8 +35,7 @@ GameObject.subclass("Tank", {
             }
         }, function() {
             // collision detection against the current tile
-            var pos = that.position.divVector(map.tileSize).floor();
-            return map.tiles[pos.y][pos.x].canWalkThrough();
+            return that.getTile(that.position).canWalkThrough();
         });
 
         // assumption: tanks are inserted first into the world
