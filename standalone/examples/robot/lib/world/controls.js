@@ -98,13 +98,13 @@ CPUControls.subclass("BrownTurret", {
 
         var tile = tank.getTile(pos);
         while(tile.canFlyThrough()) {
-            tile.marked = "yellow";
+            tile.marked = "brown";
             pos.addSelf(dir);
             tile = tank.getTile(pos);
         }
         tile.marked = "red";
 
-        if(tank.getTile(player.position).marked) {
+        if(tank.getTile(player.position).marked == "brown") {
             this.tank.fireBullet(this.world, dt);
         };
     }
@@ -148,13 +148,13 @@ CPUControls.subclass("TealHunter", {
 
         var tile = tank.getTile(pos);
         while(tile.canFlyThrough()) {
-            tile.marked = "yellow";
+            tile.marked = "teal";
             pos.addSelf(dir);
             tile = tank.getTile(pos);
         }
         tile.marked = "red";
 
-        if(tank.getTile(player.position).marked) {
+        if(tank.getTile(player.position).marked == "teal") {
             this.tank.fireBullet(this.world, dt);
         };
     }
