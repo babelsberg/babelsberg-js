@@ -24,7 +24,7 @@ Object.subclass("World", {
 		 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
 		);
 
-        player = new PlayerTank(this, new Vector2(15, 12));
+        player = new PlayerTank(this, new Vector2(5, 12));
         this.spawn(player);
 
         var cpu = new CPUTank(this, new Vector2(41, 13), BrownTurret);
