@@ -303,7 +303,7 @@ CPUControls.subclass("BrownTurret", {
     }
 });
 
-CPUControls.subclass("GraySoldier", {
+CPUControls.subclass("GreySoldier", {
     turretUpdate: function(dt) {
         // adjust turret direction randomly
         this.tank.turretDirection.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
@@ -353,6 +353,7 @@ CPUControls.subclass("TealHunter", {
     }
 });
 
+Tank.SPEED_IMMOBILE = 0;
 Tank.SPEED_NORMAL = 16 / 6;
 Tank.SPEED_SLOW = 0.5 * Tank.SPEED_NORMAL;
 Tank.SPEED_FAST = 1.5 * Tank.SPEED_NORMAL;

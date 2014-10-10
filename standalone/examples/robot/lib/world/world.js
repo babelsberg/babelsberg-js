@@ -29,7 +29,7 @@ Object.subclass("World", {
 
         var cpu = new CPUTank(this, new Vector2(41, 13), BrownTurret);
         this.spawn(cpu);
-        var cpu = new CPUTank(this, new Vector2(10, 26), GraySoldier);
+        var cpu = new CPUTank(this, new Vector2(10, 26), GreySoldier);
         this.spawn(cpu);
         var cpu = new CPUTank(this, new Vector2(40, 26), TealHunter);
         this.spawn(cpu);
