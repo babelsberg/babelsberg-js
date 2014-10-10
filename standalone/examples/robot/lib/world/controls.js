@@ -38,7 +38,7 @@ Object.subclass("PlayerControls", {
 });
 
 Object.subclass("CPUControls", {
-    initialize: function(tank, world) {
+    initialize: function(tank, world, input, viewport) {
         this.tank = tank;
         this.world = world;
 
@@ -75,8 +75,8 @@ Object.subclass("Ray", {
 */
 
 CPUControls.subclass("BrownTurret", {
-    initialize: function($super, tank, world) {
-        $super(tank, world);
+    initialize: function($super, tank, world, input, viewport) {
+        $super(tank, world, input, viewport);
         this.rotationDirection = 1;
     },
     turretUpdate: function(dt) {

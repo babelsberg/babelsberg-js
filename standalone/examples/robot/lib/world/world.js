@@ -23,39 +23,40 @@ Object.subclass("World", {
 		 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
 		);
 
-        player = new PlayerTank(this,
+        this.input = input;
+        this.viewport = viewport;
+
+        player = this.buildTank(
             new Vector2(5, 12),
             Vector2.Zero.copy(),
             new Vector2(1,0.5),
             Tank.Player
         );
-        player.controls = new PlayerControls(player, this, input, viewport);
-        this.spawn(player);
-
-        var cpu = new CPUTank(this,
+        this.buildTank(
             new Vector2(41, 13),
             new Vector2(-1,1),
             new Vector2(1,0.5),
             Tank.BrownTurret
         );
-        cpu.controls = new BrownTurret(cpu, this);
-        this.spawn(cpu);
-        var cpu = new CPUTank(this,
+        this.buildTank(
             new Vector2(10, 26),
             new Vector2(-1,1),
             new Vector2(1,0.5),
             Tank.GreySoldier
         );
-        cpu.controls = new GreySoldier(cpu, this);
-        this.spawn(cpu);
-        var cpu = new CPUTank(this,
+        this.buildTank(
             new Vector2(40, 26),
             new Vector2(-1,1),
             new Vector2(1,0.5),
             Tank.TealHunter
         );
-        cpu.controls = new TealHunter(cpu, this);
+	},
+
+	buildTank: function(pos, vel, dir, config) {
+        var cpu = new CPUTank(this, pos, vel, dir, config);
+        cpu.controls = new (config.intelligence)(cpu, this, this.input, this.viewport);
         this.spawn(cpu);
+        return cpu;
 	},
 	
 	update: function(dt) {
