@@ -1,5 +1,5 @@
 Object.subclass("GameObject", {
-	initialize: function(world, name, pos, extent, radius, vel) {
+	initialize: function(world, name, pos, extent, radius, vel, speed) {
 	    this.world = world;
 		this.name = name;
 
@@ -10,7 +10,8 @@ Object.subclass("GameObject", {
 
 		this.radius = radius;
 		this.extent = extent;
-		this.speed = 3;
+
+		this.speed = speed * world.map.tileSize.x;
 
 		this.constraints = [];
 		this.alive = true;

@@ -1,13 +1,11 @@
 GameObject.subclass("Bullet", {
 	initialize: function($super, world, pos, vel, tank, ricochets, speed) {
-	    $super(world, "bullet", pos, new Vector2(0.5, 0.5), 0.25, vel);
+	    $super(world, "bullet", pos, new Vector2(0.5, 0.5), 0.25, vel, speed);
 
 		this.animation = new Animation(new AnimationSheet("assets/bullet.png", 7, 7), 0.2, [0,1,2,3,2,1]);
 
         this.maxReflections = ricochets;
         this.reflectionCount = 0;
-
-   		this.speed = speed * world.map.tileSize.x;
 
 		this.initConstraints();
 		this.tank = tank;

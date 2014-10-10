@@ -4,9 +4,7 @@
 // - your velocity is direction.mulFloat(dt*speed)
 GameObject.subclass("Tank", {
 	initialize: function($super, world, pos, vel, dir, config) {
-	    $super(world, "tank", pos, new Vector2(2, 2), 1, vel);
-
-		this.speed = config.speed * world.map.tileSize.x;
+	    $super(world, "tank", pos, new Vector2(2, 2), 1, vel, config.speed);
 
         this.turretDirection = dir;
         this.turretAnimation = new Animation(new AnimationSheet("assets/turret.png", 18, 18), 0.4, [0,1,2,3]);
