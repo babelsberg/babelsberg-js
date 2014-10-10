@@ -1,3 +1,42 @@
+Object.subclass("PlayerControls", {
+    initialize: function(player, world, input, viewport) {
+        this.player = player;
+        this.world = world;
+        this.input = input;
+        this.viewport = viewport;
+
+        // constraint:
+        // - the player tanks turret follows the mouse
+		var turretConstraint = bbb.always({
+            solver: new DBPlanner(),
+            ctx: {
+                player: player,
+                input: input
+            },
+            methods: function() {
+                player.turretDirection.formula([input.position, input.position.x, input.position.y, player.position, player.position.x, player.position.y], function(mousePosition, mousePositionX, mousePositionY, playerPosition, playerPositionX, playerPositionY) {
+                    return mousePosition.sub(playerPosition);
+                });
+            } }, function() {
+                return player.turretDirection.equals((input.mouse).sub(player.position));
+		});
+		player.constraints.push(turretConstraint);
+    },
+    update: function(dt) {
+        // move player tank
+        player.velocity.set(Vector2.Zero);
+        if(this.input.state("up")) this.player.velocity.addSelf(new Vector2(0, -1));
+        if(this.input.state("left")) this.player.velocity.addSelf(new Vector2(-1, 0));
+        if(this.input.state("down")) this.player.velocity.addSelf(new Vector2(0, 1));
+        if(this.input.state("right")) this.player.velocity.addSelf(new Vector2(1, 0));
+
+        // player fires a bullet
+        if(this.input.pressed("leftclick")) {
+            player.fireBullet(this.world, dt);
+        }
+    }
+});
+
 Object.subclass("CPUControls", {
     initialize: function(tank, world) {
         this.tank = tank;
