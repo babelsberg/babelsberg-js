@@ -55,10 +55,10 @@ GameObject.subclass("Tank", {
 	},
 
 	update: function($super, dt) {
-	    this.controls && this.controls.update(dt);
-
 	    $super(dt);
         this.turretAnimation.update(dt);
+
+	    this.controls && this.controls.update(dt);
 	},
 
 	draw: function($super, renderer) {
@@ -70,17 +70,24 @@ GameObject.subclass("Tank", {
 
     fireBullet: function(world, dt) {
         if(this.bullets == 0) { return; }
-        this.bullets--;
 
         var direction = this.turretDirection.normalizedCopy();
+        var position = this.position.add(direction.mulFloat(this.radius + 0.25 + dt));
+        // blowback
+        this.position.subSelf(direction.mulFloat(1));
+
+        if(!this.getTile(position).canFlyThrough()) { return; }
+
+        this.bullets--;
         var bullet = new Bullet(world,
-            this.position.add(direction.mulFloat(this.radius + 0.25 + this.speed * dt)),
+            position,
             direction,
             this,
             this.bulletRicochets,
             this.bulletSpeed
         );
         world.getGameObjects().each(function(other) {
+            if(other === this) { return; }
             bullet.onCollisionWith(other, function(bullet, other) {
                 // 3 possibilities to avoid this to happen more than one time:
                 // 1. in collision callback:
@@ -95,8 +102,11 @@ GameObject.subclass("Tank", {
                 bullet.destroy();
                 other.destroy();
             });
-        });
+        }, this);
         world.spawn(bullet);
+    },
+    destroy: function($super) {
+        $super();
     }
 });
 
