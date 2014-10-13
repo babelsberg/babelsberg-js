@@ -104,6 +104,23 @@ CPUControls.subclass("BrownTurret", {
         }
         tile.marked = "red";
 
+        var reflectCoords = world.map.positionToCoordinates(pos);
+        pos.subSelf(dir);
+        var prevCoords = world.map.positionToCoordinates(pos);
+        if(reflectCoords.x == prevCoords.x) {
+            dir.y *= -1;
+        }
+        if(reflectCoords.y == prevCoords.y) {
+            dir.x *= -1;
+        }
+        var tile = tank.getTile(pos);
+        while(tile.canFlyThrough()) {
+            tile.marked = "brown";
+            pos.addSelf(dir);
+            tile = tank.getTile(pos);
+        }
+        tile.marked = "red";
+
         if(tank.getTile(player.position).marked == "brown") {
             this.tank.fireBullet(this.world, dt);
         };
@@ -124,7 +141,6 @@ CPUControls.subclass("GreySoldier", {
         var angle = this.tank.turretDirection.getDirectedAngle(player.position.sub(this.tank.position));
         var sight = angle < 2 && angle > -2;
         if(sight) {
-            console.log("FIRE!", angle, this.tank.turretDirection.x, this.tank.turretDirection.y, player.position.sub(this.tank.position).x, player.position.sub(this.tank.position).y);
             this.tank.fireBullet(this.world, dt);
         }
     }
