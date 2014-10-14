@@ -20,17 +20,20 @@ GameObject.subclass("Bullet", {
         // separate this into 2 constraints
         // one constraint that triggers the vertical reflection
         // the other just listens on the y-coordinate for the horizontal reflection
+        function reflect(axis) {
+            if(that.reflectionCount++ == that.maxReflections) {
+                this.disable();
+                that.destroy();
+            } else {
+                if(that.reflectionCount == 1) {
+                    that.onCollisionWith(that.tank, Bullet.detonate);
+                }
+                that.velocity[axis] *= -1;
+            }
+        };
         var vertical = bbb.trigger({
             callback: function() {
-                if(that.reflectionCount++ == that.maxReflections) {
-                    this.disable();
-                    that.destroy();
-                } else {
-                    if(that.reflectionCount == 1) {
-                        that.onCollisionWith(that.tank, Bullet.detonate);
-                    }
-                    that.velocity.x *= -1;
-                }
+                reflect.call(this, "x");
             },
             ctx: {
                 that: that,
@@ -43,15 +46,7 @@ GameObject.subclass("Bullet", {
         });
         var horizontal = bbb.trigger({
             callback: function() {
-                if(that.reflectionCount++ == that.maxReflections) {
-                    this.disable();
-                    that.destroy();
-                } else {
-                    if(that.reflectionCount == 1) {
-                        that.onCollisionWith(that.tank, Bullet.detonate);
-                    }
-                    that.velocity.y *= -1;
-                }
+                reflect.call(this, "y");
             },
             ctx: {
                 that: that,
