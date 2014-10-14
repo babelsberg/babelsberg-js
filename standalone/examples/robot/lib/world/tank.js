@@ -64,7 +64,7 @@ GameObject.subclass("Tank", {
 	draw: function($super, renderer) {
 	    $super(renderer);
 		this.turretAnimation.draw(
-		    renderer, this.getWorldAABB(true), this.turretDirection.getDirectedAngle(new Vector2(1,0))
+		    renderer, this.getWorldAABB(), this.turretDirection.getDirectedAngle(new Vector2(1,0))
 		);
 	},
 
@@ -72,9 +72,7 @@ GameObject.subclass("Tank", {
         if(this.bullets == 0) { return; }
 
         var direction = this.turretDirection.normalizedCopy();
-        var position = this.position.add(direction.mulFloat(this.radius + 0.25 + dt));
-        // blowback
-        this.position.subSelf(direction.mulFloat(1));
+        var position = this.position.add(direction.mulFloat(this.radius));
 
         if(!this.getTile(position).canFlyThrough()) { return; }
 
