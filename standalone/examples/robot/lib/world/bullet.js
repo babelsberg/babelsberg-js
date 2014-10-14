@@ -26,6 +26,9 @@ GameObject.subclass("Bullet", {
                     this.disable();
                     that.destroy();
                 } else {
+                    if(that.reflectionCount == 1) {
+                        that.onCollisionWith(that.tank, Bullet.detonate);
+                    }
                     that.velocity.x *= -1;
                 }
             },
@@ -44,6 +47,9 @@ GameObject.subclass("Bullet", {
                     this.disable();
                     that.destroy();
                 } else {
+                    if(that.reflectionCount == 1) {
+                        that.onCollisionWith(that.tank, Bullet.detonate);
+                    }
                     that.velocity.y *= -1;
                 }
             },
@@ -67,3 +73,18 @@ GameObject.subclass("Bullet", {
 
 Bullet.SPEED_NORMAL = 16 / 3.7;
 Bullet.SPEED_FAST = 1.5 * Bullet.SPEED_NORMAL;
+
+Bullet.detonate = function(bullet, other) {
+    // 3 possibilities to avoid this to happen more than one time for a single bullet:
+    // 1. in collision callback:
+    //     if(bullet.alive && other.alive)
+    //     but get not rid of the actual constraint -> slow with more and more bullets
+    // 2. layer each game object
+    //     layer.activeOn(bullet in world)
+    //     but collision callback is linked to 2 game objects
+    // 3. in collision callback
+    //     bullet.unconstrainAND_DISABLE_ALL() to disable all linked constraints
+    //     very general; we instead keep track of these manually and disable all constraints on destroy
+    bullet.destroy();
+    other.destroy();
+};

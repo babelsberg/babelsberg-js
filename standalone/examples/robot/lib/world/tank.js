@@ -88,20 +88,7 @@ GameObject.subclass("Tank", {
         );
         world.getGameObjects().each(function(other) {
             if(other === this) { return; }
-            bullet.onCollisionWith(other, function(bullet, other) {
-                // 3 possibilities to avoid this to happen more than one time:
-                // 1. in collision callback:
-                //     if(bullet.alive && other.alive)
-                //     but get not rid of the actual constraint -> slow with more and more bullets
-                // 2. layer each game object
-                //     layer.activeOn(bullet in world)
-                //     but collision callback is linked to 2 game objects
-                // 3. in collision callback
-                //     bullet.unconstrainAND_DISABLE_ALL() to disable all linked constraints
-                //     very general; we instead keep track of these manually and disable all constraints on destroy
-                bullet.destroy();
-                other.destroy();
-            });
+            bullet.onCollisionWith(other, Bullet.detonate);
         }, this);
         world.spawn(bullet);
     },
