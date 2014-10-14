@@ -34,9 +34,8 @@ Object.subclass("GameObject", {
 	    return this.world.map.get(this.world.map.positionToCoordinates(pos));
 	},
 
-	getWorldAABB: function(big) {
+	getWorldAABB: function() {
         var halfSize = this.extent.divFloat(2);
-        if(big) { halfSize.mulFloatSelf(3); }
         var aabb = new AABB(
             this.position.sub(halfSize),
             this.position.add(halfSize)
