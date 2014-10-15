@@ -74,8 +74,10 @@ Object.subclass("Ray", {
 });
 */
 
-CPUControls.raycast = function(world, tank, pos, dir, color) {
-    var ricochets = tank.bulletRicochets;
+CPUControls.raycast = function(world, tank, color) {
+    var pos = tank.position.copy(),
+        dir = tank.turretDirection.normalizedCopy(),
+        ricochets = tank.bulletRicochets;
 
     function linecast(tank, pos, dir) {
         var tile = tank.getTile(pos);
@@ -129,7 +131,7 @@ CPUControls.subclass("BrownTurret", { // Bobby
         var pos = tank.position.copy();
         var dir = tank.turretDirection.normalizedCopy();
 
-        CPUControls.raycast(world, tank, pos, dir, "brown");
+        CPUControls.raycast(world, tank, "brown");
 
         if(tank.getTile(player.position).marked == "brown") {
             this.tank.fireBullet(this.world, dt);
@@ -148,11 +150,15 @@ CPUControls.subclass("GreySoldier", { // Fred
         //this.velocity.set(player.position.sub(this.position));
     },
     fireUpdate: function(dt) {
-        var angle = this.tank.turretDirection.getDirectedAngle(player.position.sub(this.tank.position));
-        var sight = angle < 2 && angle > -2;
-        if(sight) {
+        var world = this.world;
+        var map = world.map;
+        var tank = this.tank;
+
+        CPUControls.raycast(world, tank, "grey");
+
+        if(tank.getTile(player.position).marked == "grey") {
             this.tank.fireBullet(this.world, dt);
-        }
+        };
     }
 });
 
@@ -162,8 +168,6 @@ CPUControls.subclass("TealHunter", { // Luzy
         this.tank.turretDirection.set(player.position.sub(this.tank.position));
     },
     movementUpdate: function(dt) {
-	    // adjust direction randomly
-
 	    // defensive movement
 	    var tank = this.tank;
 	    tank.velocity.set(this.world.getGameObjects()
@@ -201,7 +205,7 @@ CPUControls.subclass("TealHunter", { // Luzy
         var pos = tank.position.copy();
         var dir = tank.turretDirection.normalizedCopy();
 
-        CPUControls.raycast(world, tank, pos, dir, "teal");
+        CPUControls.raycast(world, tank, "teal");
 
         if(tank.getTile(player.position).marked == "teal") {
             this.tank.fireBullet(this.world, dt);
