@@ -153,7 +153,24 @@ CPUControls.subclass("TealHunter", {
     },
     movementUpdate: function(dt) {
 	    // adjust direction randomly
-	    this.tank.velocity.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
+	    var tank = this.tank;
+	    tank.velocity.set(this.world.getGameObjects()
+            .filter(function(object) {
+                // take only bullets
+                return object.name === "bullet";
+            })
+            .filter(function(bullet) {
+                // take only near bullets into account
+                return bullet.position.distance(tank.position) < 7 * 2; // tileSize
+            })
+            .map(function(bullet) {
+                //
+                return bullet.velocity.getPerpendicular();
+            })
+            .reduce(function(prev, velocity) {
+              return prev.add(velocity);
+            }, Vector2.Zero.copy())
+        );
     },
     fireUpdate: function(dt) {
         var world = this.world;
