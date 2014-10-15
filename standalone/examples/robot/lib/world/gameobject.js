@@ -27,7 +27,7 @@ Object.subclass("GameObject", {
 	},
 	
 	draw: function(renderer) {
-		this.animation.draw(renderer, this.getWorldAABB(), this.velocity.getDirectedAngle(new Vector2(1,0)));
+		this.animation.draw(renderer, this.getWorldAABB(), new Vector2(1,0).getDirectedAngle(this.velocity));
 	},
 
 	getTile: function(pos) {

@@ -64,7 +64,7 @@ GameObject.subclass("Tank", {
 	draw: function($super, renderer) {
 	    $super(renderer);
 		this.turretAnimation.draw(
-		    renderer, this.getWorldAABB(), this.turretDirection.getDirectedAngle(new Vector2(1,0))
+		    renderer, this.getWorldAABB(), new Vector2(1,0).getDirectedAngle(this.turretDirection)
 		);
 	},
 

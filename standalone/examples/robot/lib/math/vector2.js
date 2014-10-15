@@ -211,7 +211,7 @@ Vector2.prototype.makePerpendicular = function() {
 };
 
 Vector2.prototype.crossProduct = function(vector) {
-	return this.x * vector.y + this.y * vector.x;
+	return this.x * vector.y - this.y * vector.x;
 };
 
 Vector2.prototype.lerp = function(to, i) {
