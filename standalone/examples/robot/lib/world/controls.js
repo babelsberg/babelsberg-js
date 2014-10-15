@@ -74,7 +74,7 @@ Object.subclass("Ray", {
 });
 */
 
-CPUControls.subclass("BrownTurret", {
+CPUControls.subclass("BrownTurret", { // Bobby
     initialize: function($super, tank, world, input, viewport) {
         $super(tank, world, input, viewport);
         this.rotationDirection = 1;
@@ -127,7 +127,7 @@ CPUControls.subclass("BrownTurret", {
     }
 });
 
-CPUControls.subclass("GreySoldier", {
+CPUControls.subclass("GreySoldier", { // Fred
     turretUpdate: function(dt) {
         // adjust turret direction randomly
         this.tank.turretDirection.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
@@ -146,7 +146,7 @@ CPUControls.subclass("GreySoldier", {
     }
 });
 
-CPUControls.subclass("TealHunter", {
+CPUControls.subclass("TealHunter", { // Luzy
     turretUpdate: function(dt) {
         // turret strongly seek the player
         this.tank.turretDirection.set(player.position.sub(this.tank.position));
