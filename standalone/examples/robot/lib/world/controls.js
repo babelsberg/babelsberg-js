@@ -51,29 +51,6 @@ Object.subclass("CPUControls", {
     }
 });
 
-/*
-Object.subclass("Line", {
-    initialize: function(a, b) {
-        this.a = a;
-        this.b = b;
-    }
-});
-
-Object.extend(Line, {
-    forRay: function(pos, dir) {
-        var a = dir.y / dir.x;
-        var b = pos.y - a * pos.x;
-        return new Line(a, b);
-    }
-});
-
-Object.subclass("Ray", {
-    initialize: function(pos, dir, ricochet) {
-
-    }
-});
-*/
-
 CPUControls.raycast = function(world, tank, color) {
     var pos = tank.position.copy(),
         dir = tank.turretDirection.normalizedCopy(),
