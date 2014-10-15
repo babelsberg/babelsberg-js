@@ -125,15 +125,9 @@ CPUControls.subclass("BrownTurret", { // Bobby
     },
     // fire on line of sight
     fireUpdate: function(dt) {
-        var world = this.world;
-        var map = world.map;
-        var tank = this.tank;
-        var pos = tank.position.copy();
-        var dir = tank.turretDirection.normalizedCopy();
+        CPUControls.raycast(this.world, this.tank, "brown");
 
-        CPUControls.raycast(world, tank, "brown");
-
-        if(tank.getTile(player.position).marked == "brown") {
+        if(this.tank.getTile(player.position).marked == "brown") {
             this.tank.fireBullet(this.world, dt);
         };
     }
@@ -150,13 +144,9 @@ CPUControls.subclass("GreySoldier", { // Fred
         //this.velocity.set(player.position.sub(this.position));
     },
     fireUpdate: function(dt) {
-        var world = this.world;
-        var map = world.map;
-        var tank = this.tank;
+        CPUControls.raycast(this.world, this.tank, "grey");
 
-        CPUControls.raycast(world, tank, "grey");
-
-        if(tank.getTile(player.position).marked == "grey") {
+        if(this.tank.getTile(player.position).marked == "grey") {
             this.tank.fireBullet(this.world, dt);
         };
     }
@@ -199,15 +189,9 @@ CPUControls.subclass("TealHunter", { // Luzy
         );
     },
     fireUpdate: function(dt) {
-        var world = this.world;
-        var map = world.map;
-        var tank = this.tank;
-        var pos = tank.position.copy();
-        var dir = tank.turretDirection.normalizedCopy();
+        CPUControls.raycast(this.world, this.tank, "teal");
 
-        CPUControls.raycast(world, tank, "teal");
-
-        if(tank.getTile(player.position).marked == "teal") {
+        if(this.tank.getTile(player.position).marked == "teal") {
             this.tank.fireBullet(this.world, dt);
         };
     }
