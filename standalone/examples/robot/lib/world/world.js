@@ -27,24 +27,28 @@ Object.subclass("World", {
         this.viewport = viewport;
 
         player = this.buildTank(
+            PlayerTank,
             new Vector2(5, 12),
             Vector2.Zero.copy(),
             new Vector2(1,0.5),
             Tank.Player
         );
         this.buildTank(
+            CPUTank,
             new Vector2(41, 13),
             new Vector2(-1,1),
             new Vector2(1,0.5),
             Tank.BrownTurret
         );
         this.buildTank(
+            CPUTank,
             new Vector2(10, 26),
             new Vector2(-1,1),
             new Vector2(1,0.5),
             Tank.GreySoldier
         );
         this.buildTank(
+            CPUTank,
             new Vector2(40, 26),
             new Vector2(-1,1),
             new Vector2(1,0.5),
@@ -52,8 +56,8 @@ Object.subclass("World", {
         );
 	},
 
-	buildTank: function(pos, vel, dir, config) {
-        var cpu = new CPUTank(this, pos, vel, dir, config);
+	buildTank: function(TankClass, pos, vel, dir, config) {
+        var cpu = new (TankClass)(this, pos, vel, dir, config);
         cpu.controls = new (config.intelligence)(cpu, this, this.input, this.viewport);
         this.spawn(cpu);
         return cpu;
