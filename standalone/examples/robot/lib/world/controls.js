@@ -153,6 +153,8 @@ CPUControls.subclass("TealHunter", {
     },
     movementUpdate: function(dt) {
 	    // adjust direction randomly
+
+	    // defensive movement
 	    var tank = this.tank;
 	    tank.velocity.set(this.world.getGameObjects()
             .filter(function(object) {
@@ -163,12 +165,22 @@ CPUControls.subclass("TealHunter", {
                 // take only near bullets into account
                 return bullet.position.distance(tank.position) < 7 * 2; // tileSize
             })
+            .filter(function(bullet) {
+                // take only bullets that fly towards my tank into account
+                var angle = tank.position.sub(bullet.position).getDirectedAngle(bullet.velocity);
+                return angle >= -90 && angle <= 90;
+            })
             .map(function(bullet) {
-                //
-                return bullet.velocity.getPerpendicular();
+                // use cross product of bullet direction and position difference
+                var a = bullet.velocity.copy();
+                var b = tank.position.sub(bullet.position);
+                var cross = [a.y - b.y, b.x - a.x, a.x * b.y - a.y * b.x];
+                var dir = new Vector2(cross[0], cross[1]);
+                dir.divFloatSelf(cross[2]);
+                return dir;
             })
             .reduce(function(prev, velocity) {
-              return prev.add(velocity);
+                return prev.add(velocity);
             }, Vector2.Zero.copy())
         );
     },
