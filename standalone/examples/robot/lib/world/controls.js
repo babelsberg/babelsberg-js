@@ -74,6 +74,39 @@ Object.subclass("Ray", {
 });
 */
 
+CPUControls.raycast = function(world, tank, pos, dir, color) {
+    var ricochets = tank.bulletRicochets;
+
+    function linecast(tank, pos, dir) {
+        var tile = tank.getTile(pos);
+        while(tile.canFlyThrough()) {
+            tile.marked = color;
+            pos.addSelf(dir);
+            tile = tank.getTile(pos);
+        }
+        tile.marked = "red";
+    };
+    function reflect(world, pos, dir) {
+        var reflectCoords = world.map.positionToCoordinates(pos);
+        pos.subSelf(dir);
+        var prevCoords = world.map.positionToCoordinates(pos);
+        if(reflectCoords.x == prevCoords.x) {
+            dir.y *= -1;
+        }
+        if(reflectCoords.y == prevCoords.y) {
+            dir.x *= -1;
+        }
+    };
+
+    linecast(tank, pos, dir);
+
+    while(ricochets > 0) {
+        ricochets--;
+        reflect(world, pos, dir);
+        linecast(tank, pos, dir);
+    }
+};
+
 CPUControls.subclass("BrownTurret", { // Bobby
     initialize: function($super, tank, world, input, viewport) {
         $super(tank, world, input, viewport);
@@ -96,30 +129,7 @@ CPUControls.subclass("BrownTurret", { // Bobby
         var pos = tank.position.copy();
         var dir = tank.turretDirection.normalizedCopy();
 
-        var tile = tank.getTile(pos);
-        while(tile.canFlyThrough()) {
-            tile.marked = "brown";
-            pos.addSelf(dir);
-            tile = tank.getTile(pos);
-        }
-        tile.marked = "red";
-
-        var reflectCoords = world.map.positionToCoordinates(pos);
-        pos.subSelf(dir);
-        var prevCoords = world.map.positionToCoordinates(pos);
-        if(reflectCoords.x == prevCoords.x) {
-            dir.y *= -1;
-        }
-        if(reflectCoords.y == prevCoords.y) {
-            dir.x *= -1;
-        }
-        var tile = tank.getTile(pos);
-        while(tile.canFlyThrough()) {
-            tile.marked = "brown";
-            pos.addSelf(dir);
-            tile = tank.getTile(pos);
-        }
-        tile.marked = "red";
+        CPUControls.raycast(world, tank, pos, dir, "brown");
 
         if(tank.getTile(player.position).marked == "brown") {
             this.tank.fireBullet(this.world, dt);
@@ -191,13 +201,7 @@ CPUControls.subclass("TealHunter", { // Luzy
         var pos = tank.position.copy();
         var dir = tank.turretDirection.normalizedCopy();
 
-        var tile = tank.getTile(pos);
-        while(tile.canFlyThrough()) {
-            tile.marked = "teal";
-            pos.addSelf(dir);
-            tile = tank.getTile(pos);
-        }
-        tile.marked = "red";
+        CPUControls.raycast(world, tank, pos, dir, "teal");
 
         if(tank.getTile(player.position).marked == "teal") {
             this.tank.fireBullet(this.world, dt);
