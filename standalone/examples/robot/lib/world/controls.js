@@ -50,7 +50,7 @@ Object.subclass("CPUControls", {
         this.fireUpdate(dt);
     },
     getTargetTiles: function() {
-        return CPUControls.raycast(this.world, this.tank, this.color);
+        return CPUControls.raycast(this.world, this.tank);
     },
     // fire on line of sight
     fireUpdate: function(dt) {
@@ -62,7 +62,7 @@ Object.subclass("CPUControls", {
     }
 });
 
-CPUControls.raycast = function(world, tank, color) {
+CPUControls.raycast = function(world, tank) {
     var tiles = [],
         pos = tank.position.copy(),
         dir = tank.turretDirection.normalizedCopy(),
