@@ -48,6 +48,19 @@ Object.subclass("CPUControls", {
         this.turretUpdate(dt);
         this.movementUpdate(dt);
         this.fireUpdate(dt);
+    },
+    getTargetTiles: function(color) {
+        var tiles = CPUControls.raycast(this.world, this.tank, this.color);
+
+        return tiles;
+    },
+    // fire on line of sight
+    fireUpdate: function(dt) {
+        var tiles = this.getTargetTiles();
+
+        if(tiles.indexOf(this.tank.getTile(player.position)) >= 0) {
+            this.tank.fireBullet(this.world, dt);
+        };
     }
 });
 
@@ -94,6 +107,7 @@ CPUControls.subclass("BrownTurret", { // Bobby
     initialize: function($super, tank, world, input, viewport) {
         $super(tank, world, input, viewport);
         this.rotationDirection = 1;
+        this.color = "brown";
     },
     turretUpdate: function(dt) {
         if(Math.random() < 0.02) {
@@ -103,18 +117,14 @@ CPUControls.subclass("BrownTurret", { // Bobby
     },
     movementUpdate: function(dt) {
 	    this.tank.velocity.set(Vector2.Zero);
-    },
-    // fire on line of sight
-    fireUpdate: function(dt) {
-        var tiles = CPUControls.raycast(this.world, this.tank, "brown");
-
-        if(tiles.indexOf(this.tank.getTile(player.position)) >= 0) {
-            this.tank.fireBullet(this.world, dt);
-        };
     }
 });
 
 CPUControls.subclass("GreySoldier", { // Fred
+    initialize: function($super, tank, world, input, viewport) {
+        $super(tank, world, input, viewport);
+        this.color = "grey";
+    },
     turretUpdate: function(dt) {
         // adjust turret direction randomly
         this.tank.turretDirection.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
@@ -123,17 +133,14 @@ CPUControls.subclass("GreySoldier", { // Fred
 	    // adjust direction randomly
 	    this.tank.velocity.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
         //this.velocity.set(player.position.sub(this.position));
-    },
-    fireUpdate: function(dt) {
-        var tiles = CPUControls.raycast(this.world, this.tank, "grey");
-
-        if(tiles.indexOf(this.tank.getTile(player.position)) >= 0) {
-            this.tank.fireBullet(this.world, dt);
-        };
     }
 });
 
 CPUControls.subclass("TealHunter", { // Luzy
+    initialize: function($super, tank, world, input, viewport) {
+        $super(tank, world, input, viewport);
+        this.color = "teal";
+    },
     turretUpdate: function(dt) {
         // turret strongly seek the player
         this.tank.turretDirection.set(player.position.sub(this.tank.position));
@@ -169,13 +176,6 @@ CPUControls.subclass("TealHunter", { // Luzy
                 return prev.add(velocity);
             }, Vector2.Zero.copy())
         );
-    },
-    fireUpdate: function(dt) {
-        var tiles = CPUControls.raycast(this.world, this.tank, "teal");
-
-        if(tiles.indexOf(this.tank.getTile(player.position)) >= 0) {
-            this.tank.fireBullet(this.world, dt);
-        };
     }
 });
 
