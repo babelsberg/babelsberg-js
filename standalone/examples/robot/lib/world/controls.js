@@ -49,8 +49,46 @@ Object.subclass("CPUControls", {
         this.movementUpdate(dt);
         this.fireUpdate(dt);
     },
+    raycast: function() {
+        var world = this.world,
+            tank = this.tank,
+            tiles = [],
+            pos = tank.position.copy(),
+            dir = tank.turretDirection.normalizedCopy(),
+            ricochets = tank.bulletRicochets;
+
+        function linecast(tank, pos, dir) {
+            var tile = tank.getTile(pos);
+            while(tile.canFlyThrough()) {
+                pos.addSelf(dir);
+                tile = tank.getTile(pos);
+                tiles.push(tile)
+            }
+        };
+        function reflect(world, pos, dir) {
+            var reflectCoords = world.map.positionToCoordinates(pos);
+            pos.subSelf(dir);
+            var prevCoords = world.map.positionToCoordinates(pos);
+            if(reflectCoords.x == prevCoords.x) {
+                dir.y *= -1;
+            }
+            if(reflectCoords.y == prevCoords.y) {
+                dir.x *= -1;
+            }
+        };
+
+        linecast(tank, pos, dir);
+
+        while(ricochets > 0) {
+            ricochets--;
+            reflect(world, pos, dir);
+            linecast(tank, pos, dir);
+        }
+
+        return tiles;
+    },
     getTargetTiles: function() {
-        return CPUControls.raycast(this.world, this.tank);
+        return this.raycast();
     },
     // fire on line of sight
     fireUpdate: function(dt) {
@@ -61,43 +99,6 @@ Object.subclass("CPUControls", {
         };
     }
 });
-
-CPUControls.raycast = function(world, tank) {
-    var tiles = [],
-        pos = tank.position.copy(),
-        dir = tank.turretDirection.normalizedCopy(),
-        ricochets = tank.bulletRicochets;
-
-    function linecast(tank, pos, dir) {
-        var tile = tank.getTile(pos);
-        while(tile.canFlyThrough()) {
-            pos.addSelf(dir);
-            tile = tank.getTile(pos);
-            tiles.push(tile)
-        }
-    };
-    function reflect(world, pos, dir) {
-        var reflectCoords = world.map.positionToCoordinates(pos);
-        pos.subSelf(dir);
-        var prevCoords = world.map.positionToCoordinates(pos);
-        if(reflectCoords.x == prevCoords.x) {
-            dir.y *= -1;
-        }
-        if(reflectCoords.y == prevCoords.y) {
-            dir.x *= -1;
-        }
-    };
-
-    linecast(tank, pos, dir);
-
-    while(ricochets > 0) {
-        ricochets--;
-        reflect(world, pos, dir);
-        linecast(tank, pos, dir);
-    }
-
-    return tiles;
-};
 
 CPUControls.subclass("BrownTurret", { // Bobby
     initialize: function($super, tank, world, input, viewport) {
