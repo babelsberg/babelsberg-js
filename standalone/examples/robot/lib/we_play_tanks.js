@@ -75,6 +75,17 @@ window.onload = function() {
                 cop.proceed(renderer);
            		renderer.drawLine(this.position, this.position.add(this.velocity), "red", 1, 3);
             }
+        })
+        .refineClass(CPUControls, {
+            getTargetTiles: function() {
+                var tiles = cop.proceed();
+
+                tiles.each(function(tile) {
+                    tile.marked = tile.canFlyThrough() ? this.color : "red";
+                }, this);
+
+                return tiles;
+            }
         });
 
 	var world, gui;

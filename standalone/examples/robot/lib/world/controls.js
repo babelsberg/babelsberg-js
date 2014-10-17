@@ -49,10 +49,8 @@ Object.subclass("CPUControls", {
         this.movementUpdate(dt);
         this.fireUpdate(dt);
     },
-    getTargetTiles: function(color) {
-        var tiles = CPUControls.raycast(this.world, this.tank, this.color);
-
-        return tiles;
+    getTargetTiles: function() {
+        return CPUControls.raycast(this.world, this.tank, this.color);
     },
     // fire on line of sight
     fireUpdate: function(dt) {
@@ -73,12 +71,10 @@ CPUControls.raycast = function(world, tank, color) {
     function linecast(tank, pos, dir) {
         var tile = tank.getTile(pos);
         while(tile.canFlyThrough()) {
-            tile.marked = color;
-            tiles.push(tile);
             pos.addSelf(dir);
             tile = tank.getTile(pos);
+            tiles.push(tile)
         }
-        tile.marked = "red";
     };
     function reflect(world, pos, dir) {
         var reflectCoords = world.map.positionToCoordinates(pos);
