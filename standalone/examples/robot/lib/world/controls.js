@@ -49,13 +49,9 @@ Object.subclass("CPUControls", {
         this.movementUpdate(dt);
         this.fireUpdate(dt);
     },
-    raycast: function() {
-        var world = this.world,
-            tank = this.tank,
-            tiles = [],
-            pos = tank.position.copy(),
-            dir = tank.turretDirection.normalizedCopy(),
-            ricochets = tank.bulletRicochets;
+    raycast: function(dir, ricochets) {
+        var tiles = [],
+            pos = this.tank.position.copy();
 
         function linecast(tank, pos, dir) {
             var tile = tank.getTile(pos);
@@ -77,18 +73,21 @@ Object.subclass("CPUControls", {
             }
         };
 
-        linecast(tank, pos, dir);
+        linecast(this.tank, pos, dir);
 
         while(ricochets > 0) {
             ricochets--;
-            reflect(world, pos, dir);
-            linecast(tank, pos, dir);
+            reflect(this.world, pos, dir);
+            linecast(this.tank, pos, dir);
         }
 
         return tiles;
     },
     getTargetTiles: function() {
-        return this.raycast();
+        return this.raycast(
+            this.tank.turretDirection.normalizedCopy(),
+            this.tank.bulletRicochets
+        );
     },
     // fire on line of sight
     fireUpdate: function(dt) {
