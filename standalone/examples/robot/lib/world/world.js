@@ -42,6 +42,13 @@ Object.subclass("World", {
         );
         this.buildTank(
             CPUTank,
+            new Vector2(31, 5),
+            new Vector2(-1,1),
+            new Vector2(1,0.5),
+            Tank.BrownTurret
+        );
+        this.buildTank(
+            CPUTank,
             new Vector2(10, 26),
             new Vector2(-1,1),
             new Vector2(1,0.5),

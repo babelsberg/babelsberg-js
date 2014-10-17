@@ -52,7 +52,8 @@ Object.subclass("CPUControls", {
 });
 
 CPUControls.raycast = function(world, tank, color) {
-    var pos = tank.position.copy(),
+    var tiles = [],
+        pos = tank.position.copy(),
         dir = tank.turretDirection.normalizedCopy(),
         ricochets = tank.bulletRicochets;
 
@@ -60,6 +61,7 @@ CPUControls.raycast = function(world, tank, color) {
         var tile = tank.getTile(pos);
         while(tile.canFlyThrough()) {
             tile.marked = color;
+            tiles.push(tile);
             pos.addSelf(dir);
             tile = tank.getTile(pos);
         }
@@ -84,6 +86,8 @@ CPUControls.raycast = function(world, tank, color) {
         reflect(world, pos, dir);
         linecast(tank, pos, dir);
     }
+
+    return tiles;
 };
 
 CPUControls.subclass("BrownTurret", { // Bobby
@@ -102,9 +106,9 @@ CPUControls.subclass("BrownTurret", { // Bobby
     },
     // fire on line of sight
     fireUpdate: function(dt) {
-        CPUControls.raycast(this.world, this.tank, "brown");
+        var tiles = CPUControls.raycast(this.world, this.tank, "brown");
 
-        if(this.tank.getTile(player.position).marked == "brown") {
+        if(tiles.indexOf(this.tank.getTile(player.position)) >= 0) {
             this.tank.fireBullet(this.world, dt);
         };
     }
@@ -121,9 +125,9 @@ CPUControls.subclass("GreySoldier", { // Fred
         //this.velocity.set(player.position.sub(this.position));
     },
     fireUpdate: function(dt) {
-        CPUControls.raycast(this.world, this.tank, "grey");
+        var tiles = CPUControls.raycast(this.world, this.tank, "grey");
 
-        if(this.tank.getTile(player.position).marked == "grey") {
+        if(tiles.indexOf(this.tank.getTile(player.position)) >= 0) {
             this.tank.fireBullet(this.world, dt);
         };
     }
@@ -161,14 +165,15 @@ CPUControls.subclass("TealHunter", { // Luzy
                 return dir;
             })
             .reduce(function(prev, velocity) {
+                // accumulate all directions
                 return prev.add(velocity);
             }, Vector2.Zero.copy())
         );
     },
     fireUpdate: function(dt) {
-        CPUControls.raycast(this.world, this.tank, "teal");
+        var tiles = CPUControls.raycast(this.world, this.tank, "teal");
 
-        if(this.tank.getTile(player.position).marked == "teal") {
+        if(tiles.indexOf(this.tank.getTile(player.position)) >= 0) {
             this.tank.fireBullet(this.world, dt);
         };
     }
