@@ -253,6 +253,7 @@ Object.subclass('Babelsberg', {
         func.onError = opts.onError;
 
         solvers.some(function(solver) {
+            if (solver.$$identity) return false;
             try {
                 constraint = solver.always(opts, func);
             } catch (e) {
@@ -267,6 +268,7 @@ Object.subclass('Babelsberg', {
                 constraint = null;
                 return false;
             }
+            solver.$$value = true;
             return true;
         });
 
@@ -282,6 +284,58 @@ Object.subclass('Babelsberg', {
             }
         }
         bbb.processCallbacks();
+        return constraint;
+    },
+
+    /**
+     * Creates a constraint equivalent to the given function through
+     * Babelsberg#always, and then disables it immediately
+     * @function Babelsberg#once
+     * @public
+     */
+    once: function(opts, func) {
+        var constraint = this.always(opts, func);
+        constraint.disable();
+        return constraint;
+    },
+
+    /**
+     * Creates an identity constraint. This uses the normal constraint
+     * building mechanism, but only works with a DeltaBlue instance
+     * that has not been used with normal value constraints. This also
+     * increases the solver weight and sets a flag to make sure it's
+     * run first.
+     * @function Babelsberg#identAlways
+     * @public
+     */
+    identAlways: function(opts, func) {
+        var solvers = this.chooseSolvers(opts.solver);
+        func.debugging = opts.debugging;
+
+        if (solvers.length !== 1 ||
+            (!solvers[0] instanceof DBPlanner) ||
+            solvers[0].$$value) {
+            throw new Error(
+                'We solve identities with a DeltaBlue that has no value constraints.'
+            );
+        }
+        var solver = solvers[0];
+        solver.$$identity = true;
+        solver.weight = Number.MAX_SAFE_INTEGER;
+        var constraint = solver.always(opts, func);
+        constraint.enable();
+        return constraint;
+    },
+
+    /**
+     * Creates a constraint equivalent to the given function through
+     * Babelsberg#always, and then disables it immediately
+     * @function Babelsberg#once
+     * @public
+     */
+    identOnce: function(opts, func) {
+        var constraint = this.identAlways(opts, func);
+        constraint.disable();
         return constraint;
     },
 
@@ -1300,6 +1354,11 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
                     Object.isNumber(leftVal)) {
                     return rightVal.plus(-leftVal);
                 } // special case for reversing minus - allowed to fall through to default
+            case '===':
+                if (!Constraint.current.solver.$$identity) {
+                    debugger
+                    throw 'Identity constraints must be defined separately';
+                } // otherwise we fall through
             case 'in':
                 if (node.name != '-') {
                     if (leftVal.isConstraintObject && leftVal.cnIn) {

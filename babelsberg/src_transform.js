@@ -12,6 +12,26 @@ toRun(function() {
                     (node.body instanceof UglifyJS.AST_BlockStatement));
         },
 
+        isOnce: function(node) {
+            return ((node instanceof UglifyJS.AST_LabeledStatement) &&
+                    (node.label.name === 'once') &&
+                    (node.body instanceof UglifyJS.AST_BlockStatement));
+        },
+
+        isIdentity: function(node) {
+            if (!(this.isAlways(node) || this.isOnce(node))) return false;
+            debugger
+            for(var i = 0; i < node.body.body.length - 1; i++) {
+                if (!(node.body.body[i] instanceof UglifyJS.AST_LabeledStatement)) {
+                    return false;
+                }
+            }
+            var lastStmt = node.body.body.last();
+            return lastStmt instanceof UglifyJS.AST_SimpleStatement &&
+                lastStmt.body instanceof UglifyJS.AST_Binary &&
+                lastStmt.body.operator === "===";
+        },
+
         ensureThisToSelfIn: function(ast) {
             var tr = new UglifyJS.TreeTransformer(function(node) {
                 if (node instanceof UglifyJS.AST_This) {
@@ -94,13 +114,22 @@ toRun(function() {
         getContextTransformerFor: function(ast) {
             var self = this;
             return new UglifyJS.TreeTransformer(null, function(node) {
-                if (self.isAlways(node)) {
-                    var node = self.createCallFor(node);
-                    self.ensureContextFor(ast, node);
-                    self.isTransformed = true;
-                    return node;
+                if (self.isIdentity(node)) {
+                    var name = self.isAlways(node) ? 'identAlways' : 'identOnce';
+                    return self.transformConstraint(ast, node, name);
+                } else if (self.isAlways(node)) {
+                    return self.transformConstraint(ast, node, 'always');
+                } else if (self.isOnce(node)) {
+                    return self.transformConstraint(ast, node, 'once');
                 }
             });
+        },
+
+        transformConstraint: function(ast, node, name) {
+            var node = this.createCallFor(node, name);
+            this.ensureContextFor(ast, node);
+            this.isTransformed = true;
+            return node;
         },
 
         transform: function(code) {
@@ -185,7 +214,7 @@ toRun(function() {
         return {body: newBody, args: args};
     },
 
-    createCallFor: function(alwaysNode) {
+    createCallFor: function(alwaysNode, methodName) {
         var splitBodyAndArgs = this.extractArgumentsFrom(alwaysNode),
             body = splitBodyAndArgs.body,
             args = splitBodyAndArgs.args,
@@ -204,7 +233,7 @@ toRun(function() {
                 expression: new UglifyJS.AST_Dot({
                     start: alwaysNode.start,
                     end: alwaysNode.end,
-                    property: 'always',
+                    property: methodName,
                     expression: new UglifyJS.AST_SymbolRef({
                         start: alwaysNode.start,
                         end: alwaysNode.end,
