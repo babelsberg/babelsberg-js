@@ -1173,25 +1173,6 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         return $super(node);
     },
 
-    visitCond: function($super, node) {
-        var frame = this.currentFrame,
-            condVal = this.visit(node.condExpr);
-        if (condVal && condVal.isConstraintObject) {
-            debugger;
-            var self = this;
-            condVal = this.getConstraintObjectValue(condVal);
-            if (!condVal) {
-                condVal = cop.withoutLayers([ConstraintConstructionLayer], function() {
-                    // XXX: this will cause GetSlot to call $super, so
-                    // we don't get constrainded vars
-                    return self.visit(node.condExpr);
-                });
-                debugger;
-            }
-        }
-        return condVal ? this.visit(node.trueExpr) : this.visit(node.falseExpr);
-    },
-
     visitUnaryOp: function($super, node) {
         var frame = this.currentFrame,
             val = this.visit(node.expr),
@@ -1350,7 +1331,6 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         }
     },
 
-
     visitGetSlot: function($super, node) {
         if (cop.currentLayers().indexOf(ConstraintConstructionLayer) === -1) {
             // XXX: See visitCond
@@ -1447,6 +1427,15 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
             return false;
         }
         var nativeClass = lively.Class.isClass(func) && func.superclass === undefined;
+        if (func.ast) {
+            var ast = func.ast();
+            if (ast.body.children.length !== 1 ||
+                ast.body.children[0].constructor.name !== 'Return') {
+                // as per semantics, we only support single-return
+                // functions in two-way constraints
+                return false;
+            }
+        }
         return (!(this.isNative(func) || nativeClass)) &&
                  typeof(func.forInterpretation) == 'function';
     },
