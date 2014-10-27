@@ -116,23 +116,65 @@ CPUControls.subclass("BrownTurret", { // Bobby
     }
 });
 
-CPUControls.subclass("GreySoldier", { // Fred
+CPUControls.subclass("MovingCPUControls", {
     initialize: function($super, tank, world, input, viewport) {
         $super(tank, world, input, viewport);
+        var that = this;
+
+        this.angularVelocity = 0;
+        this.rotationDelta = 0;
+
+        // do not drive too small curves
+        bbb.assert({
+            onError: function(error) {
+                if(!error instanceof ContinuousAssertError) {
+                    throw error;
+                }
+            },
+            ctx: {
+                that: that
+            }
+        }, function() {
+            return that.angularVelocity < 2 && that.angularVelocity > -2;
+        });
+    },
+    // free movement
+    movementUpdate: function(dt) {
+	    // adjust direction randomly
+        this.rotationDelta = Math.random() > 0.75 ? 0 : Math.random() > 0.5 ? 0.1 : -0.1;
+        this.angularVelocity += this.rotationDelta;
+	    this.tank.velocity.rotateSelf(Math.PI / 180 * this.angularVelocity);
+    }
+});
+
+MovingCPUControls.subclass("GreySoldier", { // Fred
+    initialize: function($super, tank, world, input, viewport) {
+        $super(tank, world, input, viewport);
+        var that = this;
         this.color = "grey";
+
+        this.angularVelocity = 0;
+        this.rotationDelta = 0;
+        bbb.assert({
+            onError: function(error) {
+                if(!error instanceof ContinuousAssertError) {
+                    throw error;
+                }
+            },
+            ctx: {
+                that: that
+            }
+        }, function() {
+            return that.angularVelocity < 2 && that.angularVelocity > -2;
+        });
     },
     turretUpdate: function(dt) {
         // adjust turret direction randomly
         this.tank.turretDirection.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
-    },
-    movementUpdate: function(dt) {
-	    // adjust direction randomly
-	    this.tank.velocity.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
-        //this.velocity.set(player.position.sub(this.position));
     }
 });
 
-CPUControls.subclass("TealHunter", { // Luzy
+MovingCPUControls.subclass("TealHunter", { // Luzy
     initialize: function($super, tank, world, input, viewport) {
         $super(tank, world, input, viewport);
         this.color = "teal";
@@ -141,10 +183,10 @@ CPUControls.subclass("TealHunter", { // Luzy
         // turret strongly seek the player
         this.tank.turretDirection.set(player.position.sub(this.tank.position));
     },
-    movementUpdate: function(dt) {
-	    // defensive movement
+    movementUpdate: function($super, dt) {
+	    // defensive movement (if necessary)
 	    var tank = this.tank;
-	    tank.velocity.set(this.world.getGameObjects()
+	    var evadeVelocity = this.world.getGameObjects()
             .filter(function(object) {
                 // take only bullets
                 return object.name === "bullet";
@@ -171,7 +213,12 @@ CPUControls.subclass("TealHunter", { // Luzy
                 // accumulate all directions
                 return prev.add(velocity);
             }, Vector2.Zero.copy())
-        );
+
+        if(evadeVelocity.notEquals(Vector2.Zero)) {
+            tank.velocity.set(evadeVelocity);
+        } else {
+            $super(dt);
+        }
     }
 });
 
