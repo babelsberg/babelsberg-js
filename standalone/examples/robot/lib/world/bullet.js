@@ -13,8 +13,7 @@ GameObject.subclass("Bullet", {
 
 	initConstraints: function() {
         var that = this,
-            map = this.world.map,
-            db = new DBPlanner();
+            map = this.world.map;
 
         // constraint idea:
         // separate this into 2 constraints
