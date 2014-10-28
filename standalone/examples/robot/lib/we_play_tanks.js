@@ -37,7 +37,6 @@ window.onload = function() {
 	input.bind(Input.KEY.MWHEEL_DOWN, "zoomOut");
 
 	input.bind(Input.KEY.P, "debug");
-	input.bind(Input.KEY.X, "enemyFire");
 
 	var viewport = new Viewport(
 		new Vector2(30, 30* canvas.height/canvas.width),
@@ -68,7 +67,7 @@ window.onload = function() {
                 input: input
             }
         }, function() {
-            return input.state("debug") !== true;
+            return input.switchedOn("debug") == true;
         })
         .refineClass(GameObject, {
             draw: function(renderer) {

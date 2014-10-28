@@ -6,6 +6,7 @@ Object.subclass("Input", {
 		this.actions = {};
 		this.presses = {};
 		this.locks = {};
+		this.switches = {};
 		this.delayedKeyup = {};
 		
 		this.isUsingMouse = false;
@@ -158,6 +159,7 @@ Object.subclass("Input", {
 			if( !this.locks[action] ) {
 				this.presses[action] = true;
 				this.locks[action] = true;
+				this.switches[action] = !this.switches[action];
 			}
 			event.stopPropagation();
 			event.preventDefault();
@@ -214,6 +216,7 @@ Object.subclass("Input", {
 		this.actions = {};
 		this.presses = {};
 		this.locks = {};
+		this.switches = {};
 		this.delayedKeyup = {};
 	},
 	
@@ -229,6 +232,14 @@ Object.subclass("Input", {
 		return this.delayedKeyup[action];
 	},
 	
+	switchedOn: function(action) {
+		return this.switches[action];
+	},
+
+	switchedOff: function(action) {
+		return !this.switches[action];
+	},
+
 	clearPressed: function() {
 		for( var action in this.delayedKeyup ) {
 			if(!this.delayedKeyup.hasOwnProperty(action)) continue;
