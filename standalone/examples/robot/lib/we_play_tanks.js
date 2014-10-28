@@ -150,7 +150,6 @@ window.onload = function() {
 	}
 	
 	// asset loading
-	var imgTile, imgConcept;
 	queue()
 		.defer(loadImage, "assets/tileset.png")
 		.defer(loadImage, "assets/tank.png")
