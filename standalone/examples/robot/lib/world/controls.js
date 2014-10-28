@@ -49,13 +49,13 @@ Object.subclass("CPUControls", {
         this.movementUpdate(dt);
         this.fireUpdate(dt);
     },
-    raycast: function(dir, ricochets) {
+    raycast: function(dir, ricochets, flying) {
         var tiles = [],
             pos = this.tank.position.copy();
 
         function linecast(tank, pos, dir) {
             var tile = tank.getTile(pos);
-            while(tile.canFlyThrough()) {
+            while(flying ? tile.canFlyThrough() : tile.canWalkThrough()) {
                 pos.addSelf(dir);
                 tile = tank.getTile(pos);
                 tiles.push(tile)
@@ -86,7 +86,8 @@ Object.subclass("CPUControls", {
     getTargetTiles: function() {
         return this.raycast(
             this.tank.turretDirection.normalizedCopy(),
-            this.tank.bulletRicochets
+            this.tank.bulletRicochets,
+            true
         );
     },
     // fire on line of sight
@@ -105,6 +106,7 @@ CPUControls.subclass("BrownTurret", { // Bobby
         this.rotationDirection = 1;
         this.color = "brown";
     },
+    // free turret rotation
     turretUpdate: function(dt) {
         if(Math.random() < 0.02) {
             this.rotationDirection *= -1;
@@ -137,15 +139,45 @@ CPUControls.subclass("MovingCPUControls", {
                 that: that
             }
         }, function() {
-            return that.angularVelocity < 2 && that.angularVelocity > -2;
+            return that.angularVelocity < 4 && that.angularVelocity > -4;
         });
     },
     // free movement
+    getTilesFor: function(direction) {
+        var tiles = this.raycast(
+            direction.normalizedCopy(),
+            0,
+            false
+        );
+        return tiles;
+    },
+    getVectorFieldHistogram: function(degrees) {
+        var histogram = degrees
+            .map(function(degree) {
+                return (Math.PI / 180) * degree;
+            })
+            .map(function(radian) {
+                return this.getTilesFor(this.tank.velocity.rotate(radian)).length;
+            }, this);
+        return histogram;
+    },
     movementUpdate: function(dt) {
+        this.angularVelocity *= 0.98;
+
 	    // adjust direction randomly
         this.tankRotationDirection = Math.random() > 0.75 ? 0 : Math.random() > 0.5 ? 1 : -1;
-        this.angularVelocity += this.tankRotationDirection * this.tankRotationSpeed * dt;
-	    this.tank.velocity.rotateSelf(Math.PI / 180 * this.angularVelocity);
+	    this.angularVelocity += this.tankRotationDirection * this.tankRotationSpeed * dt;
+
+	    //wall avoidance
+        var degrees = [-80, -60, -40, -20, 20, 40, 60, 80];
+	    var histogram = this.getVectorFieldHistogram(degrees);
+	    var direction = histogram.reduce(function(acc, value, index) {
+	        return acc + value / degrees[index];
+	    }, 0);
+	    this.angularVelocity += direction * this.tankRotationSpeed * dt;
+
+        // update direction
+   	    this.tank.velocity.rotateSelf((Math.PI / 180) * this.angularVelocity);
     }
 });
 
