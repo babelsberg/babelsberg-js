@@ -122,7 +122,9 @@ CPUControls.subclass("MovingCPUControls", {
         var that = this;
 
         this.angularVelocity = 0;
-        this.rotationDelta = 0;
+        this.tankRotationDirection = 0;
+
+        this.tankRotationSpeed = 300 * Math.PI / 180;
 
         // do not drive too small curves
         bbb.assert({
@@ -141,8 +143,8 @@ CPUControls.subclass("MovingCPUControls", {
     // free movement
     movementUpdate: function(dt) {
 	    // adjust direction randomly
-        this.rotationDelta = Math.random() > 0.75 ? 0 : Math.random() > 0.5 ? 0.1 : -0.1;
-        this.angularVelocity += this.rotationDelta; // TODO: * this.tankRotationSpeed * dt
+        this.tankRotationDirection = Math.random() > 0.75 ? 0 : Math.random() > 0.5 ? 1 : -1;
+        this.angularVelocity += this.tankRotationDirection * this.tankRotationSpeed * dt;
 	    this.tank.velocity.rotateSelf(Math.PI / 180 * this.angularVelocity);
     }
 });
