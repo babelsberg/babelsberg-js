@@ -142,7 +142,7 @@ CPUControls.subclass("MovingCPUControls", {
     movementUpdate: function(dt) {
 	    // adjust direction randomly
         this.rotationDelta = Math.random() > 0.75 ? 0 : Math.random() > 0.5 ? 0.1 : -0.1;
-        this.angularVelocity += this.rotationDelta;
+        this.angularVelocity += this.rotationDelta; // TODO: * this.tankRotationSpeed * dt
 	    this.tank.velocity.rotateSelf(Math.PI / 180 * this.angularVelocity);
     }
 });
@@ -150,27 +150,33 @@ CPUControls.subclass("MovingCPUControls", {
 MovingCPUControls.subclass("GreySoldier", { // Fred
     initialize: function($super, tank, world, input, viewport) {
         $super(tank, world, input, viewport);
-        var that = this;
         this.color = "grey";
 
-        this.angularVelocity = 0;
-        this.rotationDelta = 0;
-        bbb.assert({
-            onError: function(error) {
-                if(!error instanceof ContinuousAssertError) {
-                    throw error;
-                }
+        var tank = this.tank,
+            that = this;
+
+        this.rotationDirection = 1;
+
+        // turret mildly seeks the player
+        bbb.trigger({
+            callback: function() {
+                that.rotationDirection *= -1;
             },
             ctx: {
-                that: that
+                tank: tank,
+                player: player
             }
         }, function() {
-            return that.angularVelocity < 2 && that.angularVelocity > -2;
+            var angle = player.position.sub(tank.position).getDirectedAngle(tank.turretDirection);
+            return angle < -90 || angle > 90;
         });
     },
     turretUpdate: function(dt) {
-        // adjust turret direction randomly
-        this.tank.turretDirection.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
+        // TODO: remove duplication with BrownTurret/Bobby.turretUpdate
+        if(Math.random() < 0.02) {
+            this.rotationDirection *= -1;
+        }
+        this.tank.turretDirection.rotateSelf(this.rotationDirection * this.turretRotationSpeed * dt);
     }
 });
 
@@ -221,4 +227,3 @@ MovingCPUControls.subclass("TealHunter", { // Luzy
         }
     }
 });
-
