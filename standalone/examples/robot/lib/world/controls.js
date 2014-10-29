@@ -166,13 +166,13 @@ CPUControls.subclass("MovingCPUControls", {
 
 	    // adjust direction randomly
         this.tankRotationDirection = Math.random() > 0.75 ? 0 : Math.random() > 0.5 ? 1 : -1;
-	    this.angularVelocity += this.tankRotationDirection * this.tankRotationSpeed * dt;
+	    this.angularVelocity += this.tankRotationDirection * 0.2 * this.tankRotationSpeed * dt;
 
 	    //wall avoidance
-        var degrees = [-80, -60, -40, -20, 20, 40, 60, 80];
+        var degrees = [-100, -80, -60, -40, -20, 20, 40, 60, 80, 100];
 	    var histogram = this.getVectorFieldHistogram(degrees);
 	    var direction = histogram.reduce(function(acc, value, index) {
-	        return acc + value / degrees[index];
+	        return acc + value / (degrees[index]);
 	    }, 0);
 	    this.angularVelocity += direction * this.tankRotationSpeed * dt;
 
