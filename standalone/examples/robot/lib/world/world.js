@@ -33,34 +33,61 @@ Object.subclass("World", {
             new Vector2(1,0.5),
             Tank.Player
         );
-        this.buildTank(
+        var e1 = this.buildTank(
             CPUTank,
             new Vector2(41, 13),
             Vector2.Zero.copy(),
             new Vector2(1,0.5),
             Tank.BrownTurret
         );
-        this.buildTank(
+        var e2 = this.buildTank(
             CPUTank,
             new Vector2(31, 5),
             Vector2.Zero.copy(),
             new Vector2(1,0.5),
             Tank.BrownTurret
         );
-        this.buildTank(
+        var e3 = this.buildTank(
             CPUTank,
             new Vector2(10, 26),
             new Vector2(1,1),
             new Vector2(1,0.5),
             Tank.GreySoldier
         );
-        this.buildTank(
+        var e4 = this.buildTank(
             CPUTank,
             new Vector2(40, 26),
             new Vector2(0,1),
             new Vector2(1,0.5),
             Tank.TealHunter
         );
+
+        // trigger new level
+        bbb.trigger({
+            callback: function() {
+                this.disable();
+                console.log("TRY AGAIN");
+            },
+            ctx: {
+                player: player
+            }
+        }, function() {
+            return player.alive == false;
+        });
+        bbb.trigger({
+            callback: function() {
+                this.disable();
+                console.log("WIN");
+            },
+            ctx: {
+                e1: e1,
+                e2: e2,
+                e3: e3,
+                e4: e4
+            }
+        }, function() {
+            return !e1.alive && !e2.alive && !e3.alive && !e4.alive;
+        });
 	},
 
 	buildTank: function(TankClass, pos, vel, dir, config) {
