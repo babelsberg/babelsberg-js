@@ -5,9 +5,7 @@ Object.subclass("Game", {
         this.renderer = new Renderer(this.canvas);
         this.buildViewport();
         this.constrainDebugLayer();
-        this.init();
     },
-    init: function() {},
     buildCanvas: function(canvasId) {
         this.canvas = document.getElementById(canvasId);
         this.canvas.style.position = "absolute";
@@ -65,31 +63,13 @@ Object.subclass("Game", {
         var input = this.input;
 
         // do not debugdraw velocities if debug button is pressed
-        cop.create("debugLayer")
-            .activeOn({
-                ctx: {
-                    input: input
-                }
-            }, function() {
-                return input.switchedOn("debug") == true;
-            })
-            .refineClass(GameObject, {
-                draw: function(renderer) {
-                    cop.proceed(renderer);
-                    renderer.drawLine(this.position, this.position.add(this.velocity), "red", 1, 3);
-                }
-            })
-            .refineClass(CPUControls, {
-                getTargetTiles: function() {
-                    var tiles = cop.proceed();
-
-                    tiles.each(function(tile) {
-                        tile.marked = tile.canFlyThrough() ? this.color : "red";
-                    }, this);
-
-                    return tiles;
-                }
-            });
+        DebugLayer.activeOn({
+            ctx: {
+                input: input
+            }
+        }, function() {
+            return input.switchedOn("debug") == true;
+        });
     },
     prepare: function() {
         this.world = new World(new AABB(
@@ -118,7 +98,26 @@ Object.subclass("Game", {
     }
 });
 
-cop.create("adjustViewportManuallyLayer")
+cop.create("DebugLayer")
+    .refineClass(GameObject, {
+        draw: function(renderer) {
+            cop.proceed(renderer);
+            renderer.drawLine(this.position, this.position.add(this.velocity), "red", 1, 3);
+        }
+    })
+    .refineClass(CPUControls, {
+        getTargetTiles: function() {
+            var tiles = cop.proceed();
+
+            tiles.each(function(tile) {
+                tile.marked = tile.canFlyThrough() ? this.color : "red";
+            }, this);
+
+            return tiles;
+        }
+    });
+
+cop.create("AdjustViewportManuallyLayer")
     .refineClass(Game, {
         initialize: function(canvasId) {
             cop.proceed(canvasId);
@@ -161,11 +160,6 @@ window.onload = function() {
     stats.domElement.style.top = '0px';
     document.body.appendChild( stats.domElement );
 
-    // frame update
-    var update = function(dt) {
-        game.update(dt);
-    }
-
     // main loop
     var lastFrame = window.performance.now();
     function animate() {
@@ -176,7 +170,8 @@ window.onload = function() {
         var dt = (time - lastFrame) / 1000;
         lastFrame = time;
 
-        update(dt);
+        game.update(dt);
+
         requestAnimationFrame(animate);
     }
 
