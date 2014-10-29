@@ -15,8 +15,6 @@ Object.subclass("Game", {
     },
     buildInput: function(canvasId) {
         this.input = new Input(canvasId);
-        this.input.initKeyboard();
-        this.input.initMouse();
 
         this.input.bind(Input.KEY.W, "up");
         this.input.bind(Input.KEY.A, "left");
