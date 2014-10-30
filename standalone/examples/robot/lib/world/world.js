@@ -65,41 +65,7 @@ Object.subclass("WorldBuilder", {
 		);
 
         player = this.buildPlayer(world, level.player);
-
-        var e1 = this.buildTank(
-            world,
-            CPUTank,
-            level.enemyTanks[0].position,
-            level.enemyTanks[0].velocity,
-            level.enemyTanks[0].turretDirection,
-            level.enemyTanks[0].type
-        );
-        var e2 = this.buildTank(
-            world,
-            CPUTank,
-            level.enemyTanks[1].position,
-            level.enemyTanks[1].velocity,
-            level.enemyTanks[1].turretDirection,
-            level.enemyTanks[1].type
-        );
-        var e3 = this.buildTank(
-            world,
-            CPUTank,
-            level.enemyTanks[2].position,
-            level.enemyTanks[2].velocity,
-            level.enemyTanks[2].turretDirection,
-            level.enemyTanks[2].type
-        );
-        /*
-        var e4 = this.buildTank(
-            world,
-            CPUTank,
-            level.enemyTanks[3].position,
-            level.enemyTanks[3].velocity,
-            level.enemyTanks[3].turretDirection,
-            level.enemyTanks[3].type
-        );
-        */
+        this.buildEnemies(world, level.enemyTanks);
 
         // trigger new level
         bbb.trigger({
@@ -114,8 +80,57 @@ Object.subclass("WorldBuilder", {
             return player.alive == false;
         });
 
-        var arr = [e1, e2, e3];
+        return world;
+	},
+	buildPlayer: function(world, description) {
+        var player = this.buildTank(
+            world,
+            PlayerTank,
+            description.position,
+            description.velocity,
+            description.turretDirection,
+            Tank.Player
+        );
+	    return player;
+	},
+	buildEnemies: function(world, enemyDescriptions) {
+        var e1 = this.buildTank(
+            world,
+            CPUTank,
+            enemyDescriptions[0].position,
+            enemyDescriptions[0].velocity,
+            enemyDescriptions[0].turretDirection,
+            enemyDescriptions[0].type
+        );
+        var e2 = this.buildTank(
+            world,
+            CPUTank,
+            enemyDescriptions[1].position,
+            enemyDescriptions[1].velocity,
+            enemyDescriptions[1].turretDirection,
+            enemyDescriptions[1].type
+        );
+        var e3 = this.buildTank(
+            world,
+            CPUTank,
+            enemyDescriptions[2].position,
+            enemyDescriptions[2].velocity,
+            enemyDescriptions[2].turretDirection,
+            enemyDescriptions[2].type
+        );
+        var e4 = this.buildTank(
+            world,
+            CPUTank,
+            enemyDescriptions[3].position,
+            enemyDescriptions[3].velocity,
+            enemyDescriptions[3].turretDirection,
+            enemyDescriptions[3].type
+        );
 
+        var arr = [e1, e2, e3, e4];
+
+        // constraint:
+        // - you win, if all enemy tanks
         bbb.trigger({
             callback: function() {
                 this.disable();
@@ -131,19 +146,6 @@ Object.subclass("WorldBuilder", {
             }
             return won == true;
         });
-
-        return world;
-	},
-	buildPlayer: function(world, description) {
-        var player = this.buildTank(
-            world,
-            PlayerTank,
-            description.position,
-            description.velocity,
-            description.turretDirection,
-            Tank.Player
-        );
-	    return player;
 	},
 	buildTank: function(world, TankClass, pos, vel, dir, config) {
         var cpu = new (TankClass)(world, pos, vel, dir, config);
