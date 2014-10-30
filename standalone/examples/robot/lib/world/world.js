@@ -67,7 +67,20 @@ Object.subclass("WorldBuilder", {
         player = this.buildPlayer(world, level.player);
         this.buildEnemies(world, level.enemyTanks);
 
-        // trigger new level
+        return world;
+	},
+	buildPlayer: function(world, description) {
+        var player = this.buildTank(
+            world,
+            PlayerTank,
+            description.position,
+            description.velocity,
+            description.turretDirection,
+            Tank.Player
+        );
+
+        // constraint:
+        // - retry level, if your tank was destroyed
         bbb.trigger({
             callback: function() {
                 this.disable();
@@ -80,54 +93,19 @@ Object.subclass("WorldBuilder", {
             return player.alive == false;
         });
 
-        return world;
-	},
-	buildPlayer: function(world, description) {
-        var player = this.buildTank(
-            world,
-            PlayerTank,
-            description.position,
-            description.velocity,
-            description.turretDirection,
-            Tank.Player
-        );
 	    return player;
 	},
 	buildEnemies: function(world, enemyDescriptions) {
-        var e1 = this.buildTank(
-            world,
-            CPUTank,
-            enemyDescriptions[0].position,
-            enemyDescriptions[0].velocity,
-            enemyDescriptions[0].turretDirection,
-            enemyDescriptions[0].type
-        );
-        var e2 = this.buildTank(
-            world,
-            CPUTank,
-            enemyDescriptions[1].position,
-            enemyDescriptions[1].velocity,
-            enemyDescriptions[1].turretDirection,
-            enemyDescriptions[1].type
-        );
-        var e3 = this.buildTank(
-            world,
-            CPUTank,
-            enemyDescriptions[2].position,
-            enemyDescriptions[2].velocity,
-            enemyDescriptions[2].turretDirection,
-            enemyDescriptions[2].type
-        );
-        var e4 = this.buildTank(
-            world,
-            CPUTank,
-            enemyDescriptions[3].position,
-            enemyDescriptions[3].velocity,
-            enemyDescriptions[3].turretDirection,
-            enemyDescriptions[3].type
-        );
-
-        var arr = [e1, e2, e3, e4];
+	    var enemyTanks = enemyDescriptions.map(function(enemyDescription) {
+            return this.buildTank(
+                world,
+                CPUTank,
+                enemyDescription.position,
+                enemyDescription.velocity,
+                enemyDescription.turretDirection,
+                enemyDescription.type
+            );
+	    }, this);
 
         // constraint:
         // - you win, if all enemy tanks
@@ -137,12 +115,12 @@ Object.subclass("WorldBuilder", {
                 console.log("WIN");
             },
             ctx: {
-                arr: arr
+                enemyTanks: enemyTanks
             }
         }, function() {
             var won = true;
-            for(var i = 0; i < arr.length; i++) {
-                won = won && !arr[i].alive;
+            for(var i = 0; i < enemyTanks.length; i++) {
+                won = won && !enemyTanks[i].alive;
             }
             return won == true;
         });
