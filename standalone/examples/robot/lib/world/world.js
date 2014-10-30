@@ -114,8 +114,7 @@ Object.subclass("WorldBuilder", {
             return player.alive == false;
         });
 
-        var arr = [e1, e2, e3],
-            arrLength = arr.length;
+        var arr = [e1, e2, e3];
 
         bbb.trigger({
             callback: function() {
@@ -123,8 +122,7 @@ Object.subclass("WorldBuilder", {
                 console.log("WIN");
             },
             ctx: {
-                arr: arr,
-                arrLength: arrLength
+                arr: arr
             }
         }, function() {
             var won = true;
@@ -133,23 +131,6 @@ Object.subclass("WorldBuilder", {
             }
             return won == true;
         });
-
-        /*
-        bbb.trigger({
-            callback: function() {
-                this.disable();
-                console.log("WIN");
-            },
-            ctx: {
-                e1: e1,
-                e2: e2,
-                e3: e3,
-                e4: e4
-            }
-        }, function() {
-            return !e1.alive && !e2.alive && !e3.alive && !e4.alive;
-        });
-        */
 
         return world;
 	},
