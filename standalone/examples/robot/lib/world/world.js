@@ -1,4 +1,58 @@
 Object.subclass("Levels");
+Levels = [
+    {
+        map: [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+              [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+              [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+              [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+              [1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+              [1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+              [1,0,0,0,0,0,0,0,0,2,0,0,0,0,2,0,0,0,0,0,0,0,0,1],
+              [1,0,0,0,0,1,1,1,2,2,0,0,0,0,2,2,1,1,1,1,1,1,1,1],
+              [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+              [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+              [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+              [1,1,1,1,1,1,1,1,2,2,0,0,0,0,2,2,1,1,1,0,0,0,0,1],
+              [1,0,0,0,0,0,0,0,0,2,0,0,0,0,2,0,0,0,0,0,0,0,0,1],
+              [1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+              [1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+              [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+              [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+              [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+              [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
+        player: {
+            position: new Vector2(5, 12),
+            velocity: Vector2.Zero.copy(),
+            turretDirection: new Vector2(1,0.5)
+        },
+        enemyTanks: [
+            {
+                type: Tank.BrownTurret,
+                position: new Vector2(41, 13),
+                velocity: Vector2.Zero.copy(),
+                turretDirection: new Vector2(1, 0.5)
+            },
+            {
+                type: Tank.BrownTurret,
+                position: new Vector2(31, 5),
+                velocity: Vector2.Zero.copy(),
+                turretDirection: new Vector2(1, 0.5)
+            },
+            {
+                type: Tank.GreySoldier,
+                position: new Vector2(10, 27),
+                velocity: new Vector2(1,1),
+                turretDirection: new Vector2(1, 0.5)
+            },
+            {
+                type: Tank.TealHunter,
+                position: new Vector2(40, 27),
+                velocity: new Vector2(0,1),
+                turretDirection: new Vector2(1, 0.5)
+            }
+        ]
+    }
+];
 Object.subclass("WorldBuilder", {
     initialize: function(game) {
         this.game = game;
@@ -7,68 +61,45 @@ Object.subclass("WorldBuilder", {
         var world = new World();
 
 		world.map = new Map(
-		    new Vector2(2,2),
-            [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-             [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-             [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-             [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-             [1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-             [1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-             [1,0,0,0,0,0,0,0,0,2,0,0,0,0,2,0,0,0,0,0,0,0,0,1],
-             [1,0,0,0,0,1,1,1,2,2,0,0,0,0,2,2,1,1,1,1,1,1,1,1],
-             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-             [1,1,1,1,1,1,1,1,2,2,0,0,0,0,2,2,1,1,1,0,0,0,0,1],
-             [1,0,0,0,0,0,0,0,0,2,0,0,0,0,2,0,0,0,0,0,0,0,0,1],
-             [1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-             [1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
+		    new Vector2(2,2), level.map
 		);
 
-        player = this.buildTank(
-            world,
-            PlayerTank,
-            new Vector2(5, 12),
-            Vector2.Zero.copy(),
-            new Vector2(1,0.5),
-            Tank.Player
-        );
+        player = this.buildPlayer(world, level.player);
+
         var e1 = this.buildTank(
             world,
             CPUTank,
-            new Vector2(41, 13),
-            Vector2.Zero.copy(),
-            new Vector2(1,0.5),
-            Tank.BrownTurret
+            level.enemyTanks[0].position,
+            level.enemyTanks[0].velocity,
+            level.enemyTanks[0].turretDirection,
+            level.enemyTanks[0].type
         );
         var e2 = this.buildTank(
             world,
             CPUTank,
-            new Vector2(31, 5),
-            Vector2.Zero.copy(),
-            new Vector2(1,0.5),
-            Tank.BrownTurret
+            level.enemyTanks[1].position,
+            level.enemyTanks[1].velocity,
+            level.enemyTanks[1].turretDirection,
+            level.enemyTanks[1].type
         );
         var e3 = this.buildTank(
             world,
             CPUTank,
-            new Vector2(10, 27),
-            new Vector2(1,1),
-            new Vector2(1,0.5),
-            Tank.GreySoldier
+            level.enemyTanks[2].position,
+            level.enemyTanks[2].velocity,
+            level.enemyTanks[2].turretDirection,
+            level.enemyTanks[2].type
         );
+        /*
         var e4 = this.buildTank(
             world,
             CPUTank,
-            new Vector2(40, 27),
-            new Vector2(0,1),
-            new Vector2(1,0.5),
-            Tank.TealHunter
+            level.enemyTanks[3].position,
+            level.enemyTanks[3].velocity,
+            level.enemyTanks[3].turretDirection,
+            level.enemyTanks[3].type
         );
+        */
 
         // trigger new level
         bbb.trigger({
@@ -82,6 +113,28 @@ Object.subclass("WorldBuilder", {
         }, function() {
             return player.alive == false;
         });
+
+        var arr = [e1, e2, e3],
+            arrLength = arr.length;
+
+        bbb.trigger({
+            callback: function() {
+                this.disable();
+                console.log("WIN");
+            },
+            ctx: {
+                arr: arr,
+                arrLength: arrLength
+            }
+        }, function() {
+            var won = true;
+            for(var i = 0; i < arr.length; i++) {
+                won = won && !arr[i].alive;
+            }
+            return won == true;
+        });
+
+        /*
         bbb.trigger({
             callback: function() {
                 this.disable();
@@ -96,8 +149,20 @@ Object.subclass("WorldBuilder", {
         }, function() {
             return !e1.alive && !e2.alive && !e3.alive && !e4.alive;
         });
+        */
 
         return world;
+	},
+	buildPlayer: function(world, description) {
+        var player = this.buildTank(
+            world,
+            PlayerTank,
+            description.position,
+            description.velocity,
+            description.turretDirection,
+            Tank.Player
+        );
+	    return player;
 	},
 	buildTank: function(world, TankClass, pos, vel, dir, config) {
         var cpu = new (TankClass)(world, pos, vel, dir, config);
@@ -146,12 +211,14 @@ Object.subclass("Map", {
 	draw: function(renderer) {
 		_.each(this.tiles, function(stripe, y) {
             _.each(stripe, function(tile, x) {
+                // TODO: move this to Tile.draw
                 var min = new Vector2(x, y).mulVector(this.tileSize);
                 this.spriteSheet.draw(
                     renderer,
                     new AABB(min, min.add(this.tileSize)),
                     tile.index
                 );
+                // TODO: extract to DebugLayer
                 if(tile.marked) {
                     renderer.drawRectangle(
                         min.add(this.tileSize.mulFloat(0.5)),
