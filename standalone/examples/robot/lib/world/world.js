@@ -1,33 +1,36 @@
-Object.subclass("World", {
-	initialize: function(boundary, input, viewport) {
-		this.boundary = boundary;
-		this.gameObjects = [];
-		this.map = new Map(new Vector2(2,2),
-		[[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-		 [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-		 [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-		 [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-		 [1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-		 [1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-		 [1,0,0,0,0,0,0,0,0,2,0,0,0,0,2,0,0,0,0,0,0,0,0,1],
-		 [1,0,0,0,0,1,1,1,2,2,0,0,0,0,2,2,1,1,1,1,1,1,1,1],
-		 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-		 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-		 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-		 [1,1,1,1,1,1,1,1,2,2,0,0,0,0,2,2,1,1,1,0,0,0,0,1],
-		 [1,0,0,0,0,0,0,0,0,2,0,0,0,0,2,0,0,0,0,0,0,0,0,1],
-		 [1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-		 [1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-		 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-		 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-		 [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-		 [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
+Object.subclass("Levels");
+Object.subclass("WorldBuilder", {
+    initialize: function(game) {
+        this.game = game;
+    },
+    buildWorld: function(level) {
+        var world = new World();
+
+		world.map = new Map(
+		    new Vector2(2,2),
+            [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+             [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+             [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+             [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+             [1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+             [1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+             [1,0,0,0,0,0,0,0,0,2,0,0,0,0,2,0,0,0,0,0,0,0,0,1],
+             [1,0,0,0,0,1,1,1,2,2,0,0,0,0,2,2,1,1,1,1,1,1,1,1],
+             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+             [1,1,1,1,1,1,1,1,2,2,0,0,0,0,2,2,1,1,1,0,0,0,0,1],
+             [1,0,0,0,0,0,0,0,0,2,0,0,0,0,2,0,0,0,0,0,0,0,0,1],
+             [1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+             [1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
 		);
 
-        this.input = input;
-        this.viewport = viewport;
-
         player = this.buildTank(
+            world,
             PlayerTank,
             new Vector2(5, 12),
             Vector2.Zero.copy(),
@@ -35,6 +38,7 @@ Object.subclass("World", {
             Tank.Player
         );
         var e1 = this.buildTank(
+            world,
             CPUTank,
             new Vector2(41, 13),
             Vector2.Zero.copy(),
@@ -42,6 +46,7 @@ Object.subclass("World", {
             Tank.BrownTurret
         );
         var e2 = this.buildTank(
+            world,
             CPUTank,
             new Vector2(31, 5),
             Vector2.Zero.copy(),
@@ -49,6 +54,7 @@ Object.subclass("World", {
             Tank.BrownTurret
         );
         var e3 = this.buildTank(
+            world,
             CPUTank,
             new Vector2(10, 27),
             new Vector2(1,1),
@@ -56,6 +62,7 @@ Object.subclass("World", {
             Tank.GreySoldier
         );
         var e4 = this.buildTank(
+            world,
             CPUTank,
             new Vector2(40, 27),
             new Vector2(0,1),
@@ -89,15 +96,22 @@ Object.subclass("World", {
         }, function() {
             return !e1.alive && !e2.alive && !e3.alive && !e4.alive;
         });
+
+        return world;
+	},
+	buildTank: function(world, TankClass, pos, vel, dir, config) {
+        var cpu = new (TankClass)(world, pos, vel, dir, config);
+        cpu.controls = new (config.intelligence)(cpu, world, this.game.input, this.game.viewport);
+        world.spawn(cpu);
+        return cpu;
+    }
+});
+
+Object.subclass("World", {
+	initialize: function() {
+		this.gameObjects = [];
 	},
 
-	buildTank: function(TankClass, pos, vel, dir, config) {
-        var cpu = new (TankClass)(this, pos, vel, dir, config);
-        cpu.controls = new (config.intelligence)(cpu, this, this.input, this.viewport);
-        this.spawn(cpu);
-        return cpu;
-	},
-	
 	update: function(dt) {
 		this.gameObjects.forEach(function(gameObject) {
 		    gameObject.update(dt);

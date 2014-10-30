@@ -68,6 +68,9 @@ Object.subclass("GameObject", {
     },
 
     destroy: function() {
+        //cop.withLayers([UnconstrainAndDisableAllLayer], (function() {
+        //    bbb.unconstrainAll(this);
+        //}).bind(this));
         this.constraints.each(function(constraint) {
             constraint.disable();
         });

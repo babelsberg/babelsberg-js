@@ -1,3 +1,15 @@
+cop.create("UnconstrainAndDisableAllLayer")
+    .refineClass(Babelsberg, {
+        unconstrain: function(obj, accessor) {
+            var cvar = ConstrainedVariable.findConstraintVariableFor(obj, accessor);
+            cvar._constraints.each(function(constraint) {
+                constraint.disable();
+            });
+            cop.proceed(obj, accessor);
+        }
+    })
+    //.beGlobal();
+
 Object.subclass("Game", {
     initialize: function(canvasId) {
         this.buildCanvas(canvasId);
@@ -70,10 +82,9 @@ Object.subclass("Game", {
         });
     },
     prepare: function() {
-        this.world = new World(new AABB(
-            new Vector2(-150, -150),
-            new Vector2(150, 150)
-        ), this.input, this.viewport);
+        var builder = new WorldBuilder(this);
+
+        this.world = builder.buildWorld();
 
         this.gui = new Gui(this.world, this.input, player, this.viewport);
     },
