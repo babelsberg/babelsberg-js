@@ -17,6 +17,7 @@ Object.subclass("Game", {
         this.renderer = new Renderer(this.canvas);
         this.buildViewport();
         this.constrainDebugLayer();
+        this.levels = new LevelPointer();
     },
     buildCanvas: function(canvasId) {
         this.canvas = document.getElementById(canvasId);
@@ -85,9 +86,17 @@ Object.subclass("Game", {
         this.resetLevel();
     },
     resetLevel: function() {
+        // TODO: eliminate duplications
         this.cleanUp();
         var builder = new WorldBuilder(this);
-        this.world = builder.buildWorld(Levels[0]);
+        this.world = builder.buildWorld(this.levels.get());
+
+        this.gui = new Gui(this.world, this.input, player, this.viewport);
+    },
+    nextLevel: function() {
+        this.cleanUp();
+        var builder = new WorldBuilder(this);
+        this.world = builder.buildWorld(this.levels.next());
 
         this.gui = new Gui(this.world, this.input, player, this.viewport);
     },
