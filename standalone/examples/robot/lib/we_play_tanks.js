@@ -82,10 +82,17 @@ Object.subclass("Game", {
         });
     },
     prepare: function() {
+        this.resetLevel();
+    },
+    resetLevel: function() {
+        this.cleanUp();
         var builder = new WorldBuilder(this);
         this.world = builder.buildWorld(Levels[0]);
 
         this.gui = new Gui(this.world, this.input, player, this.viewport);
+    },
+    cleanUp: function() {
+        // TODO
     },
     update: function(dt) {
         this.updatePhysics(dt);

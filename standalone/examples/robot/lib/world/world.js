@@ -53,6 +53,23 @@ Levels = [
         ]
     }
 ];
+
+Object.subclass("LevelPointer", {
+    initialize: function() {
+        this.reset();
+    },
+    reset: function() {
+        this.currentLevel = 0;
+    },
+    get: function() {
+        return Levels[this.currentLevel];
+    },
+    next: function() {
+        this.currentLevel++;
+        return this.get();
+    }
+});
+
 Object.subclass("WorldBuilder", {
     initialize: function(game) {
         this.game = game;
@@ -70,12 +87,13 @@ Object.subclass("WorldBuilder", {
         return world;
 	},
 	buildPlayer: function(world, description) {
+	    var game = this.game;
         var player = this.buildTank(
             world,
             PlayerTank,
-            description.position,
-            description.velocity,
-            description.turretDirection,
+            description.position.copy(),
+            description.velocity.copy(),
+            description.turretDirection.copy(),
             Tank.Player
         );
 
@@ -85,6 +103,7 @@ Object.subclass("WorldBuilder", {
             callback: function() {
                 this.disable();
                 console.log("TRY AGAIN");
+                game.resetLevel();
             },
             ctx: {
                 player: player
@@ -100,9 +119,9 @@ Object.subclass("WorldBuilder", {
             return this.buildTank(
                 world,
                 CPUTank,
-                enemyDescription.position,
-                enemyDescription.velocity,
-                enemyDescription.turretDirection,
+                enemyDescription.position.copy(),
+                enemyDescription.velocity.copy(),
+                enemyDescription.turretDirection.copy(),
                 enemyDescription.type
             );
 	    }, this);
