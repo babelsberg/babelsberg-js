@@ -253,11 +253,11 @@ window.onload = function() {
         .defer(loadLevel, 5, '5_borderline.json')
         .defer(loadLevel, 6, '6_hunter2.json')
         .defer(loadLevel, 7, '7_demo.json')
-        .defer(loadImage, "assets/tileset.png")
-        .defer(loadImage, "assets/tank.png")
-        .defer(loadImage, "assets/turret.png")
-        .defer(loadImage, "assets/bullet.png")
-        .defer(loadImage, "assets/target.png")
+        .defer(loadImage, "tileset.png")
+        .defer(loadImage, "tank.png")
+        .defer(loadImage, "turret.png")
+        .defer(loadImage, "bullet.png")
+        .defer(loadImage, "target.png")
         .await(function(error) {
             if(error) {
                 console.error("error while loading", error);

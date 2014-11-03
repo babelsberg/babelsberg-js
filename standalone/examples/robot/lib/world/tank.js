@@ -7,7 +7,7 @@ GameObject.subclass("Tank", {
 	    $super(world, "tank", pos, new Vector2(2, 2), 1, vel, config.speed);
 
         this.turretDirection = dir;
-        this.turretAnimation = new Animation(new AnimationSheet("assets/turret.png", 18, 18), 0.4, [0,1,2,3]);
+        this.turretAnimation = new Animation(new AnimationSheet("turret.png", 18, 18), 0.4, [0,1,2,3]);
 
         this.bullets = config.bullets;
         this.bulletRicochets = config.bulletRicochets;
@@ -99,7 +99,7 @@ Tank.subclass("PlayerTank", {
 	initialize: function($super, world, pos, vel, dir, config) {
 	    $super(world, pos, vel, dir, config);
 
-		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [0,1,2,3]);
+		this.animation = new Animation(new AnimationSheet("tank.png", 18, 18), 0.4, [0,1,2,3]);
     }
 });
 
@@ -107,7 +107,7 @@ Tank.subclass("CPUTank", {
     initialize: function($super, world, pos, vel, dir, config) {
         $super(world, pos, vel, dir, config);
 
-		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [4,5,6,7]);
+		this.animation = new Animation(new AnimationSheet("tank.png", 18, 18), 0.4, [4,5,6,7]);
 
         // constraint:
         // - keep velocity direction and turret direction in sync

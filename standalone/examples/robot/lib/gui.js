@@ -2,7 +2,7 @@ var Gui = function(world, input, player, viewport) {
     this.input = input;
     this.player = player;
 
-    var spriteSheet = new AnimationSheet("assets/target.png", 52, 52);
+    var spriteSheet = new AnimationSheet("target.png", 52, 52);
     var crossHairsAnimation = new Animation(spriteSheet, 100, [0]);
     var bubbleAnimation = new Animation(spriteSheet, 100, [1]);
 

@@ -133,7 +133,7 @@ Object.subclass("Map", {
             });
         });
 		this.size = new Vector2(this.tiles[0].length, this.tiles.length);
-        this.spriteSheet = new AnimationSheet("assets/tileset.png", 32, 32);
+        this.spriteSheet = new AnimationSheet("tileset.png", 32, 32);
 	},
 
 	draw: function(renderer) {
