@@ -173,6 +173,20 @@ cop.create("AdjustViewportManuallyLayer")
     })
     .beGlobal();
 
+Object.subclass("Timer", {
+    initialize: function() {
+        this.lastFrame = window.performance.now();
+
+        // TODO: minimal framerate constraint
+    },
+    update: function() {
+        var time = window.performance.now(),
+            dt = (time - this.lastFrame) / 1000;
+        this.lastFrame = time;
+        return dt;
+    }
+});
+
 window.onload = function() {
     var canvasId = "game",
         game = new Game(canvasId);
@@ -185,14 +199,13 @@ window.onload = function() {
     document.body.appendChild( stats.domElement );
 
     // main loop
+    var timer = new Timer();
     var lastFrame = window.performance.now();
     function animate() {
         stats.update();
 
         // setup time since last call
-        var time = window.performance.now();
-        var dt = (time - lastFrame) / 1000;
-        lastFrame = time;
+        var dt = timer.update();
 
         game.update(dt);
 
