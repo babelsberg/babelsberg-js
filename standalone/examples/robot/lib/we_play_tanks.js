@@ -179,6 +179,7 @@ Object.subclass("Timer", {
 
         // TODO: minimal framerate constraint
     },
+    // returns time since last call
     update: function() {
         var time = window.performance.now(),
             dt = (time - this.lastFrame) / 1000;
@@ -186,6 +187,41 @@ Object.subclass("Timer", {
         return dt;
     }
 });
+
+Object.subclass("Loop", {
+    initialize: function(func) {
+        this.func = func;
+    },
+    start: function() {
+        this.update();
+    },
+    update: function() {
+        this.func();
+        requestAnimationFrame(this.update.bind(this));
+    }
+});
+
+function loadJSON(path, callback) {
+    var xobj = new XMLHttpRequest();
+    xobj.overrideMimeType("application/json");
+	xobj.open('GET', path, true); // Replace 'my_data' with the path to your file
+	xobj.onreadystatechange = function () {
+        if (xobj.readyState == 4) {
+            // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
+            // Parse JSON string into object
+            var actual_JSON = JSON.parse(xobj.responseText);
+            callback(actual_JSON);
+        }
+    };
+    xobj.send(null);
+};
+
+loadLevel = function(index, path, callback) {
+    loadJSON("assets/levels/" + path, function(json) {
+        Levels[index] = json;
+        callback();
+     });
+};
 
 window.onload = function() {
     var canvasId = "game",
@@ -200,20 +236,16 @@ window.onload = function() {
 
     // main loop
     var timer = new Timer();
-    var lastFrame = window.performance.now();
     function animate() {
         stats.update();
-
-        // setup time since last call
         var dt = timer.update();
-
         game.update(dt);
-
-        requestAnimationFrame(animate);
     }
+    var loop = new Loop(animate);
 
     // asset loading
     queue()
+        .defer(loadLevel, 0, 'tutorial.json')
         .defer(loadImage, "assets/tileset.png")
         .defer(loadImage, "assets/tank.png")
         .defer(loadImage, "assets/turret.png")
@@ -221,11 +253,11 @@ window.onload = function() {
         .defer(loadImage, "assets/target.png")
         .await(function(error) {
             if(error) {
-                console.error("error while loading");
+                console.error("error while loading", error);
             } else {
+                console.log(arguments[1]);
                 game.prepare();
-
-                animate();
+                loop.start();
             }
         });
 };

@@ -399,9 +399,9 @@ Object.subclass("WorldBuilder", {
         var player = this.buildTank(
             world,
             PlayerTank,
-            description.position.copy(),
-            description.velocity.copy(),
-            description.turretDirection.copy(),
+            Vector2.fromJson(description.position),
+            Vector2.fromJson(description.velocity),
+            Vector2.fromJson(description.turretDirection),
             Tank.Player
         );
 
@@ -428,10 +428,10 @@ Object.subclass("WorldBuilder", {
             return this.buildTank(
                 world,
                 CPUTank,
-                enemyDescription.position.copy(),
-                enemyDescription.velocity.copy(),
-                enemyDescription.turretDirection.copy(),
-                enemyDescription.type
+                Vector2.fromJson(enemyDescription.position),
+                Vector2.fromJson(enemyDescription.velocity),
+                Vector2.fromJson(enemyDescription.turretDirection),
+                Tank[enemyDescription.type]
             );
 	    }, this);
 
