@@ -219,7 +219,7 @@ function loadJSON(path, callback) {
 loadLevel = function(index, path, callback) {
     loadJSON("assets/levels/" + path, function(json) {
         Levels[index] = json;
-        callback();
+        callback(null, json);
      });
 };
 
@@ -245,7 +245,14 @@ window.onload = function() {
 
     // asset loading
     queue()
-        .defer(loadLevel, 0, 'tutorial.json')
+        .defer(loadLevel, 0, '0_tutorial.json')
+        .defer(loadLevel, 1, '1_movingtank.json')
+        .defer(loadLevel, 2, '2_multipletanks.json')
+        .defer(loadLevel, 3, '3_grid.json')
+        .defer(loadLevel, 4, '4_hunter.json')
+        .defer(loadLevel, 5, '5_borderline.json')
+        .defer(loadLevel, 6, '6_hunter2.json')
+        .defer(loadLevel, 7, '7_demo.json')
         .defer(loadImage, "assets/tileset.png")
         .defer(loadImage, "assets/tank.png")
         .defer(loadImage, "assets/turret.png")
