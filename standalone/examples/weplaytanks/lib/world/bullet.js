@@ -57,7 +57,44 @@ GameObject.subclass("Bullet", {
             return map.tiles[pp.y][pp.x].canFlyThrough() && !(map.tiles[y][pp.x].canFlyThrough());
         });
 
-        this.constraints.push(vertical, horizontal);
+        // constraint idea:
+        // avoid bullets to go out of bounds due to low framerate
+        // split x and y axis to enable the same reflection behaviour,
+        // if the bullet goes out of bounds
+        var mapMaxX = map.tileSize.x * map.tiles[0].length;
+        var mapMaxY = map.tileSize.y * map.tiles.length;
+        var oobVertical = bbb.assert({
+            onError: function(error) {
+                if(error instanceof ContinuousAssertError) {
+                    reflect.call(this, "x");
+                } else {
+                    throw error;
+                }
+            },
+            ctx: {
+                that: that,
+                mapMaxX: mapMaxX
+            }
+        }, function() {
+            return that.position.x >= 0 && that.position.x < mapMaxX;
+        });
+        var oobHorizontal = bbb.assert({
+            onError: function(error) {
+                if(error instanceof ContinuousAssertError) {
+                    reflect.call(this, "y");
+                } else {
+                    throw error;
+                }
+            },
+            ctx: {
+                that: that,
+                mapMaxY: mapMaxY
+            }
+        }, function() {
+            return that.position.y >= 0 && that.position.y < mapMaxY;
+        });
+
+        this.constraints.push(vertical, horizontal, oobVertical, oobHorizontal);
 	},
 	destroy: function($super) {
         $super();
