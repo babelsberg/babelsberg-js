@@ -133,29 +133,12 @@ Object.subclass("Map", {
             });
         });
 		this.size = new Vector2(this.tiles[0].length, this.tiles.length);
-        this.spriteSheet = new AnimationSheet("tileset.png", 32, 32);
 	},
 
 	draw: function(renderer) {
 		_.each(this.tiles, function(stripe, y) {
             _.each(stripe, function(tile, x) {
-                // TODO: move this to Tile.draw
-                var min = new Vector2(x, y).mulVector(this.tileSize);
-                this.spriteSheet.draw(
-                    renderer,
-                    new AABB(min, min.add(this.tileSize)),
-                    tile.index
-                );
-                // TODO: extract to DebugLayer
-                if(tile.marked) {
-                    renderer.drawRectangle(
-                        min.add(this.tileSize.mulFloat(0.5)),
-                        25,
-                        tile.marked,
-                        1
-                    );
-                }
-                tile.marked = false;
+                tile.draw(renderer, x, y, this.tileSize);
             }, this);
 		}, this);
 	},
@@ -178,11 +161,30 @@ Object.subclass("Map", {
 Object.subclass("Tile", {
 	initialize: function(index) {
 		this.index = index;
+        this.spriteSheet = new AnimationSheet("tileset.png", 32, 32);
 	},
 	canWalkThrough: function() {
 	    return this.index == 0;
 	},
 	canFlyThrough: function() {
 	    return this.index != 1;
+	},
+	draw: function(renderer, x, y, size) {
+        var min = new Vector2(x, y).mulVector(size);
+        this.spriteSheet.draw(
+            renderer,
+            new AABB(min, min.add(size)),
+            this.index
+        );
+        // TODO: extract to DebugLayer
+        if(this.marked) {
+            renderer.drawRectangle(
+                min.add(size.mulFloat(0.5)),
+                25,
+                this.marked,
+                1
+            );
+        }
+        this.marked = false;
 	}
 });
