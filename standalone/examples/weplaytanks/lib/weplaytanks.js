@@ -139,6 +139,21 @@ cop.create("DebugLayer")
 
             return tiles;
         }
+    })
+    .refineClass(Tile, {
+        draw: function(renderer, x, y, size) {
+            cop.proceed(renderer, x, y, size);
+            if(this.marked) {
+                var min = new Vector2(x, y).mulVector(size);
+                renderer.drawRectangle(
+                    min.add(size.mulFloat(0.5)),
+                    25,
+                    this.marked,
+                    1
+                );
+            }
+            this.marked = false;
+        }
     });
 
 cop.create("AdjustViewportManuallyLayer")

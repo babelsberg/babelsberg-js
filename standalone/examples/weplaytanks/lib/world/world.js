@@ -176,15 +176,5 @@ Object.subclass("Tile", {
             new AABB(min, min.add(size)),
             this.index
         );
-        // TODO: extract to DebugLayer
-        if(this.marked) {
-            renderer.drawRectangle(
-                min.add(size.mulFloat(0.5)),
-                25,
-                this.marked,
-                1
-            );
-        }
-        this.marked = false;
 	}
 });
