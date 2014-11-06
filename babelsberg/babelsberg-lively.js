@@ -9,10 +9,10 @@ cop.create('MorphSetConstrainedPositionLayer').refineClass(lively.morphic.Morph,
         } else {
             return cop.proceed(newPos);
         }
-    },
+    }
 }).refineClass(lively.morphic.DragHalo, {
     dragStartAction: function() {
-        this.targetMorph.editCb = bbb.edit(this.targetMorph.getPosition(), ["x", "y"]);
+        this.targetMorph.editCb = bbb.edit(this.targetMorph.getPosition(), ['x', 'y']);
         return cop.proceed.apply(this, arguments);
     },
     dragEndAction: function() {
@@ -24,11 +24,11 @@ cop.create('MorphSetConstrainedPositionLayer').refineClass(lively.morphic.Morph,
 
 ObjectLinearizerPlugin.subclass('DoNotSerializeConstraintPlugin',
 'plugin interface', {
-    ignoreProp: function (obj, key, value) {
+    ignoreProp: function(obj, key, value) {
         return (key === ConstrainedVariable.AttrName ||
                 key === ConstrainedVariable.ThisAttrName ||
-                (value instanceof Constraint))
-    },
+                (value instanceof Constraint));
+    }
 });
 lively.persistence.pluginsForLively.push(DoNotSerializeConstraintPlugin);
 

@@ -248,6 +248,20 @@ TestCase.subclass('users.timfelgentreff.babelsberg.PerformanceTests.PerformanceT
                 this.constrainedSumObj.e
         }
     },
+    testCreatingConstraint: function() {
+        var c = new ClSimplexSolver(),
+            a = pt(0,0);
+        bbb.always({
+            ctx: {
+                a: a,
+                _$_self: this.doitContext || this
+            },
+            solver: c
+        }, function() {
+            return a.equals(a);;
+        });
+    },
+
     testReadAccessUnconstrainedPerformance: function() {
         this.constraint.disable()
         bbb.unconstrain(this.constrainedSumObj);

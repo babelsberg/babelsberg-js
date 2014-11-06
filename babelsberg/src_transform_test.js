@@ -90,6 +90,10 @@ TestCase.subclass('users.timfelgentreff.babelsberg.src_transform_test.MinifyTest
     },
     testBuildMinifiedJs7: function () {
         module("users.timfelgentreff.standalone.Compressor").load(true);
+        users.timfelgentreff.standalone.Compressor.doAction(["reactive"], "babelsberg_reactive");
+    },
+    testBuildMinifiedJs8: function () {
+        module("users.timfelgentreff.standalone.Compressor").load(true);
         users.timfelgentreff.standalone.Compressor.doAction(["z3"], "babelsberg_z3");
     },
 });

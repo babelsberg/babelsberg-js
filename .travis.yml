@@ -4,6 +4,7 @@ env:
   matrix:
     - TYPE=Lively
     - TYPE=Standalone
+    - TYPE=lint
 
 node_js:
   - "0.10"
