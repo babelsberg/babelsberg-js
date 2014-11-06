@@ -631,6 +631,7 @@ Object.subclass('ConstrainedVariable', {
         this._constraints = [];
         this._externalVariables = {};
         this._isSolveable = false;
+        this._definingSolver = null;
         var value = obj[ivarname],
             solver = this.currentSolver;
 
@@ -966,17 +967,32 @@ Object.subclass('ConstrainedVariable', {
         constraint.addConstraintVariable(this);
     },
     get definingSolver() {
-            var solver = {weight: -1000};
+        if (Constraint.current || this._hasMultipleSolvers) {
+            // no fast path for variables with multiple solvers for now
+            this._definingSolver = null;
+            return this._searchDefiningSolver();
+        } else if (!this._definingSolver) {
+            return this._definingSolver = this._searchDefiningSolver();
+        } else {
+            return this._definingSolver;
+        }
+    },
+    _searchDefiningSolver: function() {
+            var solver = {weight: -1000, fake: true};
             this.eachExternalVariableDo(function(eVar) {
                 if (eVar) {
+                    if (!solver.fake) {
+                        this._hasMultipleSolvers = true;
+                    }
                     var s = eVar.__solver__;
                     if (s.weight > solver.weight) {
                         solver = s;
                     }
                 }
-            });
+            }.bind(this));
             return solver;
     },
+
     get solvers() {
         var solvers = [];
         this.eachExternalVariableDo(function(eVar) {
