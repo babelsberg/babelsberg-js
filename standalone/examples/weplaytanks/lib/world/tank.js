@@ -21,7 +21,7 @@ GameObject.subclass("Tank", {
 
         // constraint:
         // - do not be on a wall tile
-        bbb.assert({
+        var doNotStayInWalls = bbb.assert({
             // collision solving is already provided by the babelsberg.assert
             // method and its ability the revert to a valid state
             onError: function(error) {
@@ -37,6 +37,28 @@ GameObject.subclass("Tank", {
             // collision detection against the current tile
             return that.getTile(that.position).canWalkThrough();
         });
+
+        // constraint idea:
+        // avoid tanks to go out of bounds due to low framerate
+        var mapMaxX = map.tileSize.x * map.tiles[0].length;
+        var mapMaxY = map.tileSize.y * map.tiles.length;
+        var outOfBounds = bbb.assert({
+            onError: function(error) {
+                if(!(error instanceof ContinuousAssertError)) {
+                    throw error;
+                }
+            },
+            ctx: {
+                that: that,
+                mapMaxX: mapMaxX,
+                mapMaxY: mapMaxY
+            }
+        }, function() {
+            return that.position.x >= 0 && that.position.x < mapMaxX &&
+                that.position.y >= 0 && that.position.y < mapMaxY;
+        });
+
+        this.constraints.push(doNotStayInWalls, outOfBounds);
 
         // assumption: tanks are inserted first into the world
         this.world.getGameObjects().each(function(tank) {

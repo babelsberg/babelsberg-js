@@ -279,14 +279,26 @@ window.onload = function() {
 
     // asset loading
     queue()
-        .defer(loadLevel, 0, '0_tutorial.json')
-        .defer(loadLevel, 1, '1_movingtank.json')
-        .defer(loadLevel, 2, '2_multipletanks.json')
-        .defer(loadLevel, 3, '3_grid.json')
-        .defer(loadLevel, 4, '4_hunter.json')
-        .defer(loadLevel, 5, '5_borderline.json')
-        .defer(loadLevel, 6, '6_hunter2.json')
-        .defer(loadLevel, 7, '7_demo.json')
+        /*
+         * Demo Maps
+         */
+        .defer(loadLevel, 0, 'game/0_tutorial.json')
+        .defer(loadLevel, 1, 'game/1_movingtank.json')
+        .defer(loadLevel, 2, 'demo/2_twotanks.json')
+        .defer(loadLevel, 3, 'demo/3_singlehunter.json')
+        .defer(loadLevel, 4, 'game/5_borderline.json')
+        .defer(loadLevel, 5, 'game/6_hunter2.json')
+        .defer(loadLevel, 6, 'demo/7_demo.json')
+        /*
+         * Game Maps
+        .defer(loadLevel, 0, 'game/0_tutorial.json')
+        .defer(loadLevel, 1, 'game/1_movingtank.json')
+        .defer(loadLevel, 2, 'game/2_multipletanks.json')
+        .defer(loadLevel, 3, 'game/3_grid.json')
+        .defer(loadLevel, 4, 'game/4_hunter.json')
+        .defer(loadLevel, 5, 'game/5_borderline.json')
+        .defer(loadLevel, 6, 'game/6_hunter2.json')
+         */
         .defer(loadImage, "tileset.png")
         .defer(loadImage, "tank.png")
         .defer(loadImage, "turret.png")
