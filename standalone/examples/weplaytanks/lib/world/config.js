@@ -1,7 +1,7 @@
 Object.extend(Tank, {
     Player: {
         speed: Tank.SPEED_NORMAL,
-        bullets: 5,
+        bullets: 3,
         bulletRicochets: 1,
         intelligence: PlayerControls,
         bulletSpeed: Bullet.SPEED_NORMAL
