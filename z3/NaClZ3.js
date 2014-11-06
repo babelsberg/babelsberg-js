@@ -363,7 +363,11 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
         return this.name;
     },
     printDeclaration: function() {
-        return "(declare-fun " + this.name + " () Real)"
+        if (this.isString) {
+            return "(declare-variable " + this.name + " String)"
+        } else {
+            return "(declare-fun " + this.name + " () Real)"
+        }
     },
     
     prepareEdit: function() {
