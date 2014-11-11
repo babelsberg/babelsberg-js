@@ -15,11 +15,10 @@ DBPlanner.addMethods({
         if (Object.isString(opts.priority)) {
             opts.priority = this.strength[opts.priority];
         }
-        // XXX TODO: we do not actually need the next two,
+        // XXX TODO: we should not actually need the next thing,
         // but the implementation of DBVariable>>cnEquals is
-        // not complete. It needs two more things:
-        //  a) no evaluation of the argument/RHS to get rid of allowUnsolv...
-        //  b) not returning true, but incrementally building a UserDBCons...
+        // not complete. It needs to evaluate the RHS/argument
+        // only using allowUnsolveable...
         func.allowUnsolvableOperations = true;
 
         var planner = this,
