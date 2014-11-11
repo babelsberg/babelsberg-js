@@ -212,12 +212,17 @@ DBVariable.addMethods({
     },
     cnEquals: function(other) {
         if (!(other instanceof DBVariable)) {
-            var formulaNode = bbb.currentNode && (bbb.currentNode.right || bbb.currentNode.args[0]);
+            var formulaNode = bbb.currentNode &&
+                    ((bbb.currentNode.name === '==') ||
+                        (bbb.currentNode.property === 'equals')) &&
+                    (bbb.currentNode.right || bbb.currentNode.args[0]);
             if (formulaNode) {
                 // let's generate a formula
-                var argumentString = cop.withLayers([PrintOMetaVariableAsBBBField], function () {
-                    return formulaNode.asJS();
-                });
+                var argumentString = cop.withLayers([PrintOMetaVariableAsBBBField],
+                    function() {
+                        return formulaNode.asJS();
+                    }
+                );
                 var varMapping = bbb.currentInterpreter.getCurrentScope();
                 var func = (function() {
                         window.$$bbbVarMapping = varMapping;
@@ -229,10 +234,10 @@ DBVariable.addMethods({
                     });
 
                 // TODO: Trace through formulaNode and only add the actual dependencies
-                var inputs = Constraint.current.constraintvariables.map(function (cvar) {
-                    return cvar.externalVariable
-                }).filter(function (evar) {
-                    return !evar || evar !== this
+                var inputs = Constraint.current.constraintvariables.map(function(cvar) {
+                    return cvar.externalVariable;
+                }).filter(function(evar) {
+                    return !evar || evar !== this;
                 }.bind(this));
 
                 this.formula(inputs, func);
@@ -275,10 +280,11 @@ DBVariable.addMethods({
         return this.cnEquals.apply(this, arguments);
     }
 });
-cop.create('PrintOMetaVariableAsBBBField').refineClass(users.timfelgentreff.jsinterpreter.Variable, {
+cop.create('PrintOMetaVariableAsBBBField').
+refineClass(users.timfelgentreff.jsinterpreter.Variable, {
     asJS: function() {
         var result = cop.proceed();
-        return "(window.$$bbbVarMapping." + result + ")";
+        return '(window.$$bbbVarMapping.' + result + ')';
     }
 });
 DBConstraint.addMethods({
