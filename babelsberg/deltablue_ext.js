@@ -1,5 +1,6 @@
 module('users.timfelgentreff.babelsberg.deltablue_ext').
-requires('users.timfelgentreff.deltablue.deltablue').
+requires('users.timfelgentreff.deltablue.deltablue',
+         'users.timfelgentreff.jsinterpreter.Interpreter').
 toRun(function() {
 
 DBPlanner.addMethods({
@@ -14,7 +15,14 @@ DBPlanner.addMethods({
         if (Object.isString(opts.priority)) {
             opts.priority = this.strength[opts.priority];
         }
-        //func.allowUnsolvableOperations = true; // XXX TODO: find out if we need this
+        // XXX TODO: we do not actually need the next two,
+        // but the implementation of DBVariable>>cnEquals is
+        // not complete. It needs two more things:
+        //  a) no evaluation of the argument/RHS to get rid of allowUnsolv...
+        //  b) not returning true, but incrementally building a UserDBCons...
+        func.allowUnsolvableOperations = true;
+        func.allowTests = true;
+
         var planner = this,
             ctx = opts.ctx,
             priority = opts.priority,
@@ -204,10 +212,41 @@ DBVariable.addMethods({
     },
     cnEquals: function(other) {
         if (!(other instanceof DBVariable)) {
-            other = new DBVariable('constant/' + other, other, this.planner);
-            Constraint.current.addPrimitiveConstraint(
-                new StayDBConstraint(other, DBStrength.required, this.planner)
-            );
+            var formulaNode = bbb.currentNode && (bbb.currentNode.right || bbb.currentNode.args[0]);
+            if (formulaNode) {
+                // let's generate a formula
+                var argumentString = cop.withLayers([PrintOMetaVariableAsBBBField], function () {
+                    return formulaNode.asJS();
+                });
+                var varMapping = bbb.currentInterpreter.getCurrentScope();
+                var func = (function() {
+                        window.$$bbbVarMapping = varMapping;
+                        try {
+                            return eval(argumentString);
+                        } finally {
+                            delete window.$$bbbVarMapping;
+                        }
+                    });
+
+                // TODO: Trace through formulaNode and only add the actual dependencies
+                var inputs = Constraint.current.constraintvariables.map(function (cvar) {
+                    return cvar.externalVariable
+                }).filter(function (evar) {
+                    return !evar || evar !== this
+                }.bind(this));
+
+                this.formula(inputs, func);
+                // TODO: This should return a UserDBConstraint, but not
+                // add it to the current Constraint, yet. The right thing
+                // to happen is that we get one UserDBConstraint for all the
+                // formulas connected with && and returned from the constraint
+                return true;
+            } else {
+                other = new DBVariable('constant/' + other, other, this.planner);
+                Constraint.current.addPrimitiveConstraint(
+                    new StayDBConstraint(other, DBStrength.required, this.planner)
+                );
+            }
         }
 
         var self = this;
@@ -232,12 +271,16 @@ DBVariable.addMethods({
     cnOr: function(other) {
         return this.value ? this : other;
     },
-    equals: function(argument) {
-        return this.cnEquals(argument);
+    equals: function() {
+        return this.cnEquals.apply(this, arguments);
     }
 });
-
-
+cop.create('PrintOMetaVariableAsBBBField').refineClass(users.timfelgentreff.jsinterpreter.Variable, {
+    asJS: function() {
+        var result = cop.proceed();
+        return "(window.$$bbbVarMapping." + result + ")";
+    }
+});
 DBConstraint.addMethods({
     isConstraintObject: true,
 
