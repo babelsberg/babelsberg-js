@@ -146,7 +146,7 @@ DBVariable.addMethods({
 
 
     formula: function(inputs, func) {
-        console.warn('Deprecated: Using DBVariable>>formula should not be necessary anymore');
+        console.warn('Deprecated: Using DBVariable>>formula');
         if (!Constraint.current) {
             throw 'invalid outside constraint construction';
         }
@@ -235,7 +235,7 @@ DBVariable.addMethods({
                     return !evar || evar !== this;
                 }.bind(this));
 
-                var c = new UserDBConstraint(function(){}, Constraint.current.solver);
+                var c = new UserDBConstraint(function() {}, Constraint.current.solver);
                 c.formula(this, inputs, func);
                 return c;
             } else {
