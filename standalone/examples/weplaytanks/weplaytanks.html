@@ -53,36 +53,15 @@
 		<script src="../../../babelsberg/src_transform.js"></script>
 		<script src="../../babelsbergscript.js"></script>
 
-		<!-- // helper -->
+		<!-- // misc helper -->
 		<script src="lib/helper/stats.js"></script>
 		<script src="lib/helper/d3.js"></script>
 		<script src="lib/helper/queue.v1.min.js"></script>
 		
-		<!-- // main -->
-		<script type="text/javascript" src="lib/input.js"></script>
-
+		<!-- // math helper -->
         <script type="text/javascript" src="lib/math/vector2.js"></script>
         <script type="text/javascript" src="lib/math/affinetransformation.js"></script>
 		<script type="text/javascript" src="lib/math/aabb.js"></script>
-		
-		<script type="text/javascript" src="lib/view/viewport.js"></script>
-		
-		<script type="text/javascript" src="lib/rendering/image.js"></script>
-		<script type="text/javascript" src="lib/rendering/animationsheet.js"></script>
-		<script type="text/javascript" src="lib/rendering/animation.js"></script>
-		<script type="text/javascript" src="lib/rendering/configuration.js"></script>
-		<script type="text/javascript" src="lib/rendering/renderer.js"></script>
-
-        <script type="text/javascript" src="lib/world/gameobject.js"></script>
-        <script type="text/javascript" src="lib/world/tank.js"></script>
-        <script type="text/javascript" src="lib/world/bullet.js"></script>
-        <script type="text/javascript" src="lib/world/controls.js"></script>
-        <script type="text/javascript" src="lib/world/config.js"></script>
-        <script type="text/javascript" src="lib/world/world.js"></script>
-
-        <script type="text/javascript" src="lib/gui.js"></script>
-
-        <script type="text/javascript" src="lib/weplaytanks.js"></script>
 	</head>
 	<body>
 		<canvas id="game" width=800 height=600 resize style="width:800px; height:600px; background-color:black"></canvas>
@@ -99,5 +78,6 @@
 
             This demo shows how constraints and object-oriented paradigms can interact using Babelsberg.
         </div>
+        <script data-main="lib/weplaytanks" src="lib/helper/require.js"></script>
     </body>
 </html>
