@@ -485,6 +485,27 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
 
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
+    testOnlyOneConstraintIsCreatedWithoutAnd: function() {
+        var o = {string: "0",
+                 number: 0};
+
+        bbb.always({
+            solver: new DBPlanner(),
+            ctx: {parseFloat: parseFloat, o: o}
+        }, function () {
+            o.string == o.number + "";
+            return o.number == parseFloat(o.string);
+        });
+
+        this.assert(o.string === o.number + "");
+        o.string = "1"
+        this.assert(o.number === 1);
+        var cannotSatisfy;
+        o.number = 12;
+        this.assert(o.number == 1);
+        this.assert(o.string == 1);
+    },
+
     testSimplePropagation: function() {
         var o = {string: "0",
                  number: 0};

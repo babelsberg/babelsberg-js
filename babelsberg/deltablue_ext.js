@@ -21,7 +21,6 @@ DBPlanner.addMethods({
         //  a) no evaluation of the argument/RHS to get rid of allowUnsolv...
         //  b) not returning true, but incrementally building a UserDBCons...
         func.allowUnsolvableOperations = true;
-        func.allowTests = true;
 
         var planner = this,
             ctx = opts.ctx,
@@ -147,6 +146,7 @@ DBVariable.addMethods({
 
 
     formula: function(inputs, func) {
+        console.warn('Deprecated: Using DBVariable>>formula should not be necessary anymore');
         if (!Constraint.current) {
             throw 'invalid outside constraint construction';
         }
@@ -162,15 +162,9 @@ DBVariable.addMethods({
     removeFormula: function() {
         var f = this.__formula__;
         this.__formula__ = undefined;
-        if (!f) {
-            f = this.deriveFormula();
-        }
         return f;
     },
-    deriveFormula: function() {
-        // TODO
-        return;
-    },
+
 
     removeStay: function() {
         if (this._stayConstraint) {
@@ -199,7 +193,7 @@ DBVariable.addMethods({
     },
     cnIdentical: function(other) {
         if (!(other instanceof DBVariable)) {
-            other = new DBVariable('___', other, this.planner);
+            other = new DBVariable('constant/' + other, other, this.planner);
             var stay = new StayDBConstraint(other, DBStrength.required, this.planner);
             stay.enable(DBStrength.required);
         }
@@ -217,6 +211,7 @@ DBVariable.addMethods({
                         (bbb.currentNode.property === 'equals')) &&
                     (bbb.currentNode.right || bbb.currentNode.args[0]);
             if (formulaNode) {
+                var self = this;
                 // let's generate a formula
                 var argumentString = cop.withLayers([PrintOMetaVariableAsBBBField],
                     function() {
@@ -240,12 +235,9 @@ DBVariable.addMethods({
                     return !evar || evar !== this;
                 }.bind(this));
 
-                this.formula(inputs, func);
-                // TODO: This should return a UserDBConstraint, but not
-                // add it to the current Constraint, yet. The right thing
-                // to happen is that we get one UserDBConstraint for all the
-                // formulas connected with && and returned from the constraint
-                return true;
+                var c = new UserDBConstraint(function(){}, Constraint.current.solver);
+                c.formula(this, inputs, func);
+                return c;
             } else {
                 other = new DBVariable('constant/' + other, other, this.planner);
                 Constraint.current.addPrimitiveConstraint(
@@ -280,7 +272,23 @@ DBVariable.addMethods({
         return this.cnEquals.apply(this, arguments);
     }
 });
-cop.create('PrintOMetaVariableAsBBBField').
+UserDBConstraint.addMethods({
+    cnAnd: function(r) {
+        if (r instanceof UserDBConstraint) {
+            for (var i = 0; i < r.formulas.length; i++) {
+                var output = r.outputs[i],
+                    formula = r.formulas[i],
+                    inputs = formula.inputs,
+                    func = formula.func;
+                this.formula(output, inputs, func);
+            }
+            return this;
+        } else {
+            Constraint.current.addPrimitiveConstraint(this);
+            return r;
+        }
+    }
+});cop.create('PrintOMetaVariableAsBBBField').
 refineClass(users.timfelgentreff.jsinterpreter.Variable, {
     asJS: function() {
         var result = cop.proceed();
