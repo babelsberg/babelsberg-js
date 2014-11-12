@@ -287,7 +287,8 @@ UserDBConstraint.addMethods({
             return r;
         }
     }
-});cop.create('PrintOMetaVariableAsBBBField').
+});
+cop.create('PrintOMetaVariableAsBBBField').
 refineClass(users.timfelgentreff.jsinterpreter.Variable, {
     asJS: function() {
         var result = cop.proceed();
