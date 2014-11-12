@@ -146,3 +146,11 @@ Object.extend(lively.morphic.Morph, {
         };
         window.alert.original = temp;
 })();
+
+(function(global) {
+        global.assert = global.assert || function assert(bool) {
+			if(!bool) {
+				throw "assertion failed";
+			}
+		};
+})(this);
