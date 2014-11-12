@@ -485,6 +485,40 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
 
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
+    testOneWayConstraintFromEqualsWrapsNestedProperties: function() {
+        var o = {a: pt(0,0),
+                 b: pt(1,1),
+                 c: pt(2,2)};
+
+        bbb.always({
+            solver: new DBPlanner(),
+            ctx: {
+                DBPlanner: DBPlanner,
+                o: o,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return o.a.equals(o.b.addPt(o.c)) && o.b.equals(o.a.subPt(o.c)) && o.c.equals(o.a.subPt(o.b));;
+        });
+        
+        this.assert(o.a.equals(o.b.addPt(o.c)));
+
+        o.a = pt(100,100);
+        this.assert(o.a.equals(o.b.addPt(o.c)));
+        this.assert(o.a.equals(pt(100,100)));
+        o.a.x = 12
+        this.assert(o.a.equals(o.b.addPt(o.c)));
+        this.assert(o.a.equals(pt(12,100)));
+
+        o.b.y = pt(23)
+        this.assert(o.a.equals(o.b.addPt(o.c)));
+        this.assert(o.b.y === 23);
+
+        o.c.x = 18
+        this.assert(o.a.equals(o.b.addPt(o.c)));
+        this.assert(o.c.x === 18);
+    },
+
     testOneWayConstraintFromEquals: function() {
         var o = {a: pt(0,0),
                  b: pt(1,1),
