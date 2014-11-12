@@ -485,6 +485,58 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
 
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
+    testOneWayConstraintFromEquals: function() {
+        var o = {a: pt(0,0),
+                 b: pt(1,1),
+                 c: pt(2,2)};
+
+        bbb.always({
+            solver: new DBPlanner(),
+            ctx: {
+                DBPlanner: DBPlanner,
+                o: o,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return o.a.equals(o.b.addPt(o.c)) && o.b.equals(o.a.subPt(o.c)) && o.c.equals(o.a.subPt(o.b));;
+        });
+        
+        this.assert(o.a.equals(o.b.addPt(o.c)));
+
+        o.a = pt(100,100);
+        this.assert(o.a.equals(o.b.addPt(o.c)));
+        this.assert(o.a.equals(pt(100,100)));
+
+        o.b = pt(20,20)
+        this.assert(o.a.equals(o.b.addPt(o.c)));
+        this.assert(o.b.equals(pt(20,20)));
+
+        o.c = pt(13,13)
+        this.assert(o.a.equals(o.b.addPt(o.c)));
+        this.assert(o.c.equals(pt(13,13)));
+    },
+
+    testOneWayConstraintFromEq: function() {
+        var o = {string: "0",
+                 number: 0};
+
+        bbb.always({
+            solver: new DBPlanner(),
+            ctx: {parseFloat: parseFloat, o: o}
+        }, function () {
+            return o.string == o.number + "" &&
+            o.number == parseFloat(o.string);
+        });
+
+        this.assert(o.string === o.number + "");
+        o.string = "1"
+        this.assert(o.number === 1);
+        var cannotSatisfy;
+        o.number = 12;
+        this.assert(o.number == 12);
+        this.assert(o.string == "12");
+    },
+
     testOnlyOneConstraintIsCreatedWithoutAnd: function() {
         var o = {string: "0",
                  number: 0};

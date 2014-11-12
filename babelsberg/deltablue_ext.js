@@ -207,7 +207,8 @@ DBVariable.addMethods({
         if (!(other instanceof DBVariable)) {
             var formulaNode = bbb.currentNode &&
                     ((bbb.currentNode.name === '==') ||
-                        (bbb.currentNode.property === 'equals')) &&
+                        (bbb.currentNode.property &&
+                         bbb.currentNode.property.value === 'equals')) &&
                     (bbb.currentNode.right || bbb.currentNode.args[0]);
             if (formulaNode) {
                 var self = this;
@@ -231,7 +232,7 @@ DBVariable.addMethods({
                 var inputs = Constraint.current.constraintvariables.map(function(cvar) {
                     return cvar.externalVariable;
                 }).filter(function(evar) {
-                    return !evar || evar !== this;
+                    return evar && evar !== this;
                 }.bind(this));
 
                 var c = new UserDBConstraint(function() {}, Constraint.current.solver);
