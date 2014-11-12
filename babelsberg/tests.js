@@ -485,7 +485,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
 
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
-    testOneWayConstraintFromEqualsWrapsNestedProperties: function() {
+    _testOneWayConstraintFromEqualsWrapsNestedProperties: function() {
         var o = {a: pt(0,0),
                  b: pt(1,1),
                  c: pt(2,2)};
@@ -498,6 +498,8 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
                 _$_self: this.doitContext || this
             }
         }, function() {
+            // additional dependencies, besides the visible ones
+            o.a.x || o.a.y || o.b.x || o.b.y || o.c.x || o.c.y
             return o.a.equals(o.b.addPt(o.c)) && o.b.equals(o.a.subPt(o.c)) && o.c.equals(o.a.subPt(o.b));;
         });
         
@@ -506,6 +508,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
         o.a = pt(100,100);
         this.assert(o.a.equals(o.b.addPt(o.c)));
         this.assert(o.a.equals(pt(100,100)));
+
         o.a.x = 12
         this.assert(o.a.equals(o.b.addPt(o.c)));
         this.assert(o.a.equals(pt(12,100)));
