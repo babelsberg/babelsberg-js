@@ -97,6 +97,9 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
     },
     always: function($super, opts, func) {
         var prio = opts.priority;
+        if (prio instanceof String || typeof(prio) == "string") {
+            prio = this.strength[prio];
+        }
         delete opts.priority; // not supported by NaClZ3
         var result = cop.withLayers([CommandLineZ3Layer], function () {
             return $super(opts, func);
