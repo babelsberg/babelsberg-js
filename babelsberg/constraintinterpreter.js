@@ -309,11 +309,13 @@ Object.subclass('Babelsberg', {
      * @public
      */
     identAlways: function(opts, func) {
-        var solvers = this.chooseSolvers(opts.solver);
+        var solvers = this.chooseSolvers(opts.solver).filter(function (s) {
+            return s instanceof DBPlanner
+        });
         func.debugging = opts.debugging;
 
         if (solvers.length !== 1 ||
-            (!solvers[0] instanceof DBPlanner) ||
+            (!(solvers[0] instanceof DBPlanner)) ||
             solvers[0].$$value) {
             throw new Error(
                 'We solve identities with a DeltaBlue that has no value constraints.'
