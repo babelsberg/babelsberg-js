@@ -53,7 +53,7 @@ DBPlanner.addMethods({
         if (!this.currentEdits) {
             this.currentEdits = new DBOrderedCollection();
         }
-        var edit = new EditDBConstraint(v, DBStrength.REQUIRED, this);
+        var edit = new EditDBConstraint(v, DBStrength.required, this);
         this.currentEdits.add(edit);
         return edit;
     },
@@ -124,7 +124,7 @@ DBVariable.addMethods({
     },
     setReadonly: function(bool) {
         if (bool && !this.readonlyConstraint) {
-            var cn = new StayDBConstraint(this, DBStrength.required, this.planner);
+            var cn = new StayDBConstraint(this, DBStrength.STONG_PREFERRED, this.planner);
             cn.enable();
             this.readonlyConstraint = cn;
             return cn;
