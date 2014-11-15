@@ -391,9 +391,9 @@ NaCLZ3Ast.subclass('NaCLZ3Constant', {
 
 NaCLZ3Ast.subclass('NaCLZ3Constraint', {
     enable: function (strength) {
-        if (strength && strength !== "required") {
-            throw "Z3 does not support soft constraints (yet)"
-        }
+        // if (strength && strength !== "required") {
+        //     throw "Z3 does not support soft constraints (yet)"
+        // }
         this.solver.addConstraint(this);
     },
 
