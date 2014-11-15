@@ -260,6 +260,10 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
     cnEquals: function (r) {
         return new NaCLZ3BinaryExpression("=", this, r, this.solver);
     },
+    cnNeq: function (r) {
+        return new NaCLZ3UnaryExpression("not", new NaCLZ3BinaryExpression("=", this, r, this.solver), this.solver);
+    },
+
     cnGeq: function (r) {
         return new NaCLZ3BinaryExpression(">=", this, r, this.solver);
     },
