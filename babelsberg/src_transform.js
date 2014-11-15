@@ -20,7 +20,6 @@ toRun(function() {
 
         isIdentity: function(node) {
             if (!(this.isAlways(node) || this.isOnce(node))) return false;
-            debugger
             for(var i = 0; i < node.body.body.length - 1; i++) {
                 if (!(node.body.body[i] instanceof UglifyJS.AST_LabeledStatement)) {
                     return false;
@@ -296,7 +295,7 @@ toRun(function() {
                     fragments = [],
                     offset = 0,
                     lines = this.textString.split('\n').map(function(line) {
-                        return [line, offset += line.length];
+                        return [line, offset += line.length + 1];
                     });
                 while (idx !== -1 && endIdx !== -1) {
                     try {
@@ -305,13 +304,14 @@ toRun(function() {
                         lines.some(function(ary) {
                             line = ary[0]; return ary[1] > idx;
                         });
-                        var indent = new Array(line.indexOf(/always:|once:/) + 1).join(' ');
+                        var indent = new Array(line.match(/always:|once:/).index + 1).join(' ');
                         str = str.split('\n').inject('', function(acc, line) {
                             return acc + '\n' + indent + line;
                         }).slice('\n'.length + indent.length);
                         // remove first newline+indent
                         fragments.push([idx + 1, endIdx, str]);
-                        idx = this.textString.indexOf(/[^"](always:|once:)/, idx + 2);
+                        matchData = this.textString.slice(idx + 1).match(/[^"](always:|once:)/);
+                        idx = (matchData && (matchData.index + idx + 1)) || -1
                         endIdx = this.textString.indexOf('}', idx + 2);
                     } catch (e) {
                         // parsing exception
