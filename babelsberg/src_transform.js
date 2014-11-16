@@ -20,7 +20,7 @@ toRun(function() {
 
         isIdentity: function(node) {
             if (!(this.isAlways(node) || this.isOnce(node))) return false;
-            for(var i = 0; i < node.body.body.length - 1; i++) {
+            for (var i = 0; i < node.body.body.length - 1; i++) {
                 if (!(node.body.body[i] instanceof UglifyJS.AST_LabeledStatement)) {
                     return false;
                 }
@@ -28,7 +28,7 @@ toRun(function() {
             var lastStmt = node.body.body.last();
             return lastStmt instanceof UglifyJS.AST_SimpleStatement &&
                 lastStmt.body instanceof UglifyJS.AST_Binary &&
-                lastStmt.body.operator === "===";
+                lastStmt.body.operator === '===';
         },
 
         ensureThisToSelfIn: function(ast) {
@@ -271,7 +271,8 @@ toRun(function() {
 
 });
 
-    if (!(lively && lively.morphic && lively.morphic.Morph && lively.morphic.CodeEditor)) return;
+    if (!(lively && lively.morphic && lively.morphic.Morph && lively.morphic.CodeEditor))
+        return;
 
 
     cop.create('AddScriptWithFakeOriginalLayer').refineClass(lively.morphic.Morph, {
@@ -304,14 +305,16 @@ toRun(function() {
                         lines.some(function(ary) {
                             line = ary[0]; return ary[1] > idx;
                         });
-                        var indent = new Array(line.match(/always:|once:/).index + 1).join(' ');
+                        var indent = new Array(line.match(/always:|once:/).index + 1).
+                                                join(' ');
                         str = str.split('\n').inject('', function(acc, line) {
                             return acc + '\n' + indent + line;
                         }).slice('\n'.length + indent.length);
                         // remove first newline+indent
                         fragments.push([idx + 1, endIdx, str]);
-                        matchData = this.textString.slice(idx + 1).match(/[^"](always:|once:)/);
-                        idx = (matchData && (matchData.index + idx + 1)) || -1
+                        matchData = this.textString.slice(idx + 1).
+                                        match(/[^"](always:|once:)/);
+                        idx = (matchData && (matchData.index + idx + 1)) || -1;
                         endIdx = this.textString.indexOf('}', idx + 2);
                     } catch (e) {
                         // parsing exception
