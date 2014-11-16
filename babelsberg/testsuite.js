@@ -83,7 +83,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.testsuite.SemanticsTests', {
     CircleNew: function(self) {
         return new Object({circle: true});
     },
-        MakeIdentical: function(self, a, b) {
+    MakeIdentical: function(self, a, b) {
         var ctx = {a: a, b: b};
         bbb.identAlways({
             ctx: {
@@ -118,64 +118,39 @@ TestCase.subclass('users.timfelgentreff.babelsberg.testsuite.SemanticsTests', {
         });
         return ctx.a
     },
-    Testpointxequals5: function(self, myp) {
-        bbb.always({
-
-            ctx: {
-
-                myp: myp,
-
-                _$_self: this.doitContext || this
-
-            }
-
-        }, function() {
-
-            return myp.x == 5;;
-
-        });
-
-        return myp;
-
-    },
-
     Testipointxequals5: function(self, p) {
-
         var myp = {x: p.x, y: p.y};
-
         bbb.always({
-
             ctx: {
-
                 myp: myp,
-
                 _$_self: this.doitContext || this
-
             }
-
         }, function() {
-
             return myp.x == 5;;
-
         });
-
         return myp;
-
     },
-
-
-
-
+    Testpointxequals5: function(self, p) {
+        bbb.always({
+            ctx: {
+                p: p,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return p.x == 5;;
+        });
+        return p;
+    },
     TestXGetsXPlus3ReturnX: function(self, x) {
         x = x + 3;
         return x;
     },
 
-    // TODO: others
-
 
 test1: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -199,7 +174,9 @@ test1: function() {
 },
 
 test2: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -230,7 +207,9 @@ test2: function() {
 },
 
 test3: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try { bbb.always({
@@ -246,7 +225,9 @@ test3: function() {
 },
 
 test4: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -273,9 +254,9 @@ test4: function() {
           }, function() {
               return ctx.x + ctx.y + 2 * ctx.z == 10;;
           }); } catch (e) { ctx.unsat = true }
-    this.assert(ctx.x == 0.0);
+    this.assert(ctx.x == 10.0);
     this.assert(ctx.y == 0.0);
-    this.assert(ctx.z == 5.0);
+    this.assert(ctx.z == 0.0);
     try { bbb.always({
               priority: "required",
               ctx: {
@@ -297,7 +278,9 @@ test4: function() {
 },
 
 test5: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -321,7 +304,9 @@ test5: function() {
 },
 
 test6: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -342,7 +327,9 @@ test6: function() {
 },
 
 test7: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -362,7 +349,9 @@ test7: function() {
 },
 
 test8: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -376,7 +365,9 @@ test8: function() {
 },
 
 test9: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -407,7 +398,9 @@ test9: function() {
 },
 
 test10: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -438,7 +431,9 @@ test10: function() {
 },
 
 test11: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -468,7 +463,9 @@ test11: function() {
 },
 
 test12: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -525,7 +522,9 @@ test12: function() {
 },
 
 test13: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -539,7 +538,9 @@ test13: function() {
 },
 
 test14: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -564,7 +565,9 @@ test14: function() {
 },
 
 test15: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -594,7 +597,9 @@ test15: function() {
 },
 
 test17: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -614,7 +619,9 @@ test17: function() {
 },
 
 test18: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -634,7 +641,9 @@ test18: function() {
 },
 
 test19: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -654,7 +663,9 @@ test19: function() {
 },
 
 test20: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -678,7 +689,9 @@ test20: function() {
 },
 
 test22: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -703,7 +716,9 @@ test22: function() {
 },
 
 test23: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -723,7 +738,9 @@ test23: function() {
 },
 
 test24: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -754,7 +771,9 @@ test24: function() {
 },
 
 test25: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -774,7 +793,9 @@ test25: function() {
 },
 
 test26: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -804,7 +825,9 @@ test26: function() {
 },
 
 test27: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -832,7 +855,9 @@ test27: function() {
 },
 
 test28: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -855,7 +880,9 @@ test28: function() {
 },
 
 test29: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -902,7 +929,9 @@ test29: function() {
 },
 
 test30: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -938,7 +967,9 @@ test30: function() {
 },
 
 test31: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -981,8 +1012,9 @@ test31: function() {
 },
 
 test32b: function() {
-    debugger
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -1012,8 +1044,9 @@ test32b: function() {
 },
 
 test32c: function() {
-    debugger
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -1037,9 +1070,11 @@ test32c: function() {
 },
 
 test32: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
-    debugger
+
     try {
         ctx.r = new Object({upper_left: this.Point(null, 2.0, 2.0), lower_right: this.Point(null, 10.0, 10.0)});
     } catch (e) { ctx.unsat = true }
@@ -1061,7 +1096,9 @@ test32: function() {
 },
 
 test33: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -1097,8 +1134,9 @@ test33: function() {
 },
 
 test34: function() {
-    debugger
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -1113,18 +1151,19 @@ test34: function() {
     try {
         ctx.def = this.Require_min_balance(null, ctx.a, ctx.m);
     } catch (e) { ctx.unsat = true }
-    this.assert(ctx.a.balance > 10);
+    this.assert(this.fieldEquals(ctx.a, Object({balance: 11.0})));
     this.assert(ctx.m == 10.0);
     try {
         ctx.m = 100.0;
     } catch (e) { ctx.unsat = true }
-    this.assert(ctx.a.balance > 10);
+    this.assert(this.fieldEquals(ctx.a, Object({balance: 11.0})));
     this.assert(ctx.m == 100.0);
 },
 
 test35: function() {
-    debugger
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -1146,19 +1185,21 @@ test35: function() {
           }, function() {
               return _$_self.Has_min_balance(null, ctx.a, ro(ctx.m));;
           }); } catch (e) { ctx.unsat = true }
-    this.assert(ctx.a.balance > 10.0);
+    this.assert(this.fieldEquals(ctx.a, Object({balance: 11.0})));
     this.assert(ctx.m == 10.0);
     try {
         ctx.m = 100.0;
     } catch (e) { ctx.unsat = true }
-    this.assert(ctx.a.balance > 100.0);
+    this.assert(this.fieldEquals(ctx.a, Object({balance: 101.0})));
     this.assert(ctx.m == 100.0);
 },
 
 test36: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
-    debugger
+
     try {
         ctx.x = 0.0;
     } catch (e) { ctx.unsat = true }
@@ -1188,11 +1229,14 @@ test36: function() {
           }, function() {
               return ctx.y == _$_self.Test(null, ctx.x);;
           }); } catch (e) { ctx.unsat = true }
-    this.assert(ctx.unsat);
+    this.assert(ctx.x == 10.0);
+    this.assert(ctx.y == 6.0);
 },
 
 test37: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -1228,8 +1272,9 @@ test37: function() {
 },
 
 test40: function() {
-    debugger
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -1240,7 +1285,7 @@ test40: function() {
         ctx.pB = ctx.pA;
     } catch (e) { ctx.unsat = true }
     this.assert(this.fieldEquals(ctx.pA, Object({x: 10.0, y: 10.0})));
-    this.assert(ctx.pA === ctx.pB);
+    this.assert(ctx.pB === ctx.pA);
     try {
         ctx.pA = this.MutablePointNew(null, 50.0, 50.0);
     } catch (e) { ctx.unsat = true }
@@ -1249,8 +1294,9 @@ test40: function() {
 },
 
 test41: function() {
-    debugger
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -1286,8 +1332,9 @@ test41: function() {
 },
 
 test42: function() {
-    debugger
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -1315,8 +1362,9 @@ test42: function() {
 },
 
 test43: function() {
-    debugger
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -1329,7 +1377,7 @@ test43: function() {
     this.assert(this.fieldEquals(ctx.x, Object({window: true})));
     this.assert(ctx.y === ctx.x);
     try {
-        ctx.def = this.MakeIdentical(null, [ctx, "x"], [ctx, "y"]);
+        ctx.def = this.MakeIdentical(null, ctx.x, ctx.y);
     } catch (e) { ctx.unsat = true }
     this.assert(this.fieldEquals(ctx.x, Object({window: true})));
     this.assert(ctx.y === ctx.x);
@@ -1341,7 +1389,9 @@ test43: function() {
 },
 
 test45: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -1355,7 +1405,9 @@ test45: function() {
 },
 
 test46: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -1385,9 +1437,11 @@ test46: function() {
 },
 
 test47: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
-    debugger
+
     try {
         ctx.q = this.Point(null, 0.0, 0.0);
     } catch (e) { ctx.unsat = true }
@@ -1399,7 +1453,9 @@ test47: function() {
 },
 
 test48: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
@@ -1413,7 +1469,9 @@ test48: function() {
 },
 
 test49: function() {
+    delete bbb.defaultSolver;
     bbb.defaultSolvers = [new CommandLineZ3(), new DBPlanner()];
+    bbb.defaultSolvers[1].$$identity = true;
     var ctx = {unsat: false};
 
     try {
