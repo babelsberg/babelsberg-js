@@ -309,10 +309,13 @@ Object.subclass('Babelsberg', {
      * @public
      */
     identAlways: function(opts, func) {
-        var solvers = this.chooseSolvers(opts.solver).filter(function (s) {
-            return s instanceof DBPlanner
+        var solvers = this.chooseSolvers(opts.solver).filter(function(s) {
+            return s instanceof DBPlanner;
         });
         func.debugging = opts.debugging;
+        if (opts.priority && opts.priority !== 'required') {
+            throw new Error('Only required identity constraints are allowed.');
+        }
 
         if (solvers.length !== 1 ||
             (!(solvers[0] instanceof DBPlanner)) ||
