@@ -18,19 +18,6 @@ toRun(function() {
                     (node.body instanceof UglifyJS.AST_BlockStatement));
         },
 
-        isIdentity: function(node) {
-            if (!(this.isAlways(node) || this.isOnce(node))) return false;
-            for (var i = 0; i < node.body.body.length - 1; i++) {
-                if (!(node.body.body[i] instanceof UglifyJS.AST_LabeledStatement)) {
-                    return false;
-                }
-            }
-            var lastStmt = node.body.body.last();
-            return lastStmt instanceof UglifyJS.AST_SimpleStatement &&
-                lastStmt.body instanceof UglifyJS.AST_Binary &&
-                lastStmt.body.operator === '===';
-        },
-
         ensureThisToSelfIn: function(ast) {
             var tr = new UglifyJS.TreeTransformer(function(node) {
                 if (node instanceof UglifyJS.AST_This) {
@@ -113,10 +100,7 @@ toRun(function() {
         getContextTransformerFor: function(ast) {
             var self = this;
             return new UglifyJS.TreeTransformer(null, function(node) {
-                if (self.isIdentity(node)) {
-                    var name = self.isAlways(node) ? 'identAlways' : 'identOnce';
-                    return self.transformConstraint(ast, node, name);
-                } else if (self.isAlways(node)) {
+                if (self.isAlways(node)) {
                     return self.transformConstraint(ast, node, 'always');
                 } else if (self.isOnce(node)) {
                     return self.transformConstraint(ast, node, 'once');
