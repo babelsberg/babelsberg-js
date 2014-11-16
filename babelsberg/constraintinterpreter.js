@@ -1360,8 +1360,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
                     return rightVal.plus(-leftVal);
                 } // special case for reversing minus - allowed to fall through to default
             case '===':
-                if (node.name === "===" && !Constraint.current.solver.$$identity) {
-                    debugger
+                if (node.name === '===' && !Constraint.current.solver.$$identity) {
                     throw 'Identity constraints must be defined separately';
                 } // otherwise we fall through
             case 'in':
