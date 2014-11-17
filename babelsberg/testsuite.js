@@ -1229,8 +1229,7 @@ test36: function() {
           }, function() {
               return ctx.y == _$_self.Test(null, ctx.x);;
           }); } catch (e) { ctx.unsat = true }
-    this.assert(ctx.x == 10.0);
-    this.assert(ctx.y == 6.0);
+    this.assert(ctx.unsat);
 },
 
 test37: function() {
