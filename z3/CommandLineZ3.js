@@ -22,14 +22,21 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
             var commandString = this.constructor.z3Path + ' -T:4 -smt2 -in',
                 self = this;
             
-            
-            lively.ide.CommandLineInterface.run(
-                commandString,
-                {sync: this.sync, stdin: string},
-                function (r) {
-                    this.applyResult(r.getStdout() + r.getStderr());
-                }.bind(this)
-            );
+            if (!this.sync) {
+                lively.ide.CommandLineInterface.run(
+                    commandString,
+                    {sync: this.sync, stdin: string},
+                    function (r) {
+                        this.applyResult(r.getStdout() + r.getStderr());
+                    }.bind(this)
+                );
+            } else {
+                var r = lively.ide.CommandLineInterface.run(
+                    commandString,
+                    {sync: this.sync, stdin: string}
+                );
+                this.applyResult(r.getStdout() + r.getStderr());
+            }
         },
         initialize: function($super, sync) {
             this.sync = !!(sync || true);
@@ -61,10 +68,9 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
                     }
                 }.bind(this));
             } else if (result.startsWith("unsat")) {
-                debugger
-                throw "Unsatisfiable constraint system";
+                throw new Error("Unsatisfiable constraint system");
             } else {
-                throw "Z3 failed to solve this system";
+                throw new Error("Z3 failed to solve this system");
             }
         },
     solve: function () {
@@ -91,6 +97,9 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
     },
     always: function($super, opts, func) {
         var prio = opts.priority;
+        if (prio instanceof String || typeof(prio) == "string") {
+            prio = this.strength[prio];
+        }
         delete opts.priority; // not supported by NaClZ3
         var result = cop.withLayers([CommandLineZ3Layer], function () {
             return $super(opts, func);
