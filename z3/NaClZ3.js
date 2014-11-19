@@ -260,6 +260,10 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
     cnEquals: function (r) {
         return new NaCLZ3BinaryExpression("=", this, r, this.solver);
     },
+    cnNeq: function (r) {
+        return new NaCLZ3UnaryExpression("not", new NaCLZ3BinaryExpression("=", this, r, this.solver), this.solver);
+    },
+
     cnGeq: function (r) {
         return new NaCLZ3BinaryExpression(">=", this, r, this.solver);
     },
@@ -391,9 +395,9 @@ NaCLZ3Ast.subclass('NaCLZ3Constant', {
 
 NaCLZ3Ast.subclass('NaCLZ3Constraint', {
     enable: function (strength) {
-        if (strength && strength !== "required") {
-            throw "Z3 does not support soft constraints (yet)"
-        }
+        // if (strength && strength !== "required") {
+        //     throw "Z3 does not support soft constraints (yet)"
+        // }
         this.solver.addConstraint(this);
     },
 

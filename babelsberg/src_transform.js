@@ -92,8 +92,8 @@ toRun(function() {
         },
 
         ensureContextFor: function(ast, alwaysNode) {
-            if (!this.hasContextInArgs(alwaysNode.body)) {
-                this.createContextFor(ast, alwaysNode.body);
+            if (!this.hasContextInArgs(alwaysNode)) {
+                this.createContextFor(ast, alwaysNode);
             }
         },
 
@@ -109,8 +109,7 @@ toRun(function() {
         },
 
         transformConstraint: function(ast, node, name) {
-            var node = this.createCallFor(node, name);
-            this.ensureContextFor(ast, node);
+            var node = this.createCallFor(ast, node, name);
             this.isTransformed = true;
             return node;
         },
@@ -170,18 +169,29 @@ toRun(function() {
         var body = alwaysNode.body.body,
             newBody = [],
             args = [],
-            extraArgs = [];
+            extraArgs = [],
+            store;
         newBody = body.select(function(ea) {
             if (ea instanceof UglifyJS.AST_LabeledStatement) {
                 if (!(ea.body instanceof UglifyJS.AST_SimpleStatement)) {
                     throw "Labeled arguments in `always:' have to be simple statements";
                 }
-                extraArgs.push(new UglifyJS.AST_ObjectKeyVal({
-                    start: ea.start,
-                    end: ea.end,
-                    key: ea.label.name,
-                    value: ea.body.body
-                }));
+                if (ea.label.name == 'store') {
+                    store = new UglifyJS.AST_Assign({
+                        start: ea.start,
+                        end: ea.end,
+                        right: undefined /* filled later */,
+                        operator: '=',
+                        left: ea.body.body
+                    });
+                } else {
+                    extraArgs.push(new UglifyJS.AST_ObjectKeyVal({
+                        start: ea.start,
+                        end: ea.end,
+                        key: ea.label.name,
+                        value: ea.body.body
+                    }));
+                }
                 return false;
             } else {
                 return true;
@@ -194,43 +204,56 @@ toRun(function() {
                 properties: extraArgs
             }));
         }
-        return {body: newBody, args: args};
+        return {body: newBody, args: args, store: store};
     },
 
-    createCallFor: function(alwaysNode, methodName) {
+    createCallFor: function(ast, alwaysNode, methodName) {
         var splitBodyAndArgs = this.extractArgumentsFrom(alwaysNode),
             body = splitBodyAndArgs.body,
             args = splitBodyAndArgs.args,
+            store = splitBodyAndArgs.store,
             self = this;
         this.ensureReturnIn(body);
         body.each(function(ea) {
             self.ensureThisToSelfIn(ea);
         });
 
+        var call = new UglifyJS.AST_Call({
+            start: alwaysNode.start,
+            end: alwaysNode.end,
+            expression: new UglifyJS.AST_Dot({
+                start: alwaysNode.start,
+                end: alwaysNode.end,
+                property: methodName,
+                expression: new UglifyJS.AST_SymbolRef({
+                    start: alwaysNode.start,
+                    end: alwaysNode.end,
+                    name: 'bbb'
+                })
+            }),
+            args: args.concat([new UglifyJS.AST_Function({
+                start: alwaysNode.body.start,
+                end: alwaysNode.body.end,
+                body: body,
+                enclosed: alwaysNode.label.scope.enclosed,
+                argnames: []
+            })])
+        });
+
+        this.ensureContextFor(ast, call);
+
+        var alwaysBody;
+        if (store) {
+            store.right = call;
+            alwaysBody = store;
+        } else {
+            alwaysBody = call;
+        }
+
         return new UglifyJS.AST_SimpleStatement({
             start: alwaysNode.start,
             end: alwaysNode.end,
-            body: new UglifyJS.AST_Call({
-                start: alwaysNode.start,
-                end: alwaysNode.end,
-                expression: new UglifyJS.AST_Dot({
-                    start: alwaysNode.start,
-                    end: alwaysNode.end,
-                    property: methodName,
-                    expression: new UglifyJS.AST_SymbolRef({
-                        start: alwaysNode.start,
-                        end: alwaysNode.end,
-                        name: 'bbb'
-                    })
-                }),
-                args: args.concat([new UglifyJS.AST_Function({
-                    start: alwaysNode.body.start,
-                    end: alwaysNode.body.end,
-                    body: body,
-                    enclosed: alwaysNode.label.scope.enclosed,
-                    argnames: []
-                })])
-            })
+            body: alwaysBody
         });
     },
 

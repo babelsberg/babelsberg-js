@@ -1,6 +1,15 @@
 module('users.timfelgentreff.babelsberg.src_transform_test').requires('lively.TestFramework', 'users.timfelgentreff.standalone.Compressor').toRun(function() {
 
 TestCase.subclass('users.timfelgentreff.babelsberg.src_transform_test.TransformTest', {
+
+
+    testAssignResult: function () {
+        var src = "always: {store: c; a < b}";
+        var result = new BabelsbergSrcTransform().transform(src);
+        result = result.replace(/[ \n\r\t]/g,"");
+        this.assert(result === "c=bbb.always({ctx:{c:c,a:a,b:b,_$_self:this.doitContext||this}},function(){returna<b;;});", result);
+    },
+
     testObjectEditorTransform1: function () {
         var src = "always: {a < b}";
         var result = new BabelsbergSrcTransform().transform(src);

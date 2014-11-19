@@ -1244,6 +1244,10 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
             if (func) {
                 var forInterpretation = func.forInterpretation;
                 func.forInterpretation = undefined;
+                var prevNode = bbb.currentNode,
+                    prevInterp = bbb.currentInterpreter;
+                bbb.currentInterpreter = this;
+                bbb.currentNode = node;
                 try {
                     return cop.withoutLayers([ConstraintConstructionLayer], function() {
                         return $super(node, recv, func, argValues);
@@ -1261,6 +1265,8 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
                     );
                 } finally {
                     func.forInterpretation = forInterpretation;
+                    bbb.currentInterpreter = prevInterp;
+                    bbb.currentNode = prevNode;
                 }
             } else {
                 return this.errorIfUnsolvable(
@@ -1297,6 +1303,19 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         }
     },
     visitBinaryOp: function($super, node) {
+        var prevNode = bbb.currentNode,
+            prevInterp = bbb.currentInterpreter;
+        bbb.currentInterpreter = this;
+        bbb.currentNode = node;
+        try {
+            return this.pvtVisitBinaryOp($super, node);
+        } finally {
+            bbb.currentInterpreter = prevInterp;
+            bbb.currentNode = prevNode;
+        }
+    },
+
+    pvtVisitBinaryOp: function(mySuper, node) {
         var op = node.name;
 
         // /* Only supported */ if (node.name.match(/[\*\+\/\-]|==|<=|>=|===|<|>|\|\|/)) {
@@ -1357,7 +1376,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
                         );
                     }
                 } else {
-                    return this.errorIfUnsolvable(op, leftVal, rightVal, $super(node));
+                    return this.errorIfUnsolvable(op, leftVal, rightVal, mySuper(node));
                 }
         }
     },
@@ -1461,6 +1480,26 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         var nativeClass = lively.Class.isClass(func) && func.superclass === undefined;
         return (!(this.isNative(func) || nativeClass)) &&
                  typeof(func.forInterpretation) == 'function';
+    },
+    getCurrentScope: function() {
+        var scope = {};
+        var frame = this.currentFrame;
+        while (frame) {
+            if (frame.mapping === Global) { // reached global scope
+                return scope;
+            }
+            for (var key in frame.mapping) {
+                scope[key] = frame.mapping[key];
+            }
+            var mapping = frame.func.getVarMapping();
+            if (mapping) {
+                for (var key in mapping) {
+                    scope[key] = mapping[key];
+                }
+            }
+            frame = frame.getContainingScope();
+        }
+        return scope;
     },
     newObject: function($super, func) {
         if (func.original) {
