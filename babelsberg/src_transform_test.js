@@ -37,6 +37,33 @@ TestCase.subclass('users.timfelgentreff.babelsberg.src_transform_test.TransformT
                                "\n" +
                                "var late;", result);
     },
+    testSCBTransformMulti: function () {
+        var src = "always: {solver: cassowary; priority: 'high'; a < b}\n    always: {solver: cassowary; priority: 'high'; a < b}",
+            panel = new lively.ide.BrowserPanel(pt(100,100)),
+            editor = new lively.morphic.CodeEditor(rect(0,0,100,100), "    " + src);
+        panel.addMorph(editor);
+        editor.evalEnabled = false;
+        
+        cop.withLayers([ConstraintSyntaxLayer], function () {
+            editor.doSave();
+        });
+        // asserts correct indenting, too
+        result = "    bbb.always({\n" +
+              "        solver: cassowary,\n" +
+              "        priority: \"high\",\n" +
+              "        ctx: {\n" +
+              "            cassowary: cassowary,\n" +
+              "            a: a,\n" +
+              "            b: b,\n" +
+              "            _$_self: this.doitContext || this\n" +
+              "        }\n" +
+              "    }, function() {\n" +
+              "        return a < b;;\n" +
+              "    });";
+        result += "\n" + result;
+        this.assert(editor.textString === result, editor.textString);
+    },
+
     testSCBTransform: function () {
         var src = "always: {solver: cassowary; priority: 'high'; a < b}",
             panel = new lively.ide.BrowserPanel(pt(100,100)),

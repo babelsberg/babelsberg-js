@@ -159,3 +159,12 @@ Object.extend(lively.morphic.Morph, {
 Object.subclass('lively.ide.BrowserPanel', {
     addMorph: function() {}
 });
+
+Object.subclass('lively.morphic.CodeEditor', {
+    initialize: function(unused, src) {
+        this.textString = src;
+        this.owner = new lively.ide.BrowserPanel();
+    },
+    doSave: function() {
+    }
+});

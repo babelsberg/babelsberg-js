@@ -285,6 +285,18 @@ Object.subclass('Babelsberg', {
         return constraint;
     },
 
+    /**
+     * Creates a constraint equivalent to the given function through
+     * Babelsberg#always, and then disables it immediately
+     * @function Babelsberg#once
+     * @public
+     */
+    once: function(opts, func) {
+        var constraint = this.always(opts, func);
+        constraint.disable();
+        return constraint;
+    },
+
     chooseSolvers: function(optSolver) {
         if (optSolver) {
             return [optSolver];
