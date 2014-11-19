@@ -46,9 +46,10 @@ lively.Point = function(x, y) {
 };
 lively.Point.prototype = {
     addPt: function(p) {
-        if (arguments.length != 1) throw ('addPt() only takes 1 parameter.');
-
         return new lively.Point(this.x + p.x, this.y + p.y);
+    },
+    subPt: function(p) {
+        return new lively.Point(this.x - p.x, this.y - p.y);
     },
     equals: function(p) {
         return this.eqPt(p);
