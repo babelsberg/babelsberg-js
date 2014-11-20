@@ -21,7 +21,7 @@ toRun(function() {
         isTrigger: function(node) {
             return ((node instanceof UglifyJS.AST_Call) &&
                     (node.expression instanceof UglifyJS.AST_SymbolRef) &&
-                    (node.expression.name === 'when'))
+                    (node.expression.name === 'when'));
         },
 
         ensureThisToSelfIn: function(ast) {
