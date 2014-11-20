@@ -22,6 +22,12 @@ TestCase.subclass('users.timfelgentreff.babelsberg.src_transform_test.TransformT
         result = result.replace(/[ \n\r\t]/g,"");
         this.assert(result === "bbb.always({solver:cassowary,priority:\"high\",ctx:{cassowary:cassowary,a:a,b:b,_$_self:this.doitContext||this}},function(){returna<b;;});", result);
     },
+    testObjectEditorTransformTrigger: function () {
+        var src = "var c = when(function() {a < b}).trigger(function () { alert });";
+        var result = new BabelsbergSrcTransform().transform(src);
+        result = result.replace(/[ \n\r\t]/g,"");
+        this.assert(result === "varc=bbb.when({ctx:{a:a,b:b,_$_self:this.doitContext||this}},function(){returna<b;;}).trigger(function(){alert});", result);
+    },
     testOETransformWithLaterDeclarations: function () {
         var src = "always: { true }\n\
                     var late;\n";
