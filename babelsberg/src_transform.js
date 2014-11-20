@@ -18,6 +18,12 @@ toRun(function() {
                     (node.body instanceof UglifyJS.AST_BlockStatement));
         },
 
+        isTrigger: function(node) {
+            return ((node instanceof UglifyJS.AST_Call) &&
+                    (node.expression instanceof UglifyJS.AST_SymbolRef) &&
+                    (node.expression.name === 'when'))
+        },
+
         ensureThisToSelfIn: function(ast) {
             var tr = new UglifyJS.TreeTransformer(function(node) {
                 if (node instanceof UglifyJS.AST_This) {
@@ -31,14 +37,14 @@ toRun(function() {
             ast.transform(tr);
         },
 
-        hasContextInArgs: function(alwaysNode) {
-            if (alwaysNode.args.length == 2) {
-                if (!alwaysNode.args[0] instanceof UglifyJS.AST_Object) {
+        hasContextInArgs: function(constraintNode) {
+            if (constraintNode.args.length == 2) {
+                if (!constraintNode.args[0] instanceof UglifyJS.AST_Object) {
                     throw new SyntaxError(
                         "first argument of call to `always' must be an object"
                     );
                 }
-                return alwaysNode.args[0].properties.any(function(ea) {
+                return constraintNode.args[0].properties.any(function(ea) {
                     return ea.key === 'ctx';
                 });
             } else {
@@ -46,28 +52,28 @@ toRun(function() {
             }
         },
 
-        createContextFor: function(ast, alwaysNode) {
+        createContextFor: function(ast, constraintNode) {
             var enclosed = ast.enclosed,
                 self = this;
-            if (alwaysNode.args.last() instanceof UglifyJS.AST_Function) {
-                enclosed = alwaysNode.args.last().enclosed || [];
+            if (constraintNode.args.last() instanceof UglifyJS.AST_Function) {
+                enclosed = constraintNode.args.last().enclosed || [];
                 enclosed = enclosed.reject(function(ea) {
                     // reject all that
                     //   1. are not declared (var) BEFORE the always
                     //   2. are first referenced (globals, specials, etc) AFTER the always
-                    return (ea.init && (ea.init.start.pos > alwaysNode.start.pos)) ||
+                    return (ea.init && (ea.init.start.pos > constraintNode.start.pos)) ||
                            (ea.orig && ea.orig[0] &&
-                            (ea.orig[0].start.pos > alwaysNode.end.pos));
+                            (ea.orig[0].start.pos > constraintNode.end.pos));
                 });
                 enclosed.push({name: '_$_self'}); // always include this
             }
             var ctx = new UglifyJS.AST_Object({
-                start: alwaysNode.start,
-                end: alwaysNode.end,
+                start: constraintNode.start,
+                end: constraintNode.end,
                 properties: enclosed.collect(function(ea) {
                     return new UglifyJS.AST_ObjectKeyVal({
-                        start: alwaysNode.start,
-                        end: alwaysNode.end,
+                        start: constraintNode.start,
+                        end: constraintNode.end,
                         key: ea.name,
                         value: self.contextMap(ea.name)
                     });
@@ -75,25 +81,25 @@ toRun(function() {
             });
 
             var ctxkeyval = new UglifyJS.AST_ObjectKeyVal({
-                start: alwaysNode.start,
-                end: alwaysNode.end,
+                start: constraintNode.start,
+                end: constraintNode.end,
                 key: 'ctx',
                 value: ctx
             });
-            if (alwaysNode.args.length == 2) {
-                alwaysNode.args[0].properties.push(ctxkeyval);
+            if (constraintNode.args.length == 2) {
+                constraintNode.args[0].properties.push(ctxkeyval);
             } else {
-                alwaysNode.args.unshift(new UglifyJS.AST_Object({
-                    start: alwaysNode.start,
-                    end: alwaysNode.end,
+                constraintNode.args.unshift(new UglifyJS.AST_Object({
+                    start: constraintNode.start,
+                    end: constraintNode.end,
                     properties: [ctxkeyval]
                 }));
             }
         },
 
-        ensureContextFor: function(ast, alwaysNode) {
-            if (!this.hasContextInArgs(alwaysNode)) {
-                this.createContextFor(ast, alwaysNode);
+        ensureContextFor: function(ast, constraintNode) {
+            if (!this.hasContextInArgs(constraintNode)) {
+                this.createContextFor(ast, constraintNode);
             }
         },
 
@@ -104,6 +110,8 @@ toRun(function() {
                     return self.transformConstraint(ast, node, 'always');
                 } else if (self.isOnce(node)) {
                     return self.transformConstraint(ast, node, 'once');
+                } else if (self.isTrigger(node)) {
+                    return self.transformConstraint(ast, node, 'when');
                 }
             });
         },
@@ -165,8 +173,8 @@ toRun(function() {
         }
     },
 
-    extractArgumentsFrom: function(alwaysNode) {
-        var body = alwaysNode.body.body,
+    extractArgumentsFrom: function(constraintNode) {
+        var body = constraintNode.body.body,
             newBody = [],
             args = [],
             extraArgs = [],
@@ -174,7 +182,9 @@ toRun(function() {
         newBody = body.select(function(ea) {
             if (ea instanceof UglifyJS.AST_LabeledStatement) {
                 if (!(ea.body instanceof UglifyJS.AST_SimpleStatement)) {
-                    throw "Labeled arguments in `always:' have to be simple statements";
+                    throw new SyntaxError(
+                        "Labeled arguments in `always:' have to be simple statements"
+                    );
                 }
                 if (ea.label.name == 'store') {
                     store = new UglifyJS.AST_Assign({
@@ -199,62 +209,85 @@ toRun(function() {
         });
         if (extraArgs) {
             args.push(new UglifyJS.AST_Object({
-                start: alwaysNode.start,
-                end: alwaysNode.end,
+                start: constraintNode.start,
+                end: constraintNode.end,
                 properties: extraArgs
             }));
         }
         return {body: newBody, args: args, store: store};
     },
 
-    createCallFor: function(ast, alwaysNode, methodName) {
-        var splitBodyAndArgs = this.extractArgumentsFrom(alwaysNode),
-            body = splitBodyAndArgs.body,
-            args = splitBodyAndArgs.args,
-            store = splitBodyAndArgs.store,
+    createCallFor: function(ast, constraintNode, methodName) {
+        var body, args, store, enclosed,
             self = this;
+        if (constraintNode instanceof UglifyJS.AST_LabeledStatement) {
+            var splitBodyAndArgs = this.extractArgumentsFrom(constraintNode);
+            body = splitBodyAndArgs.body;
+            args = splitBodyAndArgs.args;
+            store = splitBodyAndArgs.store;
+            enclosed = constraintNode.label.scope.enclosed;
+        } else if (constraintNode instanceof UglifyJS.AST_Call) {
+            var nodeArgs = constraintNode.args,
+                funcArg = nodeArgs[nodeArgs.length - 1];
+            if (!(funcArg instanceof UglifyJS.AST_Function)) {
+                throw new SyntaxError(
+                    'Last argument to ' +
+                        constraintNode.expression.name +
+                        ' must be a function'
+                );
+            }
+            body = funcArg.body;
+            args = nodeArgs.slice(0, nodeArgs.length - 1);
+            enclosed = funcArg.enclosed;
+        } else {
+            throw SyntaxError("Don't know what to do with " + constraintNode);
+        }
+
         this.ensureReturnIn(body);
         body.each(function(ea) {
             self.ensureThisToSelfIn(ea);
         });
 
         var call = new UglifyJS.AST_Call({
-            start: alwaysNode.start,
-            end: alwaysNode.end,
+            start: constraintNode.start,
+            end: constraintNode.end,
             expression: new UglifyJS.AST_Dot({
-                start: alwaysNode.start,
-                end: alwaysNode.end,
+                start: constraintNode.start,
+                end: constraintNode.end,
                 property: methodName,
                 expression: new UglifyJS.AST_SymbolRef({
-                    start: alwaysNode.start,
-                    end: alwaysNode.end,
+                    start: constraintNode.start,
+                    end: constraintNode.end,
                     name: 'bbb'
                 })
             }),
             args: args.concat([new UglifyJS.AST_Function({
-                start: alwaysNode.body.start,
-                end: alwaysNode.body.end,
+                start: body.start,
+                end: body.end,
                 body: body,
-                enclosed: alwaysNode.label.scope.enclosed,
+                enclosed: enclosed,
                 argnames: []
             })])
         });
 
         this.ensureContextFor(ast, call);
 
-        var alwaysBody;
+        var newBody;
         if (store) {
             store.right = call;
-            alwaysBody = store;
+            newBody = store;
         } else {
-            alwaysBody = call;
+            newBody = call;
         }
-
-        return new UglifyJS.AST_SimpleStatement({
-            start: alwaysNode.start,
-            end: alwaysNode.end,
-            body: alwaysBody
-        });
+        if (constraintNode instanceof UglifyJS.AST_Statement) {
+            return new UglifyJS.AST_SimpleStatement({
+                start: constraintNode.start,
+                end: constraintNode.end,
+                body: newBody
+            });
+        } else {
+            return newBody;
+        }
     },
 
     contextMap: function(name) {
