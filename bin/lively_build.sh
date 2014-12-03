@@ -4,6 +4,7 @@ cd $CWD/..
 
 if [ -d LivelyKernel ]; then
     cd LivelyKernel
+    git co -- run_tests.js
     git pull
 else
     git clone git://github.com/LivelyKernel/LivelyKernel.git

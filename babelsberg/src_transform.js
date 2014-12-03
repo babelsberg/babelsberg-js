@@ -12,6 +12,18 @@ toRun(function() {
                     (node.body instanceof UglifyJS.AST_BlockStatement));
         },
 
+        isOnce: function(node) {
+            return ((node instanceof UglifyJS.AST_LabeledStatement) &&
+                    (node.label.name === 'once') &&
+                    (node.body instanceof UglifyJS.AST_BlockStatement));
+        },
+
+        isTrigger: function(node) {
+            return ((node instanceof UglifyJS.AST_Call) &&
+                    (node.expression instanceof UglifyJS.AST_SymbolRef) &&
+                    (node.expression.name === 'when'));
+        },
+
         ensureThisToSelfIn: function(ast) {
             var tr = new UglifyJS.TreeTransformer(function(node) {
                 if (node instanceof UglifyJS.AST_This) {
@@ -25,14 +37,14 @@ toRun(function() {
             ast.transform(tr);
         },
 
-        hasContextInArgs: function(alwaysNode) {
-            if (alwaysNode.args.length == 2) {
-                if (!alwaysNode.args[0] instanceof UglifyJS.AST_Object) {
+        hasContextInArgs: function(constraintNode) {
+            if (constraintNode.args.length == 2) {
+                if (!constraintNode.args[0] instanceof UglifyJS.AST_Object) {
                     throw new SyntaxError(
                         "first argument of call to `always' must be an object"
                     );
                 }
-                return alwaysNode.args[0].properties.any(function(ea) {
+                return constraintNode.args[0].properties.any(function(ea) {
                     return ea.key === 'ctx';
                 });
             } else {
@@ -40,28 +52,28 @@ toRun(function() {
             }
         },
 
-        createContextFor: function(ast, alwaysNode) {
+        createContextFor: function(ast, constraintNode) {
             var enclosed = ast.enclosed,
                 self = this;
-            if (alwaysNode.args.last() instanceof UglifyJS.AST_Function) {
-                enclosed = alwaysNode.args.last().enclosed || [];
+            if (constraintNode.args.last() instanceof UglifyJS.AST_Function) {
+                enclosed = constraintNode.args.last().enclosed || [];
                 enclosed = enclosed.reject(function(ea) {
                     // reject all that
                     //   1. are not declared (var) BEFORE the always
                     //   2. are first referenced (globals, specials, etc) AFTER the always
-                    return (ea.init && (ea.init.start.pos > alwaysNode.start.pos)) ||
+                    return (ea.init && (ea.init.start.pos > constraintNode.start.pos)) ||
                            (ea.orig && ea.orig[0] &&
-                            (ea.orig[0].start.pos > alwaysNode.end.pos));
+                            (ea.orig[0].start.pos > constraintNode.end.pos));
                 });
                 enclosed.push({name: '_$_self'}); // always include this
             }
             var ctx = new UglifyJS.AST_Object({
-                start: alwaysNode.start,
-                end: alwaysNode.end,
+                start: constraintNode.start,
+                end: constraintNode.end,
                 properties: enclosed.collect(function(ea) {
                     return new UglifyJS.AST_ObjectKeyVal({
-                        start: alwaysNode.start,
-                        end: alwaysNode.end,
+                        start: constraintNode.start,
+                        end: constraintNode.end,
                         key: ea.name,
                         value: self.contextMap(ea.name)
                     });
@@ -69,25 +81,25 @@ toRun(function() {
             });
 
             var ctxkeyval = new UglifyJS.AST_ObjectKeyVal({
-                start: alwaysNode.start,
-                end: alwaysNode.end,
+                start: constraintNode.start,
+                end: constraintNode.end,
                 key: 'ctx',
                 value: ctx
             });
-            if (alwaysNode.args.length == 2) {
-                alwaysNode.args[0].properties.push(ctxkeyval);
+            if (constraintNode.args.length == 2) {
+                constraintNode.args[0].properties.push(ctxkeyval);
             } else {
-                alwaysNode.args.unshift(new UglifyJS.AST_Object({
-                    start: alwaysNode.start,
-                    end: alwaysNode.end,
+                constraintNode.args.unshift(new UglifyJS.AST_Object({
+                    start: constraintNode.start,
+                    end: constraintNode.end,
                     properties: [ctxkeyval]
                 }));
             }
         },
 
-        ensureContextFor: function(ast, alwaysNode) {
-            if (!this.hasContextInArgs(alwaysNode.body)) {
-                this.createContextFor(ast, alwaysNode.body);
+        ensureContextFor: function(ast, constraintNode) {
+            if (!this.hasContextInArgs(constraintNode)) {
+                this.createContextFor(ast, constraintNode);
             }
         },
 
@@ -95,12 +107,19 @@ toRun(function() {
             var self = this;
             return new UglifyJS.TreeTransformer(null, function(node) {
                 if (self.isAlways(node)) {
-                    var node = self.createCallFor(node);
-                    self.ensureContextFor(ast, node);
-                    self.isTransformed = true;
-                    return node;
+                    return self.transformConstraint(ast, node, 'always');
+                } else if (self.isOnce(node)) {
+                    return self.transformConstraint(ast, node, 'once');
+                } else if (self.isTrigger(node)) {
+                    return self.transformConstraint(ast, node, 'when');
                 }
             });
+        },
+
+        transformConstraint: function(ast, node, name) {
+            var node = this.createCallFor(ast, node, name);
+            this.isTransformed = true;
+            return node;
         },
 
         transform: function(code) {
@@ -154,22 +173,35 @@ toRun(function() {
         }
     },
 
-    extractArgumentsFrom: function(alwaysNode) {
-        var body = alwaysNode.body.body,
+    extractArgumentsFrom: function(constraintNode) {
+        var body = constraintNode.body.body,
             newBody = [],
             args = [],
-            extraArgs = [];
+            extraArgs = [],
+            store;
         newBody = body.select(function(ea) {
             if (ea instanceof UglifyJS.AST_LabeledStatement) {
                 if (!(ea.body instanceof UglifyJS.AST_SimpleStatement)) {
-                    throw "Labeled arguments in `always:' have to be simple statements";
+                    throw new SyntaxError(
+                        "Labeled arguments in `always:' have to be simple statements"
+                    );
                 }
-                extraArgs.push(new UglifyJS.AST_ObjectKeyVal({
-                    start: ea.start,
-                    end: ea.end,
-                    key: ea.label.name,
-                    value: ea.body.body
-                }));
+                if (ea.label.name == 'store') {
+                    store = new UglifyJS.AST_Assign({
+                        start: ea.start,
+                        end: ea.end,
+                        right: undefined /* filled later */,
+                        operator: '=',
+                        left: ea.body.body
+                    });
+                } else {
+                    extraArgs.push(new UglifyJS.AST_ObjectKeyVal({
+                        start: ea.start,
+                        end: ea.end,
+                        key: ea.label.name,
+                        value: ea.body.body
+                    }));
+                }
                 return false;
             } else {
                 return true;
@@ -177,49 +209,85 @@ toRun(function() {
         });
         if (extraArgs) {
             args.push(new UglifyJS.AST_Object({
-                start: alwaysNode.start,
-                end: alwaysNode.end,
+                start: constraintNode.start,
+                end: constraintNode.end,
                 properties: extraArgs
             }));
         }
-        return {body: newBody, args: args};
+        return {body: newBody, args: args, store: store};
     },
 
-    createCallFor: function(alwaysNode) {
-        var splitBodyAndArgs = this.extractArgumentsFrom(alwaysNode),
-            body = splitBodyAndArgs.body,
-            args = splitBodyAndArgs.args,
+    createCallFor: function(ast, constraintNode, methodName) {
+        var body, args, store, enclosed,
             self = this;
+        if (constraintNode instanceof UglifyJS.AST_LabeledStatement) {
+            var splitBodyAndArgs = this.extractArgumentsFrom(constraintNode);
+            body = splitBodyAndArgs.body;
+            args = splitBodyAndArgs.args;
+            store = splitBodyAndArgs.store;
+            enclosed = constraintNode.label.scope.enclosed;
+        } else if (constraintNode instanceof UglifyJS.AST_Call) {
+            var nodeArgs = constraintNode.args,
+                funcArg = nodeArgs[nodeArgs.length - 1];
+            if (!(funcArg instanceof UglifyJS.AST_Function)) {
+                throw new SyntaxError(
+                    'Last argument to ' +
+                        constraintNode.expression.name +
+                        ' must be a function'
+                );
+            }
+            body = funcArg.body;
+            args = nodeArgs.slice(0, nodeArgs.length - 1);
+            enclosed = funcArg.enclosed;
+        } else {
+            throw SyntaxError("Don't know what to do with " + constraintNode);
+        }
+
         this.ensureReturnIn(body);
         body.each(function(ea) {
             self.ensureThisToSelfIn(ea);
         });
 
-        return new UglifyJS.AST_SimpleStatement({
-            start: alwaysNode.start,
-            end: alwaysNode.end,
-            body: new UglifyJS.AST_Call({
-                start: alwaysNode.start,
-                end: alwaysNode.end,
-                expression: new UglifyJS.AST_Dot({
-                    start: alwaysNode.start,
-                    end: alwaysNode.end,
-                    property: 'always',
-                    expression: new UglifyJS.AST_SymbolRef({
-                        start: alwaysNode.start,
-                        end: alwaysNode.end,
-                        name: 'bbb'
-                    })
-                }),
-                args: args.concat([new UglifyJS.AST_Function({
-                    start: alwaysNode.body.start,
-                    end: alwaysNode.body.end,
-                    body: body,
-                    enclosed: alwaysNode.label.scope.enclosed,
-                    argnames: []
-                })])
-            })
+        var call = new UglifyJS.AST_Call({
+            start: constraintNode.start,
+            end: constraintNode.end,
+            expression: new UglifyJS.AST_Dot({
+                start: constraintNode.start,
+                end: constraintNode.end,
+                property: methodName,
+                expression: new UglifyJS.AST_SymbolRef({
+                    start: constraintNode.start,
+                    end: constraintNode.end,
+                    name: 'bbb'
+                })
+            }),
+            args: args.concat([new UglifyJS.AST_Function({
+                start: body.start,
+                end: body.end,
+                body: body,
+                enclosed: enclosed,
+                argnames: []
+            })])
         });
+
+        this.ensureContextFor(ast, call);
+
+        var newBody;
+        if (store) {
+            store.right = call;
+            newBody = store;
+        } else {
+            newBody = call;
+        }
+        if (constraintNode instanceof UglifyJS.AST_Statement) {
+            return new UglifyJS.AST_SimpleStatement({
+                start: constraintNode.start,
+                end: constraintNode.end,
+                body: newBody
+            });
+        } else {
+            return newBody;
+        }
     },
 
     contextMap: function(name) {
@@ -243,92 +311,96 @@ toRun(function() {
 
 });
 
-    if (lively && lively.morphic && lively.morphic.Morph && lively.morphic.CodeEditor) {
-        cop.create('AddScriptWithFakeOriginalLayer').refineClass(lively.morphic.Morph, {
-            addScript: function(funcOrString, origSource) {
-                var originalFunction;
-                originalFunction = cop.proceed.apply(this, [origSource]);
-                var result = cop.proceed.apply(this, [funcOrString]);
-                result.getOriginal().setProperty('originalFunction', originalFunction);
-                return result;
-            }
-        });
+    if (!(lively && lively.morphic && lively.morphic.Morph && lively.morphic.CodeEditor))
+        return;
 
-        cop.create('ConstraintSyntaxLayer').refineClass(lively.morphic.CodeEditor, {
-            doSave: function() {
-                if (this.owner instanceof lively.ide.BrowserPanel) {
-                    // XXX: Ad-hoc fragment search
-                    var matchData = this.textString.match(/[^"]always:/),
-                        t = new BabelsbergSrcTransform(),
-                        idx = (matchData && matchData.index) || -1,
-                        endIdx = this.textString.indexOf('}', idx + 1),
-                        fragments = [],
-                        offset = 0,
-                        lines = this.textString.split('\n').map(function(line) {
-                            return [line, offset += line.length];
+
+    cop.create('AddScriptWithFakeOriginalLayer').refineClass(lively.morphic.Morph, {
+        addScript: function(funcOrString, origSource) {
+            var originalFunction;
+            originalFunction = cop.proceed.apply(this, [origSource]);
+            var result = cop.proceed.apply(this, [funcOrString]);
+            result.getOriginal().setProperty('originalFunction', originalFunction);
+            return result;
+        }
+    });
+
+    cop.create('ConstraintSyntaxLayer').refineClass(lively.morphic.CodeEditor, {
+        doSave: function() {
+            if (this.owner instanceof lively.ide.BrowserPanel) {
+                // XXX: Ad-hoc fragment search
+                var matchData = this.textString.match(/[^"](always:|once:)/),
+                    t = new BabelsbergSrcTransform(),
+                    idx = (matchData && matchData.index) || -1,
+                    endIdx = this.textString.indexOf('}', idx + 1),
+                    fragments = [],
+                    offset = 0,
+                    lines = this.textString.split('\n').map(function(line) {
+                        return [line, offset += line.length + 1];
+                    });
+                while (idx !== -1 && endIdx !== -1) {
+                    try {
+                        var str = t.transform(this.textString.slice(idx, endIdx + 1));
+                        var line;
+                        lines.some(function(ary) {
+                            line = ary[0]; return ary[1] > idx;
                         });
-                    while (idx !== -1 && endIdx !== -1) {
-                        try {
-                            var str = t.transform(this.textString.slice(idx, endIdx + 1));
-                            var line;
-                            lines.some(function(ary) {
-                                line = ary[0]; return ary[1] > idx;
-                            });
-                            var indent = new Array(line.indexOf('always:') + 1).join(' ');
-                            str = str.split('\n').inject('', function(acc, line) {
-                                return acc + '\n' + indent + line;
-                            }).slice('\n'.length + indent.length);
-                            // remove first newline+indent
-                            fragments.push([idx + 1, endIdx, str]);
-                            idx = this.textString.indexOf('always:', idx + 2);
-                            endIdx = this.textString.indexOf('}', idx + 2);
-                        } catch (e) {
-                            // parsing exception
-                            endIdx = this.textString.indexOf('}', endIdx + 1);
-                        }
+                        var indent = new Array(line.match(/always:|once:/).index + 1).
+                                                join(' ');
+                        str = str.split('\n').inject('', function(acc, line) {
+                            return acc + '\n' + indent + line;
+                        }).slice('\n'.length + indent.length);
+                        // remove first newline+indent
+                        fragments.push([idx + 1, endIdx, str]);
+                        matchData = this.textString.slice(idx + 1).
+                                        match(/[^"](always:|once:)/);
+                        idx = (matchData && (matchData.index + idx + 1)) || -1;
+                        endIdx = this.textString.indexOf('}', idx + 2);
+                    } catch (e) {
+                        // parsing exception
+                        endIdx = this.textString.indexOf('}', endIdx + 1);
                     }
+                }
 
-                    if (fragments.length !== 0) {
-                        var textPos = 0;
-                        var newTextString = fragments.inject(
-                            '',
-                            function(memo, fragment) {
-                                var r = this.textString.slice(
-                                    textPos,
-                                    fragment[0]
-                                ) + fragment[2];
-                                textPos = fragment[1] + 1;
-                                return memo + r;
-                            }.bind(this));
-                        newTextString += this.textString.slice(textPos);
-                        this.textString = newTextString;
-                    }
-                    return cop.withoutLayers([ConstraintSyntaxLayer], function() {
-                        return cop.proceed();
-                    });
-                } else {
+                if (fragments.length !== 0) {
+                    var textPos = 0;
+                    var newTextString = fragments.inject(
+                        '',
+                        function(memo, fragment) {
+                            var r = this.textString.slice(
+                                textPos,
+                                fragment[0]
+                            ) + fragment[2];
+                            textPos = fragment[1] + 1;
+                            return memo + r;
+                        }.bind(this));
+                    newTextString += this.textString.slice(textPos);
+                    this.textString = newTextString;
+                }
+                return cop.withoutLayers([ConstraintSyntaxLayer], function() {
                     return cop.proceed();
-                }
-            },
-
-            boundEval: function(code) {
-                var t = new BabelsbergSrcTransform(),
-                    addScriptWithOrigCode = t.transformAddScript(code),
-                    constraintCode = t.transform(addScriptWithOrigCode);
-                if (addScriptWithOrigCode === constraintCode) {
-                    // no constraints in code
-                    return cop.proceed.apply(this, [code]);
-                } else {
-                    return cop.withLayers([AddScriptWithFakeOriginalLayer], function() {
-                        // If this layer is not global but only on the
-                        // morph, make sure we use it here
-                        return cop.proceed.apply(this, [constraintCode]);
-                    });
-                }
+                });
+            } else {
+                return cop.proceed();
             }
-        });
-        ConstraintSyntaxLayer.beGlobal();
+        },
 
-    }
+        boundEval: function(code) {
+            var t = new BabelsbergSrcTransform(),
+                addScriptWithOrigCode = t.transformAddScript(code),
+                constraintCode = t.transform(addScriptWithOrigCode);
+            if (addScriptWithOrigCode === constraintCode) {
+                // no constraints in code
+                return cop.proceed.apply(this, [code]);
+            } else {
+                return cop.withLayers([AddScriptWithFakeOriginalLayer], function() {
+                    // If this layer is not global but only on the
+                    // morph, make sure we use it here
+                    return cop.proceed.apply(this, [constraintCode]);
+                });
+            }
+        }
+    });
+    ConstraintSyntaxLayer.beGlobal();
 
 }); // end of module

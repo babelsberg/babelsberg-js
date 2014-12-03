@@ -9,7 +9,7 @@ if [ $? -ne 0 ]; then
 fi
 
 FOLDERS=(babelsberg cassowary csp deltablue standalone sutherland)
-EXCLUDE_FILES="uglify.js,PerformanceTests.js,tests.js,src_transform_test.js,zombietest.js,prototype.js,test_harness.js,underscore-min.js"
+EXCLUDE_FILES="uglify.js,PerformanceTests.js,tests.js,src_transform_test.js,zombietest.js,prototype.js,test_harness.js,underscore-min.js,testsuite.js"
 EXCLUDE_FOLDERS="examples"
 CUSTOM_JSDOC_TAGS="example,function,global,name,tutorial"
 MAX_LINE_LEN=90

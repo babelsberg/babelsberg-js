@@ -46,9 +46,10 @@ lively.Point = function(x, y) {
 };
 lively.Point.prototype = {
     addPt: function(p) {
-        if (arguments.length != 1) throw ('addPt() only takes 1 parameter.');
-
         return new lively.Point(this.x + p.x, this.y + p.y);
+    },
+    subPt: function(p) {
+        return new lively.Point(this.x - p.x, this.y - p.y);
     },
     equals: function(p) {
         return this.eqPt(p);
@@ -146,3 +147,24 @@ Object.extend(lively.morphic.Morph, {
         };
         window.alert.original = temp;
 })();
+
+(function(global) {
+        global.assert = global.assert || function assert(bool) {
+            if(!bool) {
+                throw "assertion failed";
+            }
+        };
+})(this);
+
+Object.subclass('lively.ide.BrowserPanel', {
+    addMorph: function() {}
+});
+
+Object.subclass('lively.morphic.CodeEditor', {
+    initialize: function(unused, src) {
+        this.textString = src;
+        this.owner = new lively.ide.BrowserPanel();
+    },
+    doSave: function() {
+    }
+});
