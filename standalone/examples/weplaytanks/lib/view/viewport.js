@@ -1,4 +1,31 @@
 define(function moduleViewport() {
+    var Scale = Object.subclass("Scale", {
+        initialize: function() {
+            this.domain([0,1]);
+            this.range([0,1]);
+        },
+        domain: function(dFromTo) {
+            this.dFrom = dFromTo[0];
+            this.dTo = dFromTo[1];
+        },
+        range: function(rFromTo) {
+            this.rFrom = rFromTo[0];
+            this.rTo = rFromTo[1];
+        },
+        scale: function(x) {
+            var r = this.rTo - this.rFrom,
+                d = this.dTo - this.dFrom,
+                X = x - this.dFrom;
+            return r * X / d + this.rFrom;
+        },
+        invert: function(y) {
+            var Y = y - this.rFrom,
+                d = this.dTo - this.dFrom,
+                r = this.rTo - this.rFrom;
+            return Y * d / r + this.dFrom;
+        }
+    });
+
     var Viewport = Object.subclass("Viewport", {
         initialize: function(middlePoint, extent) {
             this.point = middlePoint;
@@ -9,8 +36,8 @@ define(function moduleViewport() {
         },
         _initialize: function() {
             // scaling
-            this.scaleX = d3.scale.linear();
-            this.scaleY = d3.scale.linear();
+            this.scaleX = new Scale();
+            this.scaleY = new Scale();
             this.resetScaleRange();
 
             this.update();
@@ -74,8 +101,8 @@ define(function moduleViewport() {
 
         worldToScreenCoordinates: function(vector) {
             return new Vector2(
-                this.scaleX(vector.x),
-                this.scaleY(vector.y)
+                this.scaleX.scale(vector.x),
+                this.scaleY.scale(vector.y)
             );
         }
     });
