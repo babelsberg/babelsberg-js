@@ -1,16 +1,16 @@
 define(function moduleViewport() {
     var Scale = Object.subclass("Scale", {
         initialize: function() {
-            this.domain([0,1]);
-            this.range([0,1]);
+            this.domain(0, 1);
+            this.range(0, 1);
         },
-        domain: function(dFromTo) {
-            this.dFrom = dFromTo[0];
-            this.dTo = dFromTo[1];
+        domain: function(dFrom, dTo) {
+            this.dFrom = dFrom;
+            this.dTo = dTo;
         },
-        range: function(rFromTo) {
-            this.rFrom = rFromTo[0];
-            this.rTo = rFromTo[1];
+        range: function(rFrom, rTo) {
+            this.rFrom = rFrom;
+            this.rTo = rTo;
         },
         scale: function(x) {
             var r = this.rTo - this.rFrom,
@@ -74,21 +74,15 @@ define(function moduleViewport() {
             var middlePoint = this.point;
             var extend = this.extent;
 
-            this.scaleX.domain([
-                middlePoint.x - extend.x / 2,
-                middlePoint.x + extend.x / 2
-            ]);
-            this.scaleY.domain([
-                middlePoint.y - extend.y / 2,
-                middlePoint.y + extend.y / 2
-            ]);
+            this.scaleX.domain(middlePoint.x - extend.x / 2, middlePoint.x + extend.x / 2);
+            this.scaleY.domain(middlePoint.y - extend.y / 2, middlePoint.y + extend.y / 2);
         },
 
         // HACK: hard coded canvas extent
         // Ranges are given in screen coordinates.
         resetScaleRange: function() {
-            this.scaleX.range([0, 800]);
-            this.scaleY.range([0, 600]);
+            this.scaleX.range(0, 800);
+            this.scaleY.range(0, 600);
         },
 
         // converting between screen and world
