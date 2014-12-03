@@ -10,6 +10,7 @@ define(function moduleControls() {
 
             // constraint:
             // - the player tanks turret follows the mouse
+            // old version
             var turretConstraint = bbb.always({
                 solver: new DBPlanner(),
                 ctx: {
@@ -23,6 +24,16 @@ define(function moduleControls() {
                 } }, function() {
                     return player.turretDirection.equals((input.mouse).sub(player.position));
             });
+
+/*
+            // new version relying on source transformation and implicit LHS <= RHS inference; convenient but slow due to interpretation on each resolving
+            var turretConstraint;
+            always: {
+                solver: new DBPlanner()
+                store: turretConstraint
+                player.turretDirection.equals(input.position.sub(player.position))
+            }
+*/
             player.constraints.push(turretConstraint);
         },
         update: function(dt) {
@@ -197,6 +208,7 @@ define(function moduleControls() {
             // turret mildly seeks the player
             // TODO: ! chose, issue
             /*
+            // possibility 1:
             trigger: {
                 callback: function() {
                     that.rotationDirection *= -1;
@@ -204,7 +216,7 @@ define(function moduleControls() {
                 var angle = player.position.sub(tank.position).getDirectedAngle(tank.turretDirection);
                             return angle < -90 || angle > 90;
             }
-
+            // possibility 2:
             always: {
                 trigger: function() {
                     that.rotationDirection *= -1;

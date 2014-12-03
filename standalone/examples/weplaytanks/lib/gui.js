@@ -4,15 +4,19 @@ define(["./rendering/animation", "./rendering/animationsheet"], function Gui(Ani
         this.input = input;
         this.player = player;
 
+        var deltaBlue = new DBPlanner();
         var spriteSheet = new AnimationSheet("target.png", 52, 52);
         var crossHairsAnimation = new Animation(spriteSheet, 100, [0]);
         var bubbleAnimation = new Animation(spriteSheet, 100, [1]);
 
         this.bubbles = [0.2, 0.4, 0.6, 0.8, 1.0].map(function(t, i) {
             var bubble = new Gui.Bubble(t == 1.0 ? crossHairsAnimation : bubbleAnimation, t, world, input, player, viewport);
+            // constraint idea:
+            // keep targeting graphics in sync with mouse and player position
             // TODO: add constraints here
+            // old formula variant, fast
             bbb.always({
-                solver: new DBPlanner(),
+                solver: deltaBlue,
                 ctx: {
                     bubble: bubble,
                     player: player,
@@ -32,6 +36,14 @@ define(["./rendering/animation", "./rendering/animationsheet"], function Gui(Ani
                 ));
                 return r;
             });
+/*
+            // new version with implicit formula, convenient but slow
+            always: {
+                solver: deltaBlue
+                bubble.position.equals(input.mouse.mulFloat(t).add(viewport.worldToScreenCoordinates(player.position).mulFloat(1-t)))
+            }
+*/
+
             return bubble;
         });
 

@@ -57,6 +57,7 @@ require(["./input", "./gui", "./view/viewport", "./world/world", "./world/tank",
 
             // constraint:
             // - keep input position in world and mouse on screen in sync
+            // old, fast version
             bbb.always({
                 solver: new DBPlanner(),
                 ctx: {
@@ -71,6 +72,14 @@ require(["./input", "./gui", "./view/viewport", "./world/world", "./world/tank",
             }, function() {
                 return input.position.equals(viewport.screenToWorldCoordinates(input.mouse));
             });
+
+/*
+            // new clean but slow version using automatic inference of formulas
+            always: {
+                solver: new DBPlanner()
+                input.position.equals(viewport.screenToWorldCoordinates(input.mouse))
+            }
+*/
         },
         constrainDebugLayer: function() {
             var input = this.input;
