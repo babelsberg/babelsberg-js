@@ -7,22 +7,20 @@ define(function moduleViewport() {
         domain: function(dFrom, dTo) {
             this.dFrom = dFrom;
             this.dTo = dTo;
+            this.d = dTo - dFrom;
         },
         range: function(rFrom, rTo) {
             this.rFrom = rFrom;
             this.rTo = rTo;
+            this.r = rTo - rFrom;
         },
         scale: function(x) {
-            var r = this.rTo - this.rFrom,
-                d = this.dTo - this.dFrom,
-                X = x - this.dFrom;
-            return r * X / d + this.rFrom;
+            var X = x - this.dFrom;
+            return this.r * X / this.d + this.rFrom;
         },
         invert: function(y) {
-            var Y = y - this.rFrom,
-                d = this.dTo - this.dFrom,
-                r = this.rTo - this.rFrom;
-            return Y * d / r + this.dFrom;
+            var Y = y - this.rFrom;
+            return Y * this.d / this.r + this.dFrom;
         }
     });
 
