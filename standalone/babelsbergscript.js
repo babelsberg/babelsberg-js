@@ -77,15 +77,22 @@
 
         function checkForFinish() {
             if (numScripts === 0 && !fired) {
-                var event = document.createEvent('CustomEvent');
-                event.initCustomEvent(
-                    'babelsbergready',
-                    true, // bubbles
-                    true, // cancellable
-                    {message: 'Babelsberg Scripts loaded', time: new Date()}
-                );
-                fired = true;
-                document.dispatchEvent(event);
+                if (document.createEvent) {
+                    var event = document.createEvent('CustomEvent');
+                    if (event.initCustomEvent) {
+                        event.initCustomEvent(
+                            'babelsbergready',
+                            true, // bubbles
+                            true, // cancellable
+                            {message: 'Babelsberg Scripts loaded', time: new Date()}
+                        );
+                        fired = true;
+                        document.dispatchEvent(event);
+                        return;
+                    }
+                }
+                // No custom event support
+                console.warn('Custom Events not supported on this platform');
             }
         }
 
