@@ -77,16 +77,12 @@
 
         function checkForFinish() {
             if (numScripts === 0 && !fired) {
-                var event = new CustomEvent(
+                var event = document.createEvent('CustomEvent');
+                event.initCustomEvent(
                     'babelsbergready',
-                    {
-                        detail: {
-                            message: 'Babelsberg Scripts loaded',
-                            time: new Date()
-                        },
-                        bubbles: true,
-                        cancelable: true
-                    }
+                    true, // bubbles
+                    true, // cancellable
+                    {message: 'Babelsberg Scripts loaded', time: new Date()}
                 );
                 fired = true;
                 document.dispatchEvent(event);
