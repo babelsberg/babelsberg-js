@@ -72,13 +72,37 @@
     };
 
     function load() {
+        var numScripts = 0,
+            fired = false;
+
+        function checkForFinish() {
+            if (numScripts === 0 && !fired) {
+                var event = new CustomEvent(
+                    "babelsbergready",
+                    {
+                        detail: {
+                            message: "Babelsberg Scripts loaded",
+                            time: new Date(),
+                        },
+                        bubbles: true,
+                        cancelable: true
+                    }
+                );
+                fired = true;
+                document.dispatchEvent(event);
+            }
+        }
+
         function checkScript(script) {
             if (/^text\/(?:x-|)babelsbergscript$/.test(script.type) &&
                     !script.getAttribute('babelsberg-ignore')) {
                 var src = script.src;
                 if (src) {
+                    numScripts += 1;
                     Http.request('get', src, function(code) {
                         Babelsberg.execute(code);
+                        numScripts -= 1;
+                        checkForFinish();
                     });
                 } else {
                     Babelsberg.execute(script.innerHTML);
@@ -90,6 +114,7 @@
         var scripts = document.getElementsByTagName('script');
         for (var i = 0; i < scripts.length; i++)
             checkScript(scripts[i]);
+        checkForFinish();
     }
 
     if (document.readyState === 'complete') {
