@@ -1,0 +1,3 @@
+define([
+    "./onebulletperframelayer"
+], function PluginLoader() {});

@@ -11,7 +11,8 @@ require([
     "./base/timer",
     "./base/loop",
     "./game/loadlevel",
-    "./game/game"
+    "./game/game",
+    "./plugins/pluginloader"
 ], function main(
     Input,
     Gui,
@@ -25,7 +26,8 @@ require([
     Timer,
     Loop,
     loadLevel,
-    Game
+    Game,
+    PluginLoader
 ) {
     //window.onload = function() {
         var canvasId = "game",
