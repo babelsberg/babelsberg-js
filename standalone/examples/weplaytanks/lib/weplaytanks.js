@@ -1,4 +1,28 @@
-require(["./input", "./gui", "./view/viewport", "./world/world", "./world/tank", "./world/controls", "./world/gameobject", "./rendering/renderer", "./rendering/loadimage"], function main(Input, Gui, Viewport, WorldBuilder, Tank, Controls, GameObject, Renderer, loadImage) {
+require([
+    "./input",
+    "./gui",
+    "./view/viewport",
+    "./world/world",
+    "./world/tank",
+    "./world/controls",
+    "./world/gameobject",
+    "./rendering/renderer",
+    "./rendering/loadimage",
+    "./base/timer",
+    "./base/loop"
+], function main(
+    Input,
+    Gui,
+    Viewport,
+    WorldBuilder,
+    Tank,
+    Controls,
+    GameObject,
+    Renderer,
+    loadImage,
+    Timer,
+    Loop
+) {
 
     cop.create("UnconstrainAndDisableAllLayer")
         .refineClass(Babelsberg, {
@@ -217,34 +241,6 @@ require(["./input", "./gui", "./view/viewport", "./world/world", "./world/tank",
             }
         })
         .beGlobal();
-
-    Object.subclass("Timer", {
-        initialize: function() {
-            this.lastFrame = window.performance.now();
-
-            // TODO: minimal framerate constraint
-        },
-        // returns time since last call
-        update: function() {
-            var time = window.performance.now(),
-                dt = (time - this.lastFrame) / 1000;
-            this.lastFrame = time;
-            return dt;
-        }
-    });
-
-    Object.subclass("Loop", {
-        initialize: function(func) {
-            this.func = func;
-        },
-        start: function() {
-            this.update();
-        },
-        update: function() {
-            this.func();
-            requestAnimationFrame(this.update.bind(this));
-        }
-    });
 
     function loadJSON(path, callback) {
         var xobj = new XMLHttpRequest();
