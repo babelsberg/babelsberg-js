@@ -3,28 +3,15 @@ define([
     "./../gui",
     "./../view/viewport",
     "./../world/world",
-    "./../world/tank",
-    "./../world/controls",
-    "./../world/gameobject",
     "./../rendering/renderer",
-    "./../rendering/loadimage",
-    "./../base/timer",
-    "./../base/loop",
-    "./../game/loadlevel",
     "./../game/debuglayer"
 ], function Game(
     Input,
     Gui,
     Viewport,
+    // TODO: extract WorldBuilder, Tile, ... from World
     WorldBuilder,
-    Tank,
-    Controls,
-    GameObject,
     Renderer,
-    loadImage,
-    Timer,
-    Loop,
-    loadLevel,
     DebugLayer
 ) {
     var Game = Object.subclass("Game", {
