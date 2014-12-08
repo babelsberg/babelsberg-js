@@ -1,3 +1,4 @@
 define([
-    "./onebulletperframelayer"
+    "./onebulletperframelayer",
+    "./adjustviewportmanuallylayer"
 ], function PluginLoader() {});
