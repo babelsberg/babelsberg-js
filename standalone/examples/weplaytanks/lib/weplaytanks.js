@@ -9,7 +9,8 @@ require([
     "./rendering/renderer",
     "./rendering/loadimage",
     "./base/timer",
-    "./base/loop"
+    "./base/loop",
+    "./game/loadlevel"
 ], function main(
     Input,
     Gui,
@@ -21,7 +22,8 @@ require([
     Renderer,
     loadImage,
     Timer,
-    Loop
+    Loop,
+    loadLevel
 ) {
 
     cop.create("UnconstrainAndDisableAllLayer")
@@ -241,28 +243,6 @@ require([
             }
         })
         .beGlobal();
-
-    function loadJSON(path, callback) {
-        var xobj = new XMLHttpRequest();
-        xobj.overrideMimeType("application/json");
-        xobj.open('GET', path, true); // Replace 'my_data' with the path to your file
-        xobj.onreadystatechange = function () {
-            if (xobj.readyState == 4) {
-                // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
-                // Parse JSON string into object
-                var actual_JSON = JSON.parse(xobj.responseText);
-                callback(actual_JSON);
-            }
-        };
-        xobj.send(null);
-    };
-
-    loadLevel = function(index, path, callback) {
-        loadJSON("assets/levels/" + path, function(json) {
-            Levels[index] = json;
-            callback(null, json);
-         });
-    };
 
     //window.onload = function() {
         var canvasId = "game",
