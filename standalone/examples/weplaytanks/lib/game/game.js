@@ -25,19 +25,6 @@ define([
     Loop,
     loadLevel
 ) {
-
-    cop.create("UnconstrainAndDisableAllLayer")
-        .refineClass(Babelsberg, {
-            unconstrain: function(obj, accessor) {
-                var cvar = ConstrainedVariable.findConstraintVariableFor(obj, accessor);
-                cvar._constraints.each(function(constraint) {
-                    constraint.disable();
-                });
-                cop.proceed(obj, accessor);
-            }
-        })
-        //.beGlobal();
-
     var Game = Object.subclass("Game", {
         initialize: function(canvasId) {
             this.buildCanvas(canvasId);
