@@ -20,6 +20,62 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
             // separate this into 2 constraints
             // one constraint that triggers the vertical reflection
             // the other just listens on the y-coordinate for the horizontal reflection
+
+            function reflect(axis) {
+                if(that.reflectionCount++ == that.maxReflections) {
+                    this.disable();
+                    that.destroy();
+                } else {
+                    if(that.reflectionCount == 1) {
+                        that.onCollisionWith(that.tank, Bullet.detonate);
+                    }
+                    that.velocity[axis] *= -1;
+                }
+            };
+
+            // bounce combines "vertical" and "horizontal" wall reflection
+            var bounce = when(function() {
+                that.getTile(that.position).canFlyThrough() == false;
+            }).trigger(function() {
+                var prevFlyable = that.getTile(that.prevPosition).canFlyThrough(),
+                    reflOnX = that.getTile(new Vector2(
+                        that.prevPosition.x,
+                        that.position.y
+                    )).canFlyThrough(),
+                    reflOnY = that.getTile(new Vector2(
+                        that.position.x,
+                        that.prevPosition.y
+                    )).canFlyThrough();
+
+                if(prevFlyable && reflOnX) {
+                    reflect.call(this, "x");
+                } else if(prevFlyable && reflOnY) {
+                    reflect.call(this, "y");
+                }
+
+                that.position.set(that.prevPosition);
+            });
+
+            // TODO: ! extract x and y
+/*
+            var vertical = when(function() {
+                var pp = that.prevPosition.divVector(map.tileSize).floor();
+                var x = that.position.divVector(map.tileSize).floor().x;
+                map.tiles[pp.y][pp.x].canFlyThrough() && !(map.tiles[pp.y][x].canFlyThrough());
+            }).trigger(function() {
+                reflect.call(this, "x");
+            });
+
+            var horizontal = when(function() {
+                var pp = that.prevPosition.divVector(map.tileSize).floor();
+                var y = that.position.divVector(map.tileSize).floor().y;
+                map.tiles[pp.y][pp.x].canFlyThrough() && !(map.tiles[y][pp.x].canFlyThrough());
+            }).trigger(function() {
+                reflect.call(this, "y");
+            });
+*/
+/*
+            old, unconverted version of wall bouncing
             function reflect(axis) {
                 if(that.reflectionCount++ == that.maxReflections) {
                     this.disable();
@@ -60,7 +116,7 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
                 var y = that.position.divVector(map.tileSize).floor().y;
                 return map.tiles[pp.y][pp.x].canFlyThrough() && !(map.tiles[y][pp.x].canFlyThrough());
             });
-
+*/
             // constraint idea:
             // avoid bullets to go out of bounds due to low framerate
             // split x and y axis to enable the same reflection behaviour,
@@ -98,7 +154,7 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
                 return that.position.y >= 0 && that.position.y < mapMaxY;
             });
 
-            this.constraints.push(vertical, horizontal, oobVertical, oobHorizontal);
+            this.constraints.push(bounce, /*vertical, horizontal,*/ oobVertical, oobHorizontal);
         },
         destroy: function($super) {
             $super();
