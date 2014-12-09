@@ -1,5 +1,4 @@
-// TODO: remove unused dependencies
-define(["./world", "./../levels/levels", "./config", "./../rendering/animationsheet"], function WorldBuilder(World, Levels, TankConfig, AnimationSheet) {
+define(["./world", "./map", "./config"], function WorldBuilder(World, Map, TankConfig) {
     var WorldBuilder = Object.subclass("WorldBuilder", {
         initialize: function(game) {
             this.game = game;

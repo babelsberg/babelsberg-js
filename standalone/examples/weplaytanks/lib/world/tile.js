@@ -1,4 +1,4 @@
-define(["./../rendering/animationsheet"], function WorldBuilder(AnimationSheet) {
+define(["./../rendering/animationsheet"], function module(AnimationSheet) {
     return Object.subclass("Tile", {
         initialize: function(index) {
             this.index = index;
