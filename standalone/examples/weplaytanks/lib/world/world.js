@@ -1,4 +1,4 @@
-define(["./../levels/levels", "./config", "./../rendering/animationsheet"], function WorldBuilder(Levels, TankConfig, AnimationSheet) {
+define(["./tile", "./../levels/levels", "./config"], function WorldBuilder(Tile, Levels, TankConfig) {
     Object.subclass("LevelPointer", {
         initialize: function() {
             this.reset();
@@ -70,27 +70,6 @@ define(["./../levels/levels", "./config", "./../rendering/animationsheet"], func
 
         coordinatesToPosition: function(coords) {
             return this.tiles[coords.y][coords.x];
-        }
-    });
-
-    Object.subclass("Tile", {
-        initialize: function(index) {
-            this.index = index;
-            this.spriteSheet = new AnimationSheet("tileset.png", 32, 32);
-        },
-        canWalkThrough: function() {
-            return this.index == 0;
-        },
-        canFlyThrough: function() {
-            return this.index != 1;
-        },
-        draw: function(renderer, x, y, size) {
-            var min = new Vector2(x, y).mulVector(size);
-            this.spriteSheet.draw(
-                renderer,
-                new AABB(min, min.add(size)),
-                this.index
-            );
         }
     });
 

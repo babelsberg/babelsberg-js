@@ -1,8 +1,8 @@
 define([
     "./../world/gameobject",
-    "./../world/controls"
-    // TODO: add Tile as dependency
-], function plugin(GameObject, Controls) {
+    "./../world/controls",
+    "./../world/tile"
+], function plugin(GameObject, Controls, Tile) {
     var DebugLayer = cop.create("DebugLayer")
         .refineClass(GameObject, {
             draw: function(renderer) {
