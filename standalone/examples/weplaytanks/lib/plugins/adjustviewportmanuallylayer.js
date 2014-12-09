@@ -1,8 +1,4 @@
-define([
-    "./../game/game"
-], function plugin(
-    Game
-) {
+define(["./../game/game"], function plugin(Game) {
     var AdjustViewportManuallyLayer = cop.create("AdjustViewportManuallyLayer")
         .refineClass(Game, {
             initialize: function(canvasId) {
