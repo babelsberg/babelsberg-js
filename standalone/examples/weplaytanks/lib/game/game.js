@@ -2,7 +2,7 @@ define([
     "./../input",
     "./../gui",
     "./../view/viewport",
-    "./../world/world",
+    "./../world/worldbuilder",
     "./../rendering/renderer",
     "./../game/debuglayer"
 ], function Game(

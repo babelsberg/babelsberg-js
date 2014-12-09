@@ -1,12 +1,5 @@
 require([
-    "./input",
-    "./gui",
-    "./view/viewport",
-    "./world/world",
-    "./world/tank",
-    "./world/controls",
-    "./world/gameobject",
-    "./rendering/renderer",
+    // TODO: remove unused dependencies
     "./rendering/loadimage",
     "./base/timer",
     "./base/loop",
@@ -14,14 +7,6 @@ require([
     "./game/game",
     "./plugins/pluginloader"
 ], function main(
-    Input,
-    Gui,
-    Viewport,
-    WorldBuilder,
-    Tank,
-    Controls,
-    GameObject,
-    Renderer,
     loadImage,
     Timer,
     Loop,
@@ -60,7 +45,7 @@ require([
             .defer(loadLevel, 3, 'demo/3_singlehunter.json')
             .defer(loadLevel, 4, 'game/5_borderline.json')
             .defer(loadLevel, 5, 'game/6_hunter2.json')
-            .defer(loadLevel, 6, 'demo/7_demo.json')
+            .defer(loadLevel, 0, 'demo/7_demo.json')
             /*
              * Game Maps
             .defer(loadLevel, 0, 'game/0_tutorial.json')

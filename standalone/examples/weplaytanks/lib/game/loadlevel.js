@@ -1,4 +1,4 @@
-define(function loadLevel() {
+define(["./../levels/levels"], function loadLevel(Levels) {
     function loadJSON(path, callback) {
         var xobj = new XMLHttpRequest();
         xobj.overrideMimeType("application/json");
