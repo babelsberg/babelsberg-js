@@ -1655,7 +1655,7 @@ var requirejs, require, define;
                     var src = srcTransform.transform(callback.toString());
                     var callback = new Function("return (" + src + ").apply(this, arguments);");
                 } catch(e) {
-                    console.log(name);
+                    console.log(name, src);
                     throw e;
                 }
 
