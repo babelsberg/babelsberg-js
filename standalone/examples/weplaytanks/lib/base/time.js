@@ -1,5 +1,5 @@
-define(function timer() {
-    var Timer = Object.subclass("Timer", {
+define(function time() {
+    var Time = Object.subclass("Time", {
         initialize: function() {
             this.lastFrame = window.performance.now();
 
@@ -14,5 +14,5 @@ define(function timer() {
         }
     });
 
-    return Timer;
+    return Time;
 });
