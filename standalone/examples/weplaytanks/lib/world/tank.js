@@ -63,10 +63,12 @@ define(["./gameobject", "./bullet", "./../rendering/animation", "./../rendering/
             this.constraints.push(doNotStayInWalls, outOfBounds);
 
             // assumption: tanks are inserted first into the world
-            this.world.getGameObjects().each(function(tank) {
+            this.world.getGameObjects().each(function(other) {
+                if(!(other.name == "tank" || other.name == "bullet")) { return; }
+
                 // constraint:
                 // - solve collisions
-                that.onCollisionWith(tank, function(that, tank) {
+                that.onCollisionWith(other, function(that, tank) {
                     var desiredDistance = that.radius + tank.radius,
                         distVector = tank.position.sub(that.position),
                         realDistance = distVector.length(),
