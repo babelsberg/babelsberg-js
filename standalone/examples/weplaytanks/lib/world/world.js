@@ -1,4 +1,5 @@
 define(["./tile", "./../levels/levels", "./config"], function WorldBuilder(Tile, Levels, TankConfig) {
+    // TODO: extract levelpointer
     Object.subclass("LevelPointer", {
         initialize: function() {
             this.reset();
