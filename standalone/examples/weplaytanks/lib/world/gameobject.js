@@ -1,3 +1,4 @@
+// TODO: move file and subclasses to the appropriate folder
 define(function moduleGameObject() {
     var GameObject = Object.subclass("GameObject", {
         initialize: function(world, name, pos, extent, radius, vel, speed) {
