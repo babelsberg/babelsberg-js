@@ -85,6 +85,8 @@ define(["./world", "./map", "./config", "./powerup"], function WorldBuilder(Worl
         buildPowerUps: function(world, description) {
             var powerUp = new PowerUp.Spring(world, new Vector2(10, 10));
             world.spawn(powerUp);
+            var powerUp = new PowerUp.Spring(world, new Vector2(10, 20));
+            world.spawn(powerUp);
         }
     });
 

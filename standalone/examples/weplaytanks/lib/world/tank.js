@@ -11,8 +11,10 @@ define(["./gameobject", "./bullet", "./../rendering/animation", "./../rendering/
             this.turretAnimation = new Animation(new AnimationSheet("turret.png", 18, 18), 0.4, [0,1,2,3]);
 
             this.bullets = config.bullets;
-            this.bulletRicochets = config.bulletRicochets;
+            this._bulletRicochets = config.bulletRicochets;
             this.bulletSpeed = config.bulletSpeed;
+
+            this.powerUps = {};
 
             this.initConstraints();
         },
@@ -83,6 +85,9 @@ define(["./gameobject", "./bullet", "./../rendering/animation", "./../rendering/
             this.turretAnimation.update(dt);
 
             this.controls && this.controls.update(dt);
+            $H(this.powerUps).each(function(pair){
+                pair.value.update(dt);
+            });
         },
 
         draw: function($super, renderer) {
@@ -105,7 +110,7 @@ define(["./gameobject", "./bullet", "./../rendering/animation", "./../rendering/
                 position,
                 direction,
                 this,
-                this.bulletRicochets,
+                this.getBulletRicochets(),
                 this.bulletSpeed
             );
             world.getGameObjects().each(function(other) {
@@ -115,6 +120,9 @@ define(["./gameobject", "./bullet", "./../rendering/animation", "./../rendering/
                 bullet.onCollisionWith(other, Bullet.detonate);
             }, this);
             world.spawn(bullet);
+        },
+        getBulletRicochets: function() {
+            return this._bulletRicochets;
         },
         destroy: function($super) {
             $super();

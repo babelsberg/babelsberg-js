@@ -100,7 +100,7 @@ define(function moduleControls() {
         getTargetTiles: function() {
             return this.raycast(
                 this.tank.turretDirection.normalizedCopy(),
-                this.tank.bulletRicochets,
+                this.tank.getBulletRicochets(),
                 true
             );
         },
