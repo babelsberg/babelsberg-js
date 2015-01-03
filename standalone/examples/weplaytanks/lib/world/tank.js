@@ -64,8 +64,6 @@ define(["./gameobject", "./bullet", "./../rendering/animation", "./../rendering/
 
             // assumption: tanks are inserted first into the world
             this.world.getGameObjects().each(function(other) {
-                if(!(other.name == "tank" || other.name == "bullet")) { return; }
-
                 // constraint:
                 // - solve collisions
                 that.onCollisionWith(other, function(that, tank) {
@@ -112,6 +110,8 @@ define(["./gameobject", "./bullet", "./../rendering/animation", "./../rendering/
             );
             world.getGameObjects().each(function(other) {
                 if(other === this) { return; }
+                if(!(other.name == "tank" || other.name == "bullet")) { return; }
+
                 bullet.onCollisionWith(other, Bullet.detonate);
             }, this);
             world.spawn(bullet);
