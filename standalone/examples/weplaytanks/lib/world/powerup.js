@@ -20,8 +20,10 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
         }
     });
 
-    var PowerUp = GameObject.subclass("PowerUp", {
-        initialize: function($super, world, pos) {
+    var Collectible = GameObject.subclass("Collectible", {
+        sheetIndex: 5,
+        initialize: function($super, world, description) {
+            var pos = Vector2.fromJson(description.position);
             $super(world, "powerup", pos, new Vector2(1.5, 1.5), 0.75, Vector2.Zero.copy(), 0);
 
             this.animation = new Animation(new AnimationSheet("powerups.png", 20, 20), 1.0, [this.sheetIndex]);
@@ -40,11 +42,13 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
                     that.destroy();
                 });
             }, this);
+        },
+        bestow: function(tank) {
+
         }
     });
 
-    PowerUp.Spring = PowerUp.subclass("PowerUp.Spring", {
-        sheetIndex: 5,
+    Collectible.Spring = Collectible.subclass("Collectible.Spring", {
         bestow: function(tank) {
             if(tank.powerUps.spring) {
                 tank.powerUps.spring.reset();
@@ -61,5 +65,5 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
         }
     });
 
-    return PowerUp
+    return Collectible;
 });

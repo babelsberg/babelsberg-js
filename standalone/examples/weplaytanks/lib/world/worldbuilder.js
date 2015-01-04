@@ -1,4 +1,4 @@
-define(["./world", "./map", "./config", "./powerup"], function WorldBuilder(World, Map, TankConfig, PowerUp) {
+define(["./world", "./map", "./config", "./powerup"], function WorldBuilder(World, Map, TankConfig, Collectible) {
     var WorldBuilder = Object.subclass("WorldBuilder", {
         initialize: function(game) {
             this.game = game;
@@ -12,7 +12,7 @@ define(["./world", "./map", "./config", "./powerup"], function WorldBuilder(Worl
 
             player = this.buildPlayer(world, level.player);
             this.buildEnemies(world, level.enemyTanks);
-            this.buildPowerUps(world, level);
+            this.buildPowerUps(world, level.powerUps);
 
             return world;
         },
@@ -82,11 +82,13 @@ define(["./world", "./map", "./config", "./powerup"], function WorldBuilder(Worl
             world.spawn(cpu);
             return cpu;
         },
-        buildPowerUps: function(world, description) {
-            var powerUp = new PowerUp.Spring(world, new Vector2(10, 10));
-            world.spawn(powerUp);
-            var powerUp = new PowerUp.Spring(world, new Vector2(10, 20));
-            world.spawn(powerUp);
+        buildPowerUps: function(world, powerUpDescriptions) {
+            if(!powerUpDescriptions) { return; }
+
+            powerUpDescriptions.forEach(function(description) {
+                var powerUp = new Collectible[description.type](world, description);
+                world.spawn(powerUp);
+            }, this);
         }
     });
 
