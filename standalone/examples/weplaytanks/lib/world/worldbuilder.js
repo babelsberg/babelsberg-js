@@ -86,7 +86,7 @@ define(["./world", "./map", "./config", "./powerup"], function WorldBuilder(Worl
             if(!powerUpDescriptions) { return; }
 
             powerUpDescriptions.forEach(function(description) {
-                var powerUp = new Collectible[description.type](world, description);
+                var powerUp = new Collectible(world, description);
                 world.spawn(powerUp);
             }, this);
         }

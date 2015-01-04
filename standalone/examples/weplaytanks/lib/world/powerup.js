@@ -20,9 +20,35 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
         }
     });
 
+    var PowerUp = Object.subclass("PowerUp", {
+        activate: function(tank) {
+            this.bestow(tank);
+        },
+        /*get: function(tank) {
+            return tank;
+        },*/
+        bestow: function(tank) {
+            if(tank.powerUps.spring) {
+                tank.powerUps.spring.reset();
+            } else {
+                var timer = new Timer(10);
+                timer.activeLayer.refineObject(tank, {
+                    getBulletRicochets: function() {
+                        return cop.proceed() + 1;
+                    }
+                });
+
+                tank.powerUps.spring = timer;
+            }
+        }
+    });
+
+    PowerUp.Spring = PowerUp;
+
     var Collectible = GameObject.subclass("Collectible", {
         sheetIndex: 5,
         initialize: function($super, world, description) {
+            this.desc = description;
             var pos = Vector2.fromJson(description.position);
             $super(world, "powerup", pos, new Vector2(1.5, 1.5), 0.75, Vector2.Zero.copy(), 0);
 
@@ -44,24 +70,7 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
             }, this);
         },
         bestow: function(tank) {
-
-        }
-    });
-
-    Collectible.Spring = Collectible.subclass("Collectible.Spring", {
-        bestow: function(tank) {
-            if(tank.powerUps.spring) {
-                tank.powerUps.spring.reset();
-            } else {
-                var timer = new Timer(10);
-                timer.activeLayer.refineObject(tank, {
-                    getBulletRicochets: function() {
-                        return cop.proceed() + 1;
-                    }
-                });
-
-                tank.powerUps.spring = timer;
-            }
+            new PowerUp().activate(tank);
         }
     });
 
