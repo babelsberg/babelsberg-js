@@ -1005,8 +1005,9 @@ Object.subclass('ConstrainedVariable', {
 
     isValueClass: function() {
         // TODO: add more value classes
-        return !this.isSolveable() &&
-            this.storedValue instanceof lively.Point;
+        // return !this.isSolveable() &&
+        //     this.storedValue instanceof lively.Point;
+        return false && this.storedValue instanceof lively.Point;
     },
 
     get storedValue() {
