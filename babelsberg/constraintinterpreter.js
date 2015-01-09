@@ -1251,6 +1251,8 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
                     }).bind(this)
                 );
             }
+        } else if (func === Date) {
+            return new func();
         } else if (recv === Math) {
             if (func === Math.sqrt && argValues[0].pow || argValues[0].sqrt) {
                 if (argValues[0].pow) {
