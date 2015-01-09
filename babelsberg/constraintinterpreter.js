@@ -1082,6 +1082,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         '-': ['minus'],
         '*': ['times', 'times'],
         '/': ['divide'],
+        '%': ['modulo'],
         '==': ['cnEquals', 'cnEquals'],
         '===': ['cnIdentical', 'cnIdentical'],
         '<=': ['cnLeq', 'cnGeq'],
