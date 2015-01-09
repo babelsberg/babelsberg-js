@@ -136,8 +136,33 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    			throw new ContinuousAssertError(this.message);
 	    }
 	});
-	
-	Object.extend(Babelsberg.prototype, {
+ReactiveSolver.subclass("RecalculateSolver", {
+		initialize: function(message) {
+			this.message = message;
+		},
+	    always: function(opts, func) {
+	        var ctx = opts.ctx;
+	        func.varMapping = ctx;
+	        this.constraint = new Constraint(func, this);
+	        this.predicate = func;
+			this.constraint.allowFailing = true;
+			try {
+				if(!opts.postponeEnabling) { this.constraint.enable(); }
+			} catch(e) {
+				if(e instanceof ContinuousAssertError) {
+					this.constraint.disable();
+				}
+				throw e;
+			}
+	        return this.constraint;
+	    },
+	    solve: function() {
+	        debugger
+	    	if(this.constraint && this.constraint.enabled)
+	    		this.constraint.bbbConstraint.initialize(this.constraint.predicate, this);
+	    }
+	});
+Object.extend(Babelsberg.prototype, {
 		assert: function(opts, func) {
 			opts.solver = new AssertSolver(opts.message);
 			opts.allowUnsolvableOperations = true;
