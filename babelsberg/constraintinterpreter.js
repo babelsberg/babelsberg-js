@@ -472,7 +472,7 @@ Object.subclass('Constraint', {
             }
             this._enabled = true;
             this.solver.solve();
-            
+
             this.constraintvariables.each(function(ea) {
                 var value = ea.getValue();
                 if (value != this.storedValue) {
@@ -948,7 +948,7 @@ Object.subclass('ConstrainedVariable', {
             }
         });
     },
-    
+
     updateDownstreamUnsolvableVariables: function(value) {
         if (!this.isValueClass()) {
             this.recalculateDownstreamConstraints(value);
@@ -956,7 +956,7 @@ Object.subclass('ConstrainedVariable', {
             this.updateValueClassParts(value);
         }
     },
-    
+
     recalculateDownstreamConstraints: function(value) {
         this.setValue(value);
         this._constraints.each(function(c) {

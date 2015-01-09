@@ -13,7 +13,6 @@ toRun(function() {
         },
 
         isRule: function(node) {
-            debugger
             if ((node instanceof UglifyJS.AST_Label) &&
                     node.name === 'rule') {
                 this.__ruleLabelSeen = node;
@@ -320,11 +319,11 @@ toRun(function() {
             return newBody;
         }
     },
-    
+
     createRuleFor: function(ruleNode) {
         // remove label
         if (ruleNode instanceof UglifyJS.AST_Label) return ruleNode;
-        
+
         var stringNode;
         if (ruleNode instanceof UglifyJS.AST_String) {
             stringNode = ruleNode;
@@ -348,7 +347,7 @@ toRun(function() {
                         replace(/\s*;\s*$/, '')
             });
         }
-        
+
         return new UglifyJS.AST_SimpleStatement({
             start: ruleNode.start,
             end: ruleNode.end,
