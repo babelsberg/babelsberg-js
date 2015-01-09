@@ -458,7 +458,6 @@ Object.subclass('Constraint', {
             if (this.constraintobjects.length === 0) {
                 throw new Error('BUG: No constraintobjects were created.');
             }
-            this._enabled = true;
             this.solver.solve();
 
             this.constraintvariables.each(function(ea) {
@@ -473,6 +472,7 @@ Object.subclass('Constraint', {
                     ea.solveForConnectedVariables(value);
                 }
             });
+            this._enabled = true;
         }
     },
 
@@ -532,6 +532,7 @@ Object.subclass('Constraint', {
     },
 
     recalculate: function() {
+        if (!this._enabled) return;
         // TODO: Fix this so it uses the split-stay result, i.e. just
         // increase the stay for the newly assigned value
         if (this.isTest && !this.solver) {
@@ -920,12 +921,7 @@ Object.subclass('ConstrainedVariable', {
 
     updateDownstreamVariables: function(value) {
         this.updateDownstreamExternalVariables(value);
-
-        if (!this.isValueClass()) {
-            this.recalculateDownstreamConstraints(value);
-        } else {
-            this.updateValueClassParts(value);
-        }
+        this.updateDownstreamUnsolvableVariables(value);
     },
 
     updateDownstreamExternalVariables: function(value) {
@@ -939,7 +935,15 @@ Object.subclass('ConstrainedVariable', {
             }
         });
     },
-
+    
+    updateDownstreamUnsolvableVariables: function(value) {
+        if (!this.isValueClass()) {
+            this.recalculateDownstreamConstraints(value);
+        } else {
+            this.updateValueClassParts(value);
+        }
+    },
+    
     recalculateDownstreamConstraints: function(value) {
         this.setValue(value);
         this._constraints.each(function(c) {
