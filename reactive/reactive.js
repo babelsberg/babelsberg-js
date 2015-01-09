@@ -207,6 +207,17 @@ Object.extend(Babelsberg.prototype, {
 	    weight: 10
 	});
 	
+	AssertSolver.subclass("__TriggerDefinition__", {
+		initialize: function(opts, func) {
+			this.opts = opts;
+			this.func = func;
+		},
+	    trigger: function(callback) {
+			this.opts.callback = callback;
+			return bbb.trigger(this.opts, this.func);
+		}
+	});
+
 	Object.extend(Babelsberg.prototype, {
 		trigger: function(opts, func) {
 			opts.solver = new TriggerSolver(opts.callback);
@@ -214,6 +225,9 @@ Object.extend(Babelsberg.prototype, {
 			opts.allowTests = true;
 			//opts.debugging = true;
 	        return this.always(opts, func);
+		},
+		when: function(opts, func) {
+			return new __TriggerDefinition__(opts, func);
 		}
 	});
 

@@ -10,8 +10,8 @@ module('users.timfelgentreff.z3.StrZ3').requires('users.timfelgentreff.z3.Comman
                 
                 var assignments = r.map(function (str) {
                     var both = str.split(" -> "),
-                        name = both[0],
-                        value = both[1];
+                        name = both[0].trim(),
+                        value = this.parseAndEvalSexpr(both[1]);
                     if (!name) return;
                     return {name: name, value: value};
                 }.bind(this));
@@ -80,7 +80,6 @@ module('users.timfelgentreff.z3.StrZ3').requires('users.timfelgentreff.z3.Comman
         
         pruneUnusedVariables: function() {
             // Z3str does not take unused variables well
-            debugger
             var constraints = ["\n"].concat(this.constraints).reduce(function (acc, c) {
                 return acc + "\n" + c.print();
             });

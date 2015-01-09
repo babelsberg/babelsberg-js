@@ -1,6 +1,6 @@
 Babelsberg/JS
 =============
-[![Build Status](https://travis-ci.org/timfel/babelsberg-js.png?branch=master)](https://travis-ci.org/timfel/babelsberg-js)
+[![Build Status](https://travis-ci.org/babelsberg/babelsberg-js.png?branch=master)](https://travis-ci.org/babelsberg/babelsberg-js)
 
 For more information, please visit our [gh-pages](http://babelsberg.github.io/babelsberg-js/)
 

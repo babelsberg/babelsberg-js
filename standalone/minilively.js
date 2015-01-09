@@ -425,7 +425,6 @@ if (!window.module) {
             return str;
         }
     };
-    Object.subclass('lively.morphic.CodeEditor', {});
 
     Array.prototype.removeAt = (function(idx) {
         this.splice(idx, 1);
