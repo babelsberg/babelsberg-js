@@ -12,6 +12,13 @@ toRun(function() {
                     (node.body instanceof UglifyJS.AST_BlockStatement));
         },
 
+        isRule: function(node) {
+            debugger
+            return ((node instanceof UglifyJS.AST_LabeledStatement) &&
+                    (node.label.name === 'rule') &&
+                    (node.body instanceof UglifyJS.AST_BlockStatement));
+        },
+
         ensureThisToSelfIn: function(ast) {
             var tr = new UglifyJS.TreeTransformer(function(node) {
                 if (node instanceof UglifyJS.AST_This) {
@@ -97,6 +104,10 @@ toRun(function() {
                 if (self.isAlways(node)) {
                     var node = self.createCallFor(node);
                     self.ensureContextFor(ast, node);
+                    self.isTransformed = true;
+                    return node;
+                } else if (self.isRule(node)) {
+                    var node = self.createRuleFor(node);
                     self.isTransformed = true;
                     return node;
                 }
@@ -218,6 +229,35 @@ toRun(function() {
                     enclosed: alwaysNode.label.scope.enclosed,
                     argnames: []
                 })])
+            })
+        });
+    },
+    
+    createRuleFor: function(ruleNode) {
+        debugger
+        return new UglifyJS.AST_SimpleStatement({
+            start: ruleNode.start,
+            end: ruleNode.end,
+            body: new UglifyJS.AST_Call({
+                start: ruleNode.start,
+                end: ruleNode.end,
+                expression: new UglifyJS.AST_Dot({
+                    start: ruleNode.start,
+                    end: ruleNode.end,
+                    property: 'rule',
+                    expression: new UglifyJS.AST_SymbolRef({
+                        start: ruleNode.start,
+                        end: ruleNode.end,
+                        name: 'bbb'
+                    })
+                }),
+                args: [new UglifyJS.AST_Function({
+                    start: ruleNode.body.start,
+                    end: ruleNode.body.end,
+                    body: body,
+                    enclosed: ruleNode.label.scope.enclosed,
+                    argnames: []
+                })]
             })
         });
     },

@@ -1,6 +1,12 @@
 module('users.timfelgentreff.babelsberg.src_transform_test').requires('lively.TestFramework', 'users.timfelgentreff.standalone.Compressor').toRun(function() {
 
 TestCase.subclass('users.timfelgentreff.babelsberg.src_transform_test.TransformTest', {
+    testPrologTransform1: function () {
+        var src = "rule: abs(N,N) |- N>=0";
+        var result = new BabelsbergSrcTransform().transform(src);
+        result = result.replace(/[ \n\r\t]/g,"");
+        this.assert(result === "bbb.rule('abs(N,N) :- N>=0');", result);
+    },
     testObjectEditorTransform1: function () {
         var src = "always: {a < b}";
         var result = new BabelsbergSrcTransform().transform(src);
