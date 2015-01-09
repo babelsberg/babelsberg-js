@@ -1,11 +1,18 @@
 module('users.timfelgentreff.babelsberg.src_transform_test').requires('lively.TestFramework', 'users.timfelgentreff.standalone.Compressor').toRun(function() {
-
+// ConstraintSyntaxLayer.beNotGlobal()
 TestCase.subclass('users.timfelgentreff.babelsberg.src_transform_test.TransformTest', {
     testPrologTransform1: function () {
-        var src = "rule: abs(N,N) |- N>=0";
+        var src = "rule: 'abs(N,N) |- N>=0'";
         var result = new BabelsbergSrcTransform().transform(src);
         result = result.replace(/[ \n\r\t]/g,"");
-        this.assert(result === "bbb.rule('abs(N,N) :- N>=0');", result);
+        this.assert(result === "bbb.rule(\"abs(N,N):-N>=0\");", result);
+    },
+    
+    testPrologTransform2: function () {
+        var src = "rule: { abs(N,N) |- N>=0 }";
+        var result = new BabelsbergSrcTransform().transform(src);
+        result = result.replace(/[ \n\r\t]/g,"");
+        this.assert(result === "bbb.rule(\"abs(N,N):-N>=0\");", result);
     },
 
     testAssignResult: function () {

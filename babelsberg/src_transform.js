@@ -14,9 +14,29 @@ toRun(function() {
 
         isRule: function(node) {
             debugger
-            return ((node instanceof UglifyJS.AST_LabeledStatement) &&
+            if ((node instanceof UglifyJS.AST_Label) &&
+                    node.name === 'rule') {
+                this.__ruleLabelSeen = node;
+                return true;
+            } else if (this.__ruleLabelSeen &&
+                    node instanceof UglifyJS.AST_String) {
+                return true;
+            } else if ((node instanceof UglifyJS.AST_LabeledStatement) &&
                     (node.label.name === 'rule') &&
-                    (node.body instanceof UglifyJS.AST_BlockStatement));
+                    (node.body instanceof UglifyJS.AST_BlockStatement)) {
+                return true;
+            } else if ((node instanceof UglifyJS.AST_LabeledStatement) &&
+                    (node.body.body instanceof UglifyJS.AST_SimpleStatement) &&
+                    (node.body.body.body instanceof UglifyJS.AST_Call) &&
+                    (node.body.body.body.expression instanceof UglifyJS.AST_Dot) &&
+                    (node.body.body.body.expression.property === 'rule') &&
+                    (node.body.body.body.expression.expression.name === 'bbb')) {
+                // rule label with string that was transformed... remove the label
+                this.__ruleLabelRemove = true;
+                return true;
+            }
+            this.__ruleLabelSeen = null;
+            return false;
         },
 
         isOnce: function(node) {
@@ -302,7 +322,33 @@ toRun(function() {
     },
     
     createRuleFor: function(ruleNode) {
-        debugger
+        // remove label
+        if (ruleNode instanceof UglifyJS.AST_Label) return ruleNode;
+        
+        var stringNode;
+        if (ruleNode instanceof UglifyJS.AST_String) {
+            stringNode = ruleNode;
+            stringNode.value = stringNode.value.replace(/\|\s*-/mg, ':-');
+            ruleNode = this.__ruleLabelSeen;
+            delete this.__ruleLabelSeen;
+        } else if (this.__ruleLabelRemove) {
+            delete this.__ruleLabelRemove;
+            return ruleNode.body.body;
+        } else {
+            // ruleNode instanceof UglifyJS.AST_LabeledStatement
+            var stream = UglifyJS.OutputStream({beautify: true, comments: true});
+            ruleNode.body.print(stream);
+            stringNode = new UglifyJS.AST_String({
+                start: ruleNode.body.start,
+                end: ruleNode.body.end,
+                value: stream.toString().
+                        replace(/\|\s*-/mg, ':-').
+                        replace(/^{\s*/, '').
+                        replace(/\s*}\s*$/, '').
+                        replace(/\s*;\s*$/, '')
+            });
+        }
+        
         return new UglifyJS.AST_SimpleStatement({
             start: ruleNode.start,
             end: ruleNode.end,
@@ -319,13 +365,7 @@ toRun(function() {
                         name: 'bbb'
                     })
                 }),
-                args: [new UglifyJS.AST_Function({
-                    start: ruleNode.body.start,
-                    end: ruleNode.body.end,
-                    body: body,
-                    enclosed: ruleNode.label.scope.enclosed,
-                    argnames: []
-                })]
+                args: [stringNode]
             })
         });
     },

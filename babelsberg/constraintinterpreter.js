@@ -470,8 +470,9 @@ Object.subclass('Constraint', {
             if (this.constraintobjects.length === 0) {
                 throw new Error('BUG: No constraintobjects were created.');
             }
+            this._enabled = true;
             this.solver.solve();
-
+            
             this.constraintvariables.each(function(ea) {
                 var value = ea.getValue();
                 if (value != this.storedValue) {
@@ -484,7 +485,6 @@ Object.subclass('Constraint', {
                     ea.solveForConnectedVariables(value);
                 }
             });
-            this._enabled = true;
         }
     },
 
@@ -1033,9 +1033,9 @@ Object.subclass('ConstrainedVariable', {
 
     isValueClass: function() {
         // TODO: add more value classes
-        // return !this.isSolveable() &&
-        //     this.storedValue instanceof lively.Point;
-        return false && this.storedValue instanceof lively.Point;
+        return !this.isSolveable() &&
+            this.storedValue instanceof lively.Point;
+        // return false && this.storedValue instanceof lively.Point;
     },
 
     get storedValue() {
