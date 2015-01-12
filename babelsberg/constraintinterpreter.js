@@ -1362,9 +1362,15 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
                 if (node.name != '-') {
                     if (leftVal.isConstraintObject && leftVal.cnIn) {
                         return leftVal.cnIn(rightVal);
-                    } // special case for reversing minus - allowed to
-                      // fall through to default
-                    // TODO: rightVal->contains if !leftVal.isConstraintObject
+                    } else if (this.$finiteDomainProperty) {
+                        var lV = this.$finiteDomainProperty;
+                        delete this.$finiteDomainProperty;
+                        if (lV.cnIn) {
+                            return lV.cnIn(rightVal);
+                        }
+                    } // TODO: rightVal->contains if !leftVal.isConstraintObject
+                // special case for reversing minus - allowed to
+                // fall through to default
                 }
             default:
                 var method = this.binaryExpressionMap[node.name];
@@ -1409,6 +1415,9 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         if (obj && obj.isConstraintObject) {
             if (obj['cn' + name]) {
                 return obj['cn' + name]; // XXX: TODO: Document this
+            } else if (name === 'is') {
+                // possibly a finite domain definition
+                this.$finiteDomainProperty = obj;
             } else {
                 cobj = obj.__cvar__;
                 obj = this.getConstraintObjectValue(obj);

@@ -57,7 +57,7 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
                     both = [both[0].trim(), both.slice(1, both.length).join(" ").trim()];
                     
                     var name = both[0];
-                    var value = this.parseAndEvalSexpr(both[1]);
+                    var value = this.parseAndEvalSexpr(both[1], name);
                     return {name: name, value: value};
                 }.bind(this));
                 assignments.each(function (a) {
@@ -73,19 +73,14 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
                 throw new Error("Z3 failed to solve this system");
             }
         },
-    solve: function () {
-        var decls = [""].concat(this.variables).reduce(function (acc, v) {
-            return acc + "\n" + v.printDeclaration();
-        });
-        var constraints = ["\n"].concat(this.constraints).reduce(function (acc, c) {
+    printConstraints: function () {
+        return ["\n"].concat(this.constraints).reduce(function (acc, c) {
             if (c.strength) {
                 return acc + "\n" + "(assert-soft " + c.print() + " :weight " + c.strength + ")"
             } else {
                 return acc + "\n" + "(assert " + c.print() + ")";
             }
         });
-        this.postMessage(decls + constraints);
-        return decls + constraints;
     },
     constraintVariableFor: function($super, value, ivarname, cvar) {
         var cvar = $super(value, ivarname, cvar);
@@ -160,6 +155,11 @@ NaCLZ3Variable.subclass('CommandLineZ3Variable', {
             this._stayCn.strength = s;
             this.solver.addConstraint(this._stayCn);
         }
+    },
+    cnIn: function($super, domain) {
+        debugger
+        this.removeStay();
+        return $super(domain);
     }
 });
 
