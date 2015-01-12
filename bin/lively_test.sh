@@ -12,7 +12,7 @@ fi
 npm install
 node bin/lk-server --no-partsbin-check &
 sleep 15
-sed -i 's/var testList = baseTests;/var testList = [\"users.timfelgentreff.babelsberg.tests\", \"users.ohshima.ElectricalCircuitTests\", \"users.ohshima.ElectricalComponentsTests\"]; browserTests = [];/' run_tests.js
+sed -i 's/var testList = baseTests;/var testList = [\"users.timfelgentreff.babelsberg.tests\", \"users.ohshima.ElectricalCircuitTests\", \"users.ohshima.ElectricalComponentsTests\", \"users.timfelgentreff.reactive.reactive_test\", \"users.timfelgentreff.z3.Z3BBBTests\"]; browserTests = [];/' run_tests.js
 npm test
 exitcode=$?
 
