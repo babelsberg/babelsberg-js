@@ -80,19 +80,14 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
     parseAndEvalSexpr: function(sexp, varName) {
         if (!sexp) return;
         var variable = this.varsByName[varName];
+        if (variable && variable.isString) return sexp;
         var dom = variable && variable._domain;
-        if (!variable) return;
-
         if (dom) { // assign a domain value
             if (sexp.charAt(0) !== 'C') {
                 throw new Error('Expected a domain value');
             }
             var value = dom[parseInt(sexp.slice(1))];
             return value;
-        }
-
-        if (variable.isString) {
-            return sexp;
         }
 
         var fl = parseFloat(sexp);
