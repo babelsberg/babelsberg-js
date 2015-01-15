@@ -327,7 +327,7 @@ backtalk.Constraint.subclass('backtalk.UnaryConstraint', {
         this.variable = v;
     },
     valuesToExplore: function() {
-        return this.variable.valuesToExplore();
+        return this.variable.valuesToExplore;
     },
     get variable() {
         return this._variable;
