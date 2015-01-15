@@ -8,6 +8,7 @@ Object.subclass('backtalk.Object', {
 
 backtalk.Object.subclass('backtalk.Variable', {
     addConstraint: function (cnstr) {
+        if (this.constraints.indexOf(cnstr) !== -1) return;
         this.constraints.push(cnstr);
     },
     removeConstraint: function (cnstr) {
@@ -55,7 +56,16 @@ backtalk.Object.subclass('backtalk.Variable', {
         this.valuesToExplore = [];
     },
     reset: function() {
-        this.valuesToExplore = this.domain;
+        var idx = this.domain.indexOf(this.currentValue);
+        if (idx !== -1) {
+            // try the current value first...
+            var d = this.domain.slice();
+            d.splice(idx, 1);
+            d = [this.currentValue].concat(d);
+            this.valuesToExplore = d
+        } else {
+            this.valuesToExplore = this.domain;
+        }
         this.resetCurrentValue();
     },
     get domain() {
@@ -74,13 +84,13 @@ backtalk.Object.subclass('backtalk.Variable', {
 
 Object.extend(backtalk.Variable, {
     labelDomain: function (l, d) {
-        var v = new this();
+        var v = new backtalk.Variable();
         v.label = l;
         v.domain = d;
         return v;
     },
     labelFromTo: function (l, lower, upper) {
-        var v = new this();
+        var v = new backtalk.Variable();
         v.label = l;
         v.domain = Array.range(lower, upper);
         return v;
@@ -242,7 +252,7 @@ backtalk.Object.subclass('backtalk.Solver', {
 
 Object.extend(backtalk.Solver, {
     on: function (csp) {
-        var solver = new this();
+        var solver = new backtalk.Solver();
         solver.csp = csp;
         return solver;
     }
@@ -286,7 +296,7 @@ backtalk.Object.subclass('backtalk.Context', {
 
 Object.extend(backtalk.Context, {
     fromSolver: function (solver) {
-        return new this(solver);
+        return new backtalk.Context(solver);
     }
 });
 
@@ -372,7 +382,11 @@ backtalk.Constraint.subclass('backtalk.BinaryConstraint', {
 });
 
 backtalk.Object.subclass('backtalk.CSP', {
+    initialize: function() {
+        this.variables = [];
+    },
     addVariable: function(v) {
+        if (this.variables.indexOf(v) !== -1) return;
         this.variables.push(v);
     },
     constraints: function() {
@@ -401,7 +415,7 @@ backtalk.Object.subclass('backtalk.CSP', {
 });
 Object.extend(backtalk.CSP, {
     labelVariables: function (l, v) {
-        var csp = new this();
+        var csp = new backtalk.CSP();
         csp.label = l;
         csp.variables = v;
         return csp;
