@@ -28,6 +28,8 @@ if [ $exitcode -eq 0 ]; then
 	    curl -T $TRAVIS_BUILD_DIR/standalone/babelsberg.sutherland.js http://www.lively-kernel.org/babelsberg/
 	    curl -T $TRAVIS_BUILD_DIR/standalone/babelsberg.reactive.js http://www.lively-kernel.org/babelsberg/
 	    curl -T $TRAVIS_BUILD_DIR/standalone/babelsberg.z3.js http://www.lively-kernel.org/babelsberg/
+	    curl -T $TRAVIS_BUILD_DIR/z3/emz3/z3.js http://www.lively-kernel.org/babelsberg/
+	    curl -T $TRAVIS_BUILD_DIR/z3/emz3/z3.js.map http://www.lively-kernel.org/babelsberg/
 	    curl -T $TRAVIS_BUILD_DIR/standalone/babelsberg.backtalk.js http://www.lively-kernel.org/babelsberg/
 	fi
     fi

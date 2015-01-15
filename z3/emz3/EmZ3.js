@@ -14,10 +14,20 @@ module('users.timfelgentreff.z3.emz3.EmZ3').requires('users.timfelgentreff.z3.Na
                 break;
               }
             }
+            for (var i = 0; i < errlines.length; i++) {
+              var match = /((?:https?|file):\/\/.+\/)babelsberg.z3.js/.exec(errlines[i]);
+              if (match) {
+                prefixUrl = match[1];
+                break;
+              }
+            }
             if (!prefixUrl) {
+                if (!module("users.timfelgentreff.z3.emz3.EmZ3").uri()) {
+                    throw 'Could not determine em-z3 uri';
+                }
                 prefixUrl = module("users.timfelgentreff.z3.emz3.EmZ3").uri().replace("EmZ3.js", "");
             }
-            
+
             var self = this;
             var request = new XMLHttpRequest();
             request.onreadystatechange = function () {
@@ -37,18 +47,18 @@ module('users.timfelgentreff.z3.emz3.EmZ3').requires('users.timfelgentreff.z3.Na
                     // Module.stdin = (function stdin() {
                     //     return self.stdin();
                     // });
-                
+
                     // Route stdout to an overridable method on the object.
                     // Module.stdout = (function stdout(x) {
                     //     console.log(x);
                     //     self.stdout(x);
                     // });
-                    
+
                     // Route stderr to an overridable method on the object.
                     Module.stderr = (function stderr(x) {
                         self.stderr(x);
                     });
-                    
+
                     // Eval the code.  This will probably take quite a while in Firefox
                     // as it parses and compiles all the functions.  The result is that
                     // our "Module" object is populated with all the exported VM functions.
@@ -60,9 +70,9 @@ module('users.timfelgentreff.z3.emz3.EmZ3').requires('users.timfelgentreff.z3.Na
             request.open("GET", prefixUrl + "z3.js", false); // be synchronous
             request.send();
         },
-        
+
         loadModule: function () {},
-        
+
         run: function (code) {
             var self = this;
             this.stdout = [];
@@ -80,7 +90,7 @@ module('users.timfelgentreff.z3.emz3.EmZ3').requires('users.timfelgentreff.z3.Na
             }
             return this.stdout.join("");
         },
-        
+
         stdin: function () {
             debugger
         },
@@ -90,7 +100,7 @@ module('users.timfelgentreff.z3.emz3.EmZ3').requires('users.timfelgentreff.z3.Na
         stderr: function (c) {
             this.stdout.push(String.fromCharCode(c));
         },
-        
+
         applyResults: function (result) {
             result = result.replace(/\(error.*\n/m, "").replace(/^WARNING.*\n/m, "");
             if (result.startsWith("sat")/* || result.indexOf("\nsat\n") != -1 */) {
@@ -98,13 +108,13 @@ module('users.timfelgentreff.z3.emz3.EmZ3').requires('users.timfelgentreff.z3.Na
                 result = result.slice(idx + "sat".length, result.length);
                 // remove outer parens
                 result = result.trim().slice(2, result.length - 2);
-        
+
                 var assignments = result.split(/\)\s+\(/m).map(function (str) {
                     // these are now just pairs of varname value
                     var both = str.trim().split(" ");
                     if (both.length < 2) return;
                     both = [both[0].trim(), both.slice(1, both.length).join(" ").trim()];
-                    
+
                     var name = both[0];
                     var value = this.parseAndEvalSexpr(both[1]);
                     return {name: name, value: value};
