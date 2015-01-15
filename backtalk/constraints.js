@@ -20,7 +20,37 @@ backtalk.BinaryConstraint.subclass('backtalk.EqualityConstraint', {
         return false;
     }
 });
-
+backtalk.BinaryConstraint.subclass('backtalk.InequalityConstraint', {
+    enforceArcConsistency: function() {
+        if (this.valuesToExploreA().length > 1 &&
+            this.valuesToExploreB().length > 1) {
+            return;
+        }
+        if (this.valuesToExploreA().length === 0) {
+            this.variableB.valuesToExplore = [];
+            return;
+        }
+        if (this.valuesToExploreB().length === 0) {
+            this.variableA.valuesToExplore = [];
+            return;
+        }
+        var self = this;
+        this.variableB.filterToReject(function (value) {
+            return self.valuesToExploreA().without(value).length === 0;
+        });
+        this.variableA.filterToReject(function (value) {
+            return self.valuesToExploreB().without(value).length === 0;
+        });
+    },
+    isConsistent: function() {
+        var self = this;
+        return (this.valuesToExploreA().every(function (value) {
+            return self.valuesToExploreB().without(value).length > 0
+        }) && this.valuesToExploreB().every(function (value) {
+            return self.valuesToExploreA().without(value).length > 0
+        }));
+    }
+});
 backtalk.BinaryConstraint.subclass('backtalk.FunctionBinaryConstraint', {
     initialize: function($super, a, b, func) {
         $super(a, b);
