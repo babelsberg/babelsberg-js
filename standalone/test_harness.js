@@ -1,6 +1,25 @@
 window.GlobalErrors = [];
 window.runcount = 0;
 
+Array.prototype.equals = (function (otherArray) {
+    var array = this;
+    // Returns true iff each element in `array` is equal (`==`) to its
+    // corresponding element in `otherArray`
+    var len = array.length;
+    if (!otherArray || len !== otherArray.length) return false;
+    for (var i = 0; i < len; i++) {
+      if (array[i] && otherArray[i] && array[i].equals && otherArray[i].equals) {
+        if (!array[i].equals(otherArray[i])) {
+          return false;
+        } else {
+          continue;
+        }
+      }
+      if (array[i] != otherArray[i]) return false;
+    }
+    return true;
+});
+
 Object.subclass("TestCase", {
     assert: function (bool, msg) {
         if (!bool) {
