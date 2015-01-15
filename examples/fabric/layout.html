@@ -8,7 +8,13 @@
 	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.csp.js"></script>
 	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.deltablue.js"></script>
 	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.sutherland.js"></script>
+	<script type="text/javascript">
+	  CommandLineInterface = {};
+	  CommandLineInterface.cwd = function () { return "Fake path" };
+	  CommandLineZ3Path = "fakez3path";
+	</script>
 	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.z3.js"></script>
+	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.backtalk.js"></script>
 	
 	<script src="fabric.js"></script>
 	<script type="text/babelsbergscript" src="layout.js"></script>
