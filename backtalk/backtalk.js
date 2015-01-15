@@ -1,5 +1,11 @@
 module('users.timfelgentreff.backtalk.backtalk').requires().toRun(function() {
 
+if (typeof(Set) == 'undefined') {
+    Global.Set = function() {
+        throw 'Set not supported';
+    }
+}
+
 Object.subclass('backtalk.Object', {
     get uuid() {
         return this._uuid || (this._uuid = Strings.newUUID());
