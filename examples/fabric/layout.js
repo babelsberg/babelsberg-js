@@ -1,5 +1,5 @@
 contentLoaded(window, function() {
-    // var InitializedEmZ3 = new EmZ3();
+    var InitializedEmZ3, dirty = true;
     var consoleLog = console.log;
     console.log = function (args) {
         consoleLog.apply(console, arguments);
@@ -49,8 +49,12 @@ contentLoaded(window, function() {
     var editorCallback = function() {
         if (solverSelect.value === "EmZ3") {
             bbb.defaultSolver = InitializedEmZ3;
+            dirty = true;
         } else {
-            InitializedEmZ3 = new EmZ3();
+            if (dirty) {
+                InitializedEmZ3 = new EmZ3();
+                dirty = false;
+            }
             bbb.defaultSolver = new (eval(solverSelect.value))();
         }
 
