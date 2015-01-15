@@ -61,19 +61,19 @@ backtalk.BinaryConstraint.subclass('backtalk.FunctionBinaryConstraint', {
             sizeB = this.valuesToExploreB().length,
             self = this,
             previousSizeA, previousSizeB;
-            
         cond();
         while(previousSizeA !== sizeA && previousSizeB !== sizeB) {
             cond();
         }
+
         function cond() {
             self.variableA.filterToSelect(function (a) {
-                return self.valuesToExploreB.some(function (b) {
+                return self.valuesToExploreB().some(function (b) {
                     return self.func(a, b);
                 });
             });
             self.variableB.filterToSelect(function (b) {
-                return self.valuesToExploreA.some(function (a) {
+                return self.valuesToExploreA().some(function (a) {
                     return self.func(a, b);
                 });
             });
@@ -108,6 +108,10 @@ backtalk.UnaryConstraint.subclass('backtalk.FunctionUnaryConstraint', {
         return this.valuesToExplore().every(function (v) {
             return this.func(v);
         }.bind(this));
+    },
+    initialize: function($super, v, func) {
+        $super(v);
+        this.func = func;
     }
 });
 
