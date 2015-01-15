@@ -75,7 +75,7 @@ module('users.timfelgentreff.standalone.Compressor').requires().toRun(function()
             z3: ['z3/NaClZ3',
                 'z3/CommandLineServerInterface',
                 'z3/CommandLineZ3',
-                'z3/StrZ3',
+                // 'z3/StrZ3',
                 'z3/emz3/EmZ3'],
             backtalk: ['backtalk/backtalk',
                        'backtalk/constraints',
