@@ -80,8 +80,8 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
     parseAndEvalSexpr: function(sexp, varName) {
         if (!sexp) return;
         var variable = this.varsByName[varName];
+        var dom = variable && variable._domain;
         if (!variable) return;
-        var dom = variable._domain;
 
         if (dom) { // assign a domain value
             if (sexp.charAt(0) !== 'C') {
