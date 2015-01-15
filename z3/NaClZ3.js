@@ -35,17 +35,17 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
             this.loadModule(url);
         }.bind(this), true);
     },
-    
+
     moduleDidLoad: function () {
         alertOK("NaCLZ3 loaded");
         this.module = document.getElementById(this.uuid + "z3");
         this.solve();
     },
-    
+
     get isLoaded() {
         return !!this.module;
     },
-    
+
     handleMessage: function (message) {
         console.log(message.data)
         this.applyResults(message.data);
@@ -61,7 +61,7 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
             var assignments = response.result.split(",").map(function (str) {
                 var both = str.split("->");
                 if (both.length !== 2) return;
-                
+
                 var name = both[0].trim();
                 var value = this.parseAndEvalSexpr(both[1].trim(), name);
                 debugger
@@ -79,8 +79,10 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
     },
     parseAndEvalSexpr: function(sexp, varName) {
         if (!sexp) return;
-        var variable = this.varsByName[varName],
-            dom = variable._domain;
+        var variable = this.varsByName[varName];
+        if (!variable) return;
+        var dom = variable._domain;
+
         if (dom) { // assign a domain value
             if (sexp.charAt(0) !== 'C') {
                 throw new Error('Expected a domain value');
@@ -88,11 +90,11 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
             var value = dom[parseInt(sexp.slice(1))];
             return value;
         }
-        
+
         if (variable.isString) {
             return sexp;
         }
-        
+
         var fl = parseFloat(sexp);
         if (!isNaN(fl)) return fl;
         var atomEnd = [' ', '"', "'", ')', '(', '\x0b', '\n', '\r', '\x0c', '\t']
@@ -136,7 +138,7 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
         var op = l[0],
             self = this,
             args = l.slice(1, l.length).map(function (arg) { return self.evalFloat(arg); });
-        
+
         switch (op) {
             case "sin":
                 return Math.sin(args[0])
@@ -179,7 +181,7 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
             return parseFloat(arg);
         }
     },
-    
+
     postMessage: function (string) {
         if (!this.isLoaded) {
             alert("Z3 not ready, will solve when loaded.");
@@ -234,7 +236,7 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
             this.removeConstraint(c);
         }
     },
-    
+
     removeVariable: function(v, cvar) {
         this.variables.remove(v);
         delete this.cvarsByName[v.name];
@@ -294,12 +296,12 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
 });
 
     if (URL && URL.codeBase && URL.codeBase.withFilename) {
-	// Lively
-	NaCLZ3.url = URL.codeBase.withFilename(module('users.timfelgentreff.z3.NaClZ3').relativePath()).dirname();
+        // Lively
+        NaCLZ3.url = URL.codeBase.withFilename(module('users.timfelgentreff.z3.NaClZ3').relativePath()).dirname();
     } else {
-	NaCLZ3.__defineGetter__("url", function () {
-	    throw "Standalone deployment must provide the URL to the Native client module as NaCLZ3.url"
-	});
+        NaCLZ3.__defineGetter__("url", function () {
+            throw "Standalone deployment must provide the URL to the Native client module as NaCLZ3.url"
+        });
     }
 
     Object.subclass('NaCLZ3Ast', {
@@ -432,7 +434,7 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
     cnNotIdentical: function(value) {
         return new NaCLZ3UnaryExpression("not", this.cnIdentical(value), this.solver);
     },
-    
+
     print: function() {
         return this.name;
     },
@@ -445,7 +447,7 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
             return "(declare-fun " + this.name + " () Real)"
         }
     },
-    
+
     prepareEdit: function() {
         throw "Z3 does not support editing"
     },
@@ -459,7 +461,7 @@ NaCLZ3Ast.subclass('NaCLZ3Constant', {
         this.value = value;
         this.solver = solver;
     },
-    
+
     print: function () {
         return "" + this.value;
     }
@@ -505,7 +507,7 @@ NaCLZ3BinaryExpression.subclass('NaCLZ3TertiaryExpression', {
         this.second = this.z3object(second);
         this.third = this.z3object(third);
     },
-    
+
     print: function () {
         return "(" + this.op + " " + this.first.print() + " "
                 + this.second.print() + " " + this.third.print() + ")"
