@@ -436,7 +436,7 @@ if (!window.module) {
             this.removeAt(idx);
         }
     });
-    
+
     Array.range = (function(begin, end, step) {
         step = step || 1;
         var result = [];
@@ -445,8 +445,8 @@ if (!window.module) {
         }
         return result;
     });
-    
-    if (typeof(Set) == "undefined") {
+
+    if (typeof(Set) == 'undefined') {
         Global.Set = function() {
             throw 'Set not supported';
         };
