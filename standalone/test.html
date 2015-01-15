@@ -59,6 +59,11 @@
 	<script src="../babelsberg/uglify.js"></script>
 	<script src="../babelsberg/src_transform.js"></script>
 	<script src="babelsbergscript.js"></script>
+	<!-- // BackTalk -->
+	<script src="../backtalk/backtalk.js"></script>
+	<script src="../backtalk/constraints.js"></script>
+	<script src="../backtalk/backtalk_ext.js"></script>
+	<script src="../backtalk/tests.js"></script>
 	
 	<script type="text/javascript">
 		obj = {a: 1, b: 2}
@@ -83,6 +88,11 @@
 
 		new users.ohshima.ElectricalCircuitTests.Test1().runAll();
 		new users.ohshima.ElectricalComponentsTests.Test1().runAll();
+		
+		new backtalk.BabelsbergTest().runAll();
+		new backtalk.BinaryConstraintTest().runAll();
+		new backtalk.SolverTest().runAll();
+		new backtalk.VariableTest().runAll();
 	</script>
 	
 	<script type="text/babelsbergscript">

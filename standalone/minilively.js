@@ -436,6 +436,21 @@ if (!window.module) {
             this.removeAt(idx);
         }
     });
+    
+    Array.range = (function(begin, end, step) {
+        step = step || 1;
+        var result = [];
+        for (var i = begin; i <= end; i += step) {
+            result.push(i);
+        }
+        return result;
+    });
+    
+    if (typeof(Set) == "undefined") {
+        Global.Set = function() {
+            throw 'Set not supported';
+        };
+    }
 
     window.alertOK = (function(msg) {
         console.log(msg);
