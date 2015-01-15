@@ -44,10 +44,11 @@
 		<div style="float: left;">
 			<select id="solver">
 			  <option value="ClSimplexSolver">Cassowary (Simplex)</option>
-			  <option value="Relax">Sutherland's Relaxation</option>
-			  <option value="EmZ3">Z3 (Emscripten version)</option>
+			  <option value="Relax">Sutherland's Relaxation algorithm</option>
+			  <option value="EmZ3">Z3 (Emscripten-compiled SMT solver)</option>
 			  <option value="DBPlanner">DeltaBlue (local propagation)</option>
-			  <option value="csp.Solver">CSP solver</option>
+			  <option value="csp.Solver">a simple CSP solver</option>
+			  <option value="BacktalkSolver">Backtalk (a faster CSP solver)</option>
 			</select>
 		</div>
 		<div style="float: left;">
