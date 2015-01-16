@@ -6,7 +6,12 @@ module('users.timfelgentreff.z3.emz3.EmZ3').requires('users.timfelgentreff.z3.Na
             var prefixUrl; //new URL(module('users.timfelgentreff.z3.emz3.EMZ3').uri()).dirname();
             // A little hackery to find the URL of this very file.
             // Throw an error, then parse the stack trace looking for filenames.
-            var errlines = (new Error()).stack.split("\n");
+            var errlines = [];
+            try {
+                throw new Error();
+            } catch(e) {
+                errlines = e.stack.split("\n");
+            }
             for (var i = 0; i < errlines.length; i++) {
               var match = /((?:https?|file):\/\/.+\/)EmZ3.js/.exec(errlines[i]);
               if (match) {
