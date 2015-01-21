@@ -5,6 +5,7 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/prototype/1.7.2.0/prototype.js"></script>
 	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.core.js"></script>
 	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.csp.js"></script>
+	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.backtalk.js"></script>
 
 	<script src="d3.v3.min.js"></script>
 	<script src="queue.v1.min.js"></script>
@@ -14,6 +15,12 @@
 	
 	</head>
 	<body>
+	        <select id="solver">
+		  <option value="BacktalkSolver">Backtalk</option>
+		  <option value="csp.Solver">Simple CSP</option>
+		</select>
+		<div id="times">
+		</div>
 		<canvas id="canvas"></canvas>
 	</body>
 </html>
