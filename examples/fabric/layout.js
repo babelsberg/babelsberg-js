@@ -31,12 +31,24 @@ contentLoaded(window, function() {
         width: 50, height: 100, left: 75, top: 350, angle: 0,
         fill: 'rgba(255,255,0,0.5)'
     });
+	
+	var orange = new fabric.Rect({
+		width: 50, height: 100, left: 75, top: 350, angle: 0,
+		fill: 'rgba(255,165,0,0.5)'
+	});
+	
+	var purple = new fabric.Rect({
+		width: 50, height: 100, left: 75, top: 350, angle: 0,
+		fill: 'rgba(80,0,80,0.5)'
+	});
 
     window.rects = {
         red: red,
         green: green,
         blue: blue,
-        yellow: yellow
+        yellow: yellow,
+		orange: orange,
+		purple: purple
     };
 
     //setup default solver
@@ -101,7 +113,7 @@ contentLoaded(window, function() {
         "}\n";
     editorCallback.call(codeEditor);
 
-    canvas.add(red, green, blue, yellow);
+    canvas.add(red, green, blue, yellow, orange, purple);
 
     solverSelect.onchange = (function () {
         editorCallback.call(codeEditor);
