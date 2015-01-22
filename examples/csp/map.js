@@ -4,6 +4,18 @@ contentLoaded(window, function() {
                                "LUX", "NLD", "POL", "CHE"], function (name) {
                                    return "countries/" + name + ".geo.json";
                                });
+    intersectionCache = {};
+    var intersectStates = function(s1, s2) {
+        var cache = intersectionCache[s1.name];
+        if (!cache) {
+            cache = {};
+            intersectionCache[s1.name] = cache;
+        }
+        if (cache[s2.name] == undefined) {
+            cache[s2.name] = Intersection.intersectStates(s1, s2);
+        }
+        return cache[s2.name];
+    };
 
     // drawing
     var applyPathToContext = function(path, ctx) {
@@ -63,26 +75,29 @@ contentLoaded(window, function() {
             })
             .value();
 
-        var t0 = performance.now();
+        var t0, tTotal = 0;
         // define domains for colors
         _.each(states, function(state, index) {
+            t0 = performance.now();
             always: { state.color.is in colors }
+            tTotal = tTotal + (performance.now() - t0);
         });
 
         // ... and constrain neighbored countries
         _.each(states, function(state1, index1) {
             _.each(states, function(state2, index2) {
-                if(index1 < index2 && Intersection.intersectStates(state1, state2)) {
-                    console.log(state1.name + " - " + state2.name);
+                if(index1 < index2 && intersectStates(state1, state2)) {
+                    // console.log(state1.name + " - " + state2.name);
+                    t0 = performance.now();
                     always: { state1.color != state2.color }
+                    tTotal = tTotal + (performance.now() - t0);
                 }
             }, this);
         }, this);
 
-        var t1 = performance.now();
         var el = document.createElement("div");
-        el.innerText = solverSelect.value + " - time: " + (t1 - t0) + "ms";
-        timesDiv.appendChild(el);
+        el.innerText = solverSelect.value + " - time: " + tTotal + "ms";
+        timesDiv.insertBefore(el, timesDiv.firstChild);
 
         var worldAABB = _.reduce(states, function(mem, state) {
             var stateAABB = _.reduce(state.geometry.aabbs, function(mem, aabb) {
