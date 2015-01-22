@@ -121,7 +121,7 @@ module('users.timfelgentreff.z3.emz3.EmZ3').requires('users.timfelgentreff.z3.Na
                     both = [both[0].trim(), both.slice(1, both.length).join(" ").trim()];
 
                     var name = both[0];
-                    var value = this.parseAndEvalSexpr(both[1]);
+                    var value = this.parseAndEvalSexpr(both[1], both[0]);
                     return {name: name, value: value};
                 }.bind(this));
                 assignments.each(function (a) {
