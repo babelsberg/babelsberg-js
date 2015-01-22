@@ -3,9 +3,15 @@
 	<title>Babelsberg/JS Map Coloring</title>
 	
 	<script src="https://ajax.googleapis.com/ajax/libs/prototype/1.7.2.0/prototype.js"></script>
+	<script type="text/javascript">
+	  CommandLineInterface = {};
+	  CommandLineInterface.cwd = function () { return "Fake path" };
+	  CommandLineZ3Path = "fakez3path";
+	</script>
 	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.core.js"></script>
 	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.csp.js"></script>
 	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.backtalk.js"></script>
+	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.z3.js"></script>
 
 	<script src="d3.v3.min.js"></script>
 	<script src="queue.v1.min.js"></script>
@@ -18,6 +24,7 @@
 	        <select id="solver">
 		  <option value="BacktalkSolver">Backtalk</option>
 		  <option value="csp.Solver">Simple CSP</option>
+		  <option value="EmZ3">Emscripten Z3</option>
 		</select>
 
 		<div style="float: left; position: relative; overflow: scroll; max-height: 800px">

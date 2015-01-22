@@ -1,4 +1,6 @@
 contentLoaded(window, function() {
+    var InitializedEmZ3 = new EmZ3();
+    var dirty = false;
     var colors = ["red", "green", "blue", "yellow"],
     defaultStateNames = _.map(["AUT", "BEL", "CZE", "FRA", "DEU",
                                "LUX", "NLD", "POL", "CHE"], function (name) {
@@ -49,7 +51,16 @@ contentLoaded(window, function() {
     });
 
     var loaded = function(error /*, states ... */) {
-        var solver = bbb.defaultSolver = new (eval(solverSelect.value))();
+        if (solverSelect.value === "EmZ3") {
+            bbb.defaultSolver = InitializedEmZ3;
+            dirty = true;
+        } else {
+            if (dirty) {
+                InitializedEmZ3 = new EmZ3();
+                dirty = false;
+            }
+            bbb.defaultSolver = new (eval(solverSelect.value))();
+        }
 
         // prepare data
         var states = _.chain(arguments)
