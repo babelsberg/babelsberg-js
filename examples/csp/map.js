@@ -1,6 +1,9 @@
 contentLoaded(window, function() {
     var colors = ["red", "green", "blue", "yellow"],
-    stateNames = ["AUT", "BEL", "CZE", "FRA", "DEU", "LUX", "NLD", "POL", "CHE"];
+    defaultStateNames = _.map(["AUT", "BEL", "CZE", "FRA", "DEU",
+                               "LUX", "NLD", "POL", "CHE"], function (name) {
+                                   return "countries/" + name + ".geo.json";
+                               });
 
     // drawing
     var applyPathToContext = function(path, ctx) {
@@ -25,6 +28,12 @@ contentLoaded(window, function() {
     var solverSelect = document.getElementById('solver');
     solverSelect.onchange = (function () {
         doIt.call();
+    });
+
+    _.each(document.getElementsByName("country"), function(n) {
+        n.onchange = (function () {
+            doIt.call();
+        });
     });
 
     var loaded = function(error /*, states ... */) {
@@ -117,9 +126,22 @@ contentLoaded(window, function() {
     };
 
     doIt = function() {
+        var stateNames;
+        var checkedStates = _.map(
+            _.filter(document.getElementsByName("country"), function(node) {
+                return node.checked;
+            }),
+            function(node) {
+                return node.value;
+            });
+        if (checkedStates.length > 0) {
+            stateNames = checkedStates;
+        } else {
+            stateNames = defaultStateNames;
+        }
         var q = queue();
-        _.each(stateNames, function(state) {
-            q.defer(d3.json, "countries/" + state + ".geo.json");
+        _.each(stateNames, function(file) {
+            q.defer(d3.json, file);
         });
         q.await(loaded);
     }
