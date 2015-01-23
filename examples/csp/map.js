@@ -45,6 +45,9 @@ contentLoaded(window, function() {
     });
 
     _.each(document.getElementsByName("country"), function(n) {
+        if (defaultStateNames.indexOf(n.value) >= 0) {
+            n.checked = true;
+        }
         n.onchange = (function () {
             doIt.call();
         });
