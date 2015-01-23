@@ -58,11 +58,18 @@ contentLoaded(window, function() {
             bbb.defaultSolver = InitializedEmZ3;
             dirty = true;
         } else {
-            if (dirty) {
-                InitializedEmZ3 = new EmZ3();
-                dirty = false;
-            }
             bbb.defaultSolver = new (eval(solverSelect.value))();
+        }
+        if (dirty) {
+            // InitializedEmZ3 = new EmZ3();
+            // InitializedEmZ3.reset();
+            InitializedEmZ3.variables = [];
+            InitializedEmZ3.cvarsByName = {};
+            InitializedEmZ3.varsByName = {};
+            InitializedEmZ3.constraints = [];
+            InitializedEmZ3.domains = [];
+            InitializedEmZ3.domainsByName = {};
+            dirty = false;
         }
 
         // prepare data
