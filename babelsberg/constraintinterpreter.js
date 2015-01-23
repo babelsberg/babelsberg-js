@@ -285,6 +285,18 @@ Object.subclass('Babelsberg', {
         return constraint;
     },
 
+    /**
+     * Creates a constraint equivalent to the given function through
+     * Babelsberg#always, and then disables it immediately
+     * @function Babelsberg#once
+     * @public
+     */
+    once: function(opts, func) {
+        var constraint = this.always(opts, func);
+        constraint.disable();
+        return constraint;
+    },
+
     chooseSolvers: function(optSolver) {
         if (optSolver) {
             return [optSolver];
@@ -532,6 +544,7 @@ Object.subclass('Constraint', {
     },
 
     recalculate: function() {
+        if (!this._enabled) return;
         // TODO: Fix this so it uses the split-stay result, i.e. just
         // increase the stay for the newly assigned value
         if (this.isTest && !this.solver) {
@@ -631,6 +644,7 @@ Object.subclass('ConstrainedVariable', {
         this._constraints = [];
         this._externalVariables = {};
         this._isSolveable = false;
+        this._definingSolver = null;
         var value = obj[ivarname],
             solver = this.currentSolver;
 
@@ -920,12 +934,7 @@ Object.subclass('ConstrainedVariable', {
 
     updateDownstreamVariables: function(value) {
         this.updateDownstreamExternalVariables(value);
-
-        if (!this.isValueClass()) {
-            this.recalculateDownstreamConstraints(value);
-        } else {
-            this.updateValueClassParts(value);
-        }
+        this.updateDownstreamUnsolvableVariables(value);
     },
 
     updateDownstreamExternalVariables: function(value) {
@@ -938,6 +947,14 @@ Object.subclass('ConstrainedVariable', {
                 ea.setReadonly(wasReadonly);
             }
         });
+    },
+
+    updateDownstreamUnsolvableVariables: function(value) {
+        if (!this.isValueClass()) {
+            this.recalculateDownstreamConstraints(value);
+        } else {
+            this.updateValueClassParts(value);
+        }
     },
 
     recalculateDownstreamConstraints: function(value) {
@@ -966,17 +983,32 @@ Object.subclass('ConstrainedVariable', {
         constraint.addConstraintVariable(this);
     },
     get definingSolver() {
-            var solver = {weight: -1000};
+        if (Constraint.current || this._hasMultipleSolvers) {
+            // no fast path for variables with multiple solvers for now
+            this._definingSolver = null;
+            return this._searchDefiningSolver();
+        } else if (!this._definingSolver) {
+            return this._definingSolver = this._searchDefiningSolver();
+        } else {
+            return this._definingSolver;
+        }
+    },
+    _searchDefiningSolver: function() {
+            var solver = {weight: -1000, fake: true};
             this.eachExternalVariableDo(function(eVar) {
                 if (eVar) {
+                    if (!solver.fake) {
+                        this._hasMultipleSolvers = true;
+                    }
                     var s = eVar.__solver__;
                     if (s.weight > solver.weight) {
                         solver = s;
                     }
                 }
-            });
+            }.bind(this));
             return solver;
     },
+
     get solvers() {
         var solvers = [];
         this.eachExternalVariableDo(function(eVar) {
@@ -1003,6 +1035,7 @@ Object.subclass('ConstrainedVariable', {
         // TODO: add more value classes
         return !this.isSolveable() &&
             this.storedValue instanceof lively.Point;
+        // return false && this.storedValue instanceof lively.Point;
     },
 
     get storedValue() {
@@ -1078,6 +1111,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         '-': ['minus'],
         '*': ['times', 'times'],
         '/': ['divide'],
+        '%': ['modulo'],
         '==': ['cnEquals', 'cnEquals'],
         '===': ['cnIdentical', 'cnIdentical'],
         '<=': ['cnLeq', 'cnGeq'],
@@ -1216,6 +1250,10 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
             if (func) {
                 var forInterpretation = func.forInterpretation;
                 func.forInterpretation = undefined;
+                var prevNode = bbb.currentNode,
+                    prevInterp = bbb.currentInterpreter;
+                bbb.currentInterpreter = this;
+                bbb.currentNode = node;
                 try {
                     return cop.withoutLayers([ConstraintConstructionLayer], function() {
                         return $super(node, recv, func, argValues);
@@ -1233,6 +1271,8 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
                     );
                 } finally {
                     func.forInterpretation = forInterpretation;
+                    bbb.currentInterpreter = prevInterp;
+                    bbb.currentNode = prevNode;
                 }
             } else {
                 return this.errorIfUnsolvable(
@@ -1245,6 +1285,8 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
                     }).bind(this)
                 );
             }
+        } else if (func === Date) {
+            return new func();
         } else if (recv === Math) {
             if (func === Math.sqrt && argValues[0].pow || argValues[0].sqrt) {
                 if (argValues[0].pow) {
@@ -1269,6 +1311,19 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         }
     },
     visitBinaryOp: function($super, node) {
+        var prevNode = bbb.currentNode,
+            prevInterp = bbb.currentInterpreter;
+        bbb.currentInterpreter = this;
+        bbb.currentNode = node;
+        try {
+            return this.pvtVisitBinaryOp($super, node);
+        } finally {
+            bbb.currentInterpreter = prevInterp;
+            bbb.currentNode = prevNode;
+        }
+    },
+
+    pvtVisitBinaryOp: function(mySuper, node) {
         var op = node.name;
 
         // /* Only supported */ if (node.name.match(/[\*\+\/\-]|==|<=|>=|===|<|>|\|\|/)) {
@@ -1307,9 +1362,15 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
                 if (node.name != '-') {
                     if (leftVal.isConstraintObject && leftVal.cnIn) {
                         return leftVal.cnIn(rightVal);
-                    } // special case for reversing minus - allowed to
-                      // fall through to default
-                    // TODO: rightVal->contains if !leftVal.isConstraintObject
+                    } else if (this.$finiteDomainProperty) {
+                        var lV = this.$finiteDomainProperty;
+                        delete this.$finiteDomainProperty;
+                        if (lV.cnIn) {
+                            return lV.cnIn(rightVal);
+                        }
+                    } // TODO: rightVal->contains if !leftVal.isConstraintObject
+                // special case for reversing minus - allowed to
+                // fall through to default
                 }
             default:
                 var method = this.binaryExpressionMap[node.name];
@@ -1329,7 +1390,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
                         );
                     }
                 } else {
-                    return this.errorIfUnsolvable(op, leftVal, rightVal, $super(node));
+                    return this.errorIfUnsolvable(op, leftVal, rightVal, mySuper(node));
                 }
         }
     },
@@ -1354,6 +1415,9 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         if (obj && obj.isConstraintObject) {
             if (obj['cn' + name]) {
                 return obj['cn' + name]; // XXX: TODO: Document this
+            } else if (name === 'is') {
+                // possibly a finite domain definition
+                this.$finiteDomainProperty = obj;
             } else {
                 cobj = obj.__cvar__;
                 obj = this.getConstraintObjectValue(obj);
@@ -1433,6 +1497,26 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         var nativeClass = lively.Class.isClass(func) && func.superclass === undefined;
         return (!(this.isNative(func) || nativeClass)) &&
                  typeof(func.forInterpretation) == 'function';
+    },
+    getCurrentScope: function() {
+        var scope = {};
+        var frame = this.currentFrame;
+        while (frame) {
+            if (frame.mapping === Global) { // reached global scope
+                return scope;
+            }
+            for (var key in frame.mapping) {
+                scope[key] = frame.mapping[key];
+            }
+            var mapping = frame.func.getVarMapping();
+            if (mapping) {
+                for (var key in mapping) {
+                    scope[key] = mapping[key];
+                }
+            }
+            frame = frame.getContainingScope();
+        }
+        return scope;
     },
     newObject: function($super, func) {
         if (func.original) {
