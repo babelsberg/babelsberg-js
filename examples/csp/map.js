@@ -77,7 +77,7 @@ contentLoaded(window, function() {
                 return {
                     geometry: geometry,
                     name: state.properties.name,
-                    color: colors[0]
+                    color: 0
                 };
             })
             .map(function(state) {
