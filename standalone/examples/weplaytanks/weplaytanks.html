@@ -5,8 +5,8 @@
 		<meta charset="UTF-8">
         <link rel="shortcut icon" href="assets/images/favicon.ico" type="image/x-icon" />
         <title>We play Tanks</title>
-		<script src="../../prototype.js"></script>
-		<script src="../../minilively.js"></script>
+		<script src="../../../standalone/prototype.js"></script>
+		<script src="../../../standalone/minilively.js"></script>
 		
 		<!-- // cop.Layers -->
 		<script src="../../../cop/Layers.js"></script>
@@ -46,22 +46,22 @@
 		<!-- // Babelsberg/js -->
 		<script src="../../../babelsberg/core_ext.js"></script>
 		<script src="../../../babelsberg/constraintinterpreter.js"></script>
-        <script src="../../test_harness.js"></script>
+        <script src="../../../standalone/test_harness.js"></script>
 		<!-- // reactive -->
 		<script src="../../../reactive/reactive.js"></script>
 		<!-- // src transform -->
 		<script src="../../../babelsberg/uglify.js"></script>
 		<script src="../../../babelsberg/src_transform.js"></script>
-		<script src="../../babelsbergscript.js"></script>
+		<script src="../../../standalone/babelsbergscript.js"></script>
 
 		<!-- // misc helper -->
-		<script src="lib/helper/stats.js"></script>
-		<script src="lib/helper/queue.v1.min.js"></script>
+		<script src="../../../standalone/examples/weplaytanks/lib/helper/stats.js"></script>
+		<script src="../../../standalone/examples/weplaytanks/lib/helper/queue.v1.min.js"></script>
 		
 		<!-- // math helper -->
-        <script type="text/javascript" src="lib/math/vector2.js"></script>
-        <script type="text/javascript" src="lib/math/affinetransformation.js"></script>
-		<script type="text/javascript" src="lib/math/aabb.js"></script>
+        <script type="text/javascript" src="../../../standalone/examples/weplaytanks/lib/math/vector2.js"></script>
+        <script type="text/javascript" src="../../../standalone/examples/weplaytanks/lib/math/affinetransformation.js"></script>
+		<script type="text/javascript" src="../../../standalone/examples/weplaytanks/lib/math/aabb.js"></script>
 	</head>
 	<body>
 		<canvas id="game" width=800 height=600 resize style="width:800px; height:600px; background-color:black"></canvas>
@@ -78,6 +78,6 @@
 
             This demo shows how constraints and object-oriented paradigms can interact using Babelsberg.
         </div>
-        <script data-main="lib/weplaytanks" src="lib/helper/require.js"></script>
+        <script data-main="../../../standalone/examples/weplaytanks/lib/weplaytanks" src="../../../standalone/examples/weplaytanks/lib/helper/require.js"></script>
     </body>
 </html>

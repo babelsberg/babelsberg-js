@@ -15,7 +15,7 @@ define(["./../levels/levels"], function loadLevel(Levels) {
     };
 
     var loadLevel = function(index, path, callback) {
-        loadJSON("assets/levels/" + path, function(json) {
+        loadJSON("../../../standalone/examples/weplaytanks/assets/levels/" + path, function(json) {
             Levels[index] = json;
             callback(null, json);
          });
