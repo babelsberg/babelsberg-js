@@ -22,28 +22,45 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
 
     var PowerUp = Object.subclass("PowerUp", {
         activate: function(tank) {
-            this.bestow(tank);
+            this.getTarget(tank).each(function(target) {
+                this.setupTimer(target);
+            }, this);
+
         },
-        /*get: function(tank) {
-            return tank;
-        },*/
-        bestow: function(tank) {
-            if(tank.powerUps.spring) {
-                tank.powerUps.spring.reset();
+        getTarget: function(tank) {
+            return [tank];
+        },
+        setupTimer: function(tank) {
+            if(tank.powerUps[this.key]) {
+                tank.powerUps[this.key].reset();
             } else {
                 var timer = new Timer(10);
-                timer.activeLayer.refineObject(tank, {
-                    getBulletRicochets: function() {
-                        return cop.proceed() + 1;
-                    }
-                });
-
-                tank.powerUps.spring = timer;
+                this.bestow(tank, timer.activeLayer);
+                tank.powerUps[this.key] = timer;
             }
         }
     });
 
-    PowerUp.Spring = PowerUp;
+    PowerUp.Spring = PowerUp.subclass("PowerUp.Spring", {
+        key: "spring",
+        sheetIndex: [4, 5, 6, 13, 20, 27],
+        bestow: function(tank, layer) {
+            layer.refineObject(tank, {
+                getBulletRicochets: function() {
+                    return cop.proceed() + 1;
+                }
+            });
+        }
+    });
+    PowerUp.Shield = PowerUp.subclass("PowerUp.Shield", {
+        key: "shield",
+        sheetIndex: [5],
+        bestow: function(tank, layer) {
+            layer.refineObject(tank, {
+                destroy: function() {}
+            });
+        }
+    });
 
     var Collectible = GameObject.subclass("Collectible", {
         sheetIndex: 5,
@@ -52,7 +69,7 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
             var pos = Vector2.fromJson(description.position);
             $super(world, "powerup", pos, new Vector2(1.5, 1.5), 0.75, Vector2.Zero.copy(), 0);
 
-            this.animation = new Animation(new AnimationSheet("powerups.png", 20, 20), 1.0, [this.sheetIndex]);
+            this.animation = new Animation(new AnimationSheet("powerups.png", 20, 20), 1.0, [4, this.sheetIndex, 6, 13, 20, 27]);
 
             this.initConstraints();
         },
@@ -70,7 +87,7 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
             }, this);
         },
         bestow: function(tank) {
-            new PowerUp().activate(tank);
+            new PowerUp[this.desc.type]().activate(tank);
         }
     });
 

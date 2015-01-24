@@ -36,6 +36,11 @@
             "type": "Spring",
             "position": { "x": 13, "y": 14},
             "timeout": 10
+        },
+        {
+            "type": "Shield",
+            "position": { "x": 13, "y": 10},
+            "timeout": 10
         }
     ]
 }
