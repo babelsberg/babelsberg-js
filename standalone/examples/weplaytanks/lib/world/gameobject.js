@@ -20,12 +20,15 @@ define(function moduleGameObject() {
         },
 
         update: function(dt) {
-            this.prevPosition.set(this.position);
-
-            var deltaPos = this.velocity.normalizedCopy().mulFloat(dt*this.speed);
-            this.position.addSelf(deltaPos);
-
+            this.move(dt);
             this.animation.update(dt);
+        },
+
+        move: function(dt) {
+            var deltaPos = this.velocity.normalizedCopy().mulFloat(dt*this.speed);
+
+            this.prevPosition.set(this.position);
+            this.position.addSelf(deltaPos);
         },
 
         draw: function(renderer) {

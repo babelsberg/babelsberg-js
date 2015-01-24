@@ -21,6 +21,9 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
     });
 
     var PowerUp = Object.subclass("PowerUp", {
+        initialize: function(duration) {
+            this.duration = duration;
+        },
         activate: function(tank) {
             this.getTarget(tank).each(function(target) {
                 this.setupTimer(target);
@@ -34,7 +37,7 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
             if(tank.powerUps[this.key]) {
                 tank.powerUps[this.key].reset();
             } else {
-                var timer = new Timer(10);
+                var timer = new Timer(this.duration);
                 this.bestow(tank, timer.activeLayer);
                 tank.powerUps[this.key] = timer;
             }
@@ -43,7 +46,7 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
 
     PowerUp.Spring = PowerUp.subclass("PowerUp.Spring", {
         key: "spring",
-        sheetIndex: [4, 5, 6, 13, 20, 27],
+        sheetIndex: [5],
         bestow: function(tank, layer) {
             layer.refineObject(tank, {
                 getBulletRicochets: function() {
@@ -54,7 +57,25 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
     });
     PowerUp.Shield = PowerUp.subclass("PowerUp.Shield", {
         key: "shield",
-        sheetIndex: [5],
+        sheetIndex: [4],
+        bestow: function(tank, layer) {
+            layer.refineObject(tank, {
+                destroy: function() {}
+            });
+        }
+    });
+    PowerUp.Sticky = PowerUp.subclass("PowerUp.Sticky", {
+        key: "sticky",
+        sheetIndex: [27],
+        bestow: function(tank, layer) {
+            layer.refineObject(tank, {
+                move: function() {}
+            });
+        }
+    });
+    PowerUp.Homing = PowerUp.subclass("PowerUp.Homing", {
+        key: "homing",
+        sheetIndex: [6],
         bestow: function(tank, layer) {
             layer.refineObject(tank, {
                 destroy: function() {}
@@ -63,13 +84,12 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
     });
 
     var Collectible = GameObject.subclass("Collectible", {
-        sheetIndex: 5,
         initialize: function($super, world, description) {
-            this.desc = description;
             var pos = Vector2.fromJson(description.position);
             $super(world, "powerup", pos, new Vector2(1.5, 1.5), 0.75, Vector2.Zero.copy(), 0);
 
-            this.animation = new Animation(new AnimationSheet("powerups.png", 20, 20), 1.0, [4, this.sheetIndex, 6, 13, 20, 27]);
+            this.powerUp = new PowerUp[description.type](description.timeout);
+            this.animation = new Animation(new AnimationSheet("powerups.png", 20, 20), 1.0, this.powerUp.sheetIndex);
 
             this.initConstraints();
         },
@@ -87,7 +107,7 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
             }, this);
         },
         bestow: function(tank) {
-            new PowerUp[this.desc.type]().activate(tank);
+            this.powerUp.activate(tank);
         }
     });
 
