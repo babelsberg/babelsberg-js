@@ -73,15 +73,6 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
             });
         }
     });
-    PowerUp.Homing = PowerUp.subclass("PowerUp.Homing", {
-        key: "homing",
-        sheetIndex: [6],
-        bestow: function(tank, layer) {
-            layer.refineObject(tank, {
-                destroy: function() {}
-            });
-        }
-    });
 
     var Collectible = GameObject.subclass("Collectible", {
         initialize: function($super, world, description) {

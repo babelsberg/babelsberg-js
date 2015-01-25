@@ -35,7 +35,7 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
 
             // bounce combines "vertical" and "horizontal" wall reflection
             var bounce = when(function() {
-                that.getTile(that.position).canFlyThrough() == false;
+                !that.getTile(that.position).canFlyThrough();
             }).trigger(function() {
                 var prevFlyable = that.getTile(that.prevPosition).canFlyThrough(),
                     reflOnX = that.getTile(new Vector2(
