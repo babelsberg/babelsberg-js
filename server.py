@@ -194,8 +194,6 @@ class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         path = self.file_path
         if path == '/':
             path = 'standalone/examples/weplaytanks/weplaytanks.html'
-        elif path == '/editor':
-            path = 'editor.html'
 
         # Remove the leading forward slash
         if path[0] == '/':
@@ -227,7 +225,7 @@ class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 def main():
     addr = ('', SETTINGS['port'])
     server = BaseHTTPServer.HTTPServer(addr, HTTPHandler)
-    print 'Running Development Server\nGame:   http://localhost:%d\nEditor: http://localhost:%d/editor' % (addr[1], addr[1])
+    print 'Running Development Server\nGame:   http://localhost:%d' % addr[1]
     server.serve_forever()
 
 if __name__ == '__main__':
