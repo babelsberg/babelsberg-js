@@ -1,4 +1,4 @@
-define(["./../gameobject/controls", "./../gameobject/tank", "./../gameobject/bullet"], function TankConfig(Controls, Tank, Bullet) {
+define(["./controls", "./tank", "./bullet"], function TankConfig(Controls, Tank, Bullet) {
     var TankConfig = Object.subclass("TankConfig", {});
     Object.extend(TankConfig, {
         Player: {

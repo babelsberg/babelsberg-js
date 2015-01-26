@@ -1,4 +1,4 @@
-define(["./world", "./map", "./../gameobject/config", "./../gameobject/powerup"], function WorldBuilder(World, Map, TankConfig, Collectible) {
+define(["./world", "./map", "./../gameobject/tankconfiguration", "./../gameobject/powerup"], function WorldBuilder(World, Map, TankConfiguration, Collectible) {
     var WorldBuilder = Object.subclass("WorldBuilder", {
         initialize: function(game) {
             this.game = game;
@@ -24,7 +24,7 @@ define(["./world", "./map", "./../gameobject/config", "./../gameobject/powerup"]
                 Vector2.fromJson(description.position),
                 Vector2.fromJson(description.velocity),
                 Vector2.fromJson(description.turretDirection),
-                TankConfig.Player
+                TankConfiguration.Player
             );
 
             // constraint:
@@ -53,7 +53,7 @@ define(["./world", "./map", "./../gameobject/config", "./../gameobject/powerup"]
                     Vector2.fromJson(enemyDescription.position),
                     Vector2.fromJson(enemyDescription.velocity),
                     Vector2.fromJson(enemyDescription.turretDirection),
-                    TankConfig[enemyDescription.type]
+                    TankConfiguration[enemyDescription.type]
                 );
             }, this);
 
