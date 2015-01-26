@@ -1,4 +1,4 @@
-define(["./world", "./map", "./config", "./powerup"], function WorldBuilder(World, Map, TankConfig, Collectible) {
+define(["./world", "./map", "./../gameobject/config", "./../gameobject/powerup"], function WorldBuilder(World, Map, TankConfig, Collectible) {
     var WorldBuilder = Object.subclass("WorldBuilder", {
         initialize: function(game) {
             this.game = game;

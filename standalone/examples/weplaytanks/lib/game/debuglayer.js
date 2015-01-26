@@ -1,6 +1,6 @@
 define([
-    "./../world/gameobject",
-    "./../world/controls",
+    "./../gameobject/gameobject",
+    "./../gameobject/controls",
     "./../world/tile"
 ], function plugin(GameObject, Controls, Tile) {
     var DebugLayer = cop.create("DebugLayer")

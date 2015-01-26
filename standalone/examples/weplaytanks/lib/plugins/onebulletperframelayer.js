@@ -1,4 +1,4 @@
-define(["./../world/tank", "./../world/world"], function plugin(Tank, World) {
+define(["./../gameobject/tank", "./../world/world"], function plugin(Tank, World) {
     var OneBulletPerFrameLayer = cop.create("OneBulletPerFrameLayer")
         .refineClass(Tank, {
             fireBullet: function(world, dt) {
