@@ -9,7 +9,6 @@ define([
     Input,
     Gui,
     Viewport,
-    // TODO: extract WorldBuilder, Tile, ... from World
     WorldBuilder,
     Renderer,
     DebugLayer
