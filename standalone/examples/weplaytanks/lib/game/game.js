@@ -99,17 +99,15 @@ define([
             this.resetLevel();
         },
         resetLevel: function() {
-            // TODO: eliminate duplications
-            this.cleanUp();
-            var builder = new WorldBuilder(this);
-            this.world = builder.buildWorld(this.levels.get());
-
-            this.gui = new Gui(this.world, this.input, player, this.viewport);
+            this.createLevel(this.levels.get());
         },
         nextLevel: function() {
+            this.createLevel(this.levels.next());
+        },
+        createLevel: function(level) {
             this.cleanUp();
             var builder = new WorldBuilder(this);
-            this.world = builder.buildWorld(this.levels.next());
+            this.world = builder.buildWorld(level);
 
             this.gui = new Gui(this.world, this.input, player, this.viewport);
         },
