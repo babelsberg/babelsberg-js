@@ -113,13 +113,13 @@ define(["./gameobject", "./bullet", "./../rendering/animation", "./../rendering/
                 this.getBulletRicochets(),
                 this.bulletSpeed
             );
+            world.spawn(bullet);
             world.getGameObjects().each(function(other) {
-                if(other === this) { return; }
+                if(other === this || other === bullet) { return; }
                 if(!(other.name == "tank" || other.name == "bullet")) { return; }
 
                 bullet.onCollisionWith(other, Bullet.detonate);
             }, this);
-            world.spawn(bullet);
         },
         getBulletRicochets: function() {
             return this._bulletRicochets;
