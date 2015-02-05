@@ -67,6 +67,11 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
     PowerUp.Sticky = PowerUp.subclass("PowerUp.Sticky", {
         key: "sticky",
         sheetIndex: [27],
+        getTarget: function(tank) {
+            return tank.world.getGameObjects().filter(function(gameObject) {
+                return gameObject.name == "tank" && gameObject !== tank;
+            });
+        },
         bestow: function(tank, layer) {
             layer.refineObject(tank, {
                 move: function() {}
