@@ -19,7 +19,7 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
                     return acc + v.name + " "
                 }) + "))");
             // console.log(string);
-            var commandString = this.constructor.z3Path + ' -T:4 -smt2 -in',
+            var commandString = this.constructor.z3Path + '.sh',
                 self = this;
 
             if (!this.sync) {
