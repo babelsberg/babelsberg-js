@@ -70,7 +70,7 @@ Object.subclass('BacktalkSolver', {
                 varA,
                 test
             );
-        } else if (cobj.constraintvariables.length === 2) {
+        } else { //if (cobj.constraintvariables.length === 2) {
             var vars = cobj.constraintvariables.map(function (v) {
                 return v.externalVariables(solver);
             });
