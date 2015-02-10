@@ -3,7 +3,7 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
         initialize: function(time) {
             var that = this;
 
-            this.time = this.startingTime = time;
+            this.time = time;
             this.activeLayer = new Layer().activeOn({
                 ctx: {
                     that: that
@@ -15,8 +15,8 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
         update: function(dt) {
             this.time -= dt;
         },
-        reset: function() {
-            this.time = this.startingTime;
+        reset: function(additionalDuration) {
+            this.time = Math.max(this.time, 0) + additionalDuration;
         }
     });
 
@@ -35,7 +35,7 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
         },
         setupTimer: function(tank) {
             if(tank.powerUps[this.key]) {
-                tank.powerUps[this.key].reset();
+                tank.powerUps[this.key].reset(this.duration);
             } else {
                 var timer = new Timer(this.duration);
                 this.bestow(tank, timer.activeLayer);
