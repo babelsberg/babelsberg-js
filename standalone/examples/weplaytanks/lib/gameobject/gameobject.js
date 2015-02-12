@@ -15,6 +15,8 @@ define(function moduleGameObject() {
 
             this.speed = speed * world.map.tileSize.x;
 
+            this.animations = [];
+
             this.constraints = [];
             this.alive = true;
         },
@@ -22,6 +24,9 @@ define(function moduleGameObject() {
         update: function(dt) {
             this.move(dt);
             this.animation.update(dt);
+            this.animations.forEach(function(animation) {
+                animation.update(dt);
+            });
         },
 
         move: function(dt) {
@@ -33,6 +38,9 @@ define(function moduleGameObject() {
 
         draw: function(renderer) {
             this.animation.draw(renderer, this.getWorldAABB(), new Vector2(1,0).getDirectedAngle(this.velocity));
+            this.animations.forEach(function(animation) {
+                animation.draw(renderer, this.getWorldAABB(), new Vector2(1,0).getDirectedAngle(this.velocity));
+            }, this);
         },
 
         getTile: function(pos) {
