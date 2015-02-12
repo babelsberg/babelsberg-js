@@ -38,6 +38,16 @@
             "timeout": 10
         },
         {
+            "type": "Spring",
+            "position": { "x": 13, "y": 18},
+            "timeout": 20
+        },
+        {
+            "type": "Spring",
+            "position": { "x": 13, "y": 22},
+            "timeout": 30
+        },
+        {
             "type": "Shield",
             "position": { "x": 13, "y": 10},
             "timeout": 10
