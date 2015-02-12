@@ -30,5 +30,12 @@
             "velocity": { "x": -1, "y": 0},
             "turretDirection": { "x": -1, "y": 0}
         }
+    ],
+    "powerUps": [
+        {
+            "type": "Shield",
+            "position": { "x": 18, "y": 19},
+            "timeout": 15
+        }
     ]
 }
