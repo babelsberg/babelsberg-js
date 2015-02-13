@@ -57,7 +57,6 @@ require([
             if(error) {
                 console.error("error while loading", error);
             } else {
-                console.log(arguments[1]);
                 game.prepare();
                 loop.start();
             }
