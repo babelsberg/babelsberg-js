@@ -41,8 +41,6 @@ define( function moduleRenderer() {
             this.canvas = canvas;
             this.context = canvas.getContext('2d');
 
-            this.drawCount = 0;
-
             // set default pixel extent to allow setOptions
             this.singlePixelExtent = Vector2.One.copy();
 
@@ -161,8 +159,6 @@ define( function moduleRenderer() {
          * Drawing
          */
         draw: function(objectToDraw) {
-            this.drawCount = 0;
-
             this.clear();
 
             // Draw given object.
@@ -183,8 +179,6 @@ define( function moduleRenderer() {
          * Graphical primitives
          */
         drawRectangle: function(vec, size, color, opacity) {
-            this.drawCount++;
-
             this.configuration.setFillStyle(color);
             this.configuration.setGlobalAlpha(opacity);
 
@@ -198,8 +192,6 @@ define( function moduleRenderer() {
         },
 
         drawDot: function(vec, size, color, opacity) {
-            this.drawCount++;
-
             this.configuration.setFillStyle(color);
             this.configuration.setGlobalAlpha(opacity);
 
@@ -218,8 +210,6 @@ define( function moduleRenderer() {
         },
 
         drawLine: function(from, to, color, opacity, lineWidth) {
-            this.drawCount++;
-
             this.configuration.setStrokeStyle(color);
             this.configuration.setGlobalAlpha(opacity);
             this.configuration.setLineWidth(lineWidth);
@@ -236,8 +226,6 @@ define( function moduleRenderer() {
         },
 
         drawPolyline: function(vList, color, opacity, lineWidth) {
-            this.drawCount++;
-
             this.configuration.setStrokeStyle(color);
             this.configuration.setGlobalAlpha(opacity);
             this.configuration.setLineWidth(lineWidth);
@@ -256,8 +244,6 @@ define( function moduleRenderer() {
         },
 
         drawPlus: function(point, size, color, opacity, lineWidth) {
-            this.drawCount++;
-
             this.configuration.setStrokeStyle(color);
             this.configuration.setGlobalAlpha(opacity);
             this.configuration.setLineWidth(lineWidth);
@@ -289,8 +275,6 @@ define( function moduleRenderer() {
         },
 
         drawTextWorld: function(text, worldPoint, color, opacity, baseline) {
-            this.drawCount++;
-
             this.configuration.setFillStyle(color);
             this.configuration.setStrokeStyle(color);
             this.configuration.setGlobalAlpha(opacity);
@@ -319,8 +303,6 @@ define( function moduleRenderer() {
          */
         drawImageOnWorldAABB: function(image, aabb, sourceX, sourceY, width, height, angle) {
             var TO_RADIANS = Math.PI/180;
-            this.drawCount++;
-
             var targetPosition = aabb.Min;
             var targetExtend = aabb.getSize();
 
