@@ -23,13 +23,13 @@
     },
     "enemyTanks": [
         {
-            "type": "BrownTurret",
+            "type": "Yellow",
             "position": { "x": 31, "y": 17},
             "velocity": { "x": 0, "y": 0},
             "turretDirection": { "x": -1, "y": 0}
         },
         {
-            "type": "GreySoldier",
+            "type": "Red",
             "position": { "x": 27, "y": 30},
             "velocity": { "x": -1, "y": 0},
             "turretDirection": { "x": -1, "y": 0}

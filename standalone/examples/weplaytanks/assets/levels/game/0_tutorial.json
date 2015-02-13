@@ -25,7 +25,7 @@
     },
     "enemyTanks": [
         {
-            "type": "BrownTurret",
+            "type": "Yellow",
             "position": { "x": 33, "y": 14},
             "velocity": { "x": 0, "y": 0},
             "turretDirection": { "x": -1, "y": 0}

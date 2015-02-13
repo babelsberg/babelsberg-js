@@ -114,11 +114,11 @@ define(function moduleControls() {
         }
     });
 
-    Controls.CPU.BrownTurret = CPUControls.subclass("BrownTurret", { // Bobby
+    Controls.CPU.Yellow = CPUControls.subclass("Yellow", {
         initialize: function($super, tank, world, input, viewport) {
             $super(tank, world, input, viewport);
             this.rotationDirection = 1;
-            this.color = "brown";
+            this.color = "yellow";
         },
         // free turret rotation
         turretUpdate: function(dt) {
@@ -195,10 +195,10 @@ define(function moduleControls() {
         }
     });
 
-    Controls.CPU.GreySoldier = MovingCPUControls.subclass("GreySoldier", { // Fred
+    Controls.CPU.Red = MovingCPUControls.subclass("Red", {
         initialize: function($super, tank, world, input, viewport) {
             $super(tank, world, input, viewport);
-            this.color = "grey";
+            this.color = "brown";
 
             var tank = this.tank,
                 that = this;
@@ -227,6 +227,7 @@ define(function moduleControls() {
             */
             bbb.trigger({
                 callback: function() {
+                    // TODO: reset angle to -90 to 90
                     that.rotationDirection *= -1;
                 },
                 ctx: {
@@ -239,7 +240,7 @@ define(function moduleControls() {
             });
         },
         turretUpdate: function(dt) {
-            // TODO: remove duplication with BrownTurret/Bobby.turretUpdate
+            // TODO: remove duplication with Yellow.turretUpdate
             if(Math.random() < 0.02) {
                 this.rotationDirection *= -1;
             }
@@ -247,7 +248,7 @@ define(function moduleControls() {
         }
     });
 
-    Controls.CPU.TealHunter = MovingCPUControls.subclass("TealHunter", { // Luzy
+    Controls.CPU.Blue = MovingCPUControls.subclass("Blue", {
         initialize: function($super, tank, world, input, viewport) {
             $super(tank, world, input, viewport);
             this.color = "teal";

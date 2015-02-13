@@ -8,25 +8,25 @@ define(["./controls", "./tank", "./bullet"], function TankConfig(Controls, Tank,
             intelligence: Controls.Player,
             bulletSpeed: Bullet.SPEED_NORMAL
         },
-        BrownTurret: {
+        Yellow: {
             speed: Tank.SPEED_IMMOBILE,
             bullets: 1,
             bulletRicochets: 1,
-            intelligence: Controls.CPU.BrownTurret,
+            intelligence: Controls.CPU.Yellow,
             bulletSpeed: Bullet.SPEED_NORMAL
         },
-        GreySoldier: {
+        Red: {
             speed: Tank.SPEED_SLOW,
             bullets: 2,
             bulletRicochets: 1,
-            intelligence: Controls.CPU.GreySoldier,
+            intelligence: Controls.CPU.Red,
             bulletSpeed: Bullet.SPEED_NORMAL
         },
-        TealHunter: {
+        Blue: {
             speed: Tank.SPEED_SLOW,
             bullets: 1,
             bulletRicochets: 0,
-            intelligence: Controls.CPU.TealHunter,
+            intelligence: Controls.CPU.Blue,
             bulletSpeed: Bullet.SPEED_FAST
         }
     });
