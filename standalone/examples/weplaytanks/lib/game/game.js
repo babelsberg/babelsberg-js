@@ -85,7 +85,7 @@ define([
         constrainDebugLayer: function() {
             var input = this.input;
 
-            // do not debugdraw velocities if debug button is pressed
+            // constraint: debugdraw velocities if debug mode is switched on
             DebugLayer.activeOn({
                 ctx: {
                     input: input
