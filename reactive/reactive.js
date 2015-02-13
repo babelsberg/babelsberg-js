@@ -19,6 +19,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 		initialize: function(solver, value, ivarname, bbbCVar) {
 			this.solver = solver;
 			this.__val__ = value;
+			this.enabled = false;
 		},
 	    suggestValue: function(value) {
 			if(this.__val__ === value) { return value; }
@@ -57,6 +58,12 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    },
 	    cnEquals: function() {
 	        return new ReactiveSolver.PrimitiveConstraint(this, arguments);
+	    },
+	    enable: function() {
+			this.enabled = true;
+	    },
+	    disable: function() {
+			this.enabled = false;
 	    }
 	});
 	
