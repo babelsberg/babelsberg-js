@@ -267,6 +267,8 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 
 			this.constraintObjects = this.constraintObjects || [];
 			this.constraintObjects.push(cobj);
+
+			return cobj;
 		},
 		assert: function(opts, func) {
 			opts.postponeEnabling = !this.isGlobal();
@@ -274,6 +276,8 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 
 			this.constraintObjects = this.constraintObjects || [];
 			this.constraintObjects.push(cobj);
+
+			return cobj;
 		},
 		trigger: function(opts, func) {
 			opts.postponeEnabling = !this.isGlobal();
@@ -281,6 +285,8 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 
 			this.constraintObjects = this.constraintObjects || [];
 			this.constraintObjects.push(cobj);
+
+			return cobj;
 		},
 		_activate: function() {
 			this.constraintObjects = this.constraintObjects || [];
