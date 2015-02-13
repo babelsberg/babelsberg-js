@@ -15,7 +15,7 @@ define(["./rendering/animation", "./rendering/animationsheet"], function Gui(Ani
             // keep targeting graphics in sync with mouse and player position
             // TODO: add constraints here
             // old formula variant, fast
-            bbb.always({
+            GameLayer.always({
                 solver: deltaBlue,
                 ctx: {
                     bubble: bubble,

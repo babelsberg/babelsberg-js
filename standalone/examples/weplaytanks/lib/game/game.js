@@ -47,7 +47,8 @@ define([
             this.input.bind(Input.KEY.MWHEEL_UP, "zoomIn");
             this.input.bind(Input.KEY.MWHEEL_DOWN, "zoomOut");
 
-            this.input.bind(Input.KEY.P, "debug");
+            this.input.bind(Input.KEY.O, "debug");
+            this.input.bind(Input.KEY.P, "pause");
         },
         buildViewport: function() {
             var input = this.input,
@@ -91,7 +92,15 @@ define([
                     input: input
                 }
             }, function() {
-                return input.switchedOn("debug") == true;
+                return input.switchedOn("debug");
+            });
+
+            GameLayer.activeOn({
+                ctx: {
+                    input: input
+                }
+            }, function() {
+                return input.switchedOff("pause");
             });
         },
         prepare: function() {
@@ -121,7 +130,13 @@ define([
             this.input.clearPressed();
         },
         updatePhysics: function(dt) {
-            this.world.update(dt);
+            this.world.getGameObjects()
+                .filter(function(gameObject) {
+                    return gameObject.controls && gameObject.controls.getTargetTiles;
+                })
+                .each(function(gameObject) {
+                    gameObject.controls.getTargetTiles();
+                });
         },
         draw: function() {
             this.renderer.clear();
@@ -131,6 +146,13 @@ define([
             this.gui.draw(this.renderer);
         }
     });
+
+    GameLayer = new Layer()
+        .refineClass(Game, {
+            updatePhysics: function(dt) {
+                this.world.update(dt);
+            }
+        });
 
     return Game;
 });

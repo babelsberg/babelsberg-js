@@ -11,7 +11,7 @@ define(function moduleControls() {
             // constraint:
             // - the player tanks turret follows the mouse
             // old version
-            var turretConstraint = bbb.always({
+            var turretConstraint = GameLayer.always({
                 solver: new DBPlanner(),
                 ctx: {
                     player: player,
