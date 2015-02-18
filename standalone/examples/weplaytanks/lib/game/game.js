@@ -15,6 +15,7 @@ define([
 ) {
     var Game = Object.subclass("Game", {
         initialize: function(canvasId) {
+            //TODO: delegate to dedicated builder/factory functions
             this.buildCanvas(canvasId);
             this.buildInput(canvasId);
             this.renderer = new Renderer(this.canvas);
@@ -32,29 +33,33 @@ define([
         buildInput: function(canvasId) {
             this.input = new Input(canvasId);
 
-            this.input.bind(Input.KEY.W, "up");
-            this.input.bind(Input.KEY.A, "left");
-            this.input.bind(Input.KEY.S, "down");
-            this.input.bind(Input.KEY.D, "right");
+            _.each({
+                A: "left",
+                S: "down",
+                D: "right",
 
-            this.input.bind(Input.KEY.UP_ARROW, "up");
-            this.input.bind(Input.KEY.LEFT_ARROW, "left");
-            this.input.bind(Input.KEY.DOWN_ARROW, "down");
-            this.input.bind(Input.KEY.RIGHT_ARROW, "right");
+                UP_ARROW: "up",
+                LEFT_ARROW: "left",
+                DOWN_ARROW: "down",
+                RIGHT_ARROW: "right",
 
-            this.input.bind(Input.KEY.MOUSE1, "leftclick");
-            this.input.bind(Input.KEY.MOUSE2, "rightclick");
-            this.input.bind(Input.KEY.MWHEEL_UP, "zoomIn");
-            this.input.bind(Input.KEY.MWHEEL_DOWN, "zoomOut");
+                MOUSE1: "leftclick",
+                MOUSE2: "rightclick",
+                MWHEEL_UP: "zoomIn",
+                MWHEEL_DOWN: "zoomOut",
 
-            this.input.bind(Input.KEY.O, "debug");
-            this.input.bind(Input.KEY.P, "pause");
+                O: "debug",
+                P: "pause"
+            }, function(state, key){
+                this.input.bind(Input.KEY[key], state);
+            }, this);
         },
         buildViewport: function() {
             var input = this.input,
+                // TODO: find correct domain, also adjust debug targeting tiles
                 viewport = this.viewport = new Viewport(
-                    new Vector2(30, 30* this.canvas.height/this.canvas.width),
-                    new Vector2(60, 60 * this.canvas.height/this.canvas.width)
+                    new Vector2(19, 19 * this.canvas.height/this.canvas.width),
+                    new Vector2(19*2, 19*2 * this.canvas.height/this.canvas.width)
                 );
 
             // constraint:
