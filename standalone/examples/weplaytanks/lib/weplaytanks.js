@@ -1,15 +1,13 @@
 require([
     // TODO: remove unused dependencies
-    "./rendering/loadimage",
-    "./base/time",
     "./base/loop",
+    "./rendering/loadimage",
     "./game/loadlevel",
     "./game/game",
     "./plugins/pluginloader"
 ], function main(
-    loadImage,
-    Time,
     Loop,
+    loadImage,
     loadLevel,
     Game,
     PluginLoader
@@ -25,13 +23,10 @@ require([
     document.body.appendChild( stats.domElement );
 
     // main loop
-    var time = new Time();
-    function animate() {
+    var loop = new Loop(function(dt) {
         stats.update();
-        var dt = time.update();
         game.update(dt);
-    }
-    var loop = new Loop(animate);
+    });
 
     // asset loading
     queue()
