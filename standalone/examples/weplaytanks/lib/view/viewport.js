@@ -28,7 +28,6 @@ define(function moduleViewport() {
         initialize: function(middlePoint, extent) {
             this.point = middlePoint;
             this.extent = extent;
-            this.scrollFactor = 1;
 
             this._initialize();
         },
