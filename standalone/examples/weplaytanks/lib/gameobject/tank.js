@@ -133,7 +133,6 @@ define(["./gameobject", "./bullet", "./../rendering/animation", "./../rendering/
         initialize: function($super, world, pos, vel, dir, config) {
             $super(world, pos, vel, dir, config);
 
-            this.animation = new Animation(new AnimationSheet("tank.png", 18, 18), 0.4, [0,1,2,3]);
         }
     });
 
@@ -141,7 +140,6 @@ define(["./gameobject", "./bullet", "./../rendering/animation", "./../rendering/
         initialize: function($super, world, pos, vel, dir, config) {
             $super(world, pos, vel, dir, config);
 
-            this.animation = new Animation(new AnimationSheet("tank.png", 18, 18), 0.4, [4,5,6,7]);
 
             // constraint:
             // - keep velocity direction and turret direction in sync

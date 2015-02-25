@@ -8,6 +8,8 @@ define(function moduleControls() {
             this.input = input;
             this.viewport = viewport;
 
+            player.animation = new Animation(new AnimationSheet("tank.png", 18, 18), 0.4, [0,1]);
+
             // constraint:
             // - the player tanks turret follows the mouse
             // old version
@@ -119,6 +121,7 @@ define(function moduleControls() {
             $super(tank, world, input, viewport);
             this.rotationDirection = 1;
             this.color = "yellow";
+            tank.animation = new Animation(new AnimationSheet("tank.png", 18, 18), 0.4, [2,3]);
         },
         // free turret rotation
         turretUpdate: function(dt) {
@@ -199,6 +202,7 @@ define(function moduleControls() {
         initialize: function($super, tank, world, input, viewport) {
             $super(tank, world, input, viewport);
             this.color = "brown";
+            tank.animation = new Animation(new AnimationSheet("tank.png", 18, 18), 0.4, [4,5]);
 
             var tank = this.tank,
                 that = this;
@@ -252,6 +256,7 @@ define(function moduleControls() {
         initialize: function($super, tank, world, input, viewport) {
             $super(tank, world, input, viewport);
             this.color = "teal";
+            tank.animation = new Animation(new AnimationSheet("tank.png", 18, 18), 0.4, [6,7]);
         },
         turretUpdate: function(dt) {
             // turret strongly seek the player
