@@ -20,7 +20,6 @@ define(["./world", "./map", "./../gameobject/tankconfiguration", "./../gameobjec
             var game = this.game;
             var player = this.buildTank(
                 world,
-                Tank,
                 Vector2.fromJson(description.position),
                 Vector2.fromJson(description.velocity),
                 Vector2.fromJson(description.turretDirection),
@@ -49,7 +48,6 @@ define(["./world", "./map", "./../gameobject/tankconfiguration", "./../gameobjec
             var enemyTanks = enemyDescriptions.map(function(enemyDescription) {
                 return this.buildTank(
                     world,
-                    Tank,
                     Vector2.fromJson(enemyDescription.position),
                     Vector2.fromJson(enemyDescription.velocity),
                     Vector2.fromJson(enemyDescription.turretDirection),
@@ -76,11 +74,11 @@ define(["./world", "./map", "./../gameobject/tankconfiguration", "./../gameobjec
                 return won == true;
             });
         },
-        buildTank: function(world, TankClass, pos, vel, dir, config) {
-            var cpu = new (TankClass)(world, pos, vel, dir, config);
-            cpu.controls = new (config.intelligence)(cpu, world, this.game.input, this.game.viewport);
-            world.spawn(cpu);
-            return cpu;
+        buildTank: function(world, pos, vel, dir, config) {
+            var tank = new Tank(world, pos, vel, dir, config);
+            tank.controls = new (config.intelligence)(tank, world, this.game.input, this.game.viewport);
+            world.spawn(tank);
+            return tank;
         },
         buildPowerUps: function(world, powerUpDescriptions) {
             if(!powerUpDescriptions) { return; }
