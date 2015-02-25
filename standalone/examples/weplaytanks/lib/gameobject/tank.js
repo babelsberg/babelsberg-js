@@ -23,6 +23,27 @@ define(["./gameobject", "./bullet", "./../rendering/animation", "./../rendering/
                 map = this.world.map;
 
             // constraint:
+            // - keep velocity direction and turret direction in sync
+            /*
+            var that = this;
+            var turretConstraint = bbb.always({
+                solver: new DBPlanner(),
+                ctx: {
+                    that: that
+                },
+                methods: function() {
+                    that.turretDirection.formula([that.velocity, that.velocity.x, that.velocity.y], function(velocity, velocityX, velocityY) {
+                        return velocity;
+                    });
+                }
+            }, function() {
+                return that.turretDirection.equals(that.velocity);
+            });
+
+            this.constraints.push(turretConstraint);
+            */
+
+            // constraint:
             // - do not be on a wall tile
             var doNotStayInWalls = bbb.assert({
                 // collision solving is already provided by the babelsberg.assert
@@ -126,41 +147,6 @@ define(["./gameobject", "./bullet", "./../rendering/animation", "./../rendering/
         },
         destroy: function($super) {
             $super();
-        }
-    });
-
-    Tank.subclass("PlayerTank", {
-        initialize: function($super, world, pos, vel, dir, config) {
-            $super(world, pos, vel, dir, config);
-
-        }
-    });
-
-    Tank.subclass("CPUTank", {
-        initialize: function($super, world, pos, vel, dir, config) {
-            $super(world, pos, vel, dir, config);
-
-
-            // constraint:
-            // - keep velocity direction and turret direction in sync
-            /*
-            var that = this;
-            var turretConstraint = bbb.always({
-                solver: new DBPlanner(),
-                ctx: {
-                    that: that
-                },
-                methods: function() {
-                    that.turretDirection.formula([that.velocity, that.velocity.x, that.velocity.y], function(velocity, velocityX, velocityY) {
-                        return velocity;
-                    });
-                }
-            }, function() {
-                return that.turretDirection.equals(that.velocity);
-            });
-
-            this.constraints.push(turretConstraint);
-            */
         }
     });
 

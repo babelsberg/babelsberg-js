@@ -20,7 +20,7 @@ define(["./world", "./map", "./../gameobject/tankconfiguration", "./../gameobjec
             var game = this.game;
             var player = this.buildTank(
                 world,
-                PlayerTank,
+                Tank,
                 Vector2.fromJson(description.position),
                 Vector2.fromJson(description.velocity),
                 Vector2.fromJson(description.turretDirection),
@@ -49,7 +49,7 @@ define(["./world", "./map", "./../gameobject/tankconfiguration", "./../gameobjec
             var enemyTanks = enemyDescriptions.map(function(enemyDescription) {
                 return this.buildTank(
                     world,
-                    CPUTank,
+                    Tank,
                     Vector2.fromJson(enemyDescription.position),
                     Vector2.fromJson(enemyDescription.velocity),
                     Vector2.fromJson(enemyDescription.turretDirection),
