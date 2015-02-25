@@ -34,6 +34,7 @@ define([
             this.input = new Input(canvasId);
 
             _.each({
+                W: "up",
                 A: "left",
                 S: "down",
                 D: "right",
