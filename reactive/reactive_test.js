@@ -1012,4 +1012,18 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.ScopedConstraints
 	}
 });
 
+TestCase.subclass('users.timfelgentreff.reactive.reactive_test.UnifiedNotationTest', {
+    testX: function() {
+		var vector = { x: 2, y: 5 };
+
+        constraint(function() {
+            return vector.x == vector.y
+        }, {
+            ctx: { vector: vector }
+        }).once({ solver: new ClSimplexSolver() });
+
+		this.assert(vector.x == vector.y, "constraint not solved: vector.x: " + vector.x + ", vector.y:" + vector.y);
+	}
+});
+
 }); // end of module
