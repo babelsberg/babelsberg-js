@@ -56,11 +56,12 @@ define(["./rendering/animation", "./rendering/animationsheet"], function Gui(Ani
     };
 
     Gui.prototype.draw = function(renderer) {
+        var savedOpacity = renderer.configuration.opacity;
         renderer.configuration.setGlobalAlpha(0.7);
         this.bubbles.forEach(function(bubble) {
             bubble.draw(renderer);
         });
-        renderer.configuration.setGlobalAlpha(1.0);
+        renderer.configuration.setGlobalAlpha(savedOpacity);
     };
 
     Gui.Bubble = function(animation, t, world, input, player, viewport) {
