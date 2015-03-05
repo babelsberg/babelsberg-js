@@ -110,14 +110,6 @@ define([
             }, function() {
                 return input.switchedOff("pause");
             });
-
-            EditorLayer.activeOn({
-                ctx: {
-                    input: input
-                }
-            }, function() {
-                return input.switchedOn("pause");
-            });
         },
         prepare: function() {
             this.resetLevel();
