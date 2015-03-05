@@ -4,14 +4,16 @@ define([
     "./../view/viewport",
     "./../world/worldbuilder",
     "./../rendering/renderer",
-    "./../game/debuglayer"
+    "./../game/debuglayer",
+    "./editor"
 ], function Game(
     Input,
     Gui,
     Viewport,
     WorldBuilder,
     Renderer,
-    DebugLayer
+    DebugLayer,
+    Editor
 ) {
     var Game = Object.subclass("Game", {
         initialize: function(canvasId) {
@@ -132,6 +134,7 @@ define([
             this.world = builder.buildWorld(level);
 
             this.gui = new Gui(this.world, this.input, player, this.viewport);
+            this.editor = this.editor || new Editor(this);
         },
         cleanUp: function() {
             // TODO
@@ -169,6 +172,7 @@ define([
                     .each(function(gameObject) {
                         gameObject.controls.getTargetTiles();
                     });
+                this.editor.update(dt);
             },
             draw: function() {
                 // draw world transparently
@@ -176,7 +180,10 @@ define([
                 cop.proceed();
                 this.renderer.configuration.setGlobalAlpha(1);
 
-                this.renderer.drawLine({x:0, y:0}, this.input.mouse, "red", 1, 3);
+                this.renderer.drawLine({x:0, y:0}, this.input.mouse, "red", 1, 300);
+                this.renderer.withViewport(this.viewport, (function() {
+                    this.editor.draw(this.renderer);
+                }).bind(this));
             }
         });
 
