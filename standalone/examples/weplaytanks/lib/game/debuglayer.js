@@ -29,8 +29,7 @@ define([
                     renderer.drawRectangle(
                         min.add(size.mulFloat(0.5)),
                         25,
-                        this.marked,
-                        1
+                        this.marked
                     );
                 }
                 this.marked = false;
