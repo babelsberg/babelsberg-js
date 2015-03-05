@@ -333,4 +333,61 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 		layer._deactivate();
 		return callOriginal(layer);
 	});
+
+	/***************************************************************
+	 * Unified Notation
+	 ***************************************************************/
+
+	Object.extend(Layer.prototype, {
+		once: function(opts, func) {
+			opts.postponeEnabling = !this.isGlobal();
+			var cobj = bbb.always(opts, func);
+
+			this.constraintObjects = this.constraintObjects || [];
+			this.constraintObjects.push(cobj);
+
+			return cobj;
+		},
+		constraint: function(func, opts) {
+			opts.postponeEnabling = !this.isGlobal();
+			var cobj = bbb.assert(opts, func);
+
+			this.constraintObjects = this.constraintObjects || [];
+			this.constraintObjects.push(cobj);
+
+			return cobj;
+		}
+	});
+
+	/* Layer Activation */
+	cop.withLayers = cop.withLayers.wrap(function(callOriginal, layers, func) {
+		layers.forEach(function(layer) { layer._activate(); });
+
+		try {
+			return callOriginal(layers, func);
+		} finally {
+			layers.forEach(function(layer) { layer._deactivate(); });
+		}
+	});
+
+	cop.withoutLayers = cop.withoutLayers.wrap(function(callOriginal, layers, func) {
+		layers.forEach(function(layer) { layer._deactivate(); });
+
+		try {
+			return callOriginal(layers, func);
+		} finally {
+			layers.forEach(function(layer) { layer._activate(); });
+		}
+	});
+
+	/* Global Layer Activation */
+	cop.enableLayer = cop.enableLayer.wrap(function(callOriginal, layer) {
+		layer._activate();
+		return callOriginal(layer);
+	});
+
+	cop.disableLayer = cop.disableLayer.wrap(function(callOriginal, layer) {
+		layer._deactivate();
+		return callOriginal(layer);
+	});
 });
