@@ -108,6 +108,14 @@ define([
             }, function() {
                 return input.switchedOff("pause");
             });
+
+            EditorLayer.activeOn({
+                ctx: {
+                    input: input
+                }
+            }, function() {
+                return input.switchedOn("pause");
+            });
         },
         prepare: function() {
             this.resetLevel();
@@ -135,15 +143,6 @@ define([
 
             this.input.clearPressed();
         },
-        updatePhysics: function(dt) {
-            this.world.getGameObjects()
-                .filter(function(gameObject) {
-                    return gameObject.controls && gameObject.controls.getTargetTiles;
-                })
-                .each(function(gameObject) {
-                    gameObject.controls.getTargetTiles();
-                });
-        },
         draw: function() {
             this.renderer.clear();
             this.renderer.withViewport(this.viewport, (function() {
@@ -157,6 +156,22 @@ define([
         .refineClass(Game, {
             updatePhysics: function(dt) {
                 this.world.update(dt);
+            }
+        });
+
+    EditorLayer = new Layer()
+        .refineClass(Game, {
+            updatePhysics: function(dt) {
+                this.world.getGameObjects()
+                    .filter(function(gameObject) {
+                        return gameObject.controls && gameObject.controls.getTargetTiles;
+                    })
+                    .each(function(gameObject) {
+                        gameObject.controls.getTargetTiles();
+                    });
+            },
+            draw: function() {
+                cop.proceed();
             }
         });
 
