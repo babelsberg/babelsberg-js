@@ -172,7 +172,6 @@ define([
                 cop.proceed();
                 this.renderer.configuration.setGlobalAlpha(1);
 
-                this.renderer.drawLine({x:0, y:0}, this.input.mouse, "red", 1, 300);
                 this.renderer.withViewport(this.viewport, (function() {
                     this.editor.draw(this.renderer);
                 }).bind(this));
