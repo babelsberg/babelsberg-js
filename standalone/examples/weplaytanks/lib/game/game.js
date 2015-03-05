@@ -171,7 +171,12 @@ define([
                     });
             },
             draw: function() {
+                // draw world transparently
+                this.renderer.configuration.setGlobalAlpha(0.7);
                 cop.proceed();
+                this.renderer.configuration.setGlobalAlpha(1);
+
+                this.renderer.drawLine({x:0, y:0}, this.input.mouse, "red", 1, 3);
             }
         });
 
