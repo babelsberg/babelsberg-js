@@ -180,7 +180,7 @@ define( function moduleRenderer() {
          */
         drawRectangle: function(vec, size, color, opacity) {
             this.configuration.setFillStyle(color);
-            this.configuration.setGlobalAlpha(opacity);
+            //this.configuration.setGlobalAlpha(opacity);
 
             size = size || 2;
             this.context.fillRect(
@@ -193,7 +193,7 @@ define( function moduleRenderer() {
 
         drawDot: function(vec, size, color, opacity) {
             this.configuration.setFillStyle(color);
-            this.configuration.setGlobalAlpha(opacity);
+            //this.configuration.setGlobalAlpha(opacity);
 
             size = size || 2;
             this.context.beginPath();
@@ -211,7 +211,7 @@ define( function moduleRenderer() {
 
         drawLine: function(from, to, color, opacity, lineWidth) {
             this.configuration.setStrokeStyle(color);
-            this.configuration.setGlobalAlpha(opacity);
+            //this.configuration.setGlobalAlpha(opacity);
             this.configuration.setLineWidth(lineWidth);
 
             // draw a line
@@ -227,7 +227,7 @@ define( function moduleRenderer() {
 
         drawPolyline: function(vList, color, opacity, lineWidth) {
             this.configuration.setStrokeStyle(color);
-            this.configuration.setGlobalAlpha(opacity);
+            //this.configuration.setGlobalAlpha(opacity);
             this.configuration.setLineWidth(lineWidth);
 
             // draw a polyline
@@ -245,7 +245,7 @@ define( function moduleRenderer() {
 
         drawPlus: function(point, size, color, opacity, lineWidth) {
             this.configuration.setStrokeStyle(color);
-            this.configuration.setGlobalAlpha(opacity);
+            //this.configuration.setGlobalAlpha(opacity);
             this.configuration.setLineWidth(lineWidth);
 
             size = size || 3;
@@ -277,7 +277,7 @@ define( function moduleRenderer() {
         drawTextWorld: function(text, worldPoint, color, opacity, baseline) {
             this.configuration.setFillStyle(color);
             this.configuration.setStrokeStyle(color);
-            this.configuration.setGlobalAlpha(opacity);
+            //this.configuration.setGlobalAlpha(opacity);
             this.configuration.setTextBaseline(baseline);
 
             this.context.save();
