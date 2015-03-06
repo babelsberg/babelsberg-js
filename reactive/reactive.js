@@ -413,36 +413,4 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 			return cobj;
 		}
 	});
-
-	/* Layer Activation */
-	cop.withLayers = cop.withLayers.wrap(function(callOriginal, layers, func) {
-		layers.forEach(function(layer) { layer._activate(); });
-
-		try {
-			return callOriginal(layers, func);
-		} finally {
-			layers.forEach(function(layer) { layer._deactivate(); });
-		}
-	});
-
-	cop.withoutLayers = cop.withoutLayers.wrap(function(callOriginal, layers, func) {
-		layers.forEach(function(layer) { layer._deactivate(); });
-
-		try {
-			return callOriginal(layers, func);
-		} finally {
-			layers.forEach(function(layer) { layer._activate(); });
-		}
-	});
-
-	/* Global Layer Activation */
-	cop.enableLayer = cop.enableLayer.wrap(function(callOriginal, layer) {
-		layer._activate();
-		return callOriginal(layer);
-	});
-
-	cop.disableLayer = cop.disableLayer.wrap(function(callOriginal, layer) {
-		layer._deactivate();
-		return callOriginal(layer);
-	});
 });
