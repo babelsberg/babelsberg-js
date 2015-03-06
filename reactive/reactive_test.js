@@ -1124,16 +1124,32 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.UnifiedNotationTe
 		the.condition = false;
 		this.assert(the.answer() === 17, "layer not correctly de-activated, the.answer(): " + the.answer());
 	},
-    testX: function() {
-		var vector = { x: 2, y: 5 };
+    testPredicateTriggerOnce: function() {
+    	var p = {
+    	    hp: 2,
+    	    alive: true
+  	    };
 
-        predicate(function() {
-            return vector.x == vector.y
+        var pred = predicate(function() {
+            return p.hp <=  0;
         }, {
-            ctx: { vector: vector }
-        }).once({ solver: new ClSimplexSolver() });
+            ctx: {
+                p: p
+            }
+        })
 
-		this.assert(vector.x == vector.y, "constraint not solved: vector.x: " + vector.x + ", vector.y:" + vector.y);
+        pred.trigger(function() {
+            p.alive = false;
+        });
+
+		this.assert(p.hp === 2, "constraint construction modified variable, p.hp: " + p.hp);
+		this.assert(p.alive === true, "constraint construction modified variable, p.alive: " + p.alive);
+
+		// one-shot constraint triggering callback
+        pred.once({ solver: new ClSimplexSolver() });
+
+		this.assert(p.hp === 0, "assignment did not work, p.hp: " + p.hp);
+		this.assert(p.alive === false, "desired callback was not triggered");
 	},
 });
 
