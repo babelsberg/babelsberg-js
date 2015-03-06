@@ -1259,6 +1259,60 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.UnifiedNotationTe
 		);
 		this.assert(temperature.celsius === 10, "revert did not work; temperature.celsius: " + temperature.celsius);
 	},
+    testLayerPredicateTrigger: function() {
+		var count = 0, obj = {
+			activated: false,
+			trigger: false,
+			action: function() {
+				count++;
+			}
+		};
+
+		cop.create("triggerLayer")
+			.activeOn({
+				ctx: {
+					obj: obj
+				}
+			}, function() {
+				return obj.activated === true;
+			})
+			.predicate(function() {
+                return obj.trigger === true;
+            }, {
+                ctx: {
+                    obj: obj
+                }
+            }).trigger(obj.action.bind(obj));
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === false, "layer was unintentionally activated");
+		this.assert(obj.trigger === false, "trigger variable was changed");
+
+		// unactivated trigger
+		obj.trigger = true;
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === false, "layer was unintentionally activated");
+		this.assert(obj.trigger === true, "assignment did not work");
+
+		// reset trigger
+		obj.trigger = false;
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === false, "layer was unintentionally activated");
+		this.assert(obj.trigger === false, "assignment did not work");
+
+		// activate layer
+		obj.activated = true;
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === true, "assignment did not work");
+		this.assert(obj.trigger === false, "trigger unintentionally initiated");
+		this.assert(triggerLayer.isGlobal(), "layer not active");
+
+		// activated triggering
+		obj.trigger = true;
+		this.assert(count === 1, "action not triggered once, count: " + count);
+		this.assert(obj.activated === true, "modified unassigned variables");
+		this.assert(obj.trigger === true, "assignment did not work");
+		this.assert(triggerLayer.isGlobal(), "layer not active");
+	},
 });
 
 }); // end of module
