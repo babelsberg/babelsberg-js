@@ -362,6 +362,12 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    	    this._mergeOptions(this.opts, opts),
 	    	    this.func
 	    	);
+	    },
+	    assert: function(opts) {
+	    	return bbb.assert(
+	    	    this._mergeOptions(this.opts, opts),
+	    	    this.func
+	    	);
 	    }
 	});
 

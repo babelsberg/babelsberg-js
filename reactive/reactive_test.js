@@ -1046,16 +1046,22 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.UnifiedNotationTe
 		this.assert(vector.x == vector.y, "constraint not solved: vector.x: " + vector.x + ", vector.y:" + vector.y);
 		this.assert(vector.x == 42, "assignment did not work: vector.x: " + vector.x);
 	},
-    testX: function() {
-		var vector = { x: 2, y: 5 };
+    testPredicateAssert: function() {
+    	var pt = {x: 1, y: 2};
 
         predicate(function() {
-            return vector.x == vector.y
+   			return pt.y > pt.x;
         }, {
-            ctx: { vector: vector }
-        }).once({ solver: new ClSimplexSolver() });
+            ctx: { pt: pt }
+        }).assert({ message: "expected error" });
 
-		this.assert(vector.x == vector.y, "constraint not solved: vector.x: " + vector.x + ", vector.y:" + vector.y);
+		new users.timfelgentreff.reactive.reactive_test.AssertTest().assertWithError(
+			ContinuousAssertError,
+			function() { pt.y = -1; },
+			"no ContinuousAssertError was thrown"
+		);
+		this.assert(pt.x === 1, "another variable was modified, pt.x: " + pt.x);
+		this.assert(pt.y === 2, "assignment not reverted, pt.y: " + pt.y);
 	},
     testX: function() {
 		var vector = { x: 2, y: 5 };
