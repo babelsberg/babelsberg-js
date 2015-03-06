@@ -1013,17 +1013,61 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.ScopedConstraints
 });
 
 TestCase.subclass('users.timfelgentreff.reactive.reactive_test.UnifiedNotationTest', {
-    testX: function() {
+    testPredicateOnce: function() {
 		var vector = { x: 2, y: 5 };
 
-        constraint(function() {
+        predicate(function() {
             return vector.x == vector.y
         }, {
             ctx: { vector: vector }
         }).once({ solver: new ClSimplexSolver() });
 
 		this.assert(vector.x == vector.y, "constraint not solved: vector.x: " + vector.x + ", vector.y:" + vector.y);
-	}
+
+        var expectedX = vector.x;
+        vector.y = 42
+
+		this.assert(vector.x == expectedX, "unconstrained variable modified: vector.x: " + vector.x);
+		this.assert(vector.y == 42, "assignment did not work: vector.y: " + vector.y);
+	},
+    testPredicateAlways: function() {
+		var vector = { x: 2, y: 5 };
+
+        predicate(function() {
+            return vector.x == vector.y
+        }, {
+            ctx: { vector: vector }
+        }).always({ solver: new ClSimplexSolver() });
+
+		this.assert(vector.x == vector.y, "constraint not solved: vector.x: " + vector.x + ", vector.y:" + vector.y);
+
+        vector.x = 42;
+
+		this.assert(vector.x == vector.y, "constraint not solved: vector.x: " + vector.x + ", vector.y:" + vector.y);
+		this.assert(vector.x == 42, "assignment did not work: vector.x: " + vector.x);
+	},
+    testX: function() {
+		var vector = { x: 2, y: 5 };
+
+        predicate(function() {
+            return vector.x == vector.y
+        }, {
+            ctx: { vector: vector }
+        }).once({ solver: new ClSimplexSolver() });
+
+		this.assert(vector.x == vector.y, "constraint not solved: vector.x: " + vector.x + ", vector.y:" + vector.y);
+	},
+    testX: function() {
+		var vector = { x: 2, y: 5 };
+
+        predicate(function() {
+            return vector.x == vector.y
+        }, {
+            ctx: { vector: vector }
+        }).once({ solver: new ClSimplexSolver() });
+
+		this.assert(vector.x == vector.y, "constraint not solved: vector.x: " + vector.x + ", vector.y:" + vector.y);
+	},
 });
 
 }); // end of module

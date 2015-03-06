@@ -338,6 +338,37 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	 * Unified Notation
 	 ***************************************************************/
 
+	Object.subclass("Predicate", {
+	    initialize: function(func, opts) {
+            this.func = func;
+            this.opts = opts;
+	    },
+	    _mergeOptions: function(options1, options2) {
+	        var mergedOptions = {};
+
+            Object.extend(mergedOptions, options1);
+            Object.extend(mergedOptions, options2);
+
+            return mergedOptions;
+	    },
+	    once: function(opts) {
+	    	return bbb.once(
+	    	    this._mergeOptions(this.opts, opts),
+	    	    this.func
+	    	);
+	    },
+	    always: function(opts) {
+	    	return bbb.always(
+	    	    this._mergeOptions(this.opts, opts),
+	    	    this.func
+	    	);
+	    }
+	});
+
+	predicate = function(func, opts) {
+        return new Predicate(func, opts);
+	}
+
 	Object.extend(Layer.prototype, {
 		once: function(opts, func) {
 			opts.postponeEnabling = !this.isGlobal();
