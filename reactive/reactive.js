@@ -381,11 +381,10 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    	);
 	    },
 	    activate: function(layer) {
-	        this.opts.callback = callback;
-	        layer
-	    	return bbb.trigger(
+	    	return activator(
                 this.opts,
-                this.func
+                this.func,
+                layer
 	    	);
 	    }
 	});
