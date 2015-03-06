@@ -389,28 +389,63 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    }
 	});
 
+	Object.subclass("LayeredPredicate", {
+	    initialize: function(func, opts, layer) {
+            this.func = func;
+            this.opts = opts;
+            this.layer = layer;
+	    },
+	    _mergeOptions: function(options1, options2) {
+	        var mergedOptions = {};
+
+            Object.extend(mergedOptions, options1);
+            Object.extend(mergedOptions, options2);
+
+            return mergedOptions;
+	    },
+	    once: function(opts) {
+	        if(!this.layer.isGlobal()) return;
+
+	    	return bbb.once(
+	    	    this._mergeOptions(this.opts, opts),
+	    	    this.func
+	    	);
+	    },
+	    always: function(opts) {
+	    	return this.layer.always(
+	    	    this._mergeOptions(this.opts, opts),
+	    	    this.func
+	    	);
+	    },
+	    assert: function(opts) {
+	    	return bbb.assert(
+	    	    this._mergeOptions(this.opts, opts),
+	    	    this.func
+	    	);
+	    },
+	    trigger: function(callback) {
+	        this.opts.callback = callback;
+	    	return bbb.trigger(
+                this.opts,
+                this.func
+	    	);
+	    },
+	    activate: function(layer) {
+	    	return activator(
+                this.opts,
+                this.func,
+                layer
+	    	);
+	    }
+	});
+
 	predicate = function(func, opts) {
         return new Predicate(func, opts);
 	}
 
 	Object.extend(Layer.prototype, {
-		once: function(opts, func) {
-			opts.postponeEnabling = !this.isGlobal();
-			var cobj = bbb.always(opts, func);
-
-			this.constraintObjects = this.constraintObjects || [];
-			this.constraintObjects.push(cobj);
-
-			return cobj;
-		},
-		constraint: function(func, opts) {
-			opts.postponeEnabling = !this.isGlobal();
-			var cobj = bbb.assert(opts, func);
-
-			this.constraintObjects = this.constraintObjects || [];
-			this.constraintObjects.push(cobj);
-
-			return cobj;
+		predicate: function(func, opts) {
+		    return new LayeredPredicate(func,opts, this);
 		}
 	});
 });
