@@ -226,7 +226,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	        var cobj = new Constraint(func, this);
 			cobj.allowFailing = true;
 	        cobj.addPrimitiveConstraint(new ReactiveSolver.Constraint(this, cobj, func));
-			cobj.enable();
+			if(!opts.postponeEnabling) { cobj.enable(); }
 	        return cobj;
 	    },
 	    solve: function() {
@@ -417,11 +417,16 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
             );
 	    },
 	    activate: function(layer) {
-	    	return activator(
-                this.opts,
+			var cobj = activator(
+                this._mergeOptions(this.opts, { postponeEnabling: !this.layer.isGlobal() }),
                 this.func,
                 layer
 	    	);
+
+			this.layer.constraintObjects = this.layer.constraintObjects || [];
+			this.layer.constraintObjects.push(cobj);
+
+			return cobj;
 	    }
 	});
 
