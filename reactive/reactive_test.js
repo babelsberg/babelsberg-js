@@ -1063,7 +1063,7 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.UnifiedNotationTe
 		this.assert(pt.x === 1, "another variable was modified, pt.x: " + pt.x);
 		this.assert(pt.y === 2, "assignment not reverted, pt.y: " + pt.y);
 	},
-    testTriggerSolver: function() {
+    testPredicateTrigger: function() {
     	var p = {
     	    hp: 2,
     	    alive: true
@@ -1091,6 +1091,38 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.UnifiedNotationTe
 		p.hp--;
 		this.assert(p.hp === 0, "assignment did not work, p.hp: " + p.hp);
 		this.assert(p.alive === false, "desired callback was not triggered");
+	},
+    testPredicateActivator: function() {
+		var the = {
+			condition: false,
+			answer: function() {
+				return 17;
+			}
+		};
+
+	    predicate(function() {
+            return the.condition === true;
+        }, {
+            ctx: {
+                the: the
+            }
+        }).activate(
+            new Layer()
+                .refineObject(the, {
+                    answer: function() {
+                    var oldAnswer = cop.proceed();
+                        return oldAnswer + 25;
+                    }
+                })
+        );
+
+		this.assert(the.answer() === 17, "not the correct answer, but " + the.answer());
+
+		the.condition = true;
+		this.assert(the.answer() === 42, "layer not correctly activated, the.answer(): " + the.answer());
+
+		the.condition = false;
+		this.assert(the.answer() === 17, "layer not correctly de-activated, the.answer(): " + the.answer());
 	},
     testX: function() {
 		var vector = { x: 2, y: 5 };
