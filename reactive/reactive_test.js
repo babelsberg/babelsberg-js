@@ -1063,6 +1063,35 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.UnifiedNotationTe
 		this.assert(pt.x === 1, "another variable was modified, pt.x: " + pt.x);
 		this.assert(pt.y === 2, "assignment not reverted, pt.y: " + pt.y);
 	},
+    testTriggerSolver: function() {
+    	var p = {
+    	    hp: 2,
+    	    alive: true
+  	    };
+
+        predicate(function() {
+            return p.hp <=  0;
+        }, {
+            ctx: {
+                p: p
+            }
+        }).trigger(function() {
+            p.alive = false;
+        });
+
+		this.assert(p.hp === 2, "constraint construction modified variable, p.hp: " + p.hp);
+		this.assert(p.alive === true, "constraint construction modified variable, p.alive: " + p.alive);
+
+		// valid assignment
+		p.hp--;
+		this.assert(p.hp === 1, "assignment did not work, p.hp: " + p.hp);
+		this.assert(p.alive === true, "modified unassigned variable, p.alive: " + p.alive);
+
+		// triggering assignment
+		p.hp--;
+		this.assert(p.hp === 0, "assignment did not work, p.hp: " + p.hp);
+		this.assert(p.alive === false, "desired callback was not triggered");
+	},
     testX: function() {
 		var vector = { x: 2, y: 5 };
 
