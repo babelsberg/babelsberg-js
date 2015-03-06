@@ -226,7 +226,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	        var cobj = new Constraint(func, this);
 			cobj.allowFailing = true;
 	        cobj.addPrimitiveConstraint(new ReactiveSolver.Constraint(this, cobj, func));
-			cobj.enable();
+			if(!opts.postponeEnabling) { cobj.enable(); }
 	        return cobj;
 	    },
 	    solve: function() {
@@ -244,15 +244,19 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    },
 	    weight: 10
 	});
-	
+
+    var activator = function(opts, func, layer) {
+        opts.solver = new LayerActivationSolver(layer);
+        opts.allowUnsolvableOperations = true;
+        opts.allowTests = true;
+        //opts.debugging = true;
+        return bbb.always(opts, func);
+    }
+
 	Object.extend(Layer.prototype, {
 		activeOn: function(opts, func) {
-			opts.solver = new LayerActivationSolver(this);
-			opts.allowUnsolvableOperations = true;
-			opts.allowTests = true;
-			//opts.debugging = true;
-	        bbb.always(opts, func);
-			
+		    activator(opts, func, this);
+
 			return this;
 		}
 	});
@@ -332,5 +336,107 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	cop.disableLayer = cop.disableLayer.wrap(function(callOriginal, layer) {
 		layer._deactivate();
 		return callOriginal(layer);
+	});
+
+	/***************************************************************
+	 * Unified Notation
+	 ***************************************************************/
+
+	Object.subclass("Predicate", {
+	    initialize: function(func, opts) {
+            this.func = func;
+            this.opts = opts;
+	    },
+	    _mergeOptions: function(options1, options2) {
+	        var mergedOptions = {};
+
+            Object.extend(mergedOptions, options1);
+            Object.extend(mergedOptions, options2);
+
+            return mergedOptions;
+	    },
+	    once: function(opts) {
+	    	return bbb.once(
+	    	    this._mergeOptions(this.opts, opts),
+	    	    this.func
+	    	);
+	    },
+	    always: function(opts) {
+	    	return bbb.always(
+	    	    this._mergeOptions(this.opts, opts),
+	    	    this.func
+	    	);
+	    },
+	    assert: function(opts) {
+	    	return bbb.assert(
+	    	    this._mergeOptions(this.opts, opts),
+	    	    this.func
+	    	);
+	    },
+	    trigger: function(callback) {
+	    	return bbb.trigger(
+                this._mergeOptions(this.opts, { callback: callback }),
+                this.func
+	    	);
+	    },
+	    activate: function(layer) {
+	    	return activator(
+                this.opts,
+                this.func,
+                layer
+	    	);
+	    }
+	});
+
+	Predicate.subclass("LayeredPredicate", {
+	    initialize: function($super, func, opts, layer) {
+            $super(func, opts);
+            this.layer = layer;
+	    },
+	    once: function($super, opts) {
+	        if(!this.layer.isGlobal()) return;
+
+	    	return $super(opts);
+	    },
+	    always: function(opts) {
+	    	return this.layer.always(
+	    	    this._mergeOptions(this.opts, opts),
+	    	    this.func
+	    	);
+	    },
+	    assert: function(opts) {
+	    	return this.layer.assert(
+	    	    this._mergeOptions(this.opts, opts),
+	    	    this.func
+	    	);
+	    },
+	    trigger: function(callback) {
+            return this.layer.trigger(
+                this._mergeOptions(this.opts, { callback: callback }),
+                this.func
+            );
+	    },
+	    activate: function(layer) {
+			var cobj = activator(
+                this._mergeOptions(this.opts, { postponeEnabling: !this.layer.isGlobal() }),
+                this.func,
+                layer
+	    	);
+
+			this.layer.constraintObjects = this.layer.constraintObjects || [];
+			this.layer.constraintObjects.push(cobj);
+
+			return cobj;
+	    }
+	});
+
+	predicate = function(func, opts) {
+        return new Predicate(func, opts);
+	}
+
+	Object.extend(Layer.prototype, {
+		predicate: function(func, opts) {
+		    return new LayeredPredicate(func,opts, this);
+		}
 	});
 });
