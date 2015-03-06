@@ -368,6 +368,13 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    	    this._mergeOptions(this.opts, opts),
 	    	    this.func
 	    	);
+	    },
+	    trigger: function(callback) {
+	        this.opts.callback = callback;
+	    	return bbb.trigger(
+                this.opts,
+                this.func
+	    	);
 	    }
 	});
 
