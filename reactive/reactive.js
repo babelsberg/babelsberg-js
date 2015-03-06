@@ -406,7 +406,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    	);
 	    },
 	    assert: function(opts) {
-	    	return bbb.assert(
+	    	return this.layer.assert(
 	    	    this._mergeOptions(this.opts, opts),
 	    	    this.func
 	    	);
