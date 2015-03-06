@@ -244,15 +244,19 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    },
 	    weight: 10
 	});
-	
+
+    var activator = function(opts, func, layer) {
+        opts.solver = new LayerActivationSolver(layer);
+        opts.allowUnsolvableOperations = true;
+        opts.allowTests = true;
+        //opts.debugging = true;
+        return bbb.always(opts, func);
+    }
+
 	Object.extend(Layer.prototype, {
 		activeOn: function(opts, func) {
-			opts.solver = new LayerActivationSolver(this);
-			opts.allowUnsolvableOperations = true;
-			opts.allowTests = true;
-			//opts.debugging = true;
-	        bbb.always(opts, func);
-			
+		    activator(opts, func, this);
+
 			return this;
 		}
 	});
@@ -371,6 +375,14 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    },
 	    trigger: function(callback) {
 	        this.opts.callback = callback;
+	    	return bbb.trigger(
+                this.opts,
+                this.func
+	    	);
+	    },
+	    activate: function(layer) {
+	        this.opts.callback = callback;
+	        layer
 	    	return bbb.trigger(
                 this.opts,
                 this.func
