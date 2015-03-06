@@ -374,9 +374,8 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    	);
 	    },
 	    trigger: function(callback) {
-	        this.opts.callback = callback;
 	    	return bbb.trigger(
-                this.opts,
+                this._mergeOptions(this.opts, { callback: callback }),
                 this.func
 	    	);
 	    },
@@ -412,11 +411,10 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    	);
 	    },
 	    trigger: function(callback) {
-	        this.opts.callback = callback;
-	    	return bbb.trigger(
-                this.opts,
+            return this.layer.trigger(
+                this._mergeOptions(this.opts, { callback: callback }),
                 this.func
-	    	);
+            );
 	    },
 	    activate: function(layer) {
 	    	return activator(
