@@ -1313,6 +1313,105 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.UnifiedNotationTe
 		this.assert(obj.trigger === true, "assignment did not work");
 		this.assert(triggerLayer.isGlobal(), "layer not active");
 	},
+    testLayerPredicateTrigger: function() {
+		var count = 0, obj = {
+			activated: false,
+			trigger: false,
+			action: function() {
+				count++;
+			}
+		};
+
+		var layer = new Layer();
+	    layer.activeOn({
+				ctx: {
+					obj: obj
+				}
+			}, function() {
+				return obj.activated === true;
+			});
+	    layer.predicate(function() {
+                return obj.trigger === true;
+            }, {
+                ctx: {
+                    obj: obj
+                }
+            }).trigger(obj.action.bind(obj));
+
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === false, "layer was unintentionally activated");
+		this.assert(obj.trigger === false, "trigger variable was changed");
+
+		// unactivated trigger
+		obj.trigger = true;
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === false, "layer was unintentionally activated");
+		this.assert(obj.trigger === true, "assignment did not work");
+
+		// reset trigger
+		obj.trigger = false;
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === false, "layer was unintentionally activated");
+		this.assert(obj.trigger === false, "assignment did not work");
+
+		// activate layer
+		obj.activated = true;
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === true, "assignment did not work");
+		this.assert(obj.trigger === false, "trigger unintentionally initiated");
+		this.assert(layer.isGlobal(), "layer not active");
+
+		// activated triggering
+		obj.trigger = true;
+		this.assert(count === 1, "action not triggered once, count: " + count);
+		this.assert(obj.activated === true, "modified unassigned variables");
+		this.assert(obj.trigger === true, "assignment did not work");
+		this.assert(layer.isGlobal(), "layer not active");
+	},
+    testLayerPredicateActivate: function() {
+		var obj = {
+		    layerShouldBeActive: false,
+			layerActivated: function() { return false; }
+		};
+
+		var activatedLayer = new Layer()
+		    .refineObject(obj, {
+		        layerActivated: function() { return true; }
+		    });
+
+		var scopingLayer = new Layer();
+		scopingLayer.predicate(function() {
+            return obj.layerShouldBeActive;
+        }, {
+            ctx: {
+                obj: obj
+            }
+        })
+        .activate(activatedLayer);
+
+		this.assert(!scopingLayer.isGlobal(), "layer unexpectedly active(1)");
+		this.assert(!activatedLayer.isGlobal(), "layer unexpectedly active(2)");
+		this.assert(obj.layerActivated() === false, "object unexpectedly refined");
+
+        // activator predicate fulfilled but scoping layer not active
+		obj.layerShouldBeActive = true;
+		this.assert(!scopingLayer.isGlobal(), "layer unexpectedly active(3)");
+		this.assert(!activatedLayer.isGlobal(), "layer unexpectedly active(4)");
+		this.assert(obj.layerActivated() === false, "object unexpectedly refined");
+
+        // activate scoping layer
+        scopingLayer.beGlobal();
+		this.assert(scopingLayer.isGlobal(), "layer unexpectedly active(5)");
+		this.assert(activatedLayer.isGlobal(), "layer unexpectedly active(6)");
+		this.assert(obj.layerActivated() === true, "object unexpectedly refined");
+
+        // reset predicate and scoping layer
+		obj.layerShouldBeActive = false;
+		scopingLayer.beNotGlobal();
+		this.assert(!scopingLayer.isGlobal(), "layer unexpectedly active(5)");
+		this.assert(!activatedLayer.isGlobal(), "layer unexpectedly active(6)");
+		this.assert(obj.layerActivated() === false, "object unexpectedly refined");
+	},
 });
 
 }); // end of module
