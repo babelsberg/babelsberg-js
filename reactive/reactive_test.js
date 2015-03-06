@@ -1224,6 +1224,41 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.UnifiedNotationTe
 		this.assert(vector.x == expectedX, "unconstrained variable modified: vector.x: " + vector.x);
 		this.assert(vector.y == 42, "assignment did not work: vector.y: " + vector.y);
 	},
+    testLayerPredicateAssert: function() {
+		var temperature = {
+			celsius: 10,
+			sense: false
+		};
+
+		new Layer()
+			.activeOn({
+				ctx: {
+					temperature: temperature
+				}
+			}, function() {
+				return temperature.sense === true;
+			})
+			.predicate(function() {
+                return temperature.celsius > -273;
+            }, {
+                ctx: {
+                    temperature: temperature
+                }
+            }).assert();
+
+		temperature.celsius = -1000;
+		temperature.celsius = 10;
+
+		temperature.sense = true
+		new users.timfelgentreff.reactive.reactive_test.AssertTest().assertWithError(
+			ContinuousAssertError,
+			function() {
+				temperature.celsius = -1000;
+			},
+			"no ContinuousAssertError was thrown"
+		);
+		this.assert(temperature.celsius === 10, "revert did not work; temperature.celsius: " + temperature.celsius);
+	},
 });
 
 }); // end of module
