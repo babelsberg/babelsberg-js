@@ -127,6 +127,18 @@ define([
 
             this.gui = new Gui(this.world, this.input, player, this.viewport);
             this.editor = this.editor || new Editor(this);
+
+            return;
+            var input = this.input;
+            this.playerFiresBullet = this.playerFiresBullet || GameLayer.predicate(function() {
+                return input.pressed("leftclick")
+            }, {
+                ctx: {
+                    input: input
+                }
+            }).trigger(function() {
+                player.fireBullet();
+            });
         },
         cleanUp: function() {
             // TODO

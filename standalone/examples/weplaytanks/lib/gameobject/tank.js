@@ -118,7 +118,6 @@ define(["./gameobject", "./bullet", "./../rendering/animation", "./../rendering/
             );
         },
 
-        //\todo{implement fireBullet of player as trigger!}
         //\todo{change third level to two yellows and fifth level to all colors}
         //predicate(function() {
         //  return input.pressed(”leftclick”);
