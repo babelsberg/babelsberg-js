@@ -118,7 +118,12 @@ define(["./gameobject", "./bullet", "./../rendering/animation", "./../rendering/
             );
         },
 
-        fireBullet: function(world, dt) {
+        //\todo{implement fireBullet of player as trigger!}
+        //\todo{change third level to two yellows and fifth level to all colors}
+        //predicate(function() {
+        //  return input.pressed(”leftclick”);
+        //}).trigger(player.fireBullet.bind(player));
+        fireBullet: function() {
             if(this.bullets == 0) { return; }
 
             var direction = this.turretDirection.normalizedCopy();
@@ -127,15 +132,15 @@ define(["./gameobject", "./bullet", "./../rendering/animation", "./../rendering/
             if(!this.getTile(position).canFlyThrough()) { return; }
 
             this.bullets--;
-            var bullet = new Bullet(world,
+            var bullet = new Bullet(this.world,
                 position,
                 direction,
                 this,
                 this.getBulletRicochets(),
                 this.bulletSpeed
             );
-            world.spawn(bullet);
-            world.getGameObjects().each(function(other) {
+            this.world.spawn(bullet);
+            this.world.getGameObjects().each(function(other) {
                 if(other === this || other === bullet) { return; }
                 if(!(other.name == "tank" || other.name == "bullet")) { return; }
 

@@ -48,7 +48,7 @@ define(function moduleControls() {
 
             // player fires a bullet
             if(this.input.pressed("leftclick")) {
-                player.fireBullet(this.world, dt);
+                player.fireBullet();
             }
         }
     });
@@ -111,7 +111,7 @@ define(function moduleControls() {
             var tiles = this.getTargetTiles();
 
             if(tiles.indexOf(this.tank.getTile(player.position)) >= 0) {
-                this.tank.fireBullet(this.world, dt);
+                this.tank.fireBullet();
             };
         }
     });
