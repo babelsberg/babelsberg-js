@@ -78,7 +78,7 @@ define(function moduleViewport() {
         // HACK: hard coded canvas extent
         // Ranges are given in screen coordinates.
         resetScaleRange: function() {
-            this.scaleX.range(0, 600);
+            this.scaleX.range(0, 568);
             this.scaleY.range(0, 600);
         },
 
