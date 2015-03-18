@@ -14,12 +14,14 @@ define(["./../levels/levels"], function loadLevel(Levels) {
         xobj.send(null);
     };
 
-    var loadLevel = function(index, path, callback) {
-        loadJSON("../../../standalone/examples/weplaytanks/assets/levels/" + path, function(json) {
-            Levels[index] = json;
-            callback(null, json);
-         });
-    };
+    var nextIndex = 0,
+        loadLevel = function(path, callback) {
+            var index = nextIndex++;
+            loadJSON("../../../standalone/examples/weplaytanks/assets/levels/" + path, function(json) {
+                Levels[index] = json;
+                callback(null, json);
+             });
+        };
 
     return loadLevel;
 });
