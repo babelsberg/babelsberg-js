@@ -13,7 +13,6 @@ define(["./rendering/animation", "./rendering/animationsheet"], function Gui(Ani
             var bubble = new Gui.Bubble(t == 1.0 ? crossHairsAnimation : bubbleAnimation, t, world, input, player, viewport);
             // constraint idea:
             // keep targeting graphics in sync with mouse and player position
-            // TODO: add constraints here
             // old formula variant, fast
             GameLayer.always({
                 solver: deltaBlue,

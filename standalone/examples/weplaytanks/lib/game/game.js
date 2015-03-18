@@ -59,7 +59,6 @@ define([
         },
         buildViewport: function() {
             var input = this.input,
-                // TODO: find correct domain, also adjust debug targeting tiles
                 viewport = this.viewport = new Viewport(
                     new Vector2(18, 18 * this.canvas.height/this.canvas.width),
                     new Vector2(18*2, 18*2 * this.canvas.height/this.canvas.width)
