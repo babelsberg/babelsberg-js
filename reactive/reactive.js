@@ -27,6 +27,11 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    constraintVariableFor: function(value, ivarname, bbbCVar) {
 	    	return new ReactiveSolver.Variable(this, value, ivarname, bbbCVar);
 	    },
+		constraintEnabled: function() {
+	    	return this.constraint &&
+				this.constraint.enabled &&
+				typeof this.constraint.predicate === "function";
+		},
 	    weight: 10000
 	});
 	
@@ -138,9 +143,9 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 			this.message = message;
 		},
 	    solve: function() {
-	    	if(this.constraint && this.constraint.enabled && typeof this.constraint.predicate === "function")
-	    		if(!this.constraint.predicate())
-	    			throw new ContinuousAssertError(this.message);
+	    	if(!this.constraintEnabled()) { return; }
+            if(!this.constraint.predicate())
+                throw new ContinuousAssertError(this.message);
 	    }
 	});
 	
@@ -163,19 +168,15 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 			this.triggeredOnce = false;
 		},
 	    solve: function() {
-	    	if(this.constraint &&
-				this.constraint.enabled &&
-				typeof this.constraint.predicate === "function"
-			) {
-	    		if(this.constraint.predicate()) {
-					if(!this.triggeredOnce) {
-						this.triggeredOnce = true;
-						bbb.addCallback(this.callback, this.constraint.bbbConstraint, []);
-					}
-				} else {
-					this.triggeredOnce = false;
-				}
-			}
+	    	if(!this.constraintEnabled()) { return; }
+            if(this.constraint.predicate()) {
+                if(!this.triggeredOnce) {
+                    this.triggeredOnce = true;
+                    bbb.addCallback(this.callback, this.constraint.bbbConstraint, []);
+                }
+            } else {
+                this.triggeredOnce = false;
+            }
 	    },
 	    weight: 10
 	});
@@ -207,22 +208,19 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	/***************************************************************
 	 * Layer activation
 	 ***************************************************************/
+	// TODO: rename to ActivatorSolver
 	ReactiveSolver.subclass("LayerActivationSolver", {
 		initialize: function(layer) {
 			this.layer = layer;
 		},
 	    solve: function() {
-	    	if(this.constraint &&
-				this.constraint.enabled &&
-				typeof this.constraint.predicate === "function"
-			) {
-				var predicateFulfilled = this.constraint.predicate();
-	    		if(predicateFulfilled && !this.layer.isGlobal()) {
-	    			this.layer.beGlobal();
-				} else  if(!predicateFulfilled && this.layer.isGlobal()) {
-	    			this.layer.beNotGlobal();
-				}
-			}
+	    	if(!this.constraintEnabled()) { return; }
+            var predicateFulfilled = this.constraint.predicate();
+            if(predicateFulfilled && !this.layer.isGlobal()) {
+                this.layer.beGlobal();
+            } else  if(!predicateFulfilled && this.layer.isGlobal()) {
+                this.layer.beNotGlobal();
+            }
 	    },
 	    weight: 10
 	});
