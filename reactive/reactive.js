@@ -144,8 +144,9 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 		},
 	    solve: function() {
 	    	if(!this.constraintEnabled()) { return; }
-            if(!this.constraint.predicate())
+            if(!this.constraint.predicate()) {
                 throw new ContinuousAssertError(this.message);
+            }
 	    }
 	});
 	
@@ -165,18 +166,15 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	ReactiveSolver.subclass("TriggerSolver", {
 		initialize: function(callback) {
 			this.callback = callback;
-			this.triggeredOnce = false;
+			this.previouslyFulfilled = false;
 		},
 	    solve: function() {
 	    	if(!this.constraintEnabled()) { return; }
-            if(this.constraint.predicate()) {
-                if(!this.triggeredOnce) {
-                    this.triggeredOnce = true;
-                    bbb.addCallback(this.callback, this.constraint.bbbConstraint, []);
-                }
-            } else {
-                this.triggeredOnce = false;
+	    	var predicateFulfilled = this.constraint.predicate();
+            if(predicateFulfilled && !this.previouslyFulfilled) {
+                bbb.addCallback(this.callback, this.constraint.bbbConstraint, []);
             }
+            this.previouslyFulfilled = predicateFulfilled;
 	    },
 	    weight: 10
 	});
@@ -215,12 +213,12 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 		},
 	    solve: function() {
 	    	if(!this.constraintEnabled()) { return; }
-            var layerIsGlobal = this.layer.isGlobal();
-            if(this.constraint.predicate() == layerIsGlobal) { return; }
-            if(layerIsGlobal) {
-                this.layer.beNotGlobal();
-            } else  {
+            var layerIsGlobal = this.layer.isGlobal(),
+                predicateFulfilled = this.constraint.predicate();
+            if(predicateFulfilled && !layerIsGlobal) {
                 this.layer.beGlobal();
+            } else if(!predicateFulfilled && layerIsGlobal) {
+                this.layer.beNotGlobal();
             }
 	    },
 	    weight: 10
