@@ -215,11 +215,12 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 		},
 	    solve: function() {
 	    	if(!this.constraintEnabled()) { return; }
-            var predicateFulfilled = this.constraint.predicate();
-            if(predicateFulfilled && !this.layer.isGlobal()) {
-                this.layer.beGlobal();
-            } else  if(!predicateFulfilled && this.layer.isGlobal()) {
+            var layerIsGlobal = this.layer.isGlobal();
+            if(this.constraint.predicate() == layerIsGlobal) { return; }
+            if(layerIsGlobal) {
                 this.layer.beNotGlobal();
+            } else  {
+                this.layer.beGlobal();
             }
 	    },
 	    weight: 10
