@@ -8,6 +8,22 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	
 	Object.subclass("ReactiveSolver", {
 	    isConstraintObject: true,
+	    always: function(opts, func) {
+	        var ctx = opts.ctx;
+	        func.varMapping = ctx;
+	        var cobj = new Constraint(func, this);
+			cobj.allowFailing = true;
+	        cobj.addPrimitiveConstraint(new ReactiveSolver.Constraint(this, cobj, func));
+			try {
+				if(!opts.postponeEnabling) { cobj.enable(); }
+			} catch(e) {
+				if(e instanceof ContinuousAssertError) {
+					cobj.disable();
+				}
+				throw e;
+			}
+	        return cobj;
+	    },
 	    constraintVariableFor: function(value, ivarname, bbbCVar) {
 	    	return new ReactiveSolver.Variable(this, value, ivarname, bbbCVar);
 	    },
@@ -121,22 +137,6 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 		initialize: function(message) {
 			this.message = message;
 		},
-	    always: function(opts, func) {
-	        var ctx = opts.ctx;
-	        func.varMapping = ctx;
-	        var cobj = new Constraint(func, this);
-			cobj.allowFailing = true;
-	        cobj.addPrimitiveConstraint(new ReactiveSolver.Constraint(this, cobj, func));
-			try {
-				if(!opts.postponeEnabling) { cobj.enable(); }
-			} catch(e) {
-				if(e instanceof ContinuousAssertError) {
-					cobj.disable();
-				}
-				throw e;
-			}
-	        return cobj;
-	    },
 	    solve: function() {
 	    	if(this.constraint && this.constraint.enabled && typeof this.constraint.predicate === "function")
 	    		if(!this.constraint.predicate())
@@ -157,20 +157,11 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	/***************************************************************
 	 * Triggering
 	 ***************************************************************/
-	AssertSolver.subclass("TriggerSolver", {
+	ReactiveSolver.subclass("TriggerSolver", {
 		initialize: function(callback) {
 			this.callback = callback;
 			this.triggeredOnce = false;
 		},
-	    always: function(opts, func) {
-	        var ctx = opts.ctx;
-	        func.varMapping = ctx;
-	        var cobj = new Constraint(func, this);
-			cobj.allowFailing = true;
-	        cobj.addPrimitiveConstraint(new ReactiveSolver.Constraint(this, cobj, func));
-			if(!opts.postponeEnabling) { cobj.enable(); }
-	        return cobj;
-	    },
 	    solve: function() {
 	    	if(this.constraint &&
 				this.constraint.enabled &&
@@ -189,7 +180,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    weight: 10
 	});
 	
-	AssertSolver.subclass("__TriggerDefinition__", {
+	Object.subclass("__TriggerDefinition__", {
 		initialize: function(opts, func) {
 			this.opts = opts;
 			this.func = func;
@@ -216,19 +207,10 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	/***************************************************************
 	 * Layer activation
 	 ***************************************************************/
-	AssertSolver.subclass("LayerActivationSolver", {
+	ReactiveSolver.subclass("LayerActivationSolver", {
 		initialize: function(layer) {
 			this.layer = layer;
 		},
-	    always: function(opts, func) {
-	        var ctx = opts.ctx;
-	        func.varMapping = ctx;
-	        var cobj = new Constraint(func, this);
-			cobj.allowFailing = true;
-	        cobj.addPrimitiveConstraint(new ReactiveSolver.Constraint(this, cobj, func));
-			if(!opts.postponeEnabling) { cobj.enable(); }
-	        return cobj;
-	    },
 	    solve: function() {
 	    	if(this.constraint &&
 				this.constraint.enabled &&
