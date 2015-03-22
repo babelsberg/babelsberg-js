@@ -171,6 +171,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    solve: function() {
 	    	if(!this.constraintEnabled()) { return; }
 	    	var predicateFulfilled = this.constraint.predicate();
+
             if(predicateFulfilled && !this.previouslyFulfilled) {
                 bbb.addCallback(this.callback, this.constraint.bbbConstraint, []);
             }
@@ -215,6 +216,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    	if(!this.constraintEnabled()) { return; }
             var layerIsGlobal = this.layer.isGlobal(),
                 predicateFulfilled = this.constraint.predicate();
+
             if(predicateFulfilled && !layerIsGlobal) {
                 this.layer.beGlobal();
             } else if(!predicateFulfilled && layerIsGlobal) {
@@ -271,13 +273,13 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 
 			return cobj;
 		},
-		_activate: function() {
+		_enableConstraints: function() {
 			this.constraintObjects = this.constraintObjects || [];
 			this.constraintObjects.forEach(function(cobj) {
 				cobj.enable();
 			});
 		},
-		_deactivate: function() {
+		_disableConstraints: function() {
 			this.constraintObjects = this.constraintObjects || [];
 			this.constraintObjects.forEach(function(cobj) {
 				cobj.disable();
@@ -285,35 +287,35 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 		}
 	});
 
-	/* Layer Activation */
+	/* Control Flow-based Layer Activation */
 	cop.withLayers = cop.withLayers.wrap(function(callOriginal, layers, func) {
-		layers.forEach(function(layer) { layer._activate(); });
+		layers.forEach(function(layer) { layer._enableConstraints(); });
 
 		try {
 			return callOriginal(layers, func);
 		} finally {
-			layers.forEach(function(layer) { layer._deactivate(); });
+			layers.forEach(function(layer) { layer._disableConstraints(); });
 		}
 	});
 
 	cop.withoutLayers = cop.withoutLayers.wrap(function(callOriginal, layers, func) {
-		layers.forEach(function(layer) { layer._deactivate(); });
+		layers.forEach(function(layer) { layer._disableConstraints(); });
 		
 		try {
 			return callOriginal(layers, func);
 		} finally {
-			layers.forEach(function(layer) { layer._activate(); });
+			layers.forEach(function(layer) { layer._enableConstraints(); });
 		}
 	});
 
 	/* Global Layer Activation */
 	cop.enableLayer = cop.enableLayer.wrap(function(callOriginal, layer) {
-		layer._activate();
+		layer._enableConstraints();
 		return callOriginal(layer);
 	});
 
 	cop.disableLayer = cop.disableLayer.wrap(function(callOriginal, layer) {
-		layer._deactivate();
+		layer._disableConstraints();
 		return callOriginal(layer);
 	});
 
@@ -415,7 +417,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 
 	Object.extend(Layer.prototype, {
 		predicate: function(func, opts) {
-		    return new LayeredPredicate(func,opts, this);
+		    return new LayeredPredicate(func, opts, this);
 		}
 	});
 });
