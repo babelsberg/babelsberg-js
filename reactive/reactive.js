@@ -250,8 +250,8 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 			opts.postponeEnabling = !this.isGlobal();
 			var cobj = bbb.always(opts, func);
 
-			this.constraintObjects = this.constraintObjects || [];
-			this.constraintObjects.push(cobj);
+			this._constraintObjects = this._constraintObjects || [];
+			this._constraintObjects.push(cobj);
 
 			return cobj;
 		},
@@ -259,8 +259,8 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 			opts.postponeEnabling = !this.isGlobal();
 			var cobj = bbb.assert(opts, func);
 
-			this.constraintObjects = this.constraintObjects || [];
-			this.constraintObjects.push(cobj);
+			this._constraintObjects = this._constraintObjects || [];
+			this._constraintObjects.push(cobj);
 
 			return cobj;
 		},
@@ -268,20 +268,20 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 			opts.postponeEnabling = !this.isGlobal();
 			var cobj = bbb.trigger(opts, func);
 
-			this.constraintObjects = this.constraintObjects || [];
-			this.constraintObjects.push(cobj);
+			this._constraintObjects = this._constraintObjects || [];
+			this._constraintObjects.push(cobj);
 
 			return cobj;
 		},
 		_enableConstraints: function() {
-			this.constraintObjects = this.constraintObjects || [];
-			this.constraintObjects.forEach(function(cobj) {
+			this._constraintObjects = this._constraintObjects || [];
+			this._constraintObjects.forEach(function(cobj) {
 				cobj.enable();
 			});
 		},
 		_disableConstraints: function() {
-			this.constraintObjects = this.constraintObjects || [];
-			this.constraintObjects.forEach(function(cobj) {
+			this._constraintObjects = this._constraintObjects || [];
+			this._constraintObjects.forEach(function(cobj) {
 				cobj.disable();
 			});
 		}
@@ -404,8 +404,8 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
                 layer
 	    	);
 
-			this.layer.constraintObjects = this.layer.constraintObjects || [];
-			this.layer.constraintObjects.push(cobj);
+			this.layer._constraintObjects = this.layer._constraintObjects || [];
+			this.layer._constraintObjects.push(cobj);
 
 			return cobj;
 	    }
