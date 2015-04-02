@@ -4,13 +4,16 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
             var that = this;
 
             this.time = time;
-            this.activeLayer = new Layer().activeOn({
+            this._tilTimeout = predicate(function() {
+                return that.time > 0;
+            }, {
                 ctx: {
                     that: that
                 }
-            }, function() {
-                return that.time > 0;
             });
+        },
+        tilTimeout: function() {
+            return this._tilTimeout;
         },
         update: function(dt) {
             this.time -= dt;
@@ -38,7 +41,7 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
                 tank.powerUps[this.key].reset(this.duration);
             } else {
                 var timer = new Timer(this.duration);
-                this.bestow(tank, timer.activeLayer);
+                timer.tilTimeout().activate(this.bestow(tank));
                 tank.powerUps[this.key] = timer;
             }
         }
@@ -47,8 +50,8 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
     PowerUp.Spring = PowerUp.subclass("PowerUp.Spring", {
         key: "spring",
         sheetIndex: [5],
-        bestow: function(tank, layer) {
-            layer.refineObject(tank, {
+        bestow: function(tank) {
+            return new Layer().refineObject(tank, {
                 getBulletRicochets: function() {
                     return cop.proceed() + 1;
                 }
@@ -58,8 +61,8 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
     PowerUp.Shield = PowerUp.subclass("PowerUp.Shield", {
         key: "shield",
         sheetIndex: [4],
-        bestow: function(tank, layer) {
-            layer.refineObject(tank, {
+        bestow: function(tank) {
+            return new Layer().refineObject(tank, {
                 destroy: function() {}
             });
         }
@@ -72,8 +75,8 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
                 return gameObject.name == "tank" && gameObject !== tank;
             });
         },
-        bestow: function(tank, layer) {
-            layer.refineObject(tank, {
+        bestow: function(tank) {
+            return new Layer().refineObject(tank, {
                 move: function() {}
             });
         }
