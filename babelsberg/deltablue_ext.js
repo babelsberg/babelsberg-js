@@ -232,7 +232,7 @@ DBVariable.addMethods({
                 var inputs = Constraint.current.constraintvariables.map(function(cvar) {
                     return cvar.externalVariable;
                 }).filter(function(evar) {
-                    return evar && evar !== this;
+                    return evar && evar !== this && typeof(evar.name) == 'string';
                 }.bind(this));
 
                 var c = new UserDBConstraint(function() {}, Constraint.current.solver);
