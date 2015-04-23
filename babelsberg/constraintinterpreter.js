@@ -1016,8 +1016,8 @@ Object.subclass('ConstrainedVariable', {
                 var s = eVar.__solver__;
                 solvers.push(s);
             }
-        }).uniq();
-        return solvers;
+        })
+        return solvers.uniq();
     },
     get definingExternalVariable() {
         return this.externalVariables(this.definingSolver);
@@ -1333,10 +1333,10 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         if (leftVal === undefined) leftVal = 0;
         if (rightVal === undefined) rightVal = 0;
 
-        var rLeftVal = leftVal.isConstraintObject ?
+        var rLeftVal = (leftVal && leftVal.isConstraintObject) ?
             this.getConstraintObjectValue(leftVal) :
             leftVal,
-            rRightVal = rightVal.isConstraintObject ?
+            rRightVal = (rightVal && rightVal.isConstraintObject) ?
             this.getConstraintObjectValue(rightVal) :
             rightVal;
         switch (node.name) {
@@ -1375,10 +1375,10 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
             default:
                 var method = this.binaryExpressionMap[node.name];
                 if (method) {
-                    if (leftVal.isConstraintObject &&
+                    if (leftVal && leftVal.isConstraintObject &&
                         typeof(leftVal[method[0]]) == 'function') {
                         return leftVal[method[0]](rightVal);
-                    } else if (rightVal.isConstraintObject &&
+                    } else if (rightVal && rightVal.isConstraintObject &&
                                typeof(rightVal[method[1]]) == 'function') {
                         return rightVal[method[1]](leftVal);
                     } else {
