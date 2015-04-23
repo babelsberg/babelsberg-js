@@ -6,6 +6,7 @@ case "$TYPE" in
 	exec bin/lively_test.sh
 	;;
     Standalone)
+	nvm use v0.12
 	exec bin/node_test.sh
 	;;
     lint)
