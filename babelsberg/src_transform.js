@@ -385,6 +385,9 @@ toRun(function() {
         if (name === 'ro') {
             name = 'bbb.readonly';
         }
+        if (name === 'system') {
+            name = 'bbb.system()';
+        }
         return new UglifyJS.AST_SymbolRef({name: name});
     }
 
