@@ -16,7 +16,7 @@
     },
     "devDependencies": {
         "jsdoc": "<=3.3.0",
-        "zombie": ""
+        "zombie": "<3.0"
     },
     "optionalDependencies": {}
 }
