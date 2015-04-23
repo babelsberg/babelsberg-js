@@ -1016,7 +1016,7 @@ Object.subclass('ConstrainedVariable', {
                 var s = eVar.__solver__;
                 solvers.push(s);
             }
-        })
+        });
         return solvers.uniq();
     },
     get definingExternalVariable() {
