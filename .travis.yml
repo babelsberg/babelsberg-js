@@ -15,6 +15,7 @@ before_install:
 
 before_script:
   - "nvm use v0.10"
+  - if [ "$TYPE" == "Standalone" ]; then nvm use v0.12; fi
   - "chmod +x $TRAVIS_BUILD_DIR/travis.sh"
 
 script: "$TRAVIS_BUILD_DIR/travis.sh"
