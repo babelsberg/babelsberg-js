@@ -16,7 +16,8 @@ Setup for our dev team (Windows)
 * download "the windows-2015-04-03 release zip." from https://github.com/LivelyKernel/LivelyKernel
 * unzip, open CMD, run ```start-lively-server.cmd```
 * after it installs packages, you have a working lively kernel at http://localhost:9001
-* create users/
+* navigate to LivelyKernel, this is now your root directory for lively
+* in LivelyKernel create users/
 * rename babelsberg-js to users/timfelgentreff
 * copy ohshima to users
 * open http://localhost:9001/users/timfelgentreff/babelsberg-js.html
