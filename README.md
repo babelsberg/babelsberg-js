@@ -18,5 +18,5 @@ Setup for our dev team (Windows)
 * after it installs packages, you have a working lively kernel at http://localhost:9001
 * create users/
 * rename babelsberg-js to users/timfelgentreff
-* because otherwise nothing works, manually download ther circuit example files from http://lively-kernel.org/babelsberg/users/ohshima/ and put them to users/ohshima
+* copy ohshima to users
 * open http://localhost:9001/users/timfelgentreff/babelsberg-js.html
