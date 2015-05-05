@@ -28,6 +28,39 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         obj.a = 110;
         this.assert(obj.a == 110);
     },
+    testDisableConstraint: function() {
+        var obj = {a: 8};
+        var error = false;
+        var c = bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            return obj.a >= 100;
+        });
+        this.assert(obj.a == 100);
+        obj.a = 110;
+        this.assert(obj.a == 110);
+        try {
+            obj.a = 90;
+        } catch(e) {
+            error = true
+        }
+        this.assert(error);
+        c.disable();
+        obj.a = 90;
+        this.assert(obj.a == 90);
+        c.enable();
+        this.assert(obj.a == 100);
+        error = false;
+        try {
+            obj.a = 90;
+        } catch(e) {
+            error = true
+        }
+        this.assert(error);
+    },
 
     testSimplePath: function () {
         ClSimplexSolver.resetInstance();
