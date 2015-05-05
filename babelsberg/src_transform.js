@@ -216,7 +216,7 @@ toRun(function() {
                         "Labeled arguments in `always:' have to be simple statements"
                     );
                 }
-                if (ea.label.name == 'store') {
+                if (ea.label.name == 'store' || ea.label.name == 'name') {
                     store = new UglifyJS.AST_Assign({
                         start: ea.start,
                         end: ea.end,

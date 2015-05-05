@@ -15,6 +15,12 @@ TestCase.subclass('users.timfelgentreff.babelsberg.src_transform_test.TransformT
         this.assert(result === "bbb.rule(\"abs(N,N):-N>=0\");", result);
     },
 
+    testAssignResult2: function () {
+        var src = "always: {name: c; a < b}";
+        var result = new BabelsbergSrcTransform().transform(src);
+        result = result.replace(/[ \n\r\t]/g,"");
+        this.assert(result === "c=bbb.always({ctx:{c:c,a:a,b:b,_$_self:this.doitContext||this}},function(){returna<b;;});", result);
+    },
     testAssignResult: function () {
         var src = "always: {store: c; a < b}";
         var result = new BabelsbergSrcTransform().transform(src);
