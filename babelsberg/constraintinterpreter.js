@@ -31,6 +31,7 @@ Object.subclass('Babelsberg', {
      * @param {string} accessor The name of the property to be unconstrained.
      */
     unconstrain: function(obj, accessor) {
+        debugger
         if (!obj) return;
         var cvar = ConstrainedVariable.findConstraintVariableFor(obj, accessor);
         if (!cvar) return;
@@ -492,10 +493,10 @@ Object.subclass('Constraint', {
         if (obj === true) {
             if (this.allowTests) {
                 this.isTest = true;
-                alertOK(
-                    'Warning: Constraint expression returned true. ' +
-                        'Re-running whenever the value changes'
-                );
+                // alertOK(
+                //     'Warning: Constraint expression returned true. ' +
+                //         'Re-running whenever the value changes'
+                // );
             } else {
                 throw new Error(
                     'Constraint expression returned true, but was not marked as test. ' +
