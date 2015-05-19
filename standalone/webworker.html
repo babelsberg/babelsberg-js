@@ -77,25 +77,25 @@
     </script>
 
     <script type="text/javascript">
-        bbb.defaultSolvers = [new csp.Solver(), new DBPlanner(), new ClSimplexSolver(), new Relax()];
+        bbb.defaultSolvers = [new Relax(), new ClSimplexSolver()];
         // bbb.defaultSolvers = [new ClSimplexSolver()];
-        var blob = new Blob([document.querySelector('#worker').textContent]);
-        var url = window.webkitURL.createObjectURL(blob)
+        // var blob = new Blob([document.querySelector('#worker').textContent]);
+        // var url = window.webkitURL.createObjectURL(blob)
 
-        var aWorkers = [];
+        // var aWorkers = [];
 
-        for(var i = 0; i < 4; i++){
-            aWorkers.push(new Worker(url));
-            aWorkers[i].number = i;
-            aWorkers[i].onmessage = function(e){
-                console.log("Worker " + this.number + ": " + (new Date() - tBeginWorker));
-            }
-        }        
+        // for(var i = 0; i < 4; i++){
+        //     aWorkers.push(new Worker(url));
+        //     aWorkers[i].number = i;
+        //     aWorkers[i].onmessage = function(e){
+        //         console.log("Worker " + this.number + ": " + (new Date() - tBeginWorker));
+        //     }
+        // }        
 
-        var tBeginWorker = new Date();
-        for(var i = 0; i < aWorkers.length; i++){
-            aWorkers[i].postMessage();
-        }
+        // var tBeginWorker = new Date();
+        // for(var i = 0; i < aWorkers.length; i++){
+        //     aWorkers[i].postMessage();
+        // }
     </script>
     
     <script type="text/babelsbergscript">
