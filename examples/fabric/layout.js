@@ -50,6 +50,21 @@ contentLoaded(window, function() {
 		orange: orange,
 		purple: purple
     };
+    
+    window.rects.forEach(function(rect) {
+    	rect.getWidth = function() {
+    		return this.scaleX * bbb.readonly(this.width);
+    	};
+    	rect.getHeight = function() {
+    		return this.scaleY * bbb.readonly(this.height);
+    	};
+    	rect.right = function() {
+    		return this.left + this.getWidth();
+    	};
+    	rect.bottom = function() {
+    		return this.top + this.getHeight();
+    	};
+    });
 
     //setup default solver
     bbb.defaultSolver = new ClSimplexSolver();
