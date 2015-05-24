@@ -51,7 +51,7 @@ contentLoaded(window, function() {
 		purple: purple
     };
     
-    window.rects.forEach(function(rect) {
+    [red, green, blue, yellow, orange, purple].forEach(function(rect) {
     	rect.getWidth = function() {
     		return this.scaleX * bbb.readonly(this.width);
     	};
