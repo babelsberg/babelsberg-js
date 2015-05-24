@@ -41,6 +41,12 @@ define( function moduleRenderer() {
             this.canvas = canvas;
             this.context = canvas.getContext('2d');
 
+            // enable nearest neighbor interpolation
+            this.context.mozImageSmoothingEnabled = false;
+            this.context.webkitImageSmoothingEnabled = false;
+            this.context.msImageSmoothingEnabled = false;
+            this.context.imageSmoothingEnabled = false;
+
             // set default pixel extent to allow setOptions
             this.singlePixelExtent = Vector2.One.copy();
 
