@@ -23,25 +23,25 @@ define([
                     }
                 }, function() {
                     return input.switchedOn("pause");
-                }).trigger({
-                    callback: this.modifyTileType.bind(this),
+                }).predicate(function() {
+                     return input.pressed("leftclick");
+                }, {
                     ctx: {
                         input: input
                     }
-                }, function() {
-                    return input.pressed("leftclick");
-                });
+                }).trigger(this.modifyTileType.bind(this));
 
-            EditorLayer.always({
-                    solver: new DBPlanner(),
-                    ctx: {
-                        input: input,
-                        map: map,
-                        that: that
-                    }
-                }, function() {
-                    return that.tileIndex.equals(map.positionToCoordinates(input.position));
-                });
+            EditorLayer.predicate(function() {
+               return that.tileIndex.equals(map.positionToCoordinates(input.position));
+            }, {
+                ctx: {
+                    input: input,
+                    map: map,
+                    that: that
+                }
+            }).always({
+                solver: new DBPlanner()
+            });
         },
 
         update: function(dt) {
