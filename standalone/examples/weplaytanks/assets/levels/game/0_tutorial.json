@@ -34,28 +34,8 @@
     "powerUps": [
         {
             "type": "Spring",
-            "position": { "x": 13, "y": 14},
-            "timeout": 10
-        },
-        {
-            "type": "Spring",
-            "position": { "x": 13, "y": 18},
-            "timeout": 20
-        },
-        {
-            "type": "Spring",
-            "position": { "x": 13, "y": 22},
-            "timeout": 30
-        },
-        {
-            "type": "Shield",
-            "position": { "x": 13, "y": 10},
-            "timeout": 10
-        },
-        {
-            "type": "Sticky",
-            "position": { "x": 13, "y": 4},
-            "timeout": 10
+            "position": { "x": 16, "y": 14},
+            "timeout": 180
         }
     ]
 }
