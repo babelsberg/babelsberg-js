@@ -51,20 +51,20 @@ define(function moduleGameObject() {
         onCollisionWith: function(other, callback) {
             var that = this;
 
-            var onCollision = bbb.trigger({
-                callback: function() {
-                    callback.call(this, that, other);
-                },
-                ctx: {
-                    that: that,
-                    other: other
-                }
-            }, function() {
+            var onCollision = predicate(function() {
                 // use simple spheres for collision detection
                 // remember: this is only the detection of a collision
                 // if a collision occurs, it is solved by the given callback
                 return that.position.distance(other.position) <= that.radius + other.radius;
+            }, {
+                 ctx: {
+                     that: that,
+                     other: other
+                 }
+            }).trigger(function() {
+                callback.call(this, that, other);
             });
+
 
             // track this constraint on both game objects
             this.constraints.push(onCollision);
