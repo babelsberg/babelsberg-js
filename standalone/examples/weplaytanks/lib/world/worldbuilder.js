@@ -71,7 +71,7 @@ define(["./world", "./map", "./../gameobject/tankconfiguration", "./../gameobjec
                 for(var i = 0; i < enemyTanks.length; i++) {
                     won = won && !enemyTanks[i].alive;
                 }
-                return won == true;
+                return won;
             });
         },
         buildTank: function(world, pos, vel, dir, config) {
