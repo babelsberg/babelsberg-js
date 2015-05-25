@@ -38,7 +38,7 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
                 tank.powerUps[this.key].reset(this.duration);
             } else {
                 var timer = new Timer(this.duration);
-                timer.untilTimeout.activate(this.bestow(tank));
+                timer.untilTimeout.activate(this.affect(tank));
                 tank.powerUps[this.key] = timer;
             }
         }
@@ -47,7 +47,7 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
     PowerUp.Spring = PowerUp.subclass("PowerUp.Spring", {
         key: "spring",
         sheetIndex: [5],
-        bestow: function(tank) {
+        affect: function(tank) {
             return new Layer().refineObject(tank, {
                 getBulletRicochets: function() {
                     return cop.proceed() + 1;
@@ -58,7 +58,7 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
     PowerUp.Shield = PowerUp.subclass("PowerUp.Shield", {
         key: "shield",
         sheetIndex: [4],
-        bestow: function(tank) {
+        affect: function(tank) {
             return new Layer().refineObject(tank, {
                 destroy: function() {}
             });
@@ -72,7 +72,7 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
                 return gameObject.name == "tank" && gameObject !== tank;
             });
         },
-        bestow: function(tank) {
+        affect: function(tank) {
             return new Layer().refineObject(tank, {
                 move: function() {}
             });
