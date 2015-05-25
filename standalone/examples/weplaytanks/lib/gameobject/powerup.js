@@ -4,16 +4,13 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
             var that = this;
 
             this.time = time;
-            this._tilTimeout = predicate(function() {
+            this.untilTimeout = predicate(function() {
                 return that.time > 0;
             }, {
                 ctx: {
                     that: that
                 }
             });
-        },
-        tilTimeout: function() {
-            return this._tilTimeout;
         },
         update: function(dt) {
             this.time -= dt;
@@ -41,7 +38,7 @@ define(["./gameobject", "./../rendering/animation", "./../rendering/animationshe
                 tank.powerUps[this.key].reset(this.duration);
             } else {
                 var timer = new Timer(this.duration);
-                timer.tilTimeout().activate(this.bestow(tank));
+                timer.untilTimeout.activate(this.bestow(tank));
                 tank.powerUps[this.key] = timer;
             }
         }
