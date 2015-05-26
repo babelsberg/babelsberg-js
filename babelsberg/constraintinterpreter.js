@@ -1033,6 +1033,18 @@ Object.subclass('ConstrainedVariable', {
                     if (!solver.fake) {
                         this._hasMultipleSolvers = true;
                     }
+                    var hasEnabledConstraint = false;
+                    for(var i = 0; i < this._constraints.length; i++){
+                        if (this._constraints[i].solver == eVar.solver
+                            && this._constraints[i]._enabled){
+                                hasEnabledConstraint = true;
+                                break;
+                            }
+                    }
+
+                    if (this._constraints.length > 0 && !hasEnabledConstraint)
+                        return;
+
                     var s = eVar.__solver__;
                     if (s.weight > solver.weight) {
                         solver = s;
