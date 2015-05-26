@@ -277,8 +277,18 @@ Object.subclass('Babelsberg', {
         };
 
         //TODO: compare constraint to find best solver
-        // use aConstraints[i].oComparisonMetrics
-        constraint= aConstraints[aConstraints.length - 1];
+        var min = Number.MAX_VALUE;
+        var minIndex = -1;
+        for (var i = 0; i < aConstraints.length; i++){
+            if (aConstraints[i] && aConstraints[i].oComparisonMetrics.time < min){
+                min = aConstraints[i].oComparisonMetrics.time;
+                minIndex = i;
+            }
+        }
+        if (minIndex == -1) throw new Error("No constraint to select");
+        constraint = aConstraints[minIndex];
+        console.log("Selected fastest solver:");
+        console.log(constraint.solver);
 
         if (!constraint) {
             if (typeof opts.onError === 'function') {
