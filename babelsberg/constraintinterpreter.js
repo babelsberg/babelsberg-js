@@ -492,9 +492,9 @@ Object.subclass('Constraint', {
                 throw new Error('BUG: No constraintobjects were created.');
             }
             this._enabled = true;
-            var nBegin = new Date();
+            var nBegin = performance.now();
             this.solver.solve();
-            var nEnd = new Date()
+            var nEnd = performance.now();
             console.log("Time to Solve in enable with solver below:" + (nEnd - nBegin) + " ms");
             console.log(this.solver);
 
@@ -754,9 +754,9 @@ Object.subclass('ConstrainedVariable', {
                 ConstrainedVariable.$$optionalSetters || [];
 
             try {
-                var nBegin = new Date(); // nerver uses multiple solvers, since it gets the definig Solver
+                var nBegin = performance.now(); // nerver uses multiple solvers, since it gets the definig Solver
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
-                console.log("Time to Solve in suggestValue with the solver below for " + this.ivarname + ": " + (new Date() - nBegin) + " ms");
+                console.log("Time to Solve in suggestValue with the solver below for " + this.ivarname + ": " + (performance.now() - nBegin) + " ms");
                 console.log(solver)
                 this.solveForConnectedVariables(value, oldValue, solver, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
