@@ -263,7 +263,11 @@ Object.subclass('Babelsberg', {
 
         for(var i = 0; i < aConstraints.length; i++){
             try {
-                if (!opts.postponeEnabling) aConstraints[i].enable(aConstraints.length > 1);
+                if (!opts.postponeEnabling) {
+                    Constraint.current = aConstraints[i];
+                    aConstraints[i].enable(aConstraints.length > 1);
+                    Constraint.current = null;
+                }
             } catch (e) {
                 errors.push(e);
                 aConstraints[i].disable();
@@ -272,7 +276,7 @@ Object.subclass('Babelsberg', {
         };
 
         //TODO: compare constraint to find best solver
-        // Problem: enable updates the value of the variables we get from the getters
+        // use aConstraints[i].oComparisonMetrics
         constraint= aConstraints[aConstraints.length - 1];
 
         if (!constraint) {
@@ -482,8 +486,8 @@ Object.subclass('Constraint', {
             var nEnd = new Date()
             console.log("Time to Solve in enable with solver below:" + (nEnd - nBegin) + " ms");
             console.log(this.solver);
-            var oVariables = {};
 
+            var oVariables = {};
             this.constraintvariables.each(function(ea) {
                 var value = ea.getValue();
                 oVariables[ea.ivarname] = value;
