@@ -267,6 +267,7 @@ Object.subclass('Babelsberg', {
                     Constraint.current = aConstraints[i];
                     aConstraints[i].enable(aConstraints.length > 1);
                     Constraint.current = null;
+                    aConstraints[i].disable();
                 }
             } catch (e) {
                 errors.push(e);
