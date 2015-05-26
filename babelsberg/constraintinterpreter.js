@@ -276,7 +276,6 @@ Object.subclass('Babelsberg', {
             }
         };
 
-        //TODO: compare constraint to find best solver
         var min = Number.MAX_VALUE;
         var minIndex = -1;
         for (var i = 0; i < aConstraints.length; i++){
@@ -287,6 +286,7 @@ Object.subclass('Babelsberg', {
         }
         if (minIndex == -1) throw new Error("No constraint to select");
         constraint = aConstraints[minIndex];
+        constraint.enable();
         console.log("Selected fastest solver:");
         console.log(constraint.solver);
 
