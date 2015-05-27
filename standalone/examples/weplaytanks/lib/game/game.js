@@ -94,13 +94,13 @@ define([
             var input = this.input;
 
             // constraint: debugdraw velocities if debug mode is switched on
-            DebugLayer.activeOn({
+            predicate(function() {
+                return input.switchedOn("debug");
+            },{
                 ctx: {
                     input: input
                 }
-            }, function() {
-                return input.switchedOn("debug");
-            });
+            }).activate(DebugLayer);
 
             GameLayer.activeOn({
                 ctx: {
