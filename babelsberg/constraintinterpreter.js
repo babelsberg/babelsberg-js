@@ -544,6 +544,7 @@ Object.subclass('Constraint', {
     },
 
     recalculate: function() {
+        if (!this._enabled) return;
         // TODO: Fix this so it uses the split-stay result, i.e. just
         // increase the stay for the newly assigned value
         if (this.isTest && !this.solver) {
@@ -933,12 +934,7 @@ Object.subclass('ConstrainedVariable', {
 
     updateDownstreamVariables: function(value) {
         this.updateDownstreamExternalVariables(value);
-
-        if (!this.isValueClass()) {
-            this.recalculateDownstreamConstraints(value);
-        } else {
-            this.updateValueClassParts(value);
-        }
+        this.updateDownstreamUnsolvableVariables(value);
     },
 
     updateDownstreamExternalVariables: function(value) {
@@ -951,6 +947,14 @@ Object.subclass('ConstrainedVariable', {
                 ea.setReadonly(wasReadonly);
             }
         });
+    },
+
+    updateDownstreamUnsolvableVariables: function(value) {
+        if (!this.isValueClass()) {
+            this.recalculateDownstreamConstraints(value);
+        } else {
+            this.updateValueClassParts(value);
+        }
     },
 
     recalculateDownstreamConstraints: function(value) {
@@ -1031,6 +1035,7 @@ Object.subclass('ConstrainedVariable', {
         // TODO: add more value classes
         return !this.isSolveable() &&
             this.storedValue instanceof lively.Point;
+        // return false && this.storedValue instanceof lively.Point;
     },
 
     get storedValue() {
@@ -1106,6 +1111,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         '-': ['minus'],
         '*': ['times', 'times'],
         '/': ['divide'],
+        '%': ['modulo'],
         '==': ['cnEquals', 'cnEquals'],
         '===': ['cnIdentical', 'cnIdentical'],
         '<=': ['cnLeq', 'cnGeq'],
@@ -1279,6 +1285,8 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
                     }).bind(this)
                 );
             }
+        } else if (func === Date) {
+            return new func();
         } else if (recv === Math) {
             if (func === Math.sqrt && argValues[0].pow || argValues[0].sqrt) {
                 if (argValues[0].pow) {
@@ -1354,9 +1362,15 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
                 if (node.name != '-') {
                     if (leftVal.isConstraintObject && leftVal.cnIn) {
                         return leftVal.cnIn(rightVal);
-                    } // special case for reversing minus - allowed to
-                      // fall through to default
-                    // TODO: rightVal->contains if !leftVal.isConstraintObject
+                    } else if (this.$finiteDomainProperty) {
+                        var lV = this.$finiteDomainProperty;
+                        delete this.$finiteDomainProperty;
+                        if (lV.cnIn) {
+                            return lV.cnIn(rightVal);
+                        }
+                    } // TODO: rightVal->contains if !leftVal.isConstraintObject
+                // special case for reversing minus - allowed to
+                // fall through to default
                 }
             default:
                 var method = this.binaryExpressionMap[node.name];
@@ -1401,6 +1415,9 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         if (obj && obj.isConstraintObject) {
             if (obj['cn' + name]) {
                 return obj['cn' + name]; // XXX: TODO: Document this
+            } else if (name === 'is') {
+                // possibly a finite domain definition
+                this.$finiteDomainProperty = obj;
             } else {
                 cobj = obj.__cvar__;
                 obj = this.getConstraintObjectValue(obj);

@@ -11,7 +11,7 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
             weak: 1
         }
     },
-    
+
         postMessage: function (string) {
             string = "(set-option :pp.decimal true)\n" +
                 string +
@@ -19,9 +19,9 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
                     return acc + v.name + " "
                 }) + "))");
             // console.log(string);
-            var commandString = this.constructor.z3Path + ' -T:4 -smt2 -in',
+            var commandString = this.constructor.z3Path + '.sh',
                 self = this;
-            
+
             if (!this.sync) {
                 lively.ide.CommandLineInterface.run(
                     commandString,
@@ -50,14 +50,14 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
                 result = result.slice(idx + "sat".length, result.length - 1);
                 // remove outer parens
                 result = result.trim().slice(1, result.length - 1);
-        
+
                 var assignments = result.split("\n").map(function (str) {
                     var both = str.trim().slice(1, str.length - 1).split(" ");
                     if (both.length < 2) return;
                     both = [both[0].trim(), both.slice(1, both.length).join(" ").trim()];
-                    
+
                     var name = both[0];
-                    var value = this.parseAndEvalSexpr(both[1]);
+                    var value = this.parseAndEvalSexpr(both[1], name);
                     return {name: name, value: value};
                 }.bind(this));
                 assignments.each(function (a) {
@@ -73,19 +73,14 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
                 throw new Error("Z3 failed to solve this system");
             }
         },
-    solve: function () {
-        var decls = [""].concat(this.variables).reduce(function (acc, v) {
-            return acc + "\n" + v.printDeclaration();
-        });
-        var constraints = ["\n"].concat(this.constraints).reduce(function (acc, c) {
+    printConstraints: function () {
+        return ["\n"].concat(this.constraints).reduce(function (acc, c) {
             if (c.strength) {
                 return acc + "\n" + "(assert-soft " + c.print() + " :weight " + c.strength + ")"
             } else {
                 return acc + "\n" + "(assert " + c.print() + ")";
             }
         });
-        this.postMessage(decls + constraints);
-        return decls + constraints;
     },
     constraintVariableFor: function($super, value, ivarname, cvar) {
         var cvar = $super(value, ivarname, cvar);
@@ -121,7 +116,11 @@ if (window.Config && window.Config.codeBase) {
 } else {
     Object.extend(CommandLineZ3, {
         get z3Path() {
-            console.error("Standalone deployment must define CommandLineZ3.z3Path");
+            if (!CommandLineZ3Path) {
+                console.error("Standalone deployment must define CommandLineZ3Path");
+            } else {
+                return CommandLineZ3Path;
+            }
         }
     });
 }
@@ -160,6 +159,11 @@ NaCLZ3Variable.subclass('CommandLineZ3Variable', {
             this._stayCn.strength = s;
             this.solver.addConstraint(this._stayCn);
         }
+    },
+    cnIn: function($super, domain) {
+        debugger
+        this.removeStay();
+        return $super(domain);
     }
 });
 

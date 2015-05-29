@@ -2,13 +2,25 @@ lively.ide = lively.ide || {};
 if (!lively.ide.CommandLineInterface) {
     lively.ide.CommandLineInterface = {
         run: function (commandString, options, thenDo) {
-            throw "The deployment should have defined lively.ide.CommandLineInterface.run"
+            if (!CommandLineInterface.run) {
+                throw "The deployment should have defined CommandLineInterface.run"
+            } else {
+                return CommandLineInterface.run(commandString, options, thenDo);
+            }
         },
         runAll: function (commandSpecs, thenDo) {
-            throw "The deployment should have defined lively.ide.CommandLineInterface.runAll"
+            if (!CommandLineInterface.runAll) {
+                throw "The deployment should have defined CommandLineInterface.runAll"
+            } else {
+                return CommandLineInterface.runAll(commandSpecs, thenDo);
+            }
         },
         cwd: function () {
-            throw "The deployment should have defined lively.ide.CommandLineInterface.cwd"
+            if (!CommandLineInterface.cwd) {
+                throw "The deployment should have defined CommandLineInterface.cwd"
+            } else {
+                return CommandLineInterface.cwd();
+            }
         },
     }
 }

@@ -161,6 +161,14 @@ RelaxNode.prototype.divide = function(r) {
     );
 };
 
+RelaxNode.prototype.modulo = function(r) {
+    return new RelaxNode(
+        '(' + this.expr + ' % ' + _expr(r) + ')',
+        this.vars.concat(r.vars).uniq(),
+        this.solver
+    );
+};
+
 RelaxNode.prototype.pow = function(r) {
     return new RelaxNode(
         'Math.pow(' + this.expr + ', ' + _expr(r) + ')',

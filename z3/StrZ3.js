@@ -11,7 +11,7 @@ module('users.timfelgentreff.z3.StrZ3').requires('users.timfelgentreff.z3.Comman
                 var assignments = r.map(function (str) {
                     var both = str.split(" -> "),
                         name = both[0].trim(),
-                        value = this.parseAndEvalSexpr(both[1]);
+                        value = this.parseAndEvalSexpr(both[1], name);
                     if (!name) return;
                     return {name: name, value: value};
                 }.bind(this));

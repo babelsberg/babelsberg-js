@@ -12,6 +12,32 @@ toRun(function() {
                     (node.body instanceof UglifyJS.AST_BlockStatement));
         },
 
+        isRule: function(node) {
+            if ((node instanceof UglifyJS.AST_Label) &&
+                    node.name === 'rule') {
+                this.__ruleLabelSeen = node;
+                return true;
+            } else if (this.__ruleLabelSeen &&
+                    node instanceof UglifyJS.AST_String) {
+                return true;
+            } else if ((node instanceof UglifyJS.AST_LabeledStatement) &&
+                    (node.label.name === 'rule') &&
+                    (node.body instanceof UglifyJS.AST_BlockStatement)) {
+                return true;
+            } else if ((node instanceof UglifyJS.AST_LabeledStatement) &&
+                    (node.body.body instanceof UglifyJS.AST_SimpleStatement) &&
+                    (node.body.body.body instanceof UglifyJS.AST_Call) &&
+                    (node.body.body.body.expression instanceof UglifyJS.AST_Dot) &&
+                    (node.body.body.body.expression.property === 'rule') &&
+                    (node.body.body.body.expression.expression.name === 'bbb')) {
+                // rule label with string that was transformed... remove the label
+                this.__ruleLabelRemove = true;
+                return true;
+            }
+            this.__ruleLabelSeen = null;
+            return false;
+        },
+
         isOnce: function(node) {
             return ((node instanceof UglifyJS.AST_LabeledStatement) &&
                     (node.label.name === 'once') &&
@@ -112,6 +138,10 @@ toRun(function() {
                     return self.transformConstraint(ast, node, 'once');
                 } else if (self.isTrigger(node)) {
                     return self.transformConstraint(ast, node, 'when');
+                } else if (self.isRule(node)) {
+                    var node = self.createRuleFor(node);
+                    self.isTransformed = true;
+                    return node;
                 }
             });
         },
@@ -288,6 +318,55 @@ toRun(function() {
         } else {
             return newBody;
         }
+    },
+
+    createRuleFor: function(ruleNode) {
+        // remove label
+        if (ruleNode instanceof UglifyJS.AST_Label) return ruleNode;
+
+        var stringNode;
+        if (ruleNode instanceof UglifyJS.AST_String) {
+            stringNode = ruleNode;
+            stringNode.value = stringNode.value.replace(/\|\s*-/mg, ':-');
+            ruleNode = this.__ruleLabelSeen;
+            delete this.__ruleLabelSeen;
+        } else if (this.__ruleLabelRemove) {
+            delete this.__ruleLabelRemove;
+            return ruleNode.body.body;
+        } else {
+            // ruleNode instanceof UglifyJS.AST_LabeledStatement
+            var stream = UglifyJS.OutputStream({beautify: true, comments: true});
+            ruleNode.body.print(stream);
+            stringNode = new UglifyJS.AST_String({
+                start: ruleNode.body.start,
+                end: ruleNode.body.end,
+                value: stream.toString().
+                        replace(/\|\s*-/mg, ':-').
+                        replace(/^{\s*/, '').
+                        replace(/\s*}\s*$/, '').
+                        replace(/\s*;\s*$/, '')
+            });
+        }
+
+        return new UglifyJS.AST_SimpleStatement({
+            start: ruleNode.start,
+            end: ruleNode.end,
+            body: new UglifyJS.AST_Call({
+                start: ruleNode.start,
+                end: ruleNode.end,
+                expression: new UglifyJS.AST_Dot({
+                    start: ruleNode.start,
+                    end: ruleNode.end,
+                    property: 'rule',
+                    expression: new UglifyJS.AST_SymbolRef({
+                        start: ruleNode.start,
+                        end: ruleNode.end,
+                        name: 'bbb'
+                    })
+                }),
+                args: [stringNode]
+            })
+        });
     },
 
     contextMap: function(name) {
