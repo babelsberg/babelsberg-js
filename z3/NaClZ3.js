@@ -16,7 +16,7 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
         }
         this.url = url || NaCLZ3.url;
         this.embedMorph = new lively.morphic.HtmlWrapperMorph(bounds.extent());
-        this.embedMorph.asJQuery().html('<div id="' + this.uuid + '">\
+        this.embedMorph.setHTML('<div id="' + this.uuid + '">\
             <embed name="nacl_module"\
                 id="' + this.uuid + 'z3"\
                 width=0 height=0\
