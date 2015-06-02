@@ -262,38 +262,42 @@ Object.subclass('Babelsberg', {
             }
         });
 
-        for(var i = 0; i < constraints.length; i++){
-            try {
-				Constraint.current = constraints[i];
-				constraints[i].enable(constraints.length > 1);
-				constraints[i].disable();
-            } catch (e) {
-                errors.push(e);
-                constraints[i].disable();
-                constraints[i] = null;
-            } finally {
-                Constraint.current = null;
-            }
-        };
+        if (constraints.length > 1) {
+            for(var i = 0; i < constraints.length; i++){
+                try {
+                    Constraint.current = constraints[i];
+                    constraints[i].enable(true);
+                    constraints[i].disable();
+                } catch (e) {
+                    errors.push(e);
+                    constraints[i].disable();
+                    constraints[i] = null;
+                } finally {
+                    Constraint.current = null;
+                }
+            };
 
-        var min = Number.MAX_VALUE;
-        var minIndex = -1;
-        for (var i = 0; i < constraints.length; i++){
-            if (constraints[i] && constraints[i].oComparisonMetrics.time < min){
-                min = constraints[i].oComparisonMetrics.time;
-                minIndex = i;
+            var min = Number.MAX_VALUE;
+            var minIndex = -1;
+            for (var i = 0; i < constraints.length; i++){
+                if (constraints[i] && constraints[i].oComparisonMetrics.time < min){
+                    min = constraints[i].oComparisonMetrics.time;
+                    minIndex = i;
+                }
             }
-        }
-        if (minIndex > -1) {
+            if (minIndex > -1) {
+                constraint = constraints[minIndex];
+            }
             constraint = constraints[minIndex];
+            console.log("Selected fastest solver:");
+            console.log(constraint.solver);
+        } else {
+            constraint = constraints[0];
         }
-		
-		if (!opts.postponeEnabling) {
-			constraint.enable();
-		}
-		
-        console.log("Selected fastest solver:");
-        console.log(constraint.solver);
+
+        if (!opts.postponeEnabling) {
+            constraint.enable();
+        }
 
         if (!constraint) {
             if (typeof opts.onError === 'function') {
