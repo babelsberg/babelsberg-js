@@ -48,10 +48,10 @@ Object.subclass('Babelsberg', {
         var existingSetter = obj.__lookupSetter__(newName),
             existingGetter = obj.__lookupGetter__(newName);
         if (existingGetter) {
-            obj.__defineGetter__(this.accessor, existingGetter);
+            obj.__defineGetter__(accessor, existingGetter);
         }
         if (existingSetter) {
-            obj.__defineSetter__(this.accessor, existingSetter);
+            obj.__defineSetter__(accessor, existingSetter);
         }
         if (!existingSetter || !existingGetter) {
             delete obj[accessor];
