@@ -12,7 +12,7 @@ Relax.prototype.always = function(opts, func) {
     func.varMapping = opts.ctx;
     var constraint = new Constraint(func, this);
     this.addConstraint(constraint.constraintobjects[0]);
-    this.solve();
+    //this.solve();
     return constraint;
 };
 
@@ -205,7 +205,7 @@ RelaxNode.prototype.cnOr = function(r) {
     return this;
 };
 
-RelaxNode.prototype.enable = function() { /* ignored */ };
+RelaxNode.prototype.enable = function() { this.solver.solve(); };
 RelaxNode.prototype.disable = function() { /* ignored */ };
 
 }); // end of module

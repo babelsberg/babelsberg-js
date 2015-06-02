@@ -243,8 +243,8 @@ Object.subclass('Babelsberg', {
      * @param {function} func The constraint to be fulfilled.
      */
     always: function(opts, func) {
-        var constraint = null,
-            solvers = this.chooseSolvers(opts.solver),
+        var aConstraints = [],
+            aSolvers = this.chooseSolvers(opts.solver),
             errors = [];
 
         func.allowTests = (opts.allowTests === true);
@@ -252,23 +252,44 @@ Object.subclass('Babelsberg', {
         func.debugging = opts.debugging;
         func.onError = opts.onError;
 
-        solvers.some(function(solver) {
+        aSolvers.each(function(solver) {
             try {
-                constraint = solver.always(opts, func);
+                aConstraints.push(solver.always(Object.clone(opts), func));
             } catch (e) {
                 errors.push(e);
                 return false;
             }
-            try {
-                if (!opts.postponeEnabling) constraint.enable();
-            } catch (e) {
-                errors.push(e);
-                constraint.disable();
-                constraint = null;
-                return false;
-            }
-            return true;
         });
+
+        for(var i = 0; i < aConstraints.length; i++){
+            try {
+                if (!opts.postponeEnabling) {
+                    Constraint.current = aConstraints[i];
+                    aConstraints[i].enable(aConstraints.length > 1);
+                    aConstraints[i].disable();
+                }
+            } catch (e) {
+                errors.push(e);
+                aConstraints[i].disable();
+                aConstraints[i] = null;
+            } finally {
+                Constraint.current = null;
+            }
+        };
+
+        var min = Number.MAX_VALUE;
+        var minIndex = -1;
+        for (var i = 0; i < aConstraints.length; i++){
+            if (aConstraints[i] && aConstraints[i].oComparisonMetrics.time < min){
+                min = aConstraints[i].oComparisonMetrics.time;
+                minIndex = i;
+            }
+        }
+        if (minIndex == -1) throw new Error("No constraint to select");
+        constraint = aConstraints[minIndex];
+        constraint.enable();
+        console.log("Selected fastest solver:");
+        console.log(constraint.solver);
 
         if (!constraint) {
             if (typeof opts.onError === 'function') {
@@ -459,9 +480,10 @@ Object.subclass('Constraint', {
      * Enables this constraint. This is done automatically after
      * constraint construction by most solvers.
      * @function Constraint#enable
+     * @param {boolean} [bCompare] signifies that there are multiple solvers to be compared
      * @public
      */
-    enable: function() {
+    enable: function(bCompare) {
         if (!this._enabled) {
             Constraint.enabledConstraintsGuard.tick();
             this.constraintobjects.each(function(ea) {
@@ -471,20 +493,29 @@ Object.subclass('Constraint', {
                 throw new Error('BUG: No constraintobjects were created.');
             }
             this._enabled = true;
+            var nBegin = performance.now();
             this.solver.solve();
+            var nEnd = performance.now();
+            console.log("Time to Solve in enable with solver below:" + (nEnd - nBegin) + " ms");
+            console.log(this.solver);
 
+            var oVariables = {};
             this.constraintvariables.each(function(ea) {
                 var value = ea.getValue();
-                if (value != this.storedValue) {
+                oVariables[ea.ivarname] = value;
+                if (value != ea.storedValue) {
                     // solveForConnectedVariables might eventually
                     // call updateDownstreamExternalVariables, too.
                     // We need this first, however, for the case when
                     // this newly enabled constraint is the new
                     // highest-weight solver
-                    ea.updateDownstreamExternalVariables(value);
-                    ea.solveForConnectedVariables(value);
+                    if(!bCompare){
+                        ea.updateDownstreamExternalVariables(value);
+                        ea.solveForConnectedVariables(value);
+                    }
                 }
             });
+            this.oComparisonMetrics = {time: nEnd - nBegin, values: oVariables};
         }
     },
 
@@ -724,7 +755,10 @@ Object.subclass('ConstrainedVariable', {
                 ConstrainedVariable.$$optionalSetters || [];
 
             try {
+                var nBegin = performance.now(); // nerver uses multiple solvers, since it gets the definig Solver
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
+                console.log("Time to Solve in suggestValue with the solver below for " + this.ivarname + ": " + (performance.now() - nBegin) + " ms");
+                console.log(solver)
                 this.solveForConnectedVariables(value, oldValue, solver, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
@@ -1000,6 +1034,18 @@ Object.subclass('ConstrainedVariable', {
                     if (!solver.fake) {
                         this._hasMultipleSolvers = true;
                     }
+                    var hasEnabledConstraint = false;
+                    for(var i = 0; i < this._constraints.length; i++){
+                        if (this._constraints[i].solver == eVar.solver
+                            && this._constraints[i]._enabled){
+                                hasEnabledConstraint = true;
+                                break;
+                            }
+                    }
+
+                    if (this._constraints.length > 0 && !hasEnabledConstraint)
+                        return;
+
                     var s = eVar.__solver__;
                     if (s.weight > solver.weight) {
                         solver = s;
