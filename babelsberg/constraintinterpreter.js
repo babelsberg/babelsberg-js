@@ -263,11 +263,9 @@ Object.subclass('Babelsberg', {
 
         for(var i = 0; i < aConstraints.length; i++){
             try {
-                if (!opts.postponeEnabling) {
-                    Constraint.current = aConstraints[i];
-                    aConstraints[i].enable(aConstraints.length > 1);
-                    aConstraints[i].disable();
-                }
+				Constraint.current = aConstraints[i];
+				aConstraints[i].enable(aConstraints.length > 1);
+				aConstraints[i].disable();
             } catch (e) {
                 errors.push(e);
                 aConstraints[i].disable();
@@ -287,7 +285,11 @@ Object.subclass('Babelsberg', {
         }
         if (minIndex == -1) throw new Error("No constraint to select");
         constraint = aConstraints[minIndex];
-        constraint.enable();
+		
+		if (!opts.postponeEnabling) {
+			constraint.enable();
+		}
+		
         console.log("Selected fastest solver:");
         console.log(constraint.solver);
 
