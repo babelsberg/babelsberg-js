@@ -266,13 +266,14 @@ Object.subclass('Babelsberg', {
                 if (!opts.postponeEnabling) {
                     Constraint.current = aConstraints[i];
                     aConstraints[i].enable(aConstraints.length > 1);
-                    Constraint.current = null;
                     aConstraints[i].disable();
                 }
             } catch (e) {
                 errors.push(e);
                 aConstraints[i].disable();
                 aConstraints[i] = null;
+            } finally {
+                Constraint.current = null;
             }
         };
 
