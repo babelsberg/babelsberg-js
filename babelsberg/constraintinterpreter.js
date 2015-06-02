@@ -243,33 +243,34 @@ Object.subclass('Babelsberg', {
      * @param {function} func The constraint to be fulfilled.
      */
     always: function(opts, func) {
-        var aConstraints = [],
-            aSolvers = this.chooseSolvers(opts.solver),
-            errors = [];
+        var constraints = [],
+            solvers = this.chooseSolvers(opts.solver),
+            errors = [],
+            constraint = null;
 
         func.allowTests = (opts.allowTests === true);
         func.allowUnsolvableOperations = (opts.allowUnsolvableOperations === true);
         func.debugging = opts.debugging;
         func.onError = opts.onError;
 
-        aSolvers.each(function(solver) {
+        solvers.each(function(solver) {
             try {
-                aConstraints.push(solver.always(Object.clone(opts), func));
+                constraints.push(solver.always(Object.clone(opts), func));
             } catch (e) {
                 errors.push(e);
                 return false;
             }
         });
 
-        for(var i = 0; i < aConstraints.length; i++){
+        for(var i = 0; i < constraints.length; i++){
             try {
-				Constraint.current = aConstraints[i];
-				aConstraints[i].enable(aConstraints.length > 1);
-				aConstraints[i].disable();
+				Constraint.current = constraints[i];
+				constraints[i].enable(constraints.length > 1);
+				constraints[i].disable();
             } catch (e) {
                 errors.push(e);
-                aConstraints[i].disable();
-                aConstraints[i] = null;
+                constraints[i].disable();
+                constraints[i] = null;
             } finally {
                 Constraint.current = null;
             }
@@ -277,14 +278,15 @@ Object.subclass('Babelsberg', {
 
         var min = Number.MAX_VALUE;
         var minIndex = -1;
-        for (var i = 0; i < aConstraints.length; i++){
-            if (aConstraints[i] && aConstraints[i].oComparisonMetrics.time < min){
-                min = aConstraints[i].oComparisonMetrics.time;
+        for (var i = 0; i < constraints.length; i++){
+            if (constraints[i] && constraints[i].oComparisonMetrics.time < min){
+                min = constraints[i].oComparisonMetrics.time;
                 minIndex = i;
             }
         }
-        if (minIndex == -1) throw new Error("No constraint to select");
-        constraint = aConstraints[minIndex];
+        if (minIndex > -1) {
+            constraint = constraints[minIndex];
+        }
 		
 		if (!opts.postponeEnabling) {
 			constraint.enable();
