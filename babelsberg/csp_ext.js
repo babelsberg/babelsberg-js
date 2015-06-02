@@ -95,7 +95,10 @@ module('users.timfelgentreff.babelsberg.csp_ext').
             }
             return cobj;
         },
-        solve: function() { /* ignored */ }
+        solve: function() { /* ignored */ },
+        solverName: 'CSP',
+        supportsMethods: function() { return false; },
+        supportsSoftConstraints: function() { return false; /* XXX: is this correct? */ }
     });
     Object.extend(csp.Solver, {
         weight: 1000,

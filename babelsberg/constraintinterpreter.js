@@ -253,6 +253,8 @@ Object.subclass('Babelsberg', {
         func.debugging = opts.debugging;
         func.onError = opts.onError;
 
+        solvers = this.filterSolvers(solvers, opts);
+        
         solvers.each(function(solver) {
             try {
                 constraints.push(solver.always(Object.clone(opts), func));
@@ -263,7 +265,7 @@ Object.subclass('Babelsberg', {
         });
 
         if (constraints.length > 1) {
-            for(var i = 0; i < constraints.length; i++){
+            for(var i = 0; i < constraints.length; i++) {
                 try {
                     Constraint.current = constraints[i];
                     constraints[i].enable(true);
@@ -279,8 +281,8 @@ Object.subclass('Babelsberg', {
 
             var min = Number.MAX_VALUE;
             var minIndex = -1;
-            for (var i = 0; i < constraints.length; i++){
-                if (constraints[i] && constraints[i].oComparisonMetrics.time < min){
+            for (var i = 0; i < constraints.length; i++) {
+                if (constraints[i] && constraints[i].oComparisonMetrics.time < min) {
                     min = constraints[i].oComparisonMetrics.time;
                     minIndex = i;
                 }
@@ -289,14 +291,10 @@ Object.subclass('Babelsberg', {
                 constraint = constraints[minIndex];
             }
             constraint = constraints[minIndex];
-            console.log("Selected fastest solver:");
+            console.log('Selected fastest solver:');
             console.log(constraint.solver);
-        } else {
+        } else if (constraints.length == 1) {
             constraint = constraints[0];
-        }
-
-        if (!opts.postponeEnabling) {
-            constraint.enable();
         }
 
         if (!constraint) {
@@ -308,6 +306,10 @@ Object.subclass('Babelsberg', {
                     e.errors = Array.from(arguments);
                     throw e;
                 }, null, errors);
+            }
+        } else {
+            if (!opts.postponeEnabling) {
+                constraint.enable();
             }
         }
         bbb.processCallbacks();
@@ -337,6 +339,26 @@ Object.subclass('Babelsberg', {
             return [];
             // throw new Error('Must pass a solver, or set defaultSolver.');
         }
+    },
+    
+    filterSolvers: function(solvers, opts) {
+        var result = [];
+        
+        solvers.each(function(solver){
+            if (opts.methods && !solver.supportsMethods()) {
+                console.log('Ignoring ' + solver.solverName + ' because it does not support opts.methods')
+                return false;
+            }
+            
+            if (opts.priority && opts.priority != 'required' && !solver.supportsSoftConstraints()) {
+                console.log('Ignoring ' + solver.solverName + ' because it does not support soft constraints')
+                return false;
+            }
+            
+            result.push(solver);
+        });
+        
+        return result;
     },
 
     addCallback: function(func, context, args) {

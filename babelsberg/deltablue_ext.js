@@ -92,7 +92,10 @@ DBPlanner.addMethods({
             edit.myOutput.value = newValues[idx];
         });
         this.currentEditPlan.execute();
-    }
+    },
+    solverName: 'DeltaBlue',
+    supportsMethods: function() { return true; },
+    supportsSoftConstraints: function() { return true; }
 });
 
 Object.extend(DBPlanner, {
