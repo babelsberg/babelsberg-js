@@ -269,30 +269,16 @@ Object.subclass('Babelsberg', {
                 try {
                     Constraint.current = constraints[i];
                     constraints[i].enable(true);
-                    constraints[i].disable();
                 } catch (e) {
                     errors.push(e);
-                    constraints[i].disable();
                     constraints[i] = null;
                 } finally {
+                    constraints[i].disable();
                     Constraint.current = null;
                 }
             };
 
-            var min = Number.MAX_VALUE;
-            var minIndex = -1;
-            for (var i = 0; i < constraints.length; i++) {
-                if (constraints[i] && constraints[i].oComparisonMetrics.time < min) {
-                    min = constraints[i].oComparisonMetrics.time;
-                    minIndex = i;
-                }
-            }
-            if (minIndex > -1) {
-                constraint = constraints[minIndex];
-            }
-            constraint = constraints[minIndex];
-            console.log('Selected fastest solver:');
-            console.log(constraint.solver);
+            constraint = this.chooseConstraint(constraints);
         } else if (constraints.length == 1) {
             constraint = constraints[0];
         }
@@ -309,7 +295,7 @@ Object.subclass('Babelsberg', {
             }
         } else {
             if (!opts.postponeEnabling) {
-                constraint.enable();
+                constraint.enable(false);
             }
         }
         bbb.processCallbacks();
@@ -359,6 +345,29 @@ Object.subclass('Babelsberg', {
         });
         
         return result;
+    },
+
+    chooseConstraint: function(constraints){
+        var minTime = Number.MAX_VALUE;
+        var minChanged = Number.MAX_VALUE;
+        var minIndex = -1;
+        var constraint = null;
+        for (var i = 0; i < constraints.length; i++) {
+            if (constraints[i] && constraints[i].comparisonMetrics.time < minTime) {
+                minTime = constraints[i].comparisonMetrics.time;
+                minChanged = constraints[i].comparisonMetrics.values.changed;
+                minIndex = i;
+            } else if (constraints[i] && constraints[i].comparisonMetrics.time == minTime
+                        && constraints[i].comparisonMetrics.values.changed < minChanged) {
+                minChanged = constraints[i].comparisonMetrics.values.changed;
+                minIndex = i;
+            }
+        }
+        if (minIndex > -1) {
+            constraint = constraints[minIndex];
+        }
+        console.log('Selected fastest solver: ' + constraint.solver.solverName);
+        return constraint;
     },
 
     addCallback: function(func, context, args) {
@@ -523,17 +532,17 @@ Object.subclass('Constraint', {
                 throw new Error('BUG: No constraintobjects were created.');
             }
             this._enabled = true;
-            var nBegin = performance.now();
+            var begin = performance.now();
             this.solver.solve();
-            var nEnd = performance.now();
-            console.log("Time to Solve in enable with solver below:" + (nEnd - nBegin) + " ms");
-            console.log(this.solver);
+            var end = performance.now();
+            console.log("Time to Solve in enable with " + this.solver.solverName + ": " + (end - begin) + " ms");
 
-            var oVariables = {};
+            var variables = { changed: 0};
             this.constraintvariables.each(function(ea) {
                 var value = ea.getValue();
-                oVariables[ea.ivarname] = value;
+                variables[ea.ivarname] = value;
                 if (value != ea.storedValue) {
+                    variables.changed += 1;
                     // solveForConnectedVariables might eventually
                     // call updateDownstreamExternalVariables, too.
                     // We need this first, however, for the case when
@@ -545,7 +554,7 @@ Object.subclass('Constraint', {
                     }
                 }
             });
-            this.oComparisonMetrics = {time: nEnd - nBegin, values: oVariables};
+            this.comparisonMetrics = {time: end - begin, values: variables};
         }
     },
 
@@ -785,10 +794,9 @@ Object.subclass('ConstrainedVariable', {
                 ConstrainedVariable.$$optionalSetters || [];
 
             try {
-                var nBegin = performance.now(); // nerver uses multiple solvers, since it gets the definig Solver
+                var begin = performance.now(); // nerver uses multiple solvers, since it gets the definig Solver
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
-                console.log("Time to Solve in suggestValue with the solver below for " + this.ivarname + ": " + (performance.now() - nBegin) + " ms");
-                console.log(solver)
+                console.log("Time to Solve in suggestValue with " + solver.solverName + " for " + this.ivarname + ": " + (performance.now() - begin) + " ms");
                 this.solveForConnectedVariables(value, oldValue, solver, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
@@ -1073,8 +1081,8 @@ Object.subclass('ConstrainedVariable', {
                             }
                     }
 
-                    if (this._constraints.length > 0 && !hasEnabledConstraint)
-                        return;
+                    // if (this._constraints.length > 0 && !hasEnabledConstraint)
+                    //     return;
 
                     var s = eVar.__solver__;
                     if (s.weight > solver.weight) {
