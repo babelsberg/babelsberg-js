@@ -792,8 +792,8 @@ Object.subclass('ConstrainedVariable', {
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
                 if (this.getValue() !== oldValue) {
-                    throw 'solving failed, but variable changed to ' +
-                        this.getValue() + ' from ' + oldValue;
+                    throw new Error('solving failed, but variable changed to ' +
+                        this.getValue() + ' from ' + oldValue);
                 }
                 this.addErrorCallback(e);
             } finally {
