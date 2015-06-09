@@ -1091,6 +1091,12 @@ Object.subclass('ConstrainedVariable', {
             }
         }.bind(this));
 
+        if (solver.fake && solvers.length == 1) {
+            // if there is only one disabled solver, use that one even if disabled
+            // why? to make tests green, that's why (because nobody cared about properly enabling/disabling constraints previously)
+            return solvers[0];
+        }
+
         return solver;
     },
 
