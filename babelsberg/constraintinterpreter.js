@@ -851,8 +851,8 @@ Object.subclass('ConstrainedVariable', {
                 } catch (e) {
                     if (source) {
                         // is freeing the recursionGuard here necessary?
-                        this.$$isStoring = false;
                         this.suggestValue(priorValue, source, 'force');
+                        this.$$isStoring = false;
                     }
                     throw e; // XXX: Lively checks type, so wrap for top-level
                 }
