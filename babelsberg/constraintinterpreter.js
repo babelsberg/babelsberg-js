@@ -631,6 +631,8 @@ Object.subclass('Constraint', {
         });
 
         if (enabled) {
+            this.enable();
+
             assignments = this.constraintvariables.select(function(ea) {
                 // all the cvars that are new after this recalculation
                 return !cvars.include(ea) && ea.isSolveable();
