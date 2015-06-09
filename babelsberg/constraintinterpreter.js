@@ -527,8 +527,7 @@ Object.subclass('Constraint', {
             var nBegin = performance.now();
             this.solver.solve();
             var nEnd = performance.now();
-            console.log("Time to Solve in enable with solver below:" + (nEnd - nBegin) + " ms");
-            console.log(this.solver);
+            console.log("Time to Solve in enable with solver " + this.solver.solverName + ":" + (nEnd - nBegin) + " ms");
 
             var oVariables = {};
             this.constraintvariables.each(function(ea) {
@@ -788,8 +787,7 @@ Object.subclass('ConstrainedVariable', {
             try {
                 var nBegin = performance.now(); // nerver uses multiple solvers, since it gets the definig Solver
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
-                console.log("Time to Solve in suggestValue with the solver below for " + this.ivarname + ": " + (performance.now() - nBegin) + " ms");
-                console.log(solver)
+                console.log("Time to Solve in suggestValue with the solver " + solver.solverName + " for " + this.ivarname + ": " + (performance.now() - nBegin) + " ms");
                 this.solveForConnectedVariables(value, oldValue, solver, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
@@ -1059,7 +1057,7 @@ Object.subclass('ConstrainedVariable', {
         }
     },
     _searchDefiningSolver: function() {
-            var solver = {weight: -1000, fake: true};
+            var solver = {weight: -1000, fake: true, solverName: '(fake)'};
             this.eachExternalVariableDo(function(eVar) {
                 if (eVar) {
                     if (!solver.fake) {
