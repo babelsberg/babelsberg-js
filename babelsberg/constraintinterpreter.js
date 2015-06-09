@@ -523,6 +523,7 @@ Object.subclass('Constraint', {
                 throw new Error('BUG: No constraintobjects were created.');
             }
             this._enabled = true;
+            this.constraintvariables.each(function(v) {v._resetIsSolveable();});
             var nBegin = performance.now();
             this.solver.solve();
             var nEnd = performance.now();
@@ -799,7 +800,7 @@ Object.subclass('ConstrainedVariable', {
                 this.addErrorCallback(e);
             } finally {
                 this.ensureClearSetters(callSetters);
-                if (solver && source) {
+                if (this.isSolveable() && solver && source) {
                     this.bumpSolverWeight(solver, 'down');
                 }
             }
