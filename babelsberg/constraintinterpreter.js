@@ -1059,31 +1059,39 @@ Object.subclass('ConstrainedVariable', {
         }
     },
     _searchDefiningSolver: function() {
-            var solver = {weight: -1000, fake: true, solverName: '(fake)'};
-            this.eachExternalVariableDo(function(eVar) {
-                if (eVar) {
-                    if (!solver.fake) {
-                        this._hasMultipleSolvers = true;
-                    }
-                    var hasEnabledConstraint = false;
-                    for(var i = 0; i < this._constraints.length; i++){
-                        if (this._constraints[i].solver == eVar.solver
-                            && this._constraints[i]._enabled){
-                                hasEnabledConstraint = true;
-                                break;
-                            }
-                    }
+        var solver = {weight: -1000, fake: true, solverName: '(fake)'};
+        var solvers = [];
+        this.eachExternalVariableDo(function(eVar) {
+            if (eVar) {
+                var s = eVar.__solver__;
 
-                    if (this._constraints.length > 0 && !hasEnabledConstraint)
-                        return;
-
-                    var s = eVar.__solver__;
-                    if (s.weight > solver.weight) {
-                        solver = s;
-                    }
+                if (!solver.fake) {
+                    this._hasMultipleSolvers = true;
                 }
-            }.bind(this));
-            return solver;
+
+                if (!s.fake) {
+                    solvers.push(s);
+                }
+
+                var hasEnabledConstraint = false;
+                for(var i = 0; i < this._constraints.length; i++){
+                    if (this._constraints[i].solver == s
+                        && this._constraints[i]._enabled){
+                            hasEnabledConstraint = true;
+                            break;
+                        }
+                }
+
+                if (this._constraints.length > 0 && !hasEnabledConstraint)
+                    return;
+
+                if (s.weight > solver.weight) {
+                    solver = s;
+                }
+            }
+        }.bind(this));
+
+        return solver;
     },
 
     get solvers() {
