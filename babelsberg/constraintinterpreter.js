@@ -533,16 +533,15 @@ Object.subclass('Constraint', {
             this.constraintvariables.each(function(ea) {
                 var value = ea.getValue();
                 oVariables[ea.ivarname] = value;
-                if (value != ea.storedValue) {
-                    // solveForConnectedVariables might eventually
-                    // call updateDownstreamExternalVariables, too.
-                    // We need this first, however, for the case when
-                    // this newly enabled constraint is the new
-                    // highest-weight solver
-                    if(!bCompare){
-                        ea.updateDownstreamExternalVariables(value);
-                        ea.solveForConnectedVariables(value);
-                    }
+                
+                // solveForConnectedVariables might eventually
+                // call updateDownstreamExternalVariables, too.
+                // We need this first, however, for the case when
+                // this newly enabled constraint is the new
+                // highest-weight solver
+                if(!bCompare){
+                    ea.updateDownstreamExternalVariables(value);
+                    ea.solveForConnectedVariables(value);
                 }
             });
             this.oComparisonMetrics = {time: nEnd - nBegin, values: oVariables};
