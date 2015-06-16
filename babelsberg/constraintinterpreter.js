@@ -254,7 +254,7 @@ Object.subclass('Babelsberg', {
         func.onError = opts.onError;
 
         solvers = this.filterSolvers(solvers, opts);
-        
+
         solvers.each(function(solver) {
             try {
                 constraints.push(solver.always(Object.clone(opts), func));
@@ -265,7 +265,7 @@ Object.subclass('Babelsberg', {
         });
 
         if (constraints.length > 1) {
-            for(var i = 0; i < constraints.length; i++) {
+            for (var i = 0; i < constraints.length; i++) {
                 try {
                     Constraint.current = constraints[i];
                     constraints[i].enable(true);
@@ -277,7 +277,7 @@ Object.subclass('Babelsberg', {
                 } finally {
                     Constraint.current = null;
                 }
-            };
+            }
 
             var min = Number.MAX_VALUE;
             var minIndex = -1;
@@ -301,7 +301,7 @@ Object.subclass('Babelsberg', {
             } catch (e) {
                 errors.push(e);
                 constraint.disable();
-                constraint = null;               
+                constraint = null;
             }
         }
 
@@ -344,24 +344,27 @@ Object.subclass('Babelsberg', {
             // throw new Error('Must pass a solver, or set defaultSolver.');
         }
     },
-    
+
     filterSolvers: function(solvers, opts) {
         var result = [];
-        
-        solvers.each(function(solver){
+
+        solvers.each(function(solver) {
             if (opts.methods && !solver.supportsMethods()) {
-                console.log('Ignoring ' + solver.solverName + ' because it does not support opts.methods')
+                console.log('Ignoring ' + solver.solverName +
+                    ' because it does not support opts.methods');
                 return false;
             }
-            
-            if (opts.priority && opts.priority != 'required' && !solver.supportsSoftConstraints()) {
-                console.log('Ignoring ' + solver.solverName + ' because it does not support soft constraints')
+
+            if (opts.priority && opts.priority != 'required' &&
+                !solver.supportsSoftConstraints()) {
+                console.log('Ignoring ' + solver.solverName +
+                    ' because it does not support soft constraints');
                 return false;
             }
-            
+
             result.push(solver);
         });
-        
+
         return result;
     },
 
@@ -514,7 +517,8 @@ Object.subclass('Constraint', {
      * Enables this constraint. This is done automatically after
      * constraint construction by most solvers.
      * @function Constraint#enable
-     * @param {boolean} [bCompare] signifies that there are multiple solvers to be compared
+     * @param {boolean} [bCompare] signifies that there are multiple
+     *                              solvers to be compared
      * @public
      */
     enable: function(bCompare) {
@@ -528,22 +532,23 @@ Object.subclass('Constraint', {
             }
             this._enabled = true;
             this.constraintvariables.each(function(v) {v._resetIsSolveable();});
-            console.time("solve");
+            console.time('solve');
             this.solver.solve();
-            var time = console.timeEnd("solve");
-            console.log("Time to Solve in enable with solver " + this.solver.solverName + ":" + time + " ms");
+            var time = console.timeEnd('solve');
+            console.log('Time to solve in enable with solver ' +
+                this.solver.solverName + ': ' + time + ' ms');
 
             var oVariables = {};
             this.constraintvariables.each(function(ea) {
                 var value = ea.getValue();
                 oVariables[ea.ivarname] = value;
-                
+
                 // solveForConnectedVariables might eventually
                 // call updateDownstreamExternalVariables, too.
                 // We need this first, however, for the case when
                 // this newly enabled constraint is the new
                 // highest-weight solver
-                if(!bCompare){
+                if (!bCompare) {
                     ea.updateDownstreamExternalVariables(value);
                     ea.solveForConnectedVariables(value);
                 }
@@ -790,10 +795,12 @@ Object.subclass('ConstrainedVariable', {
                 ConstrainedVariable.$$optionalSetters || [];
 
             try {
-                console.time('solve'); // nerver uses multiple solvers, since it gets the definig Solver
+                console.time('solve');
+                // never uses multiple solvers, since it gets the defining Solver
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
                 var time = console.timeEnd('solve');
-                console.log("Time to Solve in suggestValue with the solver " + solver.solverName + " for " + this.ivarname + ": " + time + " ms");
+                console.log('Time to solve in suggestValue with the solver ' +
+                    solver.solverName + ' for ' + this.ivarname + ': ' + time + ' ms');
                 this.solveForConnectedVariables(value, oldValue, solver, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
@@ -1078,9 +1085,9 @@ Object.subclass('ConstrainedVariable', {
                 }
 
                 var hasEnabledConstraint = false;
-                for(var i = 0; i < this._constraints.length; i++){
-                    if (this._constraints[i].solver == s
-                        && this._constraints[i]._enabled){
+                for (var i = 0; i < this._constraints.length; i++) {
+                    if (this._constraints[i].solver == s &&
+                        this._constraints[i]._enabled) {
                             hasEnabledConstraint = true;
                             break;
                         }
@@ -1097,7 +1104,8 @@ Object.subclass('ConstrainedVariable', {
 
         if (solver.fake && solvers.length == 1) {
             // if there is only one disabled solver, use that one even if disabled
-            // why? to make tests green, that's why (because nobody cared about properly enabling/disabling constraints previously)
+            // why? to make tests green, that's why (because nobody cared about
+            // properly enabling/disabling constraints previously)
             return solvers[0];
         }
 
@@ -1162,10 +1170,11 @@ Object.subclass('ConstrainedVariable', {
     },
 
     getValue: function() {
-        var anyEnabled = this._constraints.length == 0 || this._constraints.some(function(constraint){
-            return constraint._enabled;
-        });
-        if (this.isSolveable() && anyEnabled){
+        var anyEnabled = this._constraints.length == 0 ||
+            this._constraints.some(function(constraint) {
+                return constraint._enabled;
+            });
+        if (this.isSolveable() && anyEnabled) {
             return this.externalValue;
         } else {
             return this.storedValue;
