@@ -1163,7 +1163,10 @@ Object.subclass('ConstrainedVariable', {
     },
 
     getValue: function() {
-        if (this.isSolveable()) {
+        var anyEnabled = this._constraints.length == 0 || this._constraints.some(function(constraint){
+            return constraint._enabled;
+        });
+        if (this.isSolveable() && anyEnabled){
             return this.externalValue;
         } else {
             return this.storedValue;
