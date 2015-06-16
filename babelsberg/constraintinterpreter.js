@@ -293,11 +293,11 @@ Object.subclass('Babelsberg', {
             }
         } else if (constraints.length == 1) {
             constraint = constraints[0];
+        }
+
+        if (!opts.postponeEnabling && constraint) {
             try {
-                if (!opts.postponeEnabling) {
-                    constraint.enable(true);
-                    constraint.disable();
-                }
+                constraint.enable();
             } catch (e) {
                 errors.push(e);
                 constraint.disable();
@@ -314,10 +314,6 @@ Object.subclass('Babelsberg', {
                     e.errors = Array.from(arguments);
                     throw e;
                 }, null, errors);
-            }
-        } else {
-            if (!opts.postponeEnabling) {
-                constraint.enable();
             }
         }
         bbb.processCallbacks();
