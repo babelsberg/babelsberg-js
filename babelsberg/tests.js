@@ -28,6 +28,39 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         obj.a = 110;
         this.assert(obj.a == 110);
     },
+    testDisableConstraint: function() {
+        var obj = {a: 8};
+        var error = false;
+        var c = bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            return obj.a >= 100;
+        });
+        this.assert(obj.a == 100);
+        obj.a = 110;
+        this.assert(obj.a == 110);
+        try {
+            obj.a = 90;
+        } catch(e) {
+            error = true
+        }
+        this.assert(error);
+        c.disable();
+        obj.a = 90;
+        this.assert(obj.a == 90);
+        c.enable();
+        this.assert(obj.a == 100);
+        error = false;
+        try {
+            obj.a = 90;
+        } catch(e) {
+            error = true
+        }
+        this.assert(error);
+    },
 
     testSimplePath: function () {
         ClSimplexSolver.resetInstance();
@@ -485,6 +518,115 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
 
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.PropagationTest', {
+    _testOneWayConstraintFromEqualsWrapsNestedProperties: function() {
+        var o = {a: pt(0,0),
+                 b: pt(1,1),
+                 c: pt(2,2)};
+
+        bbb.always({
+            solver: new DBPlanner(),
+            ctx: {
+                DBPlanner: DBPlanner,
+                o: o,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return o.a.equals(o.b.addPt(o.c)) && o.b.equals(o.a.subPt(o.c)) && o.c.equals(o.a.subPt(o.b));;
+        });
+        
+        this.assert(o.a.equals(o.b.addPt(o.c)));
+
+        o.a = pt(100,100);
+        this.assert(o.a.equals(o.b.addPt(o.c)));
+        this.assert(o.a.equals(pt(100,100)));
+
+        // TODO XXX: these require value class updates
+        // o.a.x = 12
+        // this.assert(o.a.equals(o.b.addPt(o.c)));
+        // this.assert(o.a.equals(pt(12,100)));
+
+        // o.b.y = pt(23)
+        // this.assert(o.a.equals(o.b.addPt(o.c)));
+        // this.assert(o.b.y === 23);
+
+        o.c.x = 18
+        this.assert(o.a.equals(o.b.addPt(o.c)));
+        this.assert(o.c.x === 18);
+    },
+
+    testOneWayConstraintFromEquals: function() {
+        var o = {a: pt(0,0),
+                 b: pt(1,1),
+                 c: pt(2,2)};
+
+        bbb.always({
+            solver: new DBPlanner(),
+            ctx: {
+                DBPlanner: DBPlanner,
+                o: o,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return o.a.equals(o.b.addPt(o.c)) && o.b.equals(o.a.subPt(o.c)) && o.c.equals(o.a.subPt(o.b));;
+        });
+        
+        this.assert(o.a.equals(o.b.addPt(o.c)));
+
+        o.a = pt(100,100);
+        this.assert(o.a.equals(o.b.addPt(o.c)));
+        this.assert(o.a.equals(pt(100,100)));
+
+        o.b = pt(20,20)
+        this.assert(o.a.equals(o.b.addPt(o.c)));
+        this.assert(o.b.equals(pt(20,20)));
+
+        o.c = pt(13,13)
+        this.assert(o.a.equals(o.b.addPt(o.c)));
+        this.assert(o.c.equals(pt(13,13)));
+    },
+
+    testOneWayConstraintFromEq: function() {
+        var o = {string: "0",
+                 number: 0};
+
+        bbb.always({
+            solver: new DBPlanner(),
+            ctx: {parseFloat: parseFloat, o: o}
+        }, function () {
+            return o.string == o.number + "" &&
+            o.number == parseFloat(o.string);
+        });
+
+        this.assert(o.string === o.number + "");
+        o.string = "1"
+        this.assert(o.number === 1);
+        var cannotSatisfy;
+        o.number = 12;
+        this.assert(o.number == 12);
+        this.assert(o.string == "12");
+    },
+
+    testOnlyOneConstraintIsCreatedWithoutAnd: function() {
+        var o = {string: "0",
+                 number: 0};
+
+        bbb.always({
+            solver: new DBPlanner(),
+            ctx: {parseFloat: parseFloat, o: o}
+        }, function () {
+            o.string == o.number + "";
+            return o.number == parseFloat(o.string);
+        });
+
+        this.assert(o.string === o.number + "");
+        o.string = "1"
+        this.assert(o.number === 1);
+        var cannotSatisfy;
+        o.number = 12;
+        this.assert(o.number == 1);
+        this.assert(o.string == 1);
+    },
+
     testSimplePropagation: function() {
         var o = {string: "0",
                  number: 0};

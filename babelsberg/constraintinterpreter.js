@@ -48,10 +48,10 @@ Object.subclass('Babelsberg', {
         var existingSetter = obj.__lookupSetter__(newName),
             existingGetter = obj.__lookupGetter__(newName);
         if (existingGetter) {
-            obj.__defineGetter__(this.accessor, existingGetter);
+            obj.__defineGetter__(accessor, existingGetter);
         }
         if (existingSetter) {
-            obj.__defineSetter__(this.accessor, existingSetter);
+            obj.__defineSetter__(accessor, existingSetter);
         }
         if (!existingSetter || !existingGetter) {
             delete obj[accessor];
@@ -282,6 +282,18 @@ Object.subclass('Babelsberg', {
             }
         }
         bbb.processCallbacks();
+        return constraint;
+    },
+
+    /**
+     * Creates a constraint equivalent to the given function through
+     * Babelsberg#always, and then disables it immediately
+     * @function Babelsberg#once
+     * @public
+     */
+    once: function(opts, func) {
+        var constraint = this.always(opts, func);
+        constraint.disable();
         return constraint;
     },
 
@@ -532,6 +544,7 @@ Object.subclass('Constraint', {
     },
 
     recalculate: function() {
+        if (!this._enabled) return;
         // TODO: Fix this so it uses the split-stay result, i.e. just
         // increase the stay for the newly assigned value
         if (this.isTest && !this.solver) {
@@ -921,12 +934,7 @@ Object.subclass('ConstrainedVariable', {
 
     updateDownstreamVariables: function(value) {
         this.updateDownstreamExternalVariables(value);
-
-        if (!this.isValueClass()) {
-            this.recalculateDownstreamConstraints(value);
-        } else {
-            this.updateValueClassParts(value);
-        }
+        this.updateDownstreamUnsolvableVariables(value);
     },
 
     updateDownstreamExternalVariables: function(value) {
@@ -939,6 +947,14 @@ Object.subclass('ConstrainedVariable', {
                 ea.setReadonly(wasReadonly);
             }
         });
+    },
+
+    updateDownstreamUnsolvableVariables: function(value) {
+        if (!this.isValueClass()) {
+            this.recalculateDownstreamConstraints(value);
+        } else {
+            this.updateValueClassParts(value);
+        }
     },
 
     recalculateDownstreamConstraints: function(value) {
@@ -1000,8 +1016,8 @@ Object.subclass('ConstrainedVariable', {
                 var s = eVar.__solver__;
                 solvers.push(s);
             }
-        }).uniq();
-        return solvers;
+        });
+        return solvers.uniq();
     },
     get definingExternalVariable() {
         return this.externalVariables(this.definingSolver);
@@ -1019,6 +1035,7 @@ Object.subclass('ConstrainedVariable', {
         // TODO: add more value classes
         return !this.isSolveable() &&
             this.storedValue instanceof lively.Point;
+        // return false && this.storedValue instanceof lively.Point;
     },
 
     get storedValue() {
@@ -1094,6 +1111,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         '-': ['minus'],
         '*': ['times', 'times'],
         '/': ['divide'],
+        '%': ['modulo'],
         '==': ['cnEquals', 'cnEquals'],
         '===': ['cnIdentical', 'cnIdentical'],
         '<=': ['cnLeq', 'cnGeq'],
@@ -1232,6 +1250,10 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
             if (func) {
                 var forInterpretation = func.forInterpretation;
                 func.forInterpretation = undefined;
+                var prevNode = bbb.currentNode,
+                    prevInterp = bbb.currentInterpreter;
+                bbb.currentInterpreter = this;
+                bbb.currentNode = node;
                 try {
                     return cop.withoutLayers([ConstraintConstructionLayer], function() {
                         return $super(node, recv, func, argValues);
@@ -1249,6 +1271,8 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
                     );
                 } finally {
                     func.forInterpretation = forInterpretation;
+                    bbb.currentInterpreter = prevInterp;
+                    bbb.currentNode = prevNode;
                 }
             } else {
                 return this.errorIfUnsolvable(
@@ -1261,6 +1285,8 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
                     }).bind(this)
                 );
             }
+        } else if (func === Date) {
+            return new func();
         } else if (recv === Math) {
             if (func === Math.sqrt && argValues[0].pow || argValues[0].sqrt) {
                 if (argValues[0].pow) {
@@ -1285,6 +1311,19 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         }
     },
     visitBinaryOp: function($super, node) {
+        var prevNode = bbb.currentNode,
+            prevInterp = bbb.currentInterpreter;
+        bbb.currentInterpreter = this;
+        bbb.currentNode = node;
+        try {
+            return this.pvtVisitBinaryOp($super, node);
+        } finally {
+            bbb.currentInterpreter = prevInterp;
+            bbb.currentNode = prevNode;
+        }
+    },
+
+    pvtVisitBinaryOp: function(mySuper, node) {
         var op = node.name;
 
         // /* Only supported */ if (node.name.match(/[\*\+\/\-]|==|<=|>=|===|<|>|\|\|/)) {
@@ -1294,10 +1333,10 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         if (leftVal === undefined) leftVal = 0;
         if (rightVal === undefined) rightVal = 0;
 
-        var rLeftVal = leftVal.isConstraintObject ?
+        var rLeftVal = (leftVal && leftVal.isConstraintObject) ?
             this.getConstraintObjectValue(leftVal) :
             leftVal,
-            rRightVal = rightVal.isConstraintObject ?
+            rRightVal = (rightVal && rightVal.isConstraintObject) ?
             this.getConstraintObjectValue(rightVal) :
             rightVal;
         switch (node.name) {
@@ -1323,17 +1362,23 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
                 if (node.name != '-') {
                     if (leftVal.isConstraintObject && leftVal.cnIn) {
                         return leftVal.cnIn(rightVal);
-                    } // special case for reversing minus - allowed to
-                      // fall through to default
-                    // TODO: rightVal->contains if !leftVal.isConstraintObject
+                    } else if (this.$finiteDomainProperty) {
+                        var lV = this.$finiteDomainProperty;
+                        delete this.$finiteDomainProperty;
+                        if (lV.cnIn) {
+                            return lV.cnIn(rightVal);
+                        }
+                    } // TODO: rightVal->contains if !leftVal.isConstraintObject
+                // special case for reversing minus - allowed to
+                // fall through to default
                 }
             default:
                 var method = this.binaryExpressionMap[node.name];
                 if (method) {
-                    if (leftVal.isConstraintObject &&
+                    if (leftVal && leftVal.isConstraintObject &&
                         typeof(leftVal[method[0]]) == 'function') {
                         return leftVal[method[0]](rightVal);
-                    } else if (rightVal.isConstraintObject &&
+                    } else if (rightVal && rightVal.isConstraintObject &&
                                typeof(rightVal[method[1]]) == 'function') {
                         return rightVal[method[1]](leftVal);
                     } else {
@@ -1345,7 +1390,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
                         );
                     }
                 } else {
-                    return this.errorIfUnsolvable(op, leftVal, rightVal, $super(node));
+                    return this.errorIfUnsolvable(op, leftVal, rightVal, mySuper(node));
                 }
         }
     },
@@ -1370,6 +1415,9 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         if (obj && obj.isConstraintObject) {
             if (obj['cn' + name]) {
                 return obj['cn' + name]; // XXX: TODO: Document this
+            } else if (name === 'is') {
+                // possibly a finite domain definition
+                this.$finiteDomainProperty = obj;
             } else {
                 cobj = obj.__cvar__;
                 obj = this.getConstraintObjectValue(obj);
@@ -1449,6 +1497,26 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
         var nativeClass = lively.Class.isClass(func) && func.superclass === undefined;
         return (!(this.isNative(func) || nativeClass)) &&
                  typeof(func.forInterpretation) == 'function';
+    },
+    getCurrentScope: function() {
+        var scope = {};
+        var frame = this.currentFrame;
+        while (frame) {
+            if (frame.mapping === Global) { // reached global scope
+                return scope;
+            }
+            for (var key in frame.mapping) {
+                scope[key] = frame.mapping[key];
+            }
+            var mapping = frame.func.getVarMapping();
+            if (mapping) {
+                for (var key in mapping) {
+                    scope[key] = mapping[key];
+                }
+            }
+            frame = frame.getContainingScope();
+        }
+        return scope;
     },
     newObject: function($super, func) {
         if (func.original) {

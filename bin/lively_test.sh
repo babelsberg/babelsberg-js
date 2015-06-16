@@ -12,7 +12,7 @@ fi
 npm install
 node bin/lk-server --no-partsbin-check &
 sleep 15
-sed -i 's/var testList = baseTests;/var testList = [\"users.timfelgentreff.babelsberg.tests\", \"users.ohshima.ElectricalCircuitTests\", \"users.ohshima.ElectricalComponentsTests\"]; browserTests = [];/' run_tests.js
+sed -i 's/var testList = baseTests;/var testList = [\"users.timfelgentreff.babelsberg.tests\", \"users.ohshima.ElectricalCircuitTests\", \"users.ohshima.ElectricalComponentsTests\", \"users.timfelgentreff.reactive.reactive_test\", \"users.timfelgentreff.z3.Z3BBBTests\", \"users.timfelgentreff.backtalk.tests\"]; browserTests = [];/' run_tests.js
 npm test
 exitcode=$?
 
@@ -28,6 +28,10 @@ if [ $exitcode -eq 0 ]; then
 	    curl -T $TRAVIS_BUILD_DIR/standalone/babelsberg.sutherland.js http://www.lively-kernel.org/babelsberg/
 	    curl -T $TRAVIS_BUILD_DIR/standalone/babelsberg.reactive.js http://www.lively-kernel.org/babelsberg/
 	    curl -T $TRAVIS_BUILD_DIR/standalone/babelsberg.z3.js http://www.lively-kernel.org/babelsberg/
+	    curl -T $TRAVIS_BUILD_DIR/z3/emz3/z3.js http://www.lively-kernel.org/babelsberg/
+	    curl -T $TRAVIS_BUILD_DIR/z3/emz3/z3.js.map http://www.lively-kernel.org/babelsberg/
+	    curl -T $TRAVIS_BUILD_DIR/z3/emz3/z3.js.mem http://www.lively-kernel.org/babelsberg/
+	    curl -T $TRAVIS_BUILD_DIR/standalone/babelsberg.backtalk.js http://www.lively-kernel.org/babelsberg/
 	fi
     fi
 fi

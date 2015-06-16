@@ -1,5 +1,6 @@
 module('users.timfelgentreff.babelsberg.deltablue_ext').
-requires('users.timfelgentreff.deltablue.deltablue').
+requires('users.timfelgentreff.deltablue.deltablue',
+         'users.timfelgentreff.jsinterpreter.Interpreter').
 toRun(function() {
 
 DBPlanner.addMethods({
@@ -14,7 +15,12 @@ DBPlanner.addMethods({
         if (Object.isString(opts.priority)) {
             opts.priority = this.strength[opts.priority];
         }
-        //func.allowUnsolvableOperations = true; // XXX TODO: find out if we need this
+        // XXX TODO: we should not actually need the next thing,
+        // but the implementation of DBVariable>>cnEquals is
+        // not complete. It needs to evaluate the RHS/argument
+        // only using allowUnsolveable...
+        func.allowUnsolvableOperations = true;
+
         var planner = this,
             ctx = opts.ctx,
             priority = opts.priority,
@@ -53,7 +59,7 @@ DBPlanner.addMethods({
         if (!this.currentEdits) {
             this.currentEdits = new DBOrderedCollection();
         }
-        var edit = new EditDBConstraint(v, DBStrength.REQUIRED, this);
+        var edit = new EditDBConstraint(v, DBStrength.required, this);
         this.currentEdits.add(edit);
         return edit;
     },
@@ -124,7 +130,7 @@ DBVariable.addMethods({
     },
     setReadonly: function(bool) {
         if (bool && !this.readonlyConstraint) {
-            var cn = new StayDBConstraint(this, DBStrength.required, this.planner);
+            var cn = new StayDBConstraint(this, DBStrength.STONG_PREFERRED, this.planner);
             cn.enable();
             this.readonlyConstraint = cn;
             return cn;
@@ -139,6 +145,7 @@ DBVariable.addMethods({
 
 
     formula: function(inputs, func) {
+        console.warn('Deprecated: Using DBVariable>>formula');
         if (!Constraint.current) {
             throw 'invalid outside constraint construction';
         }
@@ -154,15 +161,9 @@ DBVariable.addMethods({
     removeFormula: function() {
         var f = this.__formula__;
         this.__formula__ = undefined;
-        if (!f) {
-            f = this.deriveFormula();
-        }
         return f;
     },
-    deriveFormula: function() {
-        // TODO
-        return;
-    },
+
 
     removeStay: function() {
         if (this._stayConstraint) {
@@ -191,7 +192,7 @@ DBVariable.addMethods({
     },
     cnIdentical: function(other) {
         if (!(other instanceof DBVariable)) {
-            other = new DBVariable('___', other, this.planner);
+            other = new DBVariable('constant/' + other, other, this.planner);
             var stay = new StayDBConstraint(other, DBStrength.required, this.planner);
             stay.enable(DBStrength.required);
         }
@@ -204,10 +205,45 @@ DBVariable.addMethods({
     },
     cnEquals: function(other) {
         if (!(other instanceof DBVariable)) {
-            other = new DBVariable('constant/' + other, other, this.planner);
-            Constraint.current.addPrimitiveConstraint(
-                new StayDBConstraint(other, DBStrength.required, this.planner)
-            );
+            var formulaNode = bbb.currentNode &&
+                    ((bbb.currentNode.name === '==') ||
+                        (bbb.currentNode.property &&
+                         bbb.currentNode.property.value === 'equals')) &&
+                    (bbb.currentNode.right || bbb.currentNode.args[0]);
+            if (formulaNode) {
+                var self = this;
+                // let's generate a formula
+                var argumentString = cop.withLayers([PrintOMetaVariableAsBBBField],
+                    function() {
+                        return formulaNode.asJS();
+                    }
+                );
+                var varMapping = bbb.currentInterpreter.getCurrentScope();
+                var func = (function() {
+                        window.$$bbbVarMapping = varMapping;
+                        try {
+                            return eval(argumentString);
+                        } finally {
+                            delete window.$$bbbVarMapping;
+                        }
+                    });
+
+                // TODO: Trace through formulaNode and only add the actual dependencies
+                var inputs = Constraint.current.constraintvariables.map(function(cvar) {
+                    return cvar.externalVariable;
+                }).filter(function(evar) {
+                    return evar && evar !== this && typeof(evar.name) == 'string';
+                }.bind(this));
+
+                var c = new UserDBConstraint(function() {}, Constraint.current.solver);
+                c.formula(this, inputs, func);
+                return c;
+            } else {
+                other = new DBVariable('constant/' + other, other, this.planner);
+                Constraint.current.addPrimitiveConstraint(
+                    new StayDBConstraint(other, DBStrength.required, this.planner)
+                );
+            }
         }
 
         var self = this;
@@ -232,12 +268,34 @@ DBVariable.addMethods({
     cnOr: function(other) {
         return this.value ? this : other;
     },
-    equals: function(argument) {
-        return this.cnEquals(argument);
+    equals: function() {
+        return this.cnEquals.apply(this, arguments);
     }
 });
-
-
+UserDBConstraint.addMethods({
+    cnAnd: function(r) {
+        if (r instanceof UserDBConstraint) {
+            for (var i = 0; i < r.formulas.length; i++) {
+                var output = r.outputs[i],
+                    formula = r.formulas[i],
+                    inputs = formula.inputs,
+                    func = formula.func;
+                this.formula(output, inputs, func);
+            }
+            return this;
+        } else {
+            Constraint.current.addPrimitiveConstraint(this);
+            return r;
+        }
+    }
+});
+cop.create('PrintOMetaVariableAsBBBField').
+refineClass(users.timfelgentreff.jsinterpreter.Variable, {
+    asJS: function() {
+        var result = cop.proceed();
+        return '(window.$$bbbVarMapping.' + result + ')';
+    }
+});
 DBConstraint.addMethods({
     isConstraintObject: true,
 

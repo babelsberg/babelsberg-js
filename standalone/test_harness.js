@@ -1,6 +1,25 @@
 window.GlobalErrors = [];
 window.runcount = 0;
 
+Array.prototype.equals = (function (otherArray) {
+    var array = this;
+    // Returns true iff each element in `array` is equal (`==`) to its
+    // corresponding element in `otherArray`
+    var len = array.length;
+    if (!otherArray || len !== otherArray.length) return false;
+    for (var i = 0; i < len; i++) {
+      if (array[i] && otherArray[i] && array[i].equals && otherArray[i].equals) {
+        if (!array[i].equals(otherArray[i])) {
+          return false;
+        } else {
+          continue;
+        }
+      }
+      if (array[i] != otherArray[i]) return false;
+    }
+    return true;
+});
+
 Object.subclass("TestCase", {
     assert: function (bool, msg) {
         if (!bool) {
@@ -46,9 +65,10 @@ lively.Point = function(x, y) {
 };
 lively.Point.prototype = {
     addPt: function(p) {
-        if (arguments.length != 1) throw ('addPt() only takes 1 parameter.');
-
         return new lively.Point(this.x + p.x, this.y + p.y);
+    },
+    subPt: function(p) {
+        return new lively.Point(this.x - p.x, this.y - p.y);
     },
     equals: function(p) {
         return this.eqPt(p);
@@ -146,3 +166,24 @@ Object.extend(lively.morphic.Morph, {
         };
         window.alert.original = temp;
 })();
+
+(function(global) {
+        global.assert = global.assert || function assert(bool) {
+            if(!bool) {
+                throw "assertion failed";
+            }
+        };
+})(this);
+
+Object.subclass('lively.ide.BrowserPanel', {
+    addMorph: function() {}
+});
+
+Object.subclass('lively.morphic.CodeEditor', {
+    initialize: function(unused, src) {
+        this.textString = src;
+        this.owner = new lively.ide.BrowserPanel();
+    },
+    doSave: function() {
+    }
+});

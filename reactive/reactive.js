@@ -136,8 +136,33 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    			throw new ContinuousAssertError(this.message);
 	    }
 	});
-	
-	Object.extend(Babelsberg.prototype, {
+ReactiveSolver.subclass("RecalculateSolver", {
+		initialize: function(message) {
+			this.message = message;
+		},
+	    always: function(opts, func) {
+	        var ctx = opts.ctx;
+	        func.varMapping = ctx;
+	        this.constraint = new Constraint(func, this);
+	        this.predicate = func;
+			this.constraint.allowFailing = true;
+			try {
+				if(!opts.postponeEnabling) { this.constraint.enable(); }
+			} catch(e) {
+				if(e instanceof ContinuousAssertError) {
+					this.constraint.disable();
+				}
+				throw e;
+			}
+	        return this.constraint;
+	    },
+	    solve: function() {
+	        debugger
+	    	if(this.constraint && this.constraint.enabled)
+	    		this.constraint.bbbConstraint.initialize(this.constraint.predicate, this);
+	    }
+	});
+Object.extend(Babelsberg.prototype, {
 		assert: function(opts, func) {
 			opts.solver = new AssertSolver(opts.message);
 			opts.allowUnsolvableOperations = true;
@@ -182,6 +207,17 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    weight: 10
 	});
 	
+	AssertSolver.subclass("__TriggerDefinition__", {
+		initialize: function(opts, func) {
+			this.opts = opts;
+			this.func = func;
+		},
+	    trigger: function(callback) {
+			this.opts.callback = callback;
+			return bbb.trigger(this.opts, this.func);
+		}
+	});
+
 	Object.extend(Babelsberg.prototype, {
 		trigger: function(opts, func) {
 			opts.solver = new TriggerSolver(opts.callback);
@@ -189,6 +225,9 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 			opts.allowTests = true;
 			//opts.debugging = true;
 	        return this.always(opts, func);
+		},
+		when: function(opts, func) {
+			return new __TriggerDefinition__(opts, func);
 		}
 	});
 

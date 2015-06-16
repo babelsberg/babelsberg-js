@@ -670,6 +670,73 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.TriggerTest', {
 		this.assert(callbackCalled, "callback was not called");
 		this.assert(pt2.x = 12, "assignment did not work, pt2.x: " + pt2.x);
 		this.assert(pt2.y = 12, "assignment did not work, pt2.y: " + pt2.y);
+	},
+	testWhenTriggerNotation: function() {
+		var p = {
+			hp: 10,
+			lives: 2
+		};
+		
+		bbb.when({
+			ctx: {
+				p: p
+			}
+		}, function() {
+			return p.hp <=  0;
+		}).trigger(function() {
+			p.lives--;
+			p.hp = 10;
+		});
+
+		this.assert(p.lives === 2, "constraint construction modified variable, p.lives: " + p.lives);
+		this.assert(p.hp === 10, "constraint construction modified variable, p.hp: " + p.hp);
+
+		// valid assignment
+		p.hp = -1;
+		this.assert(p.lives === 1, "callback not triggered correctly (1), p.lives: " + p.lives);
+		this.assert(p.hp === 10, "variable that initiates the trigger could not be reset in callback, p.hp: " + p.hp);
+	},
+	testWhenTriggerDelegate: function() {
+		var p = {
+			hp: 10,
+			lives: 2
+		},
+		expectedReturnObject = {},
+		actualCtx,
+		actualConstraint,
+		expectedConstraint = function() {
+			return p.hp <=  0;
+		},
+		expectedOpts = {
+			ctx: {
+				p: p
+			}
+		},
+		expectedCallback = function() {
+			p.lives--;
+			p.hp = 10;
+		};
+		
+		var bbbTrigger = bbb.trigger;
+		bbb.trigger = function mock() {
+			actualCtx = arguments[0];
+			actualConstraint = arguments[1];
+			
+			return expectedReturnObject;
+		};
+		
+		try {
+			var c = bbb
+				.when(expectedOpts, expectedConstraint)
+				.trigger(expectedCallback);
+
+			this.assert(expectedOpts === actualCtx);
+			this.assert(expectedOpts.callback === expectedCallback);
+			this.assert(expectedConstraint === actualConstraint);
+			this.assert(expectedReturnObject === c);
+		} finally {
+			bbb.trigger = bbbTrigger;
+		}
 	}
 });
 
