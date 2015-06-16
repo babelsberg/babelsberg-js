@@ -294,8 +294,10 @@ Object.subclass('Babelsberg', {
         } else if (constraints.length == 1) {
             constraint = constraints[0];
             try {
-                constraint.enable(true);
-                constraint.disable();
+                if (!opts.postponeEnabling) {
+                    constraint.enable(true);
+                    constraint.disable();
+                }
             } catch (e) {
                 errors.push(e);
                 constraint.disable();
