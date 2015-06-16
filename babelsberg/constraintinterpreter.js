@@ -528,10 +528,10 @@ Object.subclass('Constraint', {
             }
             this._enabled = true;
             this.constraintvariables.each(function(v) {v._resetIsSolveable();});
-            var nBegin = performance.now();
+            console.time("solve");
             this.solver.solve();
-            var nEnd = performance.now();
-            console.log("Time to Solve in enable with solver " + this.solver.solverName + ":" + (nEnd - nBegin) + " ms");
+            var time = console.timeEnd("solve");
+            console.log("Time to Solve in enable with solver " + this.solver.solverName + ":" + time + " ms");
 
             var oVariables = {};
             this.constraintvariables.each(function(ea) {
@@ -548,7 +548,7 @@ Object.subclass('Constraint', {
                     ea.solveForConnectedVariables(value);
                 }
             });
-            this.oComparisonMetrics = {time: nEnd - nBegin, values: oVariables};
+            this.oComparisonMetrics = {time: time, values: oVariables};
         }
     },
 
@@ -790,9 +790,10 @@ Object.subclass('ConstrainedVariable', {
                 ConstrainedVariable.$$optionalSetters || [];
 
             try {
-                var nBegin = performance.now(); // nerver uses multiple solvers, since it gets the definig Solver
+                console.time('solve'); // nerver uses multiple solvers, since it gets the definig Solver
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
-                console.log("Time to Solve in suggestValue with the solver " + solver.solverName + " for " + this.ivarname + ": " + (performance.now() - nBegin) + " ms");
+                var time = console.timeEnd('solve');
+                console.log("Time to Solve in suggestValue with the solver " + solver.solverName + " for " + this.ivarname + ": " + time + " ms");
                 this.solveForConnectedVariables(value, oldValue, solver, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
