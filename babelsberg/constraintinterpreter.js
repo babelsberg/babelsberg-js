@@ -286,6 +286,23 @@ Object.subclass('Babelsberg', {
         return constraint;
     },
 
+    stay: function(opts, func) {
+        func.allowTests = (opts.allowTests === true);
+        func.allowUnsolvableOperations = (opts.allowUnsolvableOperations === true);
+        func.debugging = opts.debugging;
+        func.onError = opts.onError;
+        func.varMapping = opts.ctx;
+        var c = new Constraint(func, opts.solver || this.defaultSolver);
+        c.constraintvariables.each(function (cv) {
+            try {
+                cv.externalVariables(opts.solver || this.defaultSolver).stay(opts.priority);
+            } catch(e) {
+                console.log("Warning: could not add stay to " + cv.ivarname)
+            }
+        }.bind(this));
+        return true;
+    },
+
     /**
      * Creates a constraint equivalent to the given function through
      * Babelsberg#always, and then disables it immediately

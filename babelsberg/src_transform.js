@@ -11,6 +11,11 @@ toRun(function() {
                     (node.label.name === 'always') &&
                     (node.body instanceof UglifyJS.AST_BlockStatement));
         },
+    isStay: function(node) {
+        return ((node instanceof UglifyJS.AST_LabeledStatement) &&
+                (node.label.name === 'stay') &&
+                (node.body instanceof UglifyJS.AST_BlockStatement));
+    },
 
         isRule: function(node) {
             if ((node instanceof UglifyJS.AST_Label) &&
@@ -138,6 +143,8 @@ toRun(function() {
                     return self.transformConstraint(ast, node, 'once');
                 } else if (self.isTrigger(node)) {
                     return self.transformConstraint(ast, node, 'when');
+                } else if (self.isStay(node)) {
+                    return self.transformConstraint(ast, node, 'stay');
                 } else if (self.isRule(node)) {
                     var node = self.createRuleFor(node);
                     self.isTransformed = true;
