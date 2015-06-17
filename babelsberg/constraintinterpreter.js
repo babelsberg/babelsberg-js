@@ -1467,6 +1467,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
             if (retval) {
                 switch (typeof(retval)) {
                 case 'object':
+                case 'function':
                     retval[ConstrainedVariable.ThisAttrName] = cvar;
                     break;
                 case 'number':
