@@ -3732,7 +3732,7 @@ fabric.ElementsParser.prototype.checkIfDone = function() {
      * @return {fabric.Point} new Point instance with added values
      */
     add: function (that) {
-      return new Point(this.x + that.x, this.y + that.y);
+      return new fabric.Point(this.x + that.x, this.y + that.y);
     },
 
     /**
@@ -3812,7 +3812,7 @@ fabric.ElementsParser.prototype.checkIfDone = function() {
      * @return {fabric.Point}
      */
     multiply: function (scalar) {
-      return new Point(this.x * scalar, this.y * scalar);
+      return new fabric.Point(this.x * scalar, this.y * scalar);
     },
 
     /**
@@ -3852,7 +3852,7 @@ fabric.ElementsParser.prototype.checkIfDone = function() {
      * @return {Boolean}
      */
     eq: function (that) {
-      return (this.x === that.x && this.y === that.y);
+      return (this.x == that.x && this.y == that.y);
     },
 
     /**
