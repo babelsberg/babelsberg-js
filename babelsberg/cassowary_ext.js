@@ -74,6 +74,7 @@ ClAbstractVariable.addMethods({
     suggestValue: function(value) {
         var c = this.cnEquals(value),
             s = this.solver;
+        c.changeStrength(ClStrength.strong);
         s.addConstraint(c);
         try {
             s.solve();
