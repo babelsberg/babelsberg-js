@@ -31,7 +31,6 @@ Object.subclass('Babelsberg', {
      * @param {string} accessor The name of the property to be unconstrained.
      */
     unconstrain: function(obj, accessor) {
-        debugger
         if (!obj) return;
         var cvar = ConstrainedVariable.findConstraintVariableFor(obj, accessor);
         if (!cvar) return;
@@ -292,12 +291,13 @@ Object.subclass('Babelsberg', {
         func.debugging = opts.debugging;
         func.onError = opts.onError;
         func.varMapping = opts.ctx;
-        var c = new Constraint(func, opts.solver || this.defaultSolver);
-        c.constraintvariables.each(function (cv) {
+        var solver = (opts.solver || this.defaultSolver),
+            c = new Constraint(func, solver);
+        c.constraintvariables.each(function(cv) {
             try {
-                cv.externalVariables(opts.solver || this.defaultSolver).stay(opts.priority);
-            } catch(e) {
-                console.log("Warning: could not add stay to " + cv.ivarname)
+                cv.externalVariables(solver).stay(opts.priority);
+            } catch (e) {
+                console.log('Warning: could not add stay to ' + cv.ivarname);
             }
         }.bind(this));
         return true;
