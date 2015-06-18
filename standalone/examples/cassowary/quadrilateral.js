@@ -96,16 +96,20 @@ contentLoaded(window, function() {
     always: {mid4.myEnd1().eq(m3.myCenter())}
     always: {mid4.myEnd2().eq(m4.myCenter())}
 
-    // add midpoint constraints (for now treating x and y separately)
-    // Babelsberg complains about this version:
-//    always: {side1.myEnd1().add(side1.myEnd2()).eq(mid1.myEnd1().multiply(2))}
+    // add midpoint constraints
+    always: { side1.myEnd1().add(side1.myEnd2()).eq(mid1.myEnd1().multiply(2))}
+    always: { side2.myEnd1().add(side2.myEnd2()).eq(mid2.myEnd1().multiply(2))}
+    always: { side3.myEnd1().add(side3.myEnd2()).eq(mid3.myEnd1().multiply(2))}
+    always: { side4.myEnd1().add(side4.myEnd2()).eq(mid4.myEnd1().multiply(2))}
 
-    always: {side1.x1+side1.x2 == 2*mid1.x2};
-    always: {side1.y1+side1.y2 == 2*mid1.y2}
-    always: {side2.x1+side2.x2 == 2*mid2.x2};
-    always: {side2.y1+side2.y2 == 2*mid2.y2}
-    always: {side3.x1+side3.x2 == 2*mid3.x2};
-    always: {side3.y1+side3.y2 == 2*mid3.y2}
-    always: {side4.x1+side4.x2 == 2*mid4.x2};
-    always: {side4.y1+side4.y2 == 2*mid4.y2}
+    // always: {side1.x1+side1.x2 == 2*mid1.x2};
+    // always: {side1.y1+side1.y2 == 2*mid1.y2}
+    // always: {side2.x1+side2.x2 == 2*mid2.x2};
+    // always: {side2.y1+side2.y2 == 2*mid2.y2}
+    // always: {side3.x1+side3.x2 == 2*mid3.x2};
+    // always: {side3.y1+side3.y2 == 2*mid3.y2}
+    // always: {side4.x1+side4.x2 == 2*mid4.x2};
+    // always: {side4.y1+side4.y2 == 2*mid4.y2}
+
+    canvas.renderAll();
 });
