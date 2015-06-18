@@ -181,10 +181,13 @@ Object.extend(Babelsberg.prototype, {
 			this.triggeredOnce = false;
 		},
 	    always: function(opts, func) {
+	        func.allowUnsolvableOperations = true;
+			func.allowTests = true;
 	        var ctx = opts.ctx;
 	        func.varMapping = ctx;
 	        var cobj = new Constraint(func, this);
 			cobj.allowFailing = true;
+			if (!this.callback) this.callback = opts.callback;
 	        cobj.addPrimitiveConstraint(new ReactiveSolver.Constraint(this, cobj, func));
 			if(!opts.postponeEnabling) { cobj.enable(); }
 	        return cobj;
