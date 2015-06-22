@@ -1928,7 +1928,28 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
             return obj.a + obj.b == 3;
         });
         this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a working solution");
-	}
+	},
+    testSimplePropagationShouldChooseDeltaBlue: function() {
+        var o = {string: "0",
+                 number: 0};
+
+        bbb.always({
+            ctx: {
+                o: o
+            }, methods: function () {
+                o.string.formula([o.number], function (num) { return num + "" });
+                o.number.formula([o.string], function (str) { return parseInt(str) });
+            }
+        }, function () {
+            return o.string == o.number + "";
+        });
+
+        this.assert(o.string === o.number + "");
+        o.string = "1"
+        this.assert(o.number === 1);
+        o.number = 12
+        this.assert(o.string === "12");
+    }
 });
 
 }) // end of module
