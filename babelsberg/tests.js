@@ -1917,4 +1917,18 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
     }
 });
 
+TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionTest', {
+	testSimpleConstraintWithoutSolver: function () {
+        var obj = {a: 2, b: 3};
+        bbb.always({
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a working solution");
+	}
+});
+
 }) // end of module
