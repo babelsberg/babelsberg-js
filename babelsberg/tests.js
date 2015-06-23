@@ -1920,6 +1920,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionTest', {
 	testSimpleConstraintWithoutSolver: function () {
         bbb.defaultSolvers = [new ClSimplexSolver(), new DBPlanner()];
+
         var obj = {a: 2, b: 3};
         bbb.always({
             ctx: {
@@ -1932,6 +1933,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
 	},
     testSimplePropagationShouldChooseDeltaBlue: function() {
         bbb.defaultSolvers = [new ClSimplexSolver(), new DBPlanner()];
+
         var o = {string: "0",
                  number: 0};
 
