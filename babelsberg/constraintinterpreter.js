@@ -804,8 +804,8 @@ Object.subclass('ConstrainedVariable', {
                 // never uses multiple solvers, since it gets the defining Solver
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
                 console.log('Time to Solve in suggestValue with the solver ' +
-                    (solver ? solver.solverName : '(no solver)') + ' for ' + this.ivarname + ': ' +
-                    (performance.now() - nBegin) + ' ms');
+                    (solver ? solver.solverName : '(no solver)') + ' for ' +
+                    this.ivarname + ': ' + (performance.now() - nBegin) + ' ms');
                 this.solveForConnectedVariables(value, oldValue, solver, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
