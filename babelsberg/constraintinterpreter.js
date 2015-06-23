@@ -791,6 +791,11 @@ Object.subclass('ConstrainedVariable', {
                 oldValue = this.storedValue,
                 solver = this.definingSolver;
 
+            if (!this.hasEnabledConstraint()) {
+                this.setValue(value);
+                return value;
+            }
+
             ConstrainedVariable.$$optionalSetters =
                 ConstrainedVariable.$$optionalSetters || [];
 
@@ -799,7 +804,7 @@ Object.subclass('ConstrainedVariable', {
                 // never uses multiple solvers, since it gets the defining Solver
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
                 console.log('Time to Solve in suggestValue with the solver ' +
-                    solver.solverName + ' for ' + this.ivarname + ': ' +
+                    (solver ? solver.solverName : '(no solver)') + ' for ' + this.ivarname + ': ' +
                     (performance.now() - nBegin) + ' ms');
                 this.solveForConnectedVariables(value, oldValue, solver, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
@@ -826,15 +831,17 @@ Object.subclass('ConstrainedVariable', {
                 var wasReadonly = false,
                 // recursionGuard per externalVariable?
                 eVar = this.definingExternalVariable;
-                try {
-                    if (solver && source) {
-                        this.bumpSolverWeight(solver, 'up');
+                if (eVar) {
+                    try {
+                        if (solver && source) {
+                            this.bumpSolverWeight(solver, 'up');
+                        }
+                        wasReadonly = eVar.isReadonly();
+                        eVar.setReadonly(false);
+                        eVar.suggestValue(value);
+                    } finally {
+                        eVar.setReadonly(wasReadonly);
                     }
-                    wasReadonly = eVar.isReadonly();
-                    eVar.setReadonly(false);
-                    eVar.suggestValue(value);
-                } finally {
-                    eVar.setReadonly(wasReadonly);
                 }
             }).bind(this).recursionGuard(
                 ConstrainedVariable.isSuggestingValue,
@@ -1073,40 +1080,35 @@ Object.subclass('ConstrainedVariable', {
         var solver = {weight: -1000, fake: true, solverName: '(fake)'};
         var solvers = [];
         this.eachExternalVariableDo(function(eVar) {
-            if (eVar) {
-                var s = eVar.__solver__;
+            var s = eVar.__solver__;
 
-                if (!solver.fake) {
-                    this._hasMultipleSolvers = true;
-                }
+            if (!solver.fake) {
+                this._hasMultipleSolvers = true;
+            }
 
-                if (!s.fake) {
-                    solvers.push(s);
-                }
+            if (!s.fake) {
+                solvers.push(s);
+            }
 
-                var hasEnabledConstraint = false;
-                for (var i = 0; i < this._constraints.length; i++) {
-                    if (this._constraints[i].solver == s &&
-                        this._constraints[i]._enabled) {
-                            hasEnabledConstraint = true;
-                            break;
-                        }
-                }
+            var hasEnabledConstraint = false;
+            for (var i = 0; i < this._constraints.length; i++) {
+                if (this._constraints[i].solver == s &&
+                    this._constraints[i]._enabled) {
+                        hasEnabledConstraint = true;
+                        break;
+                    }
+            }
 
-                if (this._constraints.length > 0 && !hasEnabledConstraint)
-                    return;
+            if (this._constraints.length > 0 && !hasEnabledConstraint)
+                return;
 
-                if (s.weight > solver.weight) {
-                    solver = s;
-                }
+            if (s.weight > solver.weight) {
+                solver = s;
             }
         }.bind(this));
 
-        if (solver.fake && solvers.length == 1) {
-            // if there is only one disabled solver, use that one even if disabled
-            // why? to make tests green, that's why (because nobody cared about
-            // properly enabling/disabling constraints previously)
-            return solvers[0];
+        if (solver.fake) {
+            return null;
         }
 
         return solver;
@@ -1115,15 +1117,17 @@ Object.subclass('ConstrainedVariable', {
     get solvers() {
         var solvers = [];
         this.eachExternalVariableDo(function(eVar) {
-            if (eVar) {
-                var s = eVar.__solver__;
-                solvers.push(s);
-            }
+            var s = eVar.__solver__;
+            solvers.push(s);
         });
         return solvers.uniq();
     },
     get definingExternalVariable() {
-        return this.externalVariables(this.definingSolver);
+        if (this.definingSolver) {
+            return this.externalVariables(this.definingSolver);
+        } else {
+            return null;
+        }
     },
 
     isSolveable: function() {
@@ -1170,11 +1174,7 @@ Object.subclass('ConstrainedVariable', {
     },
 
     getValue: function() {
-        var anyEnabled = this._constraints.length == 0 ||
-            this._constraints.some(function(constraint) {
-                return constraint._enabled;
-            });
-        if (this.isSolveable() && anyEnabled) {
+        if (this.isSolveable() && this.hasEnabledConstraint()) {
             return this.externalValue;
         } else {
             return this.storedValue;
@@ -1206,6 +1206,12 @@ Object.subclass('ConstrainedVariable', {
             this._externalVariables[solver.__uuid__] = value || null;
             this._resetIsSolveable();
         }
+    },
+    hasEnabledConstraint: function() {
+        return this._constraints.length == 0 ||
+            this._constraints.some(function(constraint) {
+                return constraint._enabled;
+            });
     }
 });
 
