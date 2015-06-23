@@ -17,7 +17,7 @@ toRun(function() {
 Object.subclass('Babelsberg', {
 
     initialize: function() {
-        this.defaultSolvers = [new ClSimplexSolver(), new DBPlanner()];
+        this.defaultSolvers = [new ClSimplexSolver(), new DBPlanner(), new csp.Solver()];
         this.callbacks = [];
     },
 
