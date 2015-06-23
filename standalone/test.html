@@ -66,6 +66,18 @@
 	<script src="../backtalk/tests.js"></script>
 	
 	<script type="text/javascript">
+		//Workaround: the travis test setup does not support performance
+		// Fall back to Date if performance is not available
+		window.performance = window.performance || {};
+		performance.now = (function() {
+		  return performance.now       ||
+				 performance.mozNow    ||
+				 performance.msNow     ||
+				 performance.oNow      ||
+				 performance.webkitNow ||
+				 function() { return new Date().getTime(); };
+		})();
+
 		obj = {a: 1, b: 2}
 		s = new ClSimplexSolver();
 		bbb.always({solver: s, ctx: {obj: obj}}, function () {
