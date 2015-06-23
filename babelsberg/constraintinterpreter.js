@@ -535,7 +535,8 @@ Object.subclass('Constraint', {
             var nBegin = performance.now();
             this.solver.solve();
             var nEnd = performance.now();
-            console.log("Time to Solve in enable with solver " + this.solver.solverName + ":" + (nEnd - nBegin) + " ms");
+            console.log('Time to Solve in enable with solver ' +
+                this.solver.solverName + ': ' + (nEnd - nBegin) + ' ms');
 
             var oVariables = {};
             this.constraintvariables.each(function(ea) {
@@ -794,10 +795,12 @@ Object.subclass('ConstrainedVariable', {
                 ConstrainedVariable.$$optionalSetters || [];
 
             try {
-                var nBegin = performance.now(); // nerver uses multiple solvers, since it gets the definig Solver
+                var nBegin = performance.now();
                 // never uses multiple solvers, since it gets the defining Solver
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
-                console.log("Time to Solve in suggestValue with the solver " + solver.solverName + " for " + this.ivarname + ": " + (performance.now() - nBegin) + " ms");
+                console.log('Time to Solve in suggestValue with the solver ' +
+                    solver.solverName + ' for ' + this.ivarname + ': ' +
+                    (performance.now() - nBegin) + ' ms');
                 this.solveForConnectedVariables(value, oldValue, solver, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
