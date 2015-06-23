@@ -17,7 +17,7 @@ toRun(function() {
 Object.subclass('Babelsberg', {
 
     initialize: function() {
-        this.defaultSolvers = [];
+        this.defaultSolvers = [new ClSimplexSolver(), new DBPlanner()];
         this.callbacks = [];
     },
 
@@ -532,11 +532,10 @@ Object.subclass('Constraint', {
             }
             this._enabled = true;
             this.constraintvariables.each(function(v) {v._resetIsSolveable();});
-            console.time('solve');
+            var nBegin = performance.now();
             this.solver.solve();
-            var time = console.timeEnd('solve');
-            console.log('Time to solve in enable with solver ' +
-                this.solver.solverName + ': ' + time + ' ms');
+            var nEnd = performance.now();
+            console.log("Time to Solve in enable with solver " + this.solver.solverName + ":" + (nEnd - nBegin) + " ms");
 
             var oVariables = {};
             this.constraintvariables.each(function(ea) {
@@ -553,7 +552,7 @@ Object.subclass('Constraint', {
                     ea.solveForConnectedVariables(value);
                 }
             });
-            this.oComparisonMetrics = {time: time, values: oVariables};
+            this.oComparisonMetrics = {time: nEnd - nBegin, values: oVariables};
         }
     },
 
@@ -795,12 +794,10 @@ Object.subclass('ConstrainedVariable', {
                 ConstrainedVariable.$$optionalSetters || [];
 
             try {
-                console.time('solve');
+                var nBegin = performance.now(); // nerver uses multiple solvers, since it gets the definig Solver
                 // never uses multiple solvers, since it gets the defining Solver
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
-                var time = console.timeEnd('solve');
-                console.log('Time to solve in suggestValue with the solver ' +
-                    solver.solverName + ' for ' + this.ivarname + ': ' + time + ' ms');
+                console.log("Time to Solve in suggestValue with the solver " + solver.solverName + " for " + this.ivarname + ": " + (performance.now() - nBegin) + " ms");
                 this.solveForConnectedVariables(value, oldValue, solver, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
