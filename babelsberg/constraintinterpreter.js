@@ -278,7 +278,7 @@ Object.subclass('Babelsberg', {
                 }
             }
 
-            constraint = this.chooseConstraint(constraints);
+            constraint = this.chooseConstraintBasedOnMetrics(constraints);
 			console.log('Selected fastest solver:' + constraint.solver.solverName);
         } else if (constraints.length == 1) {
             constraint = constraints[0];
@@ -357,7 +357,7 @@ Object.subclass('Babelsberg', {
         return result;
     },
 
-    chooseConstraint: function(constraints){
+    chooseConstraintBasedOnMetrics: function(constraints){
         var minTime = Number.MAX_VALUE;
         var minChanged = Number.MAX_VALUE;
         var minIndex = -1;
