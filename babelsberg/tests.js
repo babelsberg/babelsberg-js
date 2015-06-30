@@ -1925,7 +1925,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionTest', {
 	setUp: function () {
         bbb.defaultSolvers = [new ClSimplexSolver(), new DBPlanner(), new csp.Solver()];
-        delete bbb.defaultSolver;
+        bbb.defaultSolver = null;
 	},
 	testSimpleConstraintWithoutSolver: function () {
         var obj = {a: 2, b: 3};
