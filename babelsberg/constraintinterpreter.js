@@ -555,9 +555,14 @@ Object.subclass('Constraint', {
             console.log("Time to Solve in enable with " + this.solver.solverName + ": " + (end - begin) + " ms");
 
             var variables = { changed: 0};
+            var variableAssigments = {};
             this.constraintvariables.each(function(ea) {
                 var value = ea.getValue();
                 variables[ea.ivarname] = value;
+                var oldValue = ea.storedValue;
+                if (oldValue !== value) {
+                    variableAssigments[ea.ivarname] = {oldValue: oldValue, newValue: value};
+                }
 
                 variables.changed += 1;
                 // solveForConnectedVariables might eventually
@@ -570,7 +575,8 @@ Object.subclass('Constraint', {
                     ea.solveForConnectedVariables(value);
                 }
             });
-            this.comparisonMetrics = {time: end - begin, values: variables};
+            this.comparisonMetrics = {time: end - begin, values: variables,
+                assignments: variableAssigments};
         }
     },
 
