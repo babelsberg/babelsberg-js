@@ -1,4 +1,9 @@
-module('users.timfelgentreff.babelsberg.tests').requires('lively.TestFramework', 'users.timfelgentreff.babelsberg.constraintinterpreter', 'users.timfelgentreff.babelsberg.src_transform_test', 'users.timfelgentreff.reactive.reactive_test').toRun(function() {
+module('users.timfelgentreff.babelsberg.tests').requires(
+	'lively.TestFramework',
+	'users.timfelgentreff.babelsberg.constraintinterpreter',
+	'users.timfelgentreff.babelsberg.src_transform_test',
+	'users.timfelgentreff.reactive.reactive_test'
+).toRun(function() {
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
     testSimple: function () {
@@ -1918,10 +1923,11 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
 });
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionTest', {
-	testSimpleConstraintWithoutSolver: function () {
+	setUp: function () {
+        bbb.defaultSolvers = [new ClSimplexSolver(), new DBPlanner(), new csp.Solver()];
         bbb.defaultSolver = null;
-        bbb.defaultSolvers = [new ClSimplexSolver(), new DBPlanner()];
-
+	},
+	testSimpleConstraintWithoutSolver: function () {
         var obj = {a: 2, b: 3};
         bbb.always({
             ctx: {
@@ -1933,9 +1939,6 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a working solution");
 	},
     testSimplePropagationShouldChooseDeltaBlue: function() {
-        bbb.defaultSolver = null;
-        bbb.defaultSolvers = [new ClSimplexSolver(), new DBPlanner()];
-
         var o = {string: "0",
                  number: 0};
 
@@ -1955,7 +1958,109 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         this.assert(o.number === 1);
         o.number = 12
         this.assert(o.string === "12");
-    }
+    },
+    testBacktalkPaperExampleWithAutomaticSolverSelection: function () {
+    	var man = {
+			shoes: "foo",
+			shirt: "foo",
+			pants: "foo",
+			hat: "foo"
+		};
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shoes.is in ["brown", "black"];;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shirt.is in ["brown", "blue", "white"];;
+        });
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.pants.is in ["brown", "blue", "black", "white"];;
+        });
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.hat.is in ["brown"];;
+        });
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shoes === man.hat;;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shoes !== man.pants;;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shoes !== man.shirt;;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shirt !== man.pants;;
+        });
+
+        this.assert(man.hat === "brown", "hat's domain is restricted to 'brown' only");
+        this.assert(man.shoes === "brown", "shoes have to be 'brown'");
+        this.assert(man.shirt === "blue" || man.shirt === "white", "shirt has to be 'blue' or 'white'");
+        this.assert(man.shirt !== man.pants, "shirt and pants must not have the same color");
+        this.assert(man.pants === "black" || man.pants === "blue" || man.pants === "white", "pants should be 'black', 'blue' or 'white'");
+    },
 });
 
 }) // end of module
