@@ -363,12 +363,15 @@ Object.subclass('Babelsberg', {
         var minIndex = -1;
         var constraint = null;
         for (var i = 0; i < constraints.length; i++) {
-            if (constraints[i] && constraints[i].comparisonMetrics.time < minTime) {
+			if (!constraints[i]) {
+				continue;
+			}
+            if (constraints[i].comparisonMetrics.time < minTime) {
                 minTime = constraints[i].comparisonMetrics.time;
                 minChanged = constraints[i].comparisonMetrics.values.changed;
                 minIndex = i;
-            } else if (constraints[i] && constraints[i].comparisonMetrics.time == minTime
-                        && constraints[i].comparisonMetrics.values.changed < minChanged) {
+            } else if (constraints[i].comparisonMetrics.time == minTime
+					   && constraints[i].comparisonMetrics.values.changed < minChanged) {
                 minChanged = constraints[i].comparisonMetrics.values.changed;
                 minIndex = i;
             }
