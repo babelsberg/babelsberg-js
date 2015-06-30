@@ -820,7 +820,7 @@ Object.subclass('ConstrainedVariable', {
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
                 console.log('Time to Solve in suggestValue with the solver ' +
                     (solver ? solver.solverName : '(no solver)') + ' for ' +
-                    this.ivarname + ': ' + (performance.now() - nBegin) + ' ms');
+                    this.ivarname + ': ' + (performance.now() - begin) + ' ms');
                 this.solveForConnectedVariables(value, oldValue, solver, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
