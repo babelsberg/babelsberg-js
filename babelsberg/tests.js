@@ -1,4 +1,9 @@
-module('users.timfelgentreff.babelsberg.tests').requires('lively.TestFramework', 'users.timfelgentreff.babelsberg.constraintinterpreter', 'users.timfelgentreff.babelsberg.src_transform_test', 'users.timfelgentreff.reactive.reactive_test').toRun(function() {
+module('users.timfelgentreff.babelsberg.tests').requires(
+	'lively.TestFramework',
+	'users.timfelgentreff.babelsberg.constraintinterpreter',
+	'users.timfelgentreff.babelsberg.src_transform_test',
+	'users.timfelgentreff.reactive.reactive_test'
+).toRun(function() {
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
     testSimple: function () {
@@ -1915,6 +1920,147 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
 	    this.assert(onErrorCalled, "onError was not called");
 	    this.assert(errorMessage === "Could not satisfy constraint", "an unexpected error was thrown, message: " + errorMessage);
     }
+});
+
+TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionTest', {
+	setUp: function () {
+        bbb.defaultSolvers = [new ClSimplexSolver(), new DBPlanner(), new csp.Solver()];
+        bbb.defaultSolver = null;
+	},
+	testSimpleConstraintWithoutSolver: function () {
+        var obj = {a: 2, b: 3};
+        bbb.always({
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a working solution");
+	},
+    testSimplePropagationShouldChooseDeltaBlue: function() {
+        var o = {string: "0",
+                 number: 0};
+
+        bbb.always({
+            ctx: {
+                o: o
+            }, methods: function () {
+                o.string.formula([o.number], function (num) { return num + "" });
+                o.number.formula([o.string], function (str) { return parseInt(str) });
+            }
+        }, function () {
+            return o.string == o.number + "";
+        });
+
+        this.assert(o.string === o.number + "");
+        o.string = "1"
+        this.assert(o.number === 1);
+        o.number = 12
+        this.assert(o.string === "12");
+    },
+    testBacktalkPaperExampleWithAutomaticSolverSelection: function () {
+    	var man = {
+			shoes: "foo",
+			shirt: "foo",
+			pants: "foo",
+			hat: "foo"
+		};
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shoes.is in ["brown", "black"];;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shirt.is in ["brown", "blue", "white"];;
+        });
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.pants.is in ["brown", "blue", "black", "white"];;
+        });
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.hat.is in ["brown"];;
+        });
+	    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shoes === man.hat;;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shoes !== man.pants;;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shoes !== man.shirt;;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shirt !== man.pants;;
+        });
+
+        this.assert(man.hat === "brown", "hat's domain is restricted to 'brown' only");
+        this.assert(man.shoes === "brown", "shoes have to be 'brown'");
+        this.assert(man.shirt === "blue" || man.shirt === "white", "shirt has to be 'blue' or 'white'");
+        this.assert(man.shirt !== man.pants, "shirt and pants must not have the same color");
+        this.assert(man.pants === "black" || man.pants === "blue" || man.pants === "white", "pants should be 'black', 'blue' or 'white'");
+    },
 });
 
 }) // end of module
