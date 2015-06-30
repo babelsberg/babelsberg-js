@@ -1922,6 +1922,26 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
     }
 });
 
+TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionDetailsTest', {
+    setUp: function () {
+        bbb.defaultSolvers = [new ClSimplexSolver(), new DBPlanner(), new csp.Solver()];
+        bbb.defaultSolver = null;
+    },
+    testSquaredChangeDistance: function () {
+        var obj = {a: 2, b: 3};
+        var constraint = bbb.always({
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        this.assert(constraint.comparisonMetrics.squaredChangeDistance() ==
+                    (obj.a - 2) * (obj.a - 2) + (obj.b - 3) * (obj.b - 3),
+            "squaredChangeDistance should be the sum of the squared distances");
+    },
+});
+
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionTest', {
 	setUp: function () {
         bbb.defaultSolvers = [new ClSimplexSolver(), new DBPlanner(), new csp.Solver()];
