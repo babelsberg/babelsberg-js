@@ -261,7 +261,9 @@ Object.subclass('Babelsberg', {
 
         solvers.each(function(solver) {
             try {
-                constraints.push(solver.always(Object.clone(opts), func));
+                var constraint = solver.always(Object.clone(opts), func);
+                constraint.logTimings = opts.logTimings;
+                constraints.push(constraint);
             } catch (e) {
                 errors.push(e);
                 return false;
@@ -487,6 +489,7 @@ Object.subclass('Constraint', {
     addConstraintVariable: function(v) {
         if (v && !this.constraintvariables.include(v)) {
             this.constraintvariables.push(v);
+            v.logTimings = this.logTimings;
         }
     },
     get predicate() {
@@ -545,7 +548,7 @@ Object.subclass('Constraint', {
             var nBegin = performance.now();
             this.solver.solve();
             var nEnd = performance.now();
-            if (opts.logTimings) {
+            if (this.logTimings) {
                 console.log((this.solver ? this.solver.solverName : '(no solver)') +
                     ' took ' + (nEnd - nBegin) + ' ms to solve for ' +
                     this.ivarname + ' in enable');
@@ -816,7 +819,7 @@ Object.subclass('ConstrainedVariable', {
                 var nBegin = performance.now();
                 // never uses multiple solvers, since it gets the defining Solver
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
-                if (opts.logTimings) {
+                if (this.logTimings) {
                     console.log((solver ? solver.solverName : '(no solver)') +
                         ' took ' + (performance.now() - nBegin) + ' ms' +
                         ' to solve for ' + this.ivarname + ' in suggestValue');
