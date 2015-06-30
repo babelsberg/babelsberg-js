@@ -577,6 +577,17 @@ Object.subclass('Constraint', {
             });
             this.comparisonMetrics = {time: end - begin, values: variables,
                 assignments: variableAssigments};
+            Object.extend(this.comparisonMetrics, {
+               squaredChangeDistance: function () {
+                   var sumOfSquaredDistances = 0;
+                   for (var varname in this.assignments) {
+                       var assignment = this.assignments[varname];
+                       var distance = assignment.newValue - assignment.oldValue;
+                       sumOfSquaredDistances += distance * distance;
+                   }
+                   return sumOfSquaredDistances;
+               },
+            });
         }
     },
 
