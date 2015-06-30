@@ -273,7 +273,9 @@ Object.subclass('Babelsberg', {
                     errors.push(e);
                     constraints[i] = null;
                 } finally {
-                    constraints[i].disable();
+                    if (!!constraints[i]) {
+						constraints[i].disable();
+					}
                     Constraint.current = null;
                 }
             }
