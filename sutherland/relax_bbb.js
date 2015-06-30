@@ -7,7 +7,7 @@ module('users.timfelgentreff.sutherland.relax_bbb').
 
 Relax.prototype.always = function(opts, func) {
     if (opts.priority) {
-        throw 'soft constraints not implemented for Z3';
+        throw 'soft constraints not implemented for relax';
     }
     func.varMapping = opts.ctx;
     var constraint = new Constraint(func, this);
@@ -42,6 +42,10 @@ Relax.prototype.solve = function() {
 };
 
 Relax.prototype.weight = 100;
+
+Relax.prototype.solverName = 'Relax';
+Relax.prototype.supportsMethods = function() { return false; };
+Relax.prototype.supportsSoftConstraints = function() { return false; };
 
 RelaxNode.prototype.isConstraintObject = function() {
     return true;

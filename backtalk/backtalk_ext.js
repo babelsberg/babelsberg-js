@@ -37,7 +37,6 @@ Object.subclass('BacktalkSolver', {
         func.allowUnsolvableOperations = true;
         func.varMapping = ctx;
         var cobj = new Constraint(func, this);
-        debugger
         if (cobj.constraintobjects.length === 1 && needsFunc) {
             this.convertTestToFuncConstraint(cobj, func, opts);
         }
@@ -155,7 +154,6 @@ Object.subclass('BacktalkVariable', {
     },
     cnIn: function(ary) {
         var domain;
-        debugger
         if (ary instanceof this.constructor) {
             domain = ary.value();
         } else {

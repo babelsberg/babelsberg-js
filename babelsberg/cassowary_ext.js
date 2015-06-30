@@ -26,7 +26,10 @@ ClSimplexSolver.addMethods({
         var constraint = new Constraint(func, this);
         constraint.priority = priority;
         return constraint;
-    }
+    },
+    solverName: 'Cassowary',
+    supportsMethods: function() { return false; },
+    supportsSoftConstraints: function() { return true; }
 });
 
 Object.extend(ClSimplexSolver, {

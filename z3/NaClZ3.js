@@ -288,6 +288,9 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
             return acc + "\n" + "(assert " + c.print() + ")";
         });
     },
+    solverName: 'Z3',
+    supportsMethods: function() { return false; },
+    supportsSoftConstraints: function() { return false; },
 });
 
     if (URL && URL.codeBase && URL.codeBase.withFilename) {

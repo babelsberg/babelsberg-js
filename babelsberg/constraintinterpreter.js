@@ -17,7 +17,7 @@ toRun(function() {
 Object.subclass('Babelsberg', {
 
     initialize: function() {
-        this.defaultSolvers = [];
+        this.defaultSolvers = [new ClSimplexSolver(), new DBPlanner()];
         this.callbacks = [];
     },
 
@@ -253,6 +253,8 @@ Object.subclass('Babelsberg', {
         func.debugging = opts.debugging;
         func.onError = opts.onError;
 
+        solvers = this.filterSolvers(solvers, opts);
+
         solvers.each(function(solver) {
             try {
                 constraints.push(solver.always(Object.clone(opts), func));
@@ -262,38 +264,46 @@ Object.subclass('Babelsberg', {
             }
         });
 
-        for(var i = 0; i < constraints.length; i++){
+        if (constraints.length > 1) {
+            for (var i = 0; i < constraints.length; i++) {
+                try {
+                    Constraint.current = constraints[i];
+                    constraints[i].enable(true);
+                    constraints[i].disable();
+                } catch (e) {
+                    errors.push(e);
+                    constraints[i].disable();
+                    constraints[i] = null;
+                } finally {
+                    Constraint.current = null;
+                }
+            }
+
+            var min = Number.MAX_VALUE;
+            var minIndex = -1;
+            for (var i = 0; i < constraints.length; i++) {
+                if (constraints[i] && constraints[i].oComparisonMetrics.time < min) {
+                    min = constraints[i].oComparisonMetrics.time;
+                    minIndex = i;
+                }
+            }
+            if (minIndex > -1) {
+                constraint = constraints[minIndex];
+                console.log('Selected fastest solver:' + constraint.solver.solverName);
+            }
+        } else if (constraints.length == 1) {
+            constraint = constraints[0];
+        }
+
+        if (!opts.postponeEnabling && constraint) {
             try {
-				Constraint.current = constraints[i];
-				constraints[i].enable(constraints.length > 1);
-				constraints[i].disable();
+                constraint.enable();
             } catch (e) {
                 errors.push(e);
-                constraints[i].disable();
-                constraints[i] = null;
-            } finally {
-                Constraint.current = null;
-            }
-        };
-
-        var min = Number.MAX_VALUE;
-        var minIndex = -1;
-        for (var i = 0; i < constraints.length; i++){
-            if (constraints[i] && constraints[i].oComparisonMetrics.time < min){
-                min = constraints[i].oComparisonMetrics.time;
-                minIndex = i;
+                constraint.disable();
+                constraint = null;
             }
         }
-        if (minIndex > -1) {
-            constraint = constraints[minIndex];
-        }
-		
-		if (!opts.postponeEnabling) {
-			constraint.enable();
-		}
-		
-        console.log("Selected fastest solver:");
-        console.log(constraint.solver);
 
         if (!constraint) {
             if (typeof opts.onError === 'function') {
@@ -333,6 +343,29 @@ Object.subclass('Babelsberg', {
             return [];
             // throw new Error('Must pass a solver, or set defaultSolver.');
         }
+    },
+
+    filterSolvers: function(solvers, opts) {
+        var result = [];
+
+        solvers.each(function(solver) {
+            if (opts.methods && !solver.supportsMethods()) {
+                console.log('Ignoring ' + solver.solverName +
+                    ' because it does not support opts.methods');
+                return false;
+            }
+
+            if (opts.priority && opts.priority != 'required' &&
+                !solver.supportsSoftConstraints()) {
+                console.log('Ignoring ' + solver.solverName +
+                    ' because it does not support soft constraints');
+                return false;
+            }
+
+            result.push(solver);
+        });
+
+        return result;
     },
 
     addCallback: function(func, context, args) {
@@ -484,7 +517,8 @@ Object.subclass('Constraint', {
      * Enables this constraint. This is done automatically after
      * constraint construction by most solvers.
      * @function Constraint#enable
-     * @param {boolean} [bCompare] signifies that there are multiple solvers to be compared
+     * @param {boolean} [bCompare] signifies that there are multiple
+     *                              solvers to be compared
      * @public
      */
     enable: function(bCompare) {
@@ -497,26 +531,26 @@ Object.subclass('Constraint', {
                 throw new Error('BUG: No constraintobjects were created.');
             }
             this._enabled = true;
+            this.constraintvariables.each(function(v) {v._resetIsSolveable();});
             var nBegin = performance.now();
             this.solver.solve();
             var nEnd = performance.now();
-            console.log("Time to Solve in enable with solver below:" + (nEnd - nBegin) + " ms");
-            console.log(this.solver);
+            console.log('Time to Solve in enable with solver ' +
+                this.solver.solverName + ': ' + (nEnd - nBegin) + ' ms');
 
             var oVariables = {};
             this.constraintvariables.each(function(ea) {
                 var value = ea.getValue();
                 oVariables[ea.ivarname] = value;
-                if (value != ea.storedValue) {
-                    // solveForConnectedVariables might eventually
-                    // call updateDownstreamExternalVariables, too.
-                    // We need this first, however, for the case when
-                    // this newly enabled constraint is the new
-                    // highest-weight solver
-                    if(!bCompare){
-                        ea.updateDownstreamExternalVariables(value);
-                        ea.solveForConnectedVariables(value);
-                    }
+
+                // solveForConnectedVariables might eventually
+                // call updateDownstreamExternalVariables, too.
+                // We need this first, however, for the case when
+                // this newly enabled constraint is the new
+                // highest-weight solver
+                if (!bCompare) {
+                    ea.updateDownstreamExternalVariables(value);
+                    ea.solveForConnectedVariables(value);
                 }
             });
             this.oComparisonMetrics = {time: nEnd - nBegin, values: oVariables};
@@ -605,6 +639,8 @@ Object.subclass('Constraint', {
         });
 
         if (enabled) {
+            this.enable();
+
             assignments = this.constraintvariables.select(function(ea) {
                 // all the cvars that are new after this recalculation
                 return !cvars.include(ea) && ea.isSolveable();
@@ -755,25 +791,32 @@ Object.subclass('ConstrainedVariable', {
                 oldValue = this.storedValue,
                 solver = this.definingSolver;
 
+            if (!this.hasEnabledConstraint()) {
+                this.setValue(value);
+                return value;
+            }
+
             ConstrainedVariable.$$optionalSetters =
                 ConstrainedVariable.$$optionalSetters || [];
 
             try {
-                var nBegin = performance.now(); // nerver uses multiple solvers, since it gets the definig Solver
+                var nBegin = performance.now();
+                // never uses multiple solvers, since it gets the defining Solver
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
-                console.log("Time to Solve in suggestValue with the solver below for " + this.ivarname + ": " + (performance.now() - nBegin) + " ms");
-                console.log(solver)
+                console.log('Time to Solve in suggestValue with the solver ' +
+                    (solver ? solver.solverName : '(no solver)') + ' for ' +
+                    this.ivarname + ': ' + (performance.now() - nBegin) + ' ms');
                 this.solveForConnectedVariables(value, oldValue, solver, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
                 if (this.getValue() !== oldValue) {
-                    throw 'solving failed, but variable changed to ' +
-                        this.getValue() + ' from ' + oldValue;
+                    throw new Error('solving failed, but variable changed to ' +
+                        this.getValue() + ' from ' + oldValue);
                 }
                 this.addErrorCallback(e);
             } finally {
                 this.ensureClearSetters(callSetters);
-                if (solver && source) {
+                if (this.isSolveable() && solver && source) {
                     this.bumpSolverWeight(solver, 'down');
                 }
             }
@@ -788,15 +831,17 @@ Object.subclass('ConstrainedVariable', {
                 var wasReadonly = false,
                 // recursionGuard per externalVariable?
                 eVar = this.definingExternalVariable;
-                try {
-                    if (solver && source) {
-                        this.bumpSolverWeight(solver, 'up');
+                if (eVar) {
+                    try {
+                        if (solver && source) {
+                            this.bumpSolverWeight(solver, 'up');
+                        }
+                        wasReadonly = eVar.isReadonly();
+                        eVar.setReadonly(false);
+                        eVar.suggestValue(value);
+                    } finally {
+                        eVar.setReadonly(wasReadonly);
                     }
-                    wasReadonly = eVar.isReadonly();
-                    eVar.setReadonly(false);
-                    eVar.suggestValue(value);
-                } finally {
-                    eVar.setReadonly(wasReadonly);
                 }
             }).bind(this).recursionGuard(
                 ConstrainedVariable.isSuggestingValue,
@@ -826,8 +871,8 @@ Object.subclass('ConstrainedVariable', {
                 } catch (e) {
                     if (source) {
                         // is freeing the recursionGuard here necessary?
-                        this.$$isStoring = false;
                         this.suggestValue(priorValue, source, 'force');
+                        this.$$isStoring = false;
                     }
                     throw e; // XXX: Lively checks type, so wrap for top-level
                 }
@@ -1032,45 +1077,57 @@ Object.subclass('ConstrainedVariable', {
         }
     },
     _searchDefiningSolver: function() {
-            var solver = {weight: -1000, fake: true};
-            this.eachExternalVariableDo(function(eVar) {
-                if (eVar) {
-                    if (!solver.fake) {
-                        this._hasMultipleSolvers = true;
-                    }
-                    var hasEnabledConstraint = false;
-                    for(var i = 0; i < this._constraints.length; i++){
-                        if (this._constraints[i].solver == eVar.solver
-                            && this._constraints[i]._enabled){
-                                hasEnabledConstraint = true;
-                                break;
-                            }
-                    }
+        var solver = {weight: -1000, fake: true, solverName: '(fake)'};
+        var solvers = [];
+        this.eachExternalVariableDo(function(eVar) {
+            var s = eVar.__solver__;
 
-                    if (this._constraints.length > 0 && !hasEnabledConstraint)
-                        return;
+            if (!solver.fake) {
+                this._hasMultipleSolvers = true;
+            }
 
-                    var s = eVar.__solver__;
-                    if (s.weight > solver.weight) {
-                        solver = s;
+            if (!s.fake) {
+                solvers.push(s);
+            }
+
+            var hasEnabledConstraint = false;
+            for (var i = 0; i < this._constraints.length; i++) {
+                if (this._constraints[i].solver == s &&
+                    this._constraints[i]._enabled) {
+                        hasEnabledConstraint = true;
+                        break;
                     }
-                }
-            }.bind(this));
-            return solver;
+            }
+
+            if (this._constraints.length > 0 && !hasEnabledConstraint)
+                return;
+
+            if (s.weight > solver.weight) {
+                solver = s;
+            }
+        }.bind(this));
+
+        if (solver.fake) {
+            return null;
+        }
+
+        return solver;
     },
 
     get solvers() {
         var solvers = [];
         this.eachExternalVariableDo(function(eVar) {
-            if (eVar) {
-                var s = eVar.__solver__;
-                solvers.push(s);
-            }
+            var s = eVar.__solver__;
+            solvers.push(s);
         });
         return solvers.uniq();
     },
     get definingExternalVariable() {
-        return this.externalVariables(this.definingSolver);
+        if (this.definingSolver) {
+            return this.externalVariables(this.definingSolver);
+        } else {
+            return null;
+        }
     },
 
     isSolveable: function() {
@@ -1117,7 +1174,7 @@ Object.subclass('ConstrainedVariable', {
     },
 
     getValue: function() {
-        if (this.isSolveable()) {
+        if (this.isSolveable() && this.hasEnabledConstraint()) {
             return this.externalValue;
         } else {
             return this.storedValue;
@@ -1149,6 +1206,12 @@ Object.subclass('ConstrainedVariable', {
             this._externalVariables[solver.__uuid__] = value || null;
             this._resetIsSolveable();
         }
+    },
+    hasEnabledConstraint: function() {
+        return this._constraints.length == 0 ||
+            this._constraints.some(function(constraint) {
+                return constraint._enabled;
+            });
     }
 });
 
