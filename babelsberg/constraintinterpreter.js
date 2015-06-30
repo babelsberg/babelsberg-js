@@ -296,7 +296,8 @@ Object.subclass('Babelsberg', {
             if (minIndex > -1) {
                 constraint = constraints[minIndex];
                 if (opts.logTimings) {
-                    console.log('Selected fastest solver:' + constraint.solver.solverName);
+                    console.log('Selected fastest solver:' +
+                        constraint.solver.solverName);
                 }
             }
         } else if (constraints.length == 1) {
