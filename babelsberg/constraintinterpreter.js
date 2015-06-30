@@ -240,6 +240,10 @@ Object.subclass('Babelsberg', {
      *     If true, allows the use of operations that are not supported by the solver.
      * @param {boolean} [opts.debugging=false]
      *     If true, calls debugger at certain points during constraint construction.
+     * @param {boolean} [opts.logTimings=false]
+     *     If true, prints solver timings to console.
+     * @param {boolean} [opts.logReasons=false]
+     *     If true, logs why certain solvers are not used for a constraint.
      * @param {function} func The constraint to be fulfilled.
      */
     always: function(opts, func) {
@@ -289,7 +293,9 @@ Object.subclass('Babelsberg', {
             }
             if (minIndex > -1) {
                 constraint = constraints[minIndex];
-                console.log('Selected fastest solver:' + constraint.solver.solverName);
+                if (opts.logTimings) {
+                    console.log('Selected fastest solver:' + constraint.solver.solverName);
+                }
             }
         } else if (constraints.length == 1) {
             constraint = constraints[0];
@@ -350,15 +356,19 @@ Object.subclass('Babelsberg', {
 
         solvers.each(function(solver) {
             if (opts.methods && !solver.supportsMethods()) {
-                console.log('Ignoring ' + solver.solverName +
-                    ' because it does not support opts.methods');
+                if (opts.logReasons) {
+                    console.log('Ignoring ' + solver.solverName +
+                        ' because it does not support opts.methods');
+                }
                 return false;
             }
 
             if (opts.priority && opts.priority != 'required' &&
                 !solver.supportsSoftConstraints()) {
-                console.log('Ignoring ' + solver.solverName +
-                    ' because it does not support soft constraints');
+                if (opts.logReasons) {
+                    console.log('Ignoring ' + solver.solverName +
+                        ' because it does not support soft constraints');
+                }
                 return false;
             }
 
@@ -535,8 +545,11 @@ Object.subclass('Constraint', {
             var nBegin = performance.now();
             this.solver.solve();
             var nEnd = performance.now();
-            console.log('Time to Solve in enable with solver ' +
-                this.solver.solverName + ': ' + (nEnd - nBegin) + ' ms');
+            if (opts.logTimings) {
+                console.log((this.solver ? this.solver.solverName : '(no solver)') +
+                    ' took ' + (nEnd - nBegin) + ' ms to solve for ' +
+                    this.ivarname + ' in enable');
+            }
 
             var oVariables = {};
             this.constraintvariables.each(function(ea) {
@@ -803,9 +816,11 @@ Object.subclass('ConstrainedVariable', {
                 var nBegin = performance.now();
                 // never uses multiple solvers, since it gets the defining Solver
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
-                console.log('Time to Solve in suggestValue with the solver ' +
-                    (solver ? solver.solverName : '(no solver)') + ' for ' +
-                    this.ivarname + ': ' + (performance.now() - nBegin) + ' ms');
+                if (opts.logTimings) {
+                    console.log((solver ? solver.solverName : '(no solver)') +
+                        ' took ' + (performance.now() - nBegin) + ' ms' +
+                        ' to solve for ' + this.ivarname + ' in suggestValue');
+                }
                 this.solveForConnectedVariables(value, oldValue, solver, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
