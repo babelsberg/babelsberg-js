@@ -1,9 +1,3 @@
-// the quadrilateral example, with separate points for the ends of the
-// lines and constraints relating all the parts
-//
-// (as a result of all these separate objects and variables, it's a
-// bit slow)
-
 contentLoaded(window, function() {
 
     var canvas = new fabric.Canvas('c', { selection: false, stateful: false });
@@ -18,7 +12,8 @@ contentLoaded(window, function() {
             strokeWidth: 2,
             radius: 3,
             fill: 'black',
-            stroke: 'black'
+            stroke: 'black',
+            selectable: false
         });
         c.hasControls = c.hasBorders = false;
         return c;
@@ -123,22 +118,24 @@ contentLoaded(window, function() {
     // always: {side4.x1+side4.x2 == 2*mid4.x2};
     // always: {side4.y1+side4.y2 == 2*mid4.y2}
 
-    // example of animation -- now commented out
+    function moveit(p) {
+        var cb = bbb.edit(p, ['left','top']);
+        canvas.on('mouse:move', function(options) {
+            if (options.e.buttons==0) {
+                canvas.off('mouse:move');
+                cb();
+            };
+            cb([options.e.x, options.e.y]);
+            canvas._objects.each(function (o) { o.set(o); o.setCoords(); });
+            canvas.renderAll();
+        });
+    };
 
-    // canvas.renderAll();
-    // var cb = bbb.edit(side1, ["x1"]);
-    // var i = 0;
-    // function anim() {
-    //     cb([i]);
-    //     canvas._objects.each(function (o) { o.set(o); o.setCoords(); });
-    //     canvas.renderAll();
-    //     i += 10;
-    //     if (i < 500) {
-    //         requestAnimationFrame(anim);
-    //     } else {
-    //         cb();
-    //     }
-    // }
-    // anim();
+    canvas.on('mouse:down', function(options) {
+        [p1,p2,p3,p4,m1,m2,m3,m4].map(function(p) {
+            if (p.containsPoint(canvas.getPointer(options.e))) {
+                moveit(p)
+            }});
+    });
 
 });

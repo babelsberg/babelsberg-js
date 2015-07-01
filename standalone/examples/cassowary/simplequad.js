@@ -1,8 +1,6 @@
-// the quadrilateral example, with separate points for the ends of the
-// lines and constraints relating all the parts
-//
-// (as a result of all these separate objects and variables, it's a
-// bit slow)
+// version of the quadrilateral that only has constraints on the 
+// explicit points -- update the ends of the lines programmatically,
+// since it is so slow to do everything with constraints (yuck!!)
 
 contentLoaded(window, function() {
 
@@ -69,76 +67,40 @@ contentLoaded(window, function() {
 
     canvas.on('object:moving', function(e) {
         // var now = performance.now()
+//    always: {side1.myEnd1().eq(p1.myCenter())}
+
+        side1.set({'x1': p1.left, 'y1': p1.top, 'x2': p2.left, 'y2': p2.top});
+        side2.set({'x1': p2.left, 'y1': p2.top, 'x2': p3.left, 'y2': p3.top});
+        side3.set({'x1': p3.left, 'y1': p3.top, 'x2': p4.left, 'y2': p4.top});
+        side4.set({'x1': p4.left, 'y1': p4.top, 'x2': p1.left, 'y2': p1.top});
+
+        mid1.set({'x1': m4.left, 'y1': m4.top, 'x2': m1.left, 'y2': m1.top});
+        mid2.set({'x1': m1.left, 'y1': m1.top, 'x2': m2.left, 'y2': m2.top});
+        mid3.set({'x1': m2.left, 'y1': m2.top, 'x2': m3.left, 'y2': m3.top});
+        mid4.set({'x1': m3.left, 'y1': m3.top, 'x2': m4.left, 'y2': m4.top});
+
         canvas._objects.each(function (o) { o.set(o); o.setCoords(); });
     });
 
     //setup default solver
     bbb.defaultSolver = new ClSimplexSolver();
 
-    // add constraints connecting the circles and endpoints of the 4 sides
-    always: {side1.myEnd1().eq(p1.myCenter())}
-    always: {side1.myEnd2().eq(p2.myCenter())}
+    always: {p1.left+p2.left == 2*m1.left};
+    always: {p1.top+p2.top == 2*m1.top};
 
-    always: {side2.myEnd1().eq(p2.myCenter())}
-    always: {side2.myEnd2().eq(p3.myCenter())}
+    always: {p2.left+p3.left == 2*m2.left};
+    always: {p2.top+p3.top == 2*m2.top};
 
-    always: {side3.myEnd1().eq(p3.myCenter())}
-    always: {side3.myEnd2().eq(p4.myCenter())}
+    always: {p3.left+p4.left == 2*m3.left};
+    always: {p3.top+p4.top == 2*m3.top};
 
-    always: {side4.myEnd1().eq(p4.myCenter())}
-    always: {side4.myEnd2().eq(p1.myCenter())}
-
-    // add constraints on the midpoints and ends of the midlines
-
-    always: {mid1.myEnd1().eq(m4.myCenter())}
-    always: {mid1.myEnd2().eq(m1.myCenter())}
-
-    always: {mid2.myEnd1().eq(m1.myCenter())}
-    always: {mid2.myEnd2().eq(m2.myCenter())}
-
-    always: {mid3.myEnd1().eq(m2.myCenter())}
-    always: {mid3.myEnd2().eq(m3.myCenter())}
-
-    always: {mid4.myEnd1().eq(m3.myCenter())}
-    always: {mid4.myEnd2().eq(m4.myCenter())}
-
-    // add midpoint constraints
-    always: { side1.myEnd1().add(side1.myEnd2()).eq(mid1.myEnd1().multiply(2))}
-    always: { side2.myEnd1().add(side2.myEnd2()).eq(mid2.myEnd1().multiply(2))}
-    always: { side3.myEnd1().add(side3.myEnd2()).eq(mid3.myEnd1().multiply(2))}
-    always: { side4.myEnd1().add(side4.myEnd2()).eq(mid4.myEnd1().multiply(2))}
+    always: {p4.left+p1.left == 2*m4.left};
+    always: {p4.top+p1.top == 2*m4.top};
 
     stay: {
         // A hack to work around the split stay problem
         priority: "medium"
         p1.left && p1.top && p3.top && p3.left
     }
-
-    // always: {side1.x1+side1.x2 == 2*mid1.x2};
-    // always: {side1.y1+side1.y2 == 2*mid1.y2}
-    // always: {side2.x1+side2.x2 == 2*mid2.x2};
-    // always: {side2.y1+side2.y2 == 2*mid2.y2}
-    // always: {side3.x1+side3.x2 == 2*mid3.x2};
-    // always: {side3.y1+side3.y2 == 2*mid3.y2}
-    // always: {side4.x1+side4.x2 == 2*mid4.x2};
-    // always: {side4.y1+side4.y2 == 2*mid4.y2}
-
-    // example of animation -- now commented out
-
-    // canvas.renderAll();
-    // var cb = bbb.edit(side1, ["x1"]);
-    // var i = 0;
-    // function anim() {
-    //     cb([i]);
-    //     canvas._objects.each(function (o) { o.set(o); o.setCoords(); });
-    //     canvas.renderAll();
-    //     i += 10;
-    //     if (i < 500) {
-    //         requestAnimationFrame(anim);
-    //     } else {
-    //         cb();
-    //     }
-    // }
-    // anim();
 
 });
