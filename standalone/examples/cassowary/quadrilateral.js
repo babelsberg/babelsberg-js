@@ -1,3 +1,9 @@
+// the quadrilateral example, with separate points for the ends of the
+// lines and constraints relating all the parts
+//
+// (as a result of all these separate objects and variables, it's a
+// bit slow)
+
 contentLoaded(window, function() {
 
     var canvas = new fabric.Canvas('c', { selection: false, stateful: false });
@@ -102,6 +108,12 @@ contentLoaded(window, function() {
     always: { side3.myEnd1().add(side3.myEnd2()).eq(mid3.myEnd1().multiply(2))}
     always: { side4.myEnd1().add(side4.myEnd2()).eq(mid4.myEnd1().multiply(2))}
 
+    stay: {
+        // A hack to work around the split stay problem
+        priority: "medium"
+        p1.left && p1.top && p3.top && p3.left
+    }
+
     // always: {side1.x1+side1.x2 == 2*mid1.x2};
     // always: {side1.y1+side1.y2 == 2*mid1.y2}
     // always: {side2.x1+side2.x2 == 2*mid2.x2};
@@ -111,5 +123,22 @@ contentLoaded(window, function() {
     // always: {side4.x1+side4.x2 == 2*mid4.x2};
     // always: {side4.y1+side4.y2 == 2*mid4.y2}
 
-    canvas.renderAll();
+    // example of animation -- now commented out
+
+    // canvas.renderAll();
+    // var cb = bbb.edit(side1, ["x1"]);
+    // var i = 0;
+    // function anim() {
+    //     cb([i]);
+    //     canvas._objects.each(function (o) { o.set(o); o.setCoords(); });
+    //     canvas.renderAll();
+    //     i += 10;
+    //     if (i < 500) {
+    //         requestAnimationFrame(anim);
+    //     } else {
+    //         cb();
+    //     }
+    // }
+    // anim();
+
 });

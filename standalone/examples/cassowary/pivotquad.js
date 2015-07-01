@@ -1,4 +1,8 @@
-// copy of simplequad, with stays on the midpoints
+// Demo of what could go wrong without considering priorities for stay
+// constraints
+//
+// copy of simplequad, with strong stays to the midpoints so that we
+// pivot around them rather than the corners
 
 contentLoaded(window, function() {
 
@@ -95,13 +99,22 @@ contentLoaded(window, function() {
     always: {p4.left+p1.left == 2*m4.left};
     always: {p4.top+p1.top == 2*m4.top};
 
-    stay: {priority: 'strong'
+    // add medium stays to the midpoints so that we pivot around them
+    // rather than the corners
+    stay: {priority: 'medium'
            m1.left && m1.top} 
-    stay: {priority: 'strong'
+    stay: {priority: 'medium'
            m2.left && m2.top} 
-    stay: {priority: 'strong'
+    stay: {priority: 'medium'
            m3.left && m3.top} 
-    stay: {priority: 'strong'
+    stay: {priority: 'medium'
            m4.left && m4.top} 
+
+    // this doesn't work -- we need another priority between medium and weak
+    // stay: {
+    //     // A hack to work around the split stay problem
+    //     priority: "medium"
+    //     p1.left && p1.top && p3.top && p3.left
+    // }
 
 });

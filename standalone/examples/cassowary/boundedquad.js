@@ -26,6 +26,10 @@ contentLoaded(window, function() {
         return new fabric.Point(this.left,this.top);
     };
 
+    fabric.Circle.prototype.inside = function(x1,y1,x2,y2) {
+        return x1<=this.left && x2>=this.left && y1<=this.top && y2>=this.top;
+    };
+
     function makeLine(coords) {
         return new fabric.Line(coords, {
             fill: 'black',
@@ -66,8 +70,6 @@ contentLoaded(window, function() {
                p1, p2, p3, p4, m1, m2, m3, m4);
 
     canvas.on('object:moving', function(e) {
-        // var now = performance.now()
-//    always: {side1.myEnd1().eq(p1.myCenter())}
 
         side1.set({'x1': p1.left, 'y1': p1.top, 'x2': p2.left, 'y2': p2.top});
         side2.set({'x1': p2.left, 'y1': p2.top, 'x2': p3.left, 'y2': p3.top});
@@ -85,8 +87,10 @@ contentLoaded(window, function() {
     //setup default solver
     bbb.defaultSolver = new ClSimplexSolver();
 
-    always: {p1.left+p2.left == 2*m1.left};
-    always: {p1.top+p2.top == 2*m1.top};
+    // always: {p1.left+p2.left == 2*m1.left};
+    // always: {p1.top+p2.top == 2*m1.top};
+    // version that uses point arithmetic (unfortunately ugly in javascript)
+    always: {p1.myCenter().add(p2.myCenter()).eq(m1.myCenter().multiply(2))};
 
     always: {p2.left+p3.left == 2*m2.left};
     always: {p2.top+p3.top == 2*m2.top};
@@ -97,24 +101,14 @@ contentLoaded(window, function() {
     always: {p4.left+p1.left == 2*m4.left};
     always: {p4.top+p1.top == 2*m4.top};
 
-    always: {p1.left >= 0};
-    always: {p1.top >= 0};
-    always: {p1.left <= 500};
-    always: {p1.top <= 500};
+    [p1, p2, p3, p4].map( function(p) {
+        always: {p.inside(0,0,500,500)}
+    });
 
-    always: {p2.left >= 0};
-    always: {p2.top >= 0};
-    always: {p2.left <= 500};
-    always: {p2.top <= 500};
-
-    always: {p3.left >= 0};
-    always: {p3.top >= 0};
-    always: {p3.left <= 500};
-    always: {p3.top <= 500};
-
-    always: {p4.left >= 0};
-    always: {p4.top >= 0};
-    always: {p4.left <= 500};
-    always: {p4.top <= 500};
+    stay: {
+        // A hack to work around the split stay problem
+        priority: "medium"
+        p1.left && p1.top && p3.top && p3.left
+    }
 
 });
