@@ -48,9 +48,9 @@ contentLoaded(window, function() {
         side3 = makeLine([ 210, 450,  60, 200 ]),
         side4 = makeLine([  60, 200, 200, 100 ]),
         mid1  = makeLine([ 130, 150, 305, 210 ]),
-        mid2  = makeLine([ 305, 210, 305, 385 ]),
-        mid3  = makeLine([ 305, 385, 135, 325 ]),
-        mid4  = makeLine([ 130, 325, 130, 150 ]);
+        mid2  = makeLine([ 305, 210, 310, 385 ]),
+        mid3  = makeLine([ 310, 385, 135, 325 ]),
+        mid4  = makeLine([ 134, 325, 130, 150 ]);
 
     var p1 = makeCircle(side1.get('x1'), side1.get('y1')),
         p2 = makeCircle(side2.get('x1'), side2.get('y1')),
