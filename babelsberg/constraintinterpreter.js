@@ -274,14 +274,14 @@ Object.subclass('Babelsberg', {
                     constraints[i] = null;
                 } finally {
                     if (!!constraints[i]) {
-						constraints[i].disable();
-					}
+                        constraints[i].disable();
+                    }
                     Constraint.current = null;
                 }
             }
 
             constraint = this.chooseConstraintBasedOnMetrics(constraints);
-			console.log('Selected fastest solver:' + constraint.solver.solverName);
+            console.log('Selected fastest solver:' + constraint.solver.solverName);
         } else if (constraints.length == 1) {
             constraint = constraints[0];
         }
@@ -359,21 +359,21 @@ Object.subclass('Babelsberg', {
         return result;
     },
 
-    chooseConstraintBasedOnMetrics: function(constraints){
+    chooseConstraintBasedOnMetrics: function(constraints) {
         var minTime = Number.MAX_VALUE;
         var minChanged = Number.MAX_VALUE;
         var minIndex = -1;
         var constraint = null;
         for (var i = 0; i < constraints.length; i++) {
-			if (!constraints[i]) {
-				continue;
-			}
+            if (!constraints[i]) {
+                continue;
+            }
             if (constraints[i].comparisonMetrics.time < minTime) {
                 minTime = constraints[i].comparisonMetrics.time;
                 minChanged = constraints[i].comparisonMetrics.values.changed;
                 minIndex = i;
-            } else if (constraints[i].comparisonMetrics.time == minTime
-					   && constraints[i].comparisonMetrics.values.changed < minChanged) {
+            } else if (constraints[i].comparisonMetrics.time == minTime &&
+                    constraints[i].comparisonMetrics.values.changed < minChanged) {
                 minChanged = constraints[i].comparisonMetrics.values.changed;
                 minIndex = i;
             }
@@ -552,7 +552,8 @@ Object.subclass('Constraint', {
             var begin = performance.now();
             this.solver.solve();
             var end = performance.now();
-            console.log("Time to Solve in enable with " + this.solver.solverName + ": " + (end - begin) + " ms");
+            console.log('Time to Solve in enable with ' + this.solver.solverName + ': ' +
+                        (end - begin) + ' ms');
 
             var variables = { changed: 0};
             var variableAssigments = {};
@@ -561,7 +562,8 @@ Object.subclass('Constraint', {
                 variables[ea.ivarname] = value;
                 var oldValue = ea.storedValue;
                 if (oldValue !== value) {
-                    variableAssigments[ea.ivarname] = {oldValue: oldValue, newValue: value};
+                    variableAssigments[ea.ivarname] = {oldValue: oldValue,
+                        newValue: value};
                 }
 
                 variables.changed += 1;
@@ -578,7 +580,7 @@ Object.subclass('Constraint', {
             this.comparisonMetrics = {time: end - begin, values: variables,
                 assignments: variableAssigments};
             Object.extend(this.comparisonMetrics, {
-               squaredChangeDistance: function () {
+               squaredChangeDistance: function() {
                    var sumOfSquaredDistances = 0;
                    for (var varname in this.assignments) {
                        var assignment = this.assignments[varname];
@@ -586,7 +588,7 @@ Object.subclass('Constraint', {
                        sumOfSquaredDistances += distance * distance;
                    }
                    return sumOfSquaredDistances;
-               },
+               }
             });
         }
     },
