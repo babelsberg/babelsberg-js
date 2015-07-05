@@ -1927,6 +1927,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         bbb.defaultSolvers = [new ClSimplexSolver(), new DBPlanner(), new csp.Solver()];
         bbb.defaultSolver = null;
     },
+
     testSquaredChangeDistance: function () {
         var obj = {a: 2, b: 3};
         var constraint = bbb.always({
@@ -1940,6 +1941,133 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
                     (obj.a - 2) * (obj.a - 2) + (obj.b - 3) * (obj.b - 3),
             "squaredChangeDistance should be the sum of the squared distances");
     },
+
+    preparePatchedSolvers: function() {
+        // prepare solvers of which the solving time and actions can be dictated
+        patchedSolver = new ClSimplexSolver();
+        patchedSolver.forcedDelay = 0;
+        patchedSolver.solve = function() {
+            var begin = performance.now();
+            while (performance.now() < begin + this.forcedDelay) {
+                ; // busy wait, no sleep in JavaScript
+                // and setTimeout is not what we want
+            }
+            if (typeof this.forcedSolveAction === 'function') {
+                return this.forcedSolveAction();
+            }
+            return ClSimplexSolver.prototype.solve.apply(this, arguments);
+        }
+        PatchedSolver = function() {}
+        PatchedSolver.prototype = patchedSolver;
+        bbb.defaultSolvers = [new PatchedSolver(), new PatchedSolver()];
+    },
+
+    testChoiceWithTimeOverDistance1: function() {
+        this.preparePatchedSolvers();
+        bbb.defaultSolvers[0].forcedDelay = 0;
+        bbb.defaultSolvers[1].forcedDelay = 10;
+        // when: create actual constraint
+        var obj = {a: 2, b: 3};
+        var constraint = bbb.always({
+            ctx: {
+                obj: obj
+            },
+            optimizationPriority: ['time', 'squaredChangeDistance'],
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        // then: assert that the faster solver was chosen
+        this.assert(constraint.solver === bbb.defaultSolvers[0], 'The faster solver should have been chosen');
+    },
+
+    testChoiceWithTimeOverDistance2: function() {
+        this.preparePatchedSolvers();
+        bbb.defaultSolvers[0].forcedDelay = 10;
+        bbb.defaultSolvers[1].forcedDelay = 0;
+        // when: create actual constraint
+        var obj = {a: 2, b: 3};
+        var constraint = bbb.always({
+            ctx: {
+                obj: obj
+            },
+            optimizationPriority: ['time', 'squaredChangeDistance'],
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        // then: assert that the faster solver was chosen
+        this.assert(constraint.solver === bbb.defaultSolvers[1], 'The faster solver should have been chosen');
+    },
+
+    testChoiceWithDistanceOverTime1: function() {
+        this.preparePatchedSolvers();
+        var constraint0 = null, constraint1 = null;
+        bbb.defaultSolvers[0].forcedDelay = 10;
+        bbb.defaultSolvers[0].forcedSolveAction = function () {
+            if (!!Constraint.current) {
+                Constraint.current.enable = arguments.callee;
+                constraint0 = Constraint.current;
+            }
+            constraint0.constraintvariables[0].setValue(2);
+            constraint0.constraintvariables[1].setValue(1);
+        }
+        bbb.defaultSolvers[1].forcedDelay = 0;
+        bbb.defaultSolvers[1].forcedSolveAction = function () {
+            if (!!Constraint.current) {
+                Constraint.current.enable = arguments.callee;
+                constraint1 = Constraint.current;
+            }
+            constraint1.constraintvariables[0].setValue(10);
+            constraint1.constraintvariables[1].setValue(-7);
+        }
+        // when: create actual constraint
+        var obj = {a: 2, b: 3};
+        var constraint = bbb.always({
+            ctx: {
+                obj: obj
+            },
+            optimizationPriority: ['squaredChangeDistance', 'time'],
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        // then
+        this.assert(constraint.solver === bbb.defaultSolvers[0], 'The solver with the smaller distance should have been chosen (albeit slower)');
+    },
+
+    testChoiceWithDistanceOverTime2: function() {
+        this.preparePatchedSolvers();
+        var constraint0 = null, constraint1 = null;
+        bbb.defaultSolvers[0].forcedDelay = 0;
+        bbb.defaultSolvers[0].forcedSolveAction = function () {
+            if (!!Constraint.current) {
+                Constraint.current.enable = arguments.callee;
+                constraint0 = Constraint.current;
+            }
+            constraint0.constraintvariables[0].setValue(10);
+            constraint0.constraintvariables[1].setValue(-7);
+        }
+        bbb.defaultSolvers[1].forcedDelay = 10;
+        bbb.defaultSolvers[1].forcedSolveAction = function () {
+            if (!!Constraint.current) {
+                Constraint.current.enable = arguments.callee;
+                constraint1 = Constraint.current;
+            }
+            constraint1.constraintvariables[0].setValue(2);
+            constraint1.constraintvariables[1].setValue(1);
+        }
+        // when: create actual constraint
+        var obj = {a: 2, b: 3};
+        var constraint = bbb.always({
+            ctx: {
+                obj: obj
+            },
+            optimizationPriority: ['squaredChangeDistance', 'time'],
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        // then
+        this.assert(constraint.solver === bbb.defaultSolvers[1], 'The solver with the smaller distance should have been chosen (albeit slower)');
+    },
+
 });
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionTest', {

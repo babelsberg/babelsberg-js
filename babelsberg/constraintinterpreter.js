@@ -280,7 +280,8 @@ Object.subclass('Babelsberg', {
                 }
             }
 
-            constraint = this.chooseConstraintBasedOnMetrics(constraints);
+            constraint = this.chooseConstraintBasedOnMetrics(constraints,
+                    opts.optimizationPriority);
             console.log('Selected fastest solver:' + constraint.solver.solverName);
         } else if (constraints.length == 1) {
             constraint = constraints[0];
@@ -359,29 +360,46 @@ Object.subclass('Babelsberg', {
         return result;
     },
 
-    chooseConstraintBasedOnMetrics: function(constraints) {
+    chooseConstraintBasedOnMetrics: function(constraints, optimizationPriority) {
         var minTime = Number.MAX_VALUE;
         var minChanged = Number.MAX_VALUE;
         var minIndex = -1;
         var constraint = null;
+        if (optimizationPriority === undefined) {
+            optimizationPriority = ['time'];
+        }
+        var minimumConstraintMetrics = {};
+        for (var i = 0; i < optimizationPriority.length; i++) {
+            minimumConstraintMetrics[optimizationPriority[i]] = Number.MAX_VALUE;
+        }
         for (var i = 0; i < constraints.length; i++) {
             if (!constraints[i]) {
                 continue;
             }
-            if (constraints[i].comparisonMetrics.time < minTime) {
-                minTime = constraints[i].comparisonMetrics.time;
-                minChanged = constraints[i].comparisonMetrics.values.changed;
-                minIndex = i;
-            } else if (constraints[i].comparisonMetrics.time == minTime &&
-                    constraints[i].comparisonMetrics.values.changed < minChanged) {
-                minChanged = constraints[i].comparisonMetrics.values.changed;
-                minIndex = i;
+            for (var m = 0; optimizationPriority.length; m++) {
+                var metricName = optimizationPriority[m];
+                var iMetric = constraints[i].comparisonMetrics[metricName];
+                if (typeof iMetric === 'function') {
+                    iMetric = iMetric.call(constraints[i].comparisonMetrics);
+                }
+                var currentMinimum = minimumConstraintMetrics[metricName];
+                if (typeof currentMinimum === 'function') {
+                    currentMinimum = currentMinimum.call(minimumConstraintMetrics);
+                }
+                if (iMetric == currentMinimum) {
+                    continue; // look at next metric
+                }
+                if (iMetric < currentMinimum) {
+                    minimumConstraintMetrics = constraints[i].comparisonMetrics;
+                    minIndex = i;
+                }
+                break;
             }
         }
         if (minIndex > -1) {
             constraint = constraints[minIndex];
         }
-        console.log('Selected fastest solver: ' + constraint.solver.solverName);
+        console.log('Selected best solver: ' + constraint.solver.solverName);
         return constraint;
     },
 
