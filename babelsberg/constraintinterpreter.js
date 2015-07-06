@@ -19,6 +19,7 @@ Object.subclass('Babelsberg', {
     initialize: function() {
         this.defaultSolvers = [];
         this.callbacks = [];
+        this.ecjit = new EditConstraintJIT();
     },
 
     isConstraintObject: true,
@@ -345,7 +346,35 @@ Object.subclass('Babelsberg', {
         }).recursionGuard(bbb, 'isProcessingCallbacks');
     }
 });
-
+Object.subclass('EditConstraintJIT', {
+    initialize: function() {
+        this.cvarData = {};
+    },
+    
+    suggestValueHook: function(cvar, value, source, force) {
+        if(!(cvar in this.cvarData)) {
+            this.cvarData[cvar.__uuid__] = {
+                'cvar': cvar,
+                'count': 0
+            }
+        }
+        data = this.cvarData[cvar.__uuid__];
+        data['count'] += 1;
+    },
+    
+    clearState: function() {
+        this.cvarData = {};
+    },
+    
+    printState: function() {
+        console.log("=====");
+        Object.keys(bbb.ecjit.cvarData).forEach(function(key) {
+            value = bbb.ecjit.cvarData[key];
+            cvar = value['cvar'];
+            console.log("CVar(uuid:"+cvar.__uuid__+", ivarname:"+cvar.ivarname+", count:"+value['count']+")");
+        });
+    }
+});
 Object.extend(Global, {
     /**
      * A globally accessible instance of {@link Babelsberg}
@@ -740,6 +769,8 @@ Object.subclass('ConstrainedVariable', {
 
             ConstrainedVariable.$$optionalSetters =
                 ConstrainedVariable.$$optionalSetters || [];
+
+            bbb.ecjit.suggestValueHook(this, value, source, force);
 
             try {
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
