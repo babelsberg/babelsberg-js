@@ -348,31 +348,72 @@ Object.subclass('Babelsberg', {
 });
 Object.subclass('EditConstraintJIT', {
     initialize: function() {
-        this.cvarData = {};
+        this.clearState();
     },
     
     suggestValueHook: function(cvar, value, source, force) {
-        if(!(cvar in this.cvarData)) {
+        if(!(cvar.__uuid__ in this.cvarData)) {
+            console.log("Creating cvarData entry for "+cvar.__uuid__);
             this.cvarData[cvar.__uuid__] = {
                 'cvar': cvar,
-                'count': 0
+                'count': 0,
+                'sourceCount': 0
             }
         }
         data = this.cvarData[cvar.__uuid__];
         data['count'] += 1;
+        if(source) {
+            data['sourceCount'] += 1;
+        }
+        
+        this.actionCounter += 1;
+        if(this.actionCounter >= 25) {
+            this.doAction();
+            this.actionCounter = 0;
+        }
+    },
+    
+    doAction: function() {
+        expired = [];
+        cvarData = this.cvarData;
+        // sort UUIDs descending by the sourceCount of their cvar
+        uuidBySourceCount = Object.keys(this.cvarData).sort(function(a,b) {
+            cvarData[b]['sourceCount'] - cvarData[a]['sourceCount']
+        });
+        // should optimize cvar with UUID uuidBySourceCount[0] first, then uuidBySourceCount[1] etc.
+        this.printState();
+        console.log(uuidBySourceCount[0]);
+        this.forEachCVarData(function(data) {
+            data['count'] = Math.max(data['count']-10, 0);
+            data['sourceCount'] = Math.max(data['sourceCount']-10, 0);
+            if(data['sourceCount'] <= 0) {
+                //expired.push(data['cvar']);
+            }
+        }, this);
+        expired.forEach(function(cvar) {
+            console.log("Purging cvarData entry for "+cvar.__uuid__);
+            delete this.cvarData[cvar.__uuid__];
+        }, this);
     },
     
     clearState: function() {
         this.cvarData = {};
+        this.actionCounter = 0;
     },
     
     printState: function() {
         console.log("=====");
-        Object.keys(bbb.ecjit.cvarData).forEach(function(key) {
-            value = bbb.ecjit.cvarData[key];
-            cvar = value['cvar'];
-            console.log("CVar(uuid:"+cvar.__uuid__+", ivarname:"+cvar.ivarname+", count:"+value['count']+")");
+        this.forEachCVarData(function(data) {
+            cvar = data['cvar'];
+            console.log("CVar(uuid:"+cvar.__uuid__+", ivarname:"+cvar.ivarname+", count:"+data['count']+", sourceCount:"+data['sourceCount']+")");
         });
+    },
+    
+    forEachCVarData: function(callback) {
+        Object.keys(this.cvarData).forEach(function(key) {
+            value = this.cvarData[key];
+            callback(value);
+        }, this);
     }
 });
 Object.extend(Global, {
