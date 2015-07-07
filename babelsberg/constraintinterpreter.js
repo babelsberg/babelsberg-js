@@ -386,7 +386,7 @@ Object.subclass('EditConstraintJIT', {
         cvarData = this.cvarData;
         // sort UUIDs descending by the sourceCount of their cvar
         uuidBySourceCount = Object.keys(this.cvarData).sort(function(a,b) {
-            cvarData[b]['sourceCount'] - cvarData[a]['sourceCount']
+            return cvarData[b]['sourceCount'] - cvarData[a]['sourceCount'];
         });
         
         // should optimize cvar with UUID uuidBySourceCount[0] first, then uuidBySourceCount[1] etc.
