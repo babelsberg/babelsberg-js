@@ -373,7 +373,7 @@ Object.subclass('EditConstraintJIT', {
             this.actionCounter = 0;
         }
         
-        if(data['callbackEnabled']) {
+        if(source && data['callbackEnabled']) {
             console.log("Using defined edit-callback!");
             this.currentCallback([value]);
             return true;
