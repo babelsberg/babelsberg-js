@@ -349,6 +349,8 @@ Object.subclass('Babelsberg', {
 Object.subclass('EditConstraintJIT', {
     initialize: function() {
         this.enabled = true;
+        this.actionCounterLimit = 25;
+        this.countDecayDecrement = 10;
         this.clearState();
     },
     
@@ -373,25 +375,24 @@ Object.subclass('EditConstraintJIT', {
             this.cvarData[cvar.__uuid__] = {
                 'cvar': cvar,
                 'count': 0,
-                'sourceCount': 0,
-                'callbackEnabled': false
+                'sourceCount': 0
             }
         }
-        data = this.cvarData[cvar.__uuid__];
+        var data = this.cvarData[cvar.__uuid__];
         data['count'] += 1;
         if(source) {
             data['sourceCount'] += 1;
         }
         
         this.actionCounter += 1;
-        if(this.actionCounter >= 25) {
+        if(this.actionCounter >= this.actionCounterLimit) {
             this.doAction();
             this.actionCounter = 0;
         }
         
-        if(source && data['callbackEnabled']) {
+        if(source && this.currentEdit && cvar.__uuid__ === this.currentEdit['cvar'].__uuid__) {
             //console.log("Using defined edit-callback!");
-            this.currentCallback([value]);
+            this.currentEdit['cb']([value]);
             return true;
         }
         
@@ -404,66 +405,76 @@ Object.subclass('EditConstraintJIT', {
      * @private
      */
     doAction: function() {
-        cvarData = this.cvarData;
+        var cvarData = this.cvarData;
         // sort UUIDs descending by the sourceCount of their cvar
-        uuidBySourceCount = Object.keys(this.cvarData).sort(function(a,b) {
+        var uuidBySourceCount = Object.keys(this.cvarData).sort(function(a,b) {
             return cvarData[b]['sourceCount'] - cvarData[a]['sourceCount'];
         });
-        
-        // should optimize cvar with UUID uuidBySourceCount[0] first, then uuidBySourceCount[1] etc.
-        if(this.currentCallback) {
-            this.currentCallback(); // end edit constraint
-            this.forEachCVarData(function(data) {
-                //console.log("Disabling old edit-callback for "+data['cvar'].__uuid__);
-                data['callbackEnabled'] = false;
-            }, this);
-        }
-        cvar = this.cvarData[uuidBySourceCount[0]]['cvar'];
-        this.cvarData[uuidBySourceCount[0]]['callbackEnabled'] = true;
-        //console.log("Enabling edit-callback for "+cvar.__uuid__);
-        this.currentCallback = bbb.edit(cvar.obj, [cvar.ivarname]);
-        //this.printState();
 
-        expired = [];
+        // should optimize cvar with UUID uuidBySourceCount[0] first, then uuidBySourceCount[1] etc.
+        var newCVar = this.cvarData[uuidBySourceCount[0]]['cvar'];
+        if(!this.currentEdit) {
+            this.createEditFor(newCVar);
+        } else {
+            if(this.currentEdit['cvar'] !== newCVar) {
+                this.deleteEdit();
+                this.createEditFor(newCVar);
+            }
+        }
+
+        var expired = [];
         this.forEachCVarData(function(data) {
-            data['count'] = Math.max(data['count']-10, 0);
-            data['sourceCount'] = Math.max(data['sourceCount']-10, 0);
+            data['count'] = Math.max(data['count']-this.countDecayDecrement, 0);
+            data['sourceCount'] = Math.max(data['sourceCount']-this.countDecayDecrement, 0);
             if(data['sourceCount'] <= 0) {
                 //expired.push(data['cvar']);
             }
-        }, this);
+        });
         expired.forEach(function(cvar) {
             console.log("Purging cvarData entry for "+cvar.__uuid__);
             delete this.cvarData[cvar.__uuid__];
         }, this);
     },
     
+    deleteEdit: function() {
+        this.currentEdit['cb'](); // end edit constraint
+        this.currentEdit = null;
+    },
+    
+    createEditFor: function(cvar) {
+        //console.log("Enabling edit-callback for "+cvar.__uuid__);
+        this.currentEdit = {
+            'cvar': cvar,
+            'cb': bbb.edit(cvar.obj, [cvar.ivarname])
+        };
+        //this.printState();
+    },
+    
     clearState: function() {
         this.cvarData = {};
         this.actionCounter = 0;
-        if(this.currentCallback) {
-            this.currentCallback(); // end edit constraint
+        if(this.currentEdit) {
+            this.deleteEdit();
         }
-        this.currentCallback = null;
     },
     
     printState: function() {
         console.log("=====");
         this.forEachCVarData(function(data) {
-            cvar = data['cvar'];
-            console.log("CVar(uuid:"+cvar.__uuid__+", ivarname:"+cvar.ivarname+", count:"+data['count']+", sourceCount:"+data['sourceCount']+", callbackEnabled:"+data['callbackEnabled']+")");
+            var cvar = data['cvar'];
+            console.log("CVar(uuid:"+cvar.__uuid__+", ivarname:"+cvar.ivarname+", count:"+data['count']+", sourceCount:"+data['sourceCount']+")");
         });
     },
     
     forEachCVarData: function(callback) {
         Object.keys(this.cvarData).forEach(function(key) {
-            value = this.cvarData[key];
-            callback(value);
+            var value = this.cvarData[key];
+            callback.bind(this)(value);
         }, this);
     },
     
     doDeclarativeDragSimBenchmark: function(numIterations, enableECJIT) {
-        p = new users.timfelgentreff.babelsberg.PerformanceTests.PerformanceTests();
+        var p = new users.timfelgentreff.babelsberg.PerformanceTests.PerformanceTests();
         p.Iterations = numIterations;
         bbb.ecjit.enabled = enableECJIT;
         console.log("#iterations: "+p.Iterations);
