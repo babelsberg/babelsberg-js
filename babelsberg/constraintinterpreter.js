@@ -348,10 +348,26 @@ Object.subclass('Babelsberg', {
 });
 Object.subclass('EditConstraintJIT', {
     initialize: function() {
+        this.enabled = true;
         this.clearState();
     },
     
+    /**
+     * Function used for instrumenting ConstrainedVariable#suggestValue to
+     * implement automatic edit constraints. The boolean return value says
+     * whether ConstrainedVariable#suggestValue may proceed normally or should
+     * be terminated since an edit constraint is enabled.
+     * @function EditConstraintJIT#suggestValueHook
+     * @public
+     * @param {Object} cvar The ConstrainedVariable on which suggestValue() was called.
+     * @param {Object} value The new value which was suggested.
+     * @return {Boolean} whether suggestValue should be terminated or run normally.
+     */
     suggestValueHook: function(cvar, value, source, force) {
+        if(!this.enabled) {
+            return false;
+        }
+        
         if(!(cvar.__uuid__ in this.cvarData)) {
             //console.log("Creating cvarData entry for "+cvar.__uuid__);
             this.cvarData[cvar.__uuid__] = {
@@ -382,6 +398,11 @@ Object.subclass('EditConstraintJIT', {
         return false;
     },
     
+    /**
+     * Run some computationally intensive instrumentation and maintenance actions
+     * regularly but not on every suggestValueHook invocation.
+     * @private
+     */
     doAction: function() {
         cvarData = this.cvarData;
         // sort UUIDs descending by the sourceCount of their cvar
