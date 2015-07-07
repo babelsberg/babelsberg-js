@@ -357,7 +357,8 @@ Object.subclass('EditConstraintJIT', {
             this.cvarData[cvar.__uuid__] = {
                 'cvar': cvar,
                 'count': 0,
-                'sourceCount': 0
+                'sourceCount': 0,
+                'callbackEnabled': false
             }
         }
         data = this.cvarData[cvar.__uuid__];
@@ -371,18 +372,39 @@ Object.subclass('EditConstraintJIT', {
             this.doAction();
             this.actionCounter = 0;
         }
+        
+        if(data['callbackEnabled']) {
+            console.log("Using defined edit-callback!");
+            this.currentCallback([value]);
+            return true;
+        }
+        
+        return false;
     },
     
     doAction: function() {
-        expired = [];
         cvarData = this.cvarData;
         // sort UUIDs descending by the sourceCount of their cvar
         uuidBySourceCount = Object.keys(this.cvarData).sort(function(a,b) {
             cvarData[b]['sourceCount'] - cvarData[a]['sourceCount']
         });
+        
         // should optimize cvar with UUID uuidBySourceCount[0] first, then uuidBySourceCount[1] etc.
+        if(this.currentCallback) {
+            this.currentCallback(); // end edit constraint
+            this.forEachCVarData(function(data) {
+                console.log("Disabling old edit-callback for "+data['cvar'].__uuid__);
+                data['callbackEnabled'] = false;
+            }, this);
+        }
+        cvar = this.cvarData[uuidBySourceCount[0]]['cvar'];
+        this.cvarData[uuidBySourceCount[0]]['callbackEnabled'] = true;
+        console.log("Enabling edit-callback for "+cvar.__uuid__);
+        this.currentCallback = bbb.edit(cvar.obj, [cvar.ivarname]);
         this.printState();
         console.log(uuidBySourceCount[0]);
+        
+        expired = [];
         this.forEachCVarData(function(data) {
             data['count'] = Math.max(data['count']-10, 0);
             data['sourceCount'] = Math.max(data['sourceCount']-10, 0);
@@ -399,13 +421,17 @@ Object.subclass('EditConstraintJIT', {
     clearState: function() {
         this.cvarData = {};
         this.actionCounter = 0;
+        if(this.currentCallback) {
+            this.currentCallback(); // end edit constraint
+        }
+        this.currentCallback = null;
     },
     
     printState: function() {
         console.log("=====");
         this.forEachCVarData(function(data) {
             cvar = data['cvar'];
-            console.log("CVar(uuid:"+cvar.__uuid__+", ivarname:"+cvar.ivarname+", count:"+data['count']+", sourceCount:"+data['sourceCount']+")");
+            console.log("CVar(uuid:"+cvar.__uuid__+", ivarname:"+cvar.ivarname+", count:"+data['count']+", sourceCount:"+data['sourceCount']+", callbackEnabled:"+data['callbackEnabled']+")");
         });
     },
     
@@ -811,7 +837,9 @@ Object.subclass('ConstrainedVariable', {
             ConstrainedVariable.$$optionalSetters =
                 ConstrainedVariable.$$optionalSetters || [];
 
-            bbb.ecjit.suggestValueHook(this, value, source, force);
+            if(bbb.ecjit.suggestValueHook(this, value, source, force)) {
+                return value;
+            }
 
             try {
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
