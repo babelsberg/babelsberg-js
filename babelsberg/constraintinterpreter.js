@@ -460,6 +460,20 @@ Object.subclass('EditConstraintJIT', {
             value = this.cvarData[key];
             callback(value);
         }, this);
+    },
+    
+    doDeclarativeDragSimBenchmark: function(numIterations, enableECJIT) {
+        p = new users.timfelgentreff.babelsberg.PerformanceTests.PerformanceTests();
+        p.Iterations = numIterations;
+        bbb.ecjit.enabled = enableECJIT;
+        console.log("#iterations: "+p.Iterations);
+        console.log("with ecjit:  "+enableECJIT);
+        bbb.ecjit.clearState();
+        var startTime = new Date();
+        p.testDeclarativeDragSimulation();
+        var endTime = new Date();
+        console.log("time:        "+(endTime-startTime)+" ms");
+        return endTime-startTime;
     }
 });
 Object.extend(Global, {
