@@ -361,12 +361,10 @@ Object.subclass('Babelsberg', {
     },
 
     chooseConstraintBasedOnMetrics: function(constraints, optimizationPriority) {
-        var minTime = Number.MAX_VALUE;
-        var minChanged = Number.MAX_VALUE;
         var minIndex = -1;
         var constraint = null;
         if (optimizationPriority === undefined) {
-            optimizationPriority = ['time'];
+            optimizationPriority = ['time','numberOfChangedVariables'];
         }
         var minimumConstraintMetrics = {};
         for (var i = 0; i < optimizationPriority.length; i++) {
@@ -573,18 +571,17 @@ Object.subclass('Constraint', {
             console.log('Time to Solve in enable with ' + this.solver.solverName + ': ' +
                         (end - begin) + ' ms');
 
-            var variables = { changed: 0};
+            var changedVariables = 0;
             var variableAssigments = {};
             this.constraintvariables.each(function(ea) {
                 var value = ea.getValue();
-                variables[ea.ivarname] = value;
                 var oldValue = ea.storedValue;
                 if (oldValue !== value) {
                     variableAssigments[ea.ivarname] = {oldValue: oldValue,
                         newValue: value};
                 }
 
-                variables.changed += 1;
+                changedVariables += 1;
                 // solveForConnectedVariables might eventually
                 // call updateDownstreamExternalVariables, too.
                 // We need this first, however, for the case when
@@ -595,7 +592,8 @@ Object.subclass('Constraint', {
                     ea.solveForConnectedVariables(value);
                 }
             });
-            this.comparisonMetrics = {time: end - begin, values: variables,
+            this.comparisonMetrics = {time: end - begin,
+                numberOfChangedVariables: changedVariables,
                 assignments: variableAssigments};
             Object.extend(this.comparisonMetrics, {
                squaredChangeDistance: function() {
