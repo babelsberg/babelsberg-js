@@ -353,7 +353,7 @@ Object.subclass('EditConstraintJIT', {
     
     suggestValueHook: function(cvar, value, source, force) {
         if(!(cvar.__uuid__ in this.cvarData)) {
-            console.log("Creating cvarData entry for "+cvar.__uuid__);
+            //console.log("Creating cvarData entry for "+cvar.__uuid__);
             this.cvarData[cvar.__uuid__] = {
                 'cvar': cvar,
                 'count': 0,
@@ -374,7 +374,7 @@ Object.subclass('EditConstraintJIT', {
         }
         
         if(source && data['callbackEnabled']) {
-            console.log("Using defined edit-callback!");
+            //console.log("Using defined edit-callback!");
             this.currentCallback([value]);
             return true;
         }
@@ -393,17 +393,16 @@ Object.subclass('EditConstraintJIT', {
         if(this.currentCallback) {
             this.currentCallback(); // end edit constraint
             this.forEachCVarData(function(data) {
-                console.log("Disabling old edit-callback for "+data['cvar'].__uuid__);
+                //console.log("Disabling old edit-callback for "+data['cvar'].__uuid__);
                 data['callbackEnabled'] = false;
             }, this);
         }
         cvar = this.cvarData[uuidBySourceCount[0]]['cvar'];
         this.cvarData[uuidBySourceCount[0]]['callbackEnabled'] = true;
-        console.log("Enabling edit-callback for "+cvar.__uuid__);
+        //console.log("Enabling edit-callback for "+cvar.__uuid__);
         this.currentCallback = bbb.edit(cvar.obj, [cvar.ivarname]);
-        this.printState();
-        console.log(uuidBySourceCount[0]);
-        
+        //this.printState();
+
         expired = [];
         this.forEachCVarData(function(data) {
             data['count'] = Math.max(data['count']-10, 0);
