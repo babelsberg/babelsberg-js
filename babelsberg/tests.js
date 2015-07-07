@@ -1922,11 +1922,28 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
     }
 });
 
+Object.subclass('users.timfelgentreff.babelsberg.tests.DefaultSolversFixture', {
+	saveDefaultSolvers: function(defaultSolvers) {
+		this.previousDefaultSolvers = bbb.defaultSolvers;
+		this.previousDefaultSolver = bbb.defaultSolver;
+	},
+	restoreDefaultSolvers: function() {
+		bbb.defaultSolvers = this.previousDefaultSolvers;
+		bbb.defaultSolver = this.previousDefaultSolver;
+	},
+});
+
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionDetailsTest', {
     setUp: function () {
+		this.defaultSolversFixture = new users.timfelgentreff.babelsberg.tests.DefaultSolversFixture();
+		this.defaultSolversFixture.saveDefaultSolvers();
         bbb.defaultSolvers = [new ClSimplexSolver(), new DBPlanner(), new csp.Solver()];
         bbb.defaultSolver = null;
     },
+
+	tearDown: function () {
+		this.defaultSolversFixture.restoreDefaultSolvers();
+	},
 
     testSquaredChangeDistance: function () {
         var obj = {a: 2, b: 3};
@@ -1952,6 +1969,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
                 ; // busy wait, no sleep in JavaScript
                 // and setTimeout is not what we want
             }
+			console.log('finished busy wait');
             if (typeof this.forcedSolveAction === 'function') {
                 return this.forcedSolveAction();
             }
@@ -2072,9 +2090,16 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionTest', {
 	setUp: function () {
+		this.defaultSolversFixture = new users.timfelgentreff.babelsberg.tests.DefaultSolversFixture();
+		this.defaultSolversFixture.saveDefaultSolvers();
         bbb.defaultSolvers = [new ClSimplexSolver(), new DBPlanner(), new csp.Solver()];
         bbb.defaultSolver = null;
 	},
+
+	tearDown: function() {
+		this.defaultSolversFixture.restoreDefaultSolvers();
+	},
+
 	testSimpleConstraintWithoutSolver: function () {
         var obj = {a: 2, b: 3};
         bbb.always({
