@@ -2086,6 +2086,21 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         this.assert(constraint.solver === bbb.defaultSolvers[1], 'The solver with the smaller distance should have been chosen (albeit slower)');
     },
 
+    testStringsAndSquaredChangeDistance: function() {
+        // we do not support a distance for string values
+        // but it should not break the solver selection process
+        var subject = {hat: '', shoes: 'black'};
+        var constraint = bbb.always({
+            ctx: {
+                subject: subject
+            },
+            optimizationPriority: ['squaredChangeDistance', 'time'],
+        }, function () {
+            return subject.hat === subject.shoes;
+        });
+        this.assert(subject.hat === subject.shoes);
+    },
+
 });
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionTest', {

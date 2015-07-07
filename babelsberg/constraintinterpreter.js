@@ -384,14 +384,17 @@ Object.subclass('Babelsberg', {
                 if (typeof currentMinimum === 'function') {
                     currentMinimum = currentMinimum.call(minimumConstraintMetrics);
                 }
-                if (iMetric == currentMinimum) {
-                    continue; // look at next metric
+                if (iMetric > currentMinimum) {
+                    break; // do not check further metrics
                 }
-                if (iMetric < currentMinimum) {
+                if (iMetric != currentMinimum) {
+                    // iMetric is either smaller or NaN
                     minimumConstraintMetrics = constraints[i].comparisonMetrics;
                     minIndex = i;
+                    if (iMetric < currentMinimum) {
+                        break; // do not check further metrics
+                    }
                 }
-                break;
             }
         }
         if (minIndex > -1) {
