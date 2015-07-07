@@ -364,7 +364,7 @@ Object.subclass('Babelsberg', {
         var minIndex = -1;
         var constraint = null;
         if (optimizationPriority === undefined) {
-            optimizationPriority = ['time','numberOfChangedVariables'];
+            optimizationPriority = ['time', 'numberOfChangedVariables'];
         }
         var minimumConstraintMetrics = {};
         for (var i = 0; i < optimizationPriority.length; i++) {
@@ -374,7 +374,7 @@ Object.subclass('Babelsberg', {
             if (!constraints[i]) {
                 continue;
             }
-            for (var m = 0; optimizationPriority.length; m++) {
+            for (var m = 0; m < optimizationPriority.length; m++) {
                 var metricName = optimizationPriority[m];
                 var iMetric = constraints[i].comparisonMetrics[metricName];
                 if (typeof iMetric === 'function') {
