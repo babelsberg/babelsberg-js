@@ -120,6 +120,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	        var cobj = new Constraint(func, this);
 			cobj.allowFailing = true;
 	        cobj.addPrimitiveConstraint(new ReactiveSolver.Constraint(this, cobj, func));
+	        cobj.opts = opts;
 			try {
 				if(!opts.postponeEnabling) { cobj.enable(); }
 			} catch(e) {
@@ -186,6 +187,7 @@ Object.extend(Babelsberg.prototype, {
 	        var cobj = new Constraint(func, this);
 			cobj.allowFailing = true;
 	        cobj.addPrimitiveConstraint(new ReactiveSolver.Constraint(this, cobj, func));
+	        cobj.opts = opts;
 			if(!opts.postponeEnabling) { cobj.enable(); }
 	        return cobj;
 	    },
@@ -244,6 +246,7 @@ Object.extend(Babelsberg.prototype, {
 	        var cobj = new Constraint(func, this);
 			cobj.allowFailing = true;
 	        cobj.addPrimitiveConstraint(new ReactiveSolver.Constraint(this, cobj, func));
+	        cobj.opts = opts;
 			cobj.enable();
 	        return cobj;
 	    },

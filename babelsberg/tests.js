@@ -1956,6 +1956,23 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         });
         this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a working solution");
     },
+
+    // TODO: move this to Details test case
+    testConstraintVariableDefiningConstraint: function () {
+        var obj = {a: 2, b: 3};
+        var constraint = bbb.always({
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        for (var i = 0; i < constraint.constraintvariables.length; i++) {
+            var constraintVariable = constraint.constraintvariables[i];
+            this.assert(constraintVariable.definingConstraint === constraint);
+        }
+    },
+
     testSimplePropagationShouldChooseDeltaBlue: function() {
         var o = {string: "0",
                  number: 0};

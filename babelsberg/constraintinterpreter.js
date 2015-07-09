@@ -261,8 +261,9 @@ Object.subclass('Babelsberg', {
 
         solvers.each(function(solver) {
             try {
-                var constraint = solver.always(Object.clone(opts), func);
-                constraint.logTimings = opts.logTimings;
+                var optsForSolver = Object.clone(opts);
+                var constraint = solver.always(optsForSolver, func);
+                constraint.opts = optsForSolver;
                 constraints.push(constraint);
             } catch (e) {
                 errors.push(e);
@@ -490,7 +491,6 @@ Object.subclass('Constraint', {
     addConstraintVariable: function(v) {
         if (v && !this.constraintvariables.include(v)) {
             this.constraintvariables.push(v);
-            v.logTimings = this.logTimings;
         }
     },
     get predicate() {
@@ -549,7 +549,7 @@ Object.subclass('Constraint', {
             var nBegin = performance.now();
             this.solver.solve();
             var nEnd = performance.now();
-            if (this.logTimings) {
+            if (this.opts.logTimings) {
                 console.log((this.solver ? this.solver.solverName : '(no solver)') +
                     ' took ' + (nEnd - nBegin) + ' ms to solve for ' +
                     this.ivarname + ' in enable');
@@ -807,6 +807,7 @@ Object.subclass('ConstrainedVariable', {
             var callSetters = !ConstrainedVariable.$$optionalSetters,
                 oldValue = this.storedValue,
                 solver = this.definingSolver;
+            var definingConstraint = this.definingConstraint;
 
             if (!this.hasEnabledConstraint()) {
                 this.setValue(value);
@@ -820,7 +821,7 @@ Object.subclass('ConstrainedVariable', {
                 var nBegin = performance.now();
                 // never uses multiple solvers, since it gets the defining Solver
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
-                if (this.logTimings) {
+                if (definingConstraint && definingConstraint.opts.logTimings) {
                     console.log((solver ? solver.solverName : '(no solver)') +
                         ' took ' + (performance.now() - nBegin) + ' ms' +
                         ' to solve for ' + this.ivarname + ' in suggestValue');
@@ -1088,15 +1089,22 @@ Object.subclass('ConstrainedVariable', {
         if (Constraint.current || this._hasMultipleSolvers) {
             // no fast path for variables with multiple solvers for now
             this._definingSolver = null;
-            return this._searchDefiningSolver();
+            var defining = this._searchDefiningSolver();
+            return defining.solver;
         } else if (!this._definingSolver) {
-            return this._definingSolver = this._searchDefiningSolver();
+            var defining = this._searchDefiningSolver();
+            this._definingConstraint = defining.constraint;
+            return this._definingSolver = defining.solver;
         } else {
             return this._definingSolver;
         }
     },
+    get definingConstraint() {
+        return this._definingConstraint || this._searchDefiningSolver().constraint;
+    },
     _searchDefiningSolver: function() {
         var solver = {weight: -1000, fake: true, solverName: '(fake)'};
+        var constraint = null;
         var solvers = [];
         this.eachExternalVariableDo(function(eVar) {
             var s = eVar.__solver__;
@@ -1110,9 +1118,11 @@ Object.subclass('ConstrainedVariable', {
             }
 
             var hasEnabledConstraint = false;
+            var enabledConstraint = null;
             for (var i = 0; i < this._constraints.length; i++) {
-                if (this._constraints[i].solver == s &&
+                if (this._constraints[i].solver === s &&
                     this._constraints[i]._enabled) {
+                        enabledConstraint = this._constraints[i];
                         hasEnabledConstraint = true;
                         break;
                     }
@@ -1123,14 +1133,15 @@ Object.subclass('ConstrainedVariable', {
 
             if (s.weight > solver.weight) {
                 solver = s;
+                constraint = enabledConstraint;
             }
         }.bind(this));
 
         if (solver.fake) {
-            return null;
+            return {solver: null, constraint: null};
         }
 
-        return solver;
+        return {solver: solver, constraint: constraint};
     },
 
     get solvers() {
