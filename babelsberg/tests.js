@@ -1923,29 +1923,29 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
 });
 
 Object.subclass('users.timfelgentreff.babelsberg.tests.DefaultSolversFixture', {
-	saveDefaultSolvers: function(defaultSolvers) {
-		this.previousDefaultSolvers = bbb.defaultSolvers;
-		this.previousDefaultSolver = bbb.defaultSolver;
-	},
-	restoreDefaultSolvers: function() {
-		bbb.defaultSolvers = this.previousDefaultSolvers;
-		bbb.defaultSolver = this.previousDefaultSolver;
-	},
+    saveDefaultSolvers: function(defaultSolvers) {
+        this.previousDefaultSolvers = bbb.defaultSolvers;
+        this.previousDefaultSolver = bbb.defaultSolver;
+    },
+    restoreDefaultSolvers: function() {
+        bbb.defaultSolvers = this.previousDefaultSolvers;
+        bbb.defaultSolver = this.previousDefaultSolver;
+    },
 });
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionTest', {
-	setUp: function () {
-		this.defaultSolversFixture = new users.timfelgentreff.babelsberg.tests.DefaultSolversFixture();
-		this.defaultSolversFixture.saveDefaultSolvers();
+    setUp: function () {
+        this.defaultSolversFixture = new users.timfelgentreff.babelsberg.tests.DefaultSolversFixture();
+        this.defaultSolversFixture.saveDefaultSolvers();
         bbb.defaultSolvers = [new ClSimplexSolver(), new DBPlanner(), new csp.Solver()];
         bbb.defaultSolver = null;
-	},
+    },
 
-	tearDown: function() {
-		this.defaultSolversFixture.restoreDefaultSolvers();
-	},
+    tearDown: function() {
+        this.defaultSolversFixture.restoreDefaultSolvers();
+    },
 
-	testSimpleConstraintWithoutSolver: function () {
+    testSimpleConstraintWithoutSolver: function () {
         var obj = {a: 2, b: 3};
         bbb.always({
             ctx: {
@@ -1955,7 +1955,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
             return obj.a + obj.b == 3;
         });
         this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a working solution");
-	},
+    },
     testSimplePropagationShouldChooseDeltaBlue: function() {
         var o = {string: "0",
                  number: 0};
