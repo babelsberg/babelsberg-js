@@ -358,7 +358,7 @@ Object.subclass('Babelsberg', {
         var result = [];
 
         // FIXME: this global state is ugly
-        bbb.seenTypes = new Set();
+        bbb.seenTypes = {};
         try {
             cop.withLayers([ConstraintInspectionLayer], function() {
                 func.forInterpretation().apply(undefined, []);
@@ -443,7 +443,7 @@ cop.create('ConstraintInspectionLayer')
         // For object.sub.some.member, only consider the type of .member
         node._isGetSlot = true;
         if (!node.parent._isGetSlot) {
-            bbb.seenTypes.add(typeof value);
+            bbb.seenTypes[typeof value] = true;
         }
         return value;
     }
