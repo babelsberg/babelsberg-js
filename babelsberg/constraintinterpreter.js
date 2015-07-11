@@ -257,7 +257,7 @@ Object.subclass('Babelsberg', {
         func.debugging = opts.debugging;
         func.onError = opts.onError;
 
-        solvers = this.filterSolvers(solvers, opts);
+        solvers = this.filterSolvers(solvers, opts, func);
 
         solvers.each(function(solver) {
             try {
@@ -354,7 +354,7 @@ Object.subclass('Babelsberg', {
         }
     },
 
-    filterSolvers: function(solvers, opts) {
+    filterSolvers: function(solvers, opts, func) {
         var result = [];
 
         solvers.each(function(solver) {
@@ -374,6 +374,8 @@ Object.subclass('Babelsberg', {
                 }
                 return false;
             }
+
+            var test = solver.supportedDataTypes();
 
             result.push(solver);
         });
