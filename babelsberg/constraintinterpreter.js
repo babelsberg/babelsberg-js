@@ -265,11 +265,17 @@ Object.subclass('Babelsberg', {
             } catch (e) {
                 errors.push(e);
                 constraint.disable();
+                constraint.isAbandoned = true;
                 constraint = null;
             }
         }
-
-        if (!constraint) {
+        if (constraint) {
+            constraints.each(function(each) {
+                if (each !== constraint && each !== null)
+                    each.isAbandoned = true;
+            });
+            constraint.compactExternalVariablesOfConstrainedVariables();
+        } else {
             if (typeof opts.onError === 'function') {
                 bbb.addCallback(opts.onError, opts.onError.constraint, errors);
             } else {
@@ -416,10 +422,16 @@ Object.subclass('Babelsberg', {
                                    currentConstraint._predicate, errors);
         constraints.push(currentConstraint);
         var constraint = this.chooseConstraint(constraints, opts, errors);
-        if (constraint === currentConstraint)
-            return; // no other solver succeeded to enforce this constraint
-        currentConstraint.solver = constraint.solver;
+        if (constraint !== currentConstraint) {
+            currentConstraint.solver = constraint.solver;
+            // yes, constraint does not replace currentConstraint, only its solver
+        }
+        constraints.each(function(each) {
+            if (each !== currentConstraint)
+                each.isAbandoned = true;
+        });
         currentConstraint.enable();
+        currentConstraint.compactExternalVariablesOfConstrainedVariables();
     },
 
     addCallback: function(func, context, args) {
@@ -735,6 +747,19 @@ Object.subclass('Constraint', {
                 assignments.invoke('disable');
             }
         }
+    },
+
+    /**
+     * From ConstrainedVariables remove all external variables which only relate to
+     * abandoned constraints.
+     */
+    compactExternalVariablesOfConstrainedVariables: function() {
+        this.constraintvariables.each(function(eachVar) {
+            eachVar.compactExternalVariables();
+        });
+        // TODO: eject those external variables also from their solvers
+        // because the solvers might be put to use somewhere else and should not be
+        // bothered with old (possibly duplicated) variables, should they?
     }
 });
 Object.extend(Constraint, {
@@ -880,6 +905,7 @@ Object.subclass('ConstrainedVariable', {
                     if (definingConstraint.updateCounter >=
                         definingConstraint.recalculationInterval) {
                             bbb.reevaluateSolverSelection(definingConstraint, this);
+                            definingConstraint.updateCounter = 0;
                         }
                 }
                 this.solveForConnectedVariables(value, oldValue, solver, source, force);
@@ -1299,6 +1325,37 @@ Object.subclass('ConstrainedVariable', {
             this._resetIsSolveable();
         }
     },
+
+    /**
+     * Removes all external variables which belong only to abandoned constraints.
+     */
+    compactExternalVariables: function() {
+        var externalVariable;
+        var wasAbandonedOrUsesOtherSolver = function(constraint) {
+            return constraint.solver !== externalVariable.__solver__ ||
+                constraint.isAbandoned;
+        };
+
+        var externalVariableKeysToRemove = [];
+        for (var solverUUID in this._externalVariables) {
+            if (this._externalVariables[solverUUID] === null) {
+                externalVariableKeysToRemove.push(solverUUID);
+                continue;
+            }
+            if (!this._externalVariables[solverUUID].isConstraintObject)
+                continue;
+            externalVariable = this._externalVariables[solverUUID];
+            // search enabled Constraint for this variable's solver
+            var allAbandoned = this._constraints.every(wasAbandonedOrUsesOtherSolver);
+            if (allAbandoned) {
+                externalVariableKeysToRemove.push(solverUUID);
+            }
+        }
+        externalVariableKeysToRemove.each(function(each) {
+            delete this._externalVariables[each];
+        }.bind(this));
+    },
+
     hasEnabledConstraint: function() {
         return this._constraints.length == 0 ||
             this._constraints.some(function(constraint) {

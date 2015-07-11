@@ -2195,6 +2195,62 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         constraint.recalculationInterval = 1000;
         obj.a += 1;
     },
+
+    testCallsToSolvers: function() {
+        preparePatchedSolvers();
+        var obj = {a: 2, b: 3};
+        bbb.defaultSolvers[0].forcedDelay = 10;
+        bbb.defaultSolvers[1].forcedDelay = 0;
+        var constraint = bbb.always({
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        bbb.defaultSolvers[0].solveCalls = 0;
+        bbb.defaultSolvers[0].forcedSolveAction = function() {
+            this.solveCalls += 1;
+            ClSimplexSolver.prototype.solve.call(this);
+        };
+        bbb.defaultSolvers[1].solveCalls = 0;
+        bbb.defaultSolvers[1].forcedSolveAction = bbb.defaultSolvers[0].forcedSolveAction;
+        constraint.recalculationInterval = 3;
+        var otherSolver = bbb.defaultSolvers[constraint.solver === bbb.defaultSolvers[0] ?
+            1 : 0];
+        for (var i = 0; i < 2; i++) {
+            obj.a += 1;
+        }
+        this.assert(constraint.solver.solveCalls >= 2, 'Chosen solver should have ' +
+                    'been called two times');
+        this.assert(otherSolver.solveCalls === 0, 'Unselected solver should ' +
+                    'not have been called');
+        constraint.solver.solveCalls = 0;
+        otherSolver.solveCalls = 0;
+        obj.a += 1; // should cause reevaluation
+        this.assert(constraint.solver.solveCalls >= 1, 'Chosen solver should have ' +
+                    'been called for reevaluation');
+        this.assert(otherSolver.solveCalls >= 1, 'Unselected solver should ' +
+                    'have been called for reevaluation');
+        // in case the solver has changed, update our otherSolver variable
+        // (it should not, but we do not wish to assert that here)
+        var otherSolver = bbb.defaultSolvers[constraint.solver === bbb.defaultSolvers[0] ?
+            1 : 0];
+        constraint.solver.solveCalls = 0;
+        otherSolver.solveCalls = 0;
+        for (var i = 0; i < 2; i++) {
+            obj.a += 1;
+        }
+        this.assert(constraint.solver.solveCalls >= 2, 'Chosen solver should be called');
+        this.assert(otherSolver.solveCalls === 0, 'Unchosen solver should not be called');
+        constraint.solver.solveCalls = 0;
+        otherSolver.solveCalls = 0;
+        obj.a += 1; // should cause reevaluation
+        this.assert(constraint.solver.solveCalls >= 1, 'Chosen solver should have ' +
+                    'been called for reevaluation');
+        this.assert(otherSolver.solveCalls >= 1, 'Unselected solver should ' +
+                    'have been called for reevaluation');
+    },
 });
 
 }) // end of module
