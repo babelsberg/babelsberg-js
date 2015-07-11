@@ -256,6 +256,8 @@ Object.subclass('Babelsberg', {
         func.allowUnsolvableOperations = (opts.allowUnsolvableOperations === true);
         func.debugging = opts.debugging;
         func.onError = opts.onError;
+        //TODO: remove this from all solver implementations or move to filterSolvers
+        func.varMapping = opts.ctx;
 
         solvers = this.filterSolvers(solvers, opts, func);
 
