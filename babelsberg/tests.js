@@ -1945,7 +1945,6 @@ function preparePatchedSolvers() {
             ; // busy wait, no sleep in JavaScript
             // and setTimeout is not what we want
         }
-        console.log('finished busy wait');
         if (typeof this.forcedSolveAction === 'function') {
             return this.forcedSolveAction();
         }
