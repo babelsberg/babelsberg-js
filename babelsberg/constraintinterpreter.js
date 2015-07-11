@@ -390,7 +390,15 @@ Object.subclass('Babelsberg', {
                 return false;
             }
 
-            var test = solver.supportedDataTypes();
+            for (var type in bbb.seenTypes) {
+                if (solver.supportedDataTypes().indexOf(type) == -1) {
+                    if (opts.logReasons) {
+                        console.log('Ignoring ' + solver.solverName +
+                            ' because it does not support ' + type + ' variables');
+                    }
+                    return false;
+                }
+            }
 
             result.push(solver);
         });
