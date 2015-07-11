@@ -419,6 +419,22 @@ users.timfelgentreff.jsinterpreter.Send.addMethods({
     }
 });
 
+cop.create('ConstraintInspectionLayer')
+.refineClass(users.timfelgentreff.jsinterpreter.InterpreterVisitor, {
+    visitGetSlot: function(node) {
+        var obj = this.visit(node.obj),
+            name = this.visit(node.slotName),
+            value = obj[name];
+
+        // For object.sub.some.member, only consider the type of .member
+        node._isGetSlot = true;
+        if (!node.parent._isGetSlot) {
+            bbb.seenTypes.add(typeof value);
+        }
+        return value;
+    }
+});
+
 cop.create('ConstraintConstructionLayer').
         refineObject(users.timfelgentreff.jsinterpreter, {
     get InterpreterVisitor() {
