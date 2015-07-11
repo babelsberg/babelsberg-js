@@ -874,11 +874,13 @@ Object.subclass('ConstrainedVariable', {
                         ' to solve for ' + this.ivarname + ' in suggestValue');
                 }
                 if (isInitiatingSuggestForDefiningConstraint) {
-                    definingConstraint.updateCounter = definingConstraint.updateCounter || 0;
+                    definingConstraint.updateCounter = definingConstraint.updateCounter ||
+                        0;
                     definingConstraint.updateCounter += 1;
-                    if (definingConstraint.updateCounter >= definingConstraint.recalculationInterval) {
-                        bbb.reevaluateSolverSelection(definingConstraint, this);
-                    }
+                    if (definingConstraint.updateCounter >=
+                        definingConstraint.recalculationInterval) {
+                            bbb.reevaluateSolverSelection(definingConstraint, this);
+                        }
                 }
                 this.solveForConnectedVariables(value, oldValue, solver, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
