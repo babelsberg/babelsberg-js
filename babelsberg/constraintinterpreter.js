@@ -357,6 +357,19 @@ Object.subclass('Babelsberg', {
     filterSolvers: function(solvers, opts, func) {
         var result = [];
 
+        // FIXME: this global state is ugly
+        bbb.seenTypes = new Set();
+        try {
+            cop.withLayers([ConstraintInspectionLayer], function() {
+                func.forInterpretation().apply(undefined, []);
+            });
+        } catch (e) {
+            if (opts.logReasons) {
+                console.log('Parsing the expression for types failed, ' +
+                   'will not check types');
+            }
+        }
+
         solvers.each(function(solver) {
             if (opts.methods && !solver.supportsMethods()) {
                 if (opts.logReasons) {
@@ -380,6 +393,7 @@ Object.subclass('Babelsberg', {
             result.push(solver);
         });
 
+        delete seenTypes;
         return result;
     },
 
