@@ -1147,10 +1147,10 @@ Object.subclass('ConstrainedVariable', {
         if (Constraint.current || this._hasMultipleSolvers) {
             // no fast path for variables with multiple solvers for now
             this._definingSolver = null;
-            var defining = this._searchDefiningSolver();
+            var defining = this._searchDefiningSolverAndConstraint();
             return defining.solver;
         } else if (!this._definingSolver) {
-            var defining = this._searchDefiningSolver();
+            var defining = this._searchDefiningSolverAndConstraint();
             this._definingConstraint = defining.constraint;
             return this._definingSolver = defining.solver;
         } else {
@@ -1158,9 +1158,10 @@ Object.subclass('ConstrainedVariable', {
         }
     },
     get definingConstraint() {
-        return this._definingConstraint || this._searchDefiningSolver().constraint;
+        return this._definingConstraint ||
+			this._searchDefiningSolverAndConstraint().constraint;
     },
-    _searchDefiningSolver: function() {
+    _searchDefiningSolverAndConstraint: function() {
         var solver = {weight: -1000, fake: true, solverName: '(fake)'};
         var constraint = null;
         var solvers = [];
