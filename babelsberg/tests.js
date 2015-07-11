@@ -1980,6 +1980,50 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a working solution");
     },
 
+    testSuggestingNewValues: function () {
+        var obj = {a: 2, b: 3};
+        bbb.always({
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a " +
+                    "working solution");
+        obj.a = 1;
+        this.assert(obj.a === 1, "Assignment should be honored");
+        this.assert(obj.a + obj.b == 3, "Constraint should have adapted the other " +
+                    "variable to fulfill the constraint");
+        obj.b = 3;
+        this.assert(obj.b === 3, "Assignment should be honored");
+        this.assert(obj.a + obj.b == 3, "Constraint should have adapted the other " +
+                    "variable to fulfill the constraint");
+    },
+
+    testSelfAssignmentOperations: function () {
+        bbb.defaultSolvers = [new ClSimplexSolver(), new ClSimplexSolver()];
+        var obj = {a: 2, b: 3};
+        bbb.always({
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a " +
+                    "working solution");
+        var oldA = obj.a;
+        obj.a += 1;
+        this.assert(obj.a === oldA + 1, "Assignment should be honored");
+        this.assert(obj.a + obj.b == 3, "Constraint should have adapted the other " +
+                    "variable to fulfill the constraint");
+        obj.a += 1;
+        this.assert(obj.a === oldA + 2, "Assignment should be honored");
+        this.assert(obj.a + obj.b == 3, "Constraint should have adapted the other " +
+                    "variable to fulfill the constraint");
+    },
+
     // TODO: move this to Details test case
     testConstraintVariableDefiningConstraint: function () {
         var obj = {a: 2, b: 3};
@@ -2146,6 +2190,11 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         }
         this.assert(constraint.solver === bbb.defaultSolvers[0],
                     "the solver should have changed to the new faster solver");
+        bbb.defaultSolvers[1].forcedSolveAction = (function() {
+            this.assert(false, 'The slower solver should not be called anymore.');
+        }).bind(this);
+        constraint.recalculationInterval = 1000;
+        obj.a += 1;
     },
 });
 
