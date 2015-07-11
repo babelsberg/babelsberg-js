@@ -247,10 +247,8 @@ Object.subclass('Babelsberg', {
      * @param {function} func The constraint to be fulfilled.
      */
     always: function(opts, func) {
-        var constraints = [],
-            solvers = this.chooseSolvers(opts.solver),
-            errors = [],
-            constraint = null;
+        var solvers = this.chooseSolvers(opts.solver),
+            errors = [];
 
         func.allowTests = (opts.allowTests === true);
         func.allowUnsolvableOperations = (opts.allowUnsolvableOperations === true);
@@ -258,7 +256,39 @@ Object.subclass('Babelsberg', {
         func.onError = opts.onError;
 
         solvers = this.filterSolvers(solvers, opts);
+        var constraints = this.createEquivalentConstraints(solvers, opts, func, errors);
+        var constraint = this.chooseConstraint(constraints, opts, errors);
+        if (!opts.postponeEnabling && constraint) {
+            try {
+                constraint.enable();
+            } catch (e) {
+                errors.push(e);
+                constraint.disable();
+                constraint = null;
+            }
+        }
 
+        if (!constraint) {
+            if (typeof opts.onError === 'function') {
+                bbb.addCallback(opts.onError, opts.onError.constraint, errors);
+            } else {
+                bbb.addCallback(function(e) {
+                    e = e || new Error('No solver available!');
+                    e.errors = Array.from(arguments);
+                    throw e;
+                }, null, errors);
+            }
+        }
+        bbb.processCallbacks();
+        return constraint;
+    },
+
+    /**
+     * Create a Constraint for opts and func for each of the specified solvers.
+     * Return an array of the created Constraints.
+     */
+    createEquivalentConstraints: function(solvers, opts, func, errors) {
+        var constraints = [];
         solvers.each(function(solver) {
             try {
                 var optsForSolver = Object.clone(opts);
@@ -270,7 +300,15 @@ Object.subclass('Babelsberg', {
                 return false;
             }
         });
+        return constraints;
+    },
 
+    /**
+     * Choose one of the specified constraints which performs best according to the
+     * requirements laid out in opts.
+     */
+    chooseConstraint: function(constraints, opts, errors) {
+        var constraint = null;
         if (constraints.length > 1) {
             for (var i = 0; i < constraints.length; i++) {
                 try {
@@ -304,31 +342,8 @@ Object.subclass('Babelsberg', {
         } else if (constraints.length == 1) {
             constraint = constraints[0];
         }
-
-        if (!opts.postponeEnabling && constraint) {
-            try {
-                constraint.enable();
-            } catch (e) {
-                errors.push(e);
-                constraint.disable();
-                constraint = null;
-            }
-        }
-
-        if (!constraint) {
-            if (typeof opts.onError === 'function') {
-                bbb.addCallback(opts.onError, opts.onError.constraint, errors);
-            } else {
-                bbb.addCallback(function(e) {
-                    e = e || new Error('No solver available!');
-                    e.errors = Array.from(arguments);
-                    throw e;
-                }, null, errors);
-            }
-        }
-        bbb.processCallbacks();
-        return constraint;
-    },
+		return constraint;
+	},
 
     /**
      * Creates a constraint equivalent to the given function through
