@@ -353,11 +353,11 @@ Object.subclass('Babelsberg', {
         if (constraints.length === 1)
             return constraints[0];
         var constraint = null;
-        var previouslyEnabledConstraints = new Set();
+        var previouslyEnabledConstraints = [];
         // make sure all constraints are disabled before the comparison
         constraints.each(function(each) {
             if (each._enabled)
-                previouslyEnabledConstraints.add(each);
+                previouslyEnabledConstraints.push(each);
             each.disable();
         });
 		for (var i = 0; i < constraints.length; i++) {
