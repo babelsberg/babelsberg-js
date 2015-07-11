@@ -1168,10 +1168,6 @@ Object.subclass('ConstrainedVariable', {
         this.eachExternalVariableDo(function(eVar) {
             var s = eVar.__solver__;
 
-            if (!solver.fake) {
-                this._hasMultipleSolvers = true;
-            }
-
             if (!s.fake) {
                 solvers.push(s);
             }
@@ -1189,6 +1185,11 @@ Object.subclass('ConstrainedVariable', {
 
             if (this._constraints.length > 0 && !hasEnabledConstraint)
                 return;
+
+            if (!solver.fake && hasEnabledConstraint) {
+                this._hasMultipleSolvers = true;
+            }
+
 
             if (s.weight > solver.weight) {
                 solver = s;
