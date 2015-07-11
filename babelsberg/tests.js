@@ -1926,12 +1926,35 @@ Object.subclass('users.timfelgentreff.babelsberg.tests.DefaultSolversFixture', {
     saveDefaultSolvers: function(defaultSolvers) {
         this.previousDefaultSolvers = bbb.defaultSolvers;
         this.previousDefaultSolver = bbb.defaultSolver;
+        this.previousRecalculationInterval = bbb.defaultRecalculationInterval;
     },
     restoreDefaultSolvers: function() {
         bbb.defaultSolvers = this.previousDefaultSolvers;
         bbb.defaultSolver = this.previousDefaultSolver;
+        bbb.defaultRecalculationInterval = this.previousRecalculationInterval;
     },
 });
+
+function preparePatchedSolvers() {
+    // prepare solvers of which the solving time and actions can be dictated
+    patchedSolver = new ClSimplexSolver();
+    patchedSolver.forcedDelay = 0;
+    patchedSolver.solve = function() {
+        var begin = performance.now();
+        while (performance.now() < begin + this.forcedDelay) {
+            ; // busy wait, no sleep in JavaScript
+            // and setTimeout is not what we want
+        }
+        console.log('finished busy wait');
+        if (typeof this.forcedSolveAction === 'function') {
+            return this.forcedSolveAction();
+        }
+        return ClSimplexSolver.prototype.solve.apply(this, arguments);
+    }
+    PatchedSolver = function() {}
+    PatchedSolver.prototype = patchedSolver;
+    bbb.defaultSolvers = [new PatchedSolver(), new PatchedSolver()];
+}
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionTest', {
     setUp: function () {
@@ -2095,6 +2118,34 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         this.assert(man.shirt === "blue" || man.shirt === "white", "shirt has to be 'blue' or 'white'");
         this.assert(man.shirt !== man.pants, "shirt and pants must not have the same color");
         this.assert(man.pants === "black" || man.pants === "blue" || man.pants === "white", "pants should be 'black', 'blue' or 'white'");
+    },
+
+    testReevaluationAfterDefaultNumberOfSolvingOperations: function() {
+        preparePatchedSolvers();
+        var obj = {a: 2, b: 3};
+        bbb.defaultSolvers[0].forcedDelay = 10;
+        bbb.defaultSolvers[1].forcedDelay = 0;
+        bbb.defaultRecalculationInterval = 2; // recalculate after two updates
+        var constraint = bbb.always({
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        this.assert(constraint.solver === bbb.defaultSolvers[1],
+                    "the initially faster solver should have been chosen");
+        bbb.defaultSolvers[0].forcedDelay = 0;
+        bbb.defaultSolvers[1].forcedDelay = 10;
+        for (var i = 0; i < 2; i++) {
+            // BUG with variable changes feature:
+            // the definingSolver for CV a is wrong, because the check
+            // whether there is an enabled constraint is commented out
+            // in CV._searchDefiningSolver
+            obj.a += 1;
+        }
+        this.assert(constraint.solver === bbb.defaultSolvers[0],
+                    "the solver should have changed to the new faster solver");
     },
 });
 

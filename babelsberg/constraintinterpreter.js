@@ -18,6 +18,7 @@ Object.subclass('Babelsberg', {
 
     initialize: function() {
         this.defaultSolvers = [new ClSimplexSolver(), new DBPlanner(), new csp.Solver()];
+        this.defaultRecalculationInterval = 1000;
         this.callbacks = [];
     },
 
@@ -334,10 +335,11 @@ Object.subclass('Babelsberg', {
                 var optsForSolver = Object.clone(opts);
                 var constraint = solver.always(optsForSolver, func);
                 constraint.opts = optsForSolver;
+                constraint.originalOpts = opts;
                 constraints.push(constraint);
             } catch (e) {
                 errors.push(e);
-                return false;
+                return;
             }
         });
         return constraints;
@@ -348,40 +350,44 @@ Object.subclass('Babelsberg', {
      * requirements laid out in opts.
      */
     chooseConstraint: function(constraints, opts, errors) {
+        if (constraints.length === 1)
+            return constraints[0];
         var constraint = null;
-        if (constraints.length > 1) {
-            for (var i = 0; i < constraints.length; i++) {
-                try {
-                    Constraint.current = constraints[i];
-                    constraints[i].enable(true);
-                    constraints[i].disable();
-                } catch (e) {
-                    errors.push(e);
-                    constraints[i].disable();
-                    constraints[i] = null;
-                } finally {
-                    Constraint.current = null;
-                }
-            }
-
-            var min = Number.MAX_VALUE;
-            var minIndex = -1;
-            for (var i = 0; i < constraints.length; i++) {
-                if (constraints[i] && constraints[i].oComparisonMetrics.time < min) {
-                    min = constraints[i].oComparisonMetrics.time;
-                    minIndex = i;
-                }
-            }
-            if (minIndex > -1) {
-                constraint = constraints[minIndex];
-                if (opts.logTimings) {
-                    console.log('Selected fastest solver:' +
-                        constraint.solver.solverName);
-                }
-            }
-        } else if (constraints.length == 1) {
-            constraint = constraints[0];
-        }
+        var previouslyEnabledConstraints = new Set();
+        // make sure all constraints are disabled before the comparison
+        constraints.each(function(each) {
+            if (each._enabled)
+                previouslyEnabledConstraints.add(each);
+            each.disable();
+        });
+		for (var i = 0; i < constraints.length; i++) {
+			try {
+				Constraint.current = constraints[i];
+				constraints[i].enable(true);
+				constraints[i].disable();
+			} catch (e) {
+				errors.push(e);
+				constraints[i].disable();
+				constraints[i] = null;
+			} finally {
+				Constraint.current = null;
+			}
+		}
+		var min = Number.MAX_VALUE;
+		var minIndex = -1;
+		for (var i = 0; i < constraints.length; i++) {
+			if (constraints[i] && constraints[i].oComparisonMetrics.time < min) {
+				min = constraints[i].oComparisonMetrics.time;
+				minIndex = i;
+			}
+		}
+		if (minIndex > -1) {
+			constraint = constraints[minIndex];
+			if (opts.logTimings) {
+				console.log('Selected fastest solver:' +
+					constraint.solver.solverName);
+			}
+		}
         return constraint;
     },
 
@@ -395,6 +401,25 @@ Object.subclass('Babelsberg', {
         var constraint = this.always(opts, func);
         constraint.disable();
         return constraint;
+    },
+
+    reevaluateSolverSelection: function(currentConstraint, updatedConstraintVariable) {
+        var currentSolver = currentConstraint.solver;
+        var opts = currentConstraint.originalOpts;
+        var solvers = this.chooseSolvers(opts.solver);
+        solvers = solvers.filter(function(each) { return each !== currentSolver; });
+        solvers = this.filterSolvers(solvers, opts);
+        if (solvers.length < 1)
+            return; // no other solver is qualified to enforce this constraint
+        var errors = [];
+        var constraints = this.createEquivalentConstraints(solvers, opts,
+                                   currentConstraint._predicate, errors);
+        constraints.push(currentConstraint);
+        var constraint = this.chooseConstraint(constraints, opts, errors);
+        if (constraint === currentConstraint)
+            return; // no other solver succeeded to enforce this constraint
+		currentConstraint.solver = constraint.solver;
+		currentConstraint.enable();
     },
 
     addCallback: function(func, context, args) {
@@ -485,6 +510,7 @@ Object.subclass('Constraint', {
         this.constraintobjects = [];
         this.constraintvariables = [];
         this.solver = solver;
+		this.recalculationInterval = bbb.defaultRecalculationInterval;
 
         // FIXME: this global state is ugly
         try {
@@ -833,6 +859,12 @@ Object.subclass('ConstrainedVariable', {
                 ConstrainedVariable.$$optionalSetters || [];
 
             try {
+				var isInitiatingSuggestForDefiningConstraint = false;
+                if (definingConstraint !== null) {
+                    isInitiatingSuggestForDefiningConstraint =
+                        !definingConstraint.isAnyVariableCurrentlySuggested;
+                    definingConstraint.isAnyVariableCurrentlySuggested = true;
+                }
                 var nBegin = performance.now();
                 // never uses multiple solvers, since it gets the defining Solver
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
@@ -840,6 +872,13 @@ Object.subclass('ConstrainedVariable', {
                     console.log((solver ? solver.solverName : '(no solver)') +
                         ' took ' + (performance.now() - nBegin) + ' ms' +
                         ' to solve for ' + this.ivarname + ' in suggestValue');
+                }
+                if (isInitiatingSuggestForDefiningConstraint) {
+                    definingConstraint.updateCounter = definingConstraint.updateCounter || 0;
+                    definingConstraint.updateCounter += 1;
+                    if (definingConstraint.updateCounter >= definingConstraint.recalculationInterval) {
+                        bbb.reevaluateSolverSelection(definingConstraint, this);
+                    }
                 }
                 this.solveForConnectedVariables(value, oldValue, solver, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
@@ -852,7 +891,11 @@ Object.subclass('ConstrainedVariable', {
             } finally {
                 this.ensureClearSetters(callSetters);
                 if (this.isSolveable() && solver && source) {
+                    // was bumped up in solveForPrimarySolver
                     this.bumpSolverWeight(solver, 'down');
+                }
+                if (definingConstraint !== null) {
+                    definingConstraint.isAnyVariableCurrentlySuggested = false;
                 }
             }
             bbb.processCallbacks();
