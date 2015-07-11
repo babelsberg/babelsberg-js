@@ -261,7 +261,13 @@ Object.subclass('Babelsberg', {
         var constraint = this.chooseConstraint(constraints, opts, errors);
         if (!opts.postponeEnabling && constraint) {
             try {
-                constraint.enable();
+                constraint.isAnyVariableCurrentlySuggested = true; // do not increase
+                                                                   // updateCounter
+                try {
+                    constraint.enable();
+                } finally {
+                    constraint.isAnyVariableCurrentlySuggested = false;
+                }
             } catch (e) {
                 errors.push(e);
                 constraint.disable();
@@ -523,6 +529,7 @@ Object.subclass('Constraint', {
         this.constraintvariables = [];
         this.solver = solver;
         this.recalculationInterval = bbb.defaultRecalculationInterval;
+        this.updateCounter = 0;
 
         // FIXME: this global state is ugly
         try {
@@ -899,8 +906,6 @@ Object.subclass('ConstrainedVariable', {
                         ' to solve for ' + this.ivarname + ' in suggestValue');
                 }
                 if (isInitiatingSuggestForDefiningConstraint) {
-                    definingConstraint.updateCounter = definingConstraint.updateCounter ||
-                        0;
                     definingConstraint.updateCounter += 1;
                     if (definingConstraint.updateCounter >=
                         definingConstraint.recalculationInterval) {
@@ -922,7 +927,7 @@ Object.subclass('ConstrainedVariable', {
                     // was bumped up in solveForPrimarySolver
                     this.bumpSolverWeight(solver, 'down');
                 }
-                if (definingConstraint !== null) {
+                if (isInitiatingSuggestForDefiningConstraint) {
                     definingConstraint.isAnyVariableCurrentlySuggested = false;
                 }
             }

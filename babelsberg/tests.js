@@ -2198,7 +2198,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
 
     testCallsToSolvers: function() {
         preparePatchedSolvers();
-        var obj = {a: 2, b: 3};
+        var obj = {a: 2, b: 3, c: 5};
         bbb.defaultSolvers[0].forcedDelay = 10;
         bbb.defaultSolvers[1].forcedDelay = 0;
         var constraint = bbb.always({
@@ -2206,7 +2206,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
                 obj: obj
             }
         }, function() {
-            return obj.a + obj.b == 3;
+            return obj.a + obj.b == 3 && obj.c == obj.a + obj.b;
         });
         bbb.defaultSolvers[0].solveCalls = 0;
         bbb.defaultSolvers[0].forcedSolveAction = function() {
