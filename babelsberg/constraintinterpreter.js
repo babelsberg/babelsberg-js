@@ -283,6 +283,46 @@ Object.subclass('Babelsberg', {
         return constraint;
     },
 
+    chooseSolvers: function(optSolver) {
+        if (optSolver) {
+            return [optSolver];
+        } else if (this.defaultSolver) {
+            return [this.defaultSolver];
+        } else if (this.defaultSolvers.length > 0) {
+            return this.defaultSolvers;
+        } else {
+            return [];
+            // throw new Error('Must pass a solver, or set defaultSolver.');
+        }
+    },
+
+    filterSolvers: function(solvers, opts) {
+        var result = [];
+
+        solvers.each(function(solver) {
+            if (opts.methods && !solver.supportsMethods()) {
+                if (opts.logReasons) {
+                    console.log('Ignoring ' + solver.solverName +
+                        ' because it does not support opts.methods');
+                }
+                return false;
+            }
+
+            if (opts.priority && opts.priority != 'required' &&
+                !solver.supportsSoftConstraints()) {
+                if (opts.logReasons) {
+                    console.log('Ignoring ' + solver.solverName +
+                        ' because it does not support soft constraints');
+                }
+                return false;
+            }
+
+            result.push(solver);
+        });
+
+        return result;
+    },
+
     /**
      * Create a Constraint for opts and func for each of the specified solvers.
      * Return an array of the created Constraints.
@@ -342,8 +382,8 @@ Object.subclass('Babelsberg', {
         } else if (constraints.length == 1) {
             constraint = constraints[0];
         }
-		return constraint;
-	},
+        return constraint;
+    },
 
     /**
      * Creates a constraint equivalent to the given function through
@@ -355,46 +395,6 @@ Object.subclass('Babelsberg', {
         var constraint = this.always(opts, func);
         constraint.disable();
         return constraint;
-    },
-
-    chooseSolvers: function(optSolver) {
-        if (optSolver) {
-            return [optSolver];
-        } else if (this.defaultSolver) {
-            return [this.defaultSolver];
-        } else if (this.defaultSolvers.length > 0) {
-            return this.defaultSolvers;
-        } else {
-            return [];
-            // throw new Error('Must pass a solver, or set defaultSolver.');
-        }
-    },
-
-    filterSolvers: function(solvers, opts) {
-        var result = [];
-
-        solvers.each(function(solver) {
-            if (opts.methods && !solver.supportsMethods()) {
-                if (opts.logReasons) {
-                    console.log('Ignoring ' + solver.solverName +
-                        ' because it does not support opts.methods');
-                }
-                return false;
-            }
-
-            if (opts.priority && opts.priority != 'required' &&
-                !solver.supportsSoftConstraints()) {
-                if (opts.logReasons) {
-                    console.log('Ignoring ' + solver.solverName +
-                        ' because it does not support soft constraints');
-                }
-                return false;
-            }
-
-            result.push(solver);
-        });
-
-        return result;
     },
 
     addCallback: function(func, context, args) {
