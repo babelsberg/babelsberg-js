@@ -29,7 +29,8 @@ ClSimplexSolver.addMethods({
     },
     solverName: 'Cassowary',
     supportsMethods: function() { return false; },
-    supportsSoftConstraints: function() { return true; }
+    supportsSoftConstraints: function() { return true; },
+    supportedDataTypes: function() { return ['number']; }
 });
 
 Object.extend(ClSimplexSolver, {

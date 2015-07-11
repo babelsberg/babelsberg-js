@@ -46,6 +46,7 @@ Relax.prototype.weight = 100;
 Relax.prototype.solverName = 'Relax';
 Relax.prototype.supportsMethods = function() { return false; };
 Relax.prototype.supportsSoftConstraints = function() { return false; };
+Relax.prototype.supportedDataTypes = function() { return ['number']; };
 
 RelaxNode.prototype.isConstraintObject = function() {
     return true;

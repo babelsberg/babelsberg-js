@@ -11,7 +11,11 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
 	    constraintVariableFor: function(value, ivarname, bbbCVar) {
 	    	return new ReactiveSolver.Variable(this, value, ivarname, bbbCVar);
 	    },
-	    weight: 10000
+	    weight: 10000,
+        solverName: 'reactive',
+        supportsMethods: function() { return false; },
+        supportsSoftConstraints: function() { return false; },
+        supportedDataTypes: function() { return ['number']; /* XXX: is this correct? */ }
 	});
 	
 	Object.subclass("ReactiveSolver.Variable", {
