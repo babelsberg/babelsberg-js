@@ -403,7 +403,7 @@ Object.subclass('Babelsberg', {
             result.push(solver);
         });
 
-        delete seenTypes;
+        delete bbb.seenTypes;
         return result;
     },
 
