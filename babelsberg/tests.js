@@ -2062,7 +2062,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         this.assert(man.pants === "black" || man.pants === "blue" || man.pants === "white", "pants should be 'black', 'blue' or 'white'");
     },
 	testFilteringByPriority: function () {
-        testCase = this;
+        var testCase = this;
         Object.subclass('DummySolver', {
             always: function(opts, func) { testCase.assert(false, 'should not have asked solver to try'); },            
             solverName: 'TestDummy',
@@ -2085,7 +2085,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a working solution");
 	},
 	testFilteringByMethods: function () {
-        testCase = this;
+        var testCase = this;
         Object.subclass('DummySolver', {
             always: function(opts, func) { testCase.assert(false, 'should not have asked solver to try'); },            
             solverName: 'TestDummy',
@@ -2117,7 +2117,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         this.assert(o.string === "12");
 	},
 	testFilteringByDataType: function () {
-        testCase = this;
+        var testCase = this;
         Object.subclass('DummySolver', {
             always: function(opts, func) { testCase.assert(false, 'should not have asked solver to try'); },            
             solverName: 'TestDummy',
