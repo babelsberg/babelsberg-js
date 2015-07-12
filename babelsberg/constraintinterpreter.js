@@ -475,18 +475,117 @@ Object.subclass('EditConstraintJIT', {
         }, this);
     },
     
-    doDeclarativeDragSimBenchmark: function(numIterations, enableECJIT) {
+    benchAll: function() {
+        console.log("==== DragSimulation ====");
+        [
+            {'numIterations':5}, {'numIterations':15}//, {'numIterations':25}, {'numIterations':50}
+        ].forEach(function(config) {
+            console.log("numIterations: "+config['numIterations']);
+            // warm-up
+            console.log("-");
+            this.benchDeclarativeDragSim(config['numIterations'], false);
+            console.log("-");
+            this.benchDeclarativeDragSim(config['numIterations'], true);
+            console.log("-");
+            this.benchEditDragSim(config['numIterations'], false);
+            console.log("-");
+            var t0 = this.benchDeclarativeDragSim(config['numIterations'], false);
+            //t0 = Math.round(t0/1);
+            console.log("-");
+            var t1 = this.benchDeclarativeDragSim(config['numIterations'], true);
+            t1 += this.benchDeclarativeDragSim(config['numIterations'], true);
+            t1 = Math.round(t1/2);
+            console.log("-");
+            var t2 = this.benchEditDragSim(config['numIterations'], false);
+            t2 += this.benchEditDragSim(config['numIterations'], false);
+            t2 = Math.round(t2/2);
+            console.log("Time in ms (ec / ecjit / declarative): "+t2+" / "+t1+" / "+t0);
+        }, this);
+        
+        /*console.log("==== Drag2D ====");
+        [
+            {'numIterations':5}, {'numIterations':15}, {'numIterations':25}
+        ].forEach(function(config) {
+            console.log("numIterations: "+config['numIterations']);
+            // warm-up
+            this.benchDrag2DSim(config['numIterations'], false, false);
+            this.benchDrag2DSim(config['numIterations'], false, true);
+            this.benchDrag2DSim(config['numIterations'], true, false);
+            var t0 = this.benchDrag2DSim(config['numIterations'], false, false);
+            t0 += this.benchDrag2DSim(config['numIterations'], false, false);
+            t0 = Math.round(t0/2);
+            var t1 = this.benchDrag2DSim(config['numIterations'], false, true);
+            t1 += this.benchDrag2DSim(config['numIterations'], false, true);
+            t1 = Math.round(t1/2);
+            var t2 = this.benchDrag2DSim(config['numIterations'], true, false);
+            t2 += this.benchDrag2DSim(config['numIterations'], true, false);
+            t2 = Math.round(t2/2);
+            console.log("Time in ms (ec / ecjit / declarative): "+t2+" / "+t1+" / "+t0);
+        }, this);*/
+    },
+    
+    benchDeclarativeDragSim: function(numIterations, enableECJIT) {
         var p = new users.timfelgentreff.babelsberg.PerformanceTests.PerformanceTests();
         p.Iterations = numIterations;
         bbb.ecjit.enabled = enableECJIT;
-        console.log("#iterations: "+p.Iterations);
-        console.log("with ecjit:  "+enableECJIT);
         bbb.ecjit.clearState();
         var startTime = new Date();
         p.testDeclarativeDragSimulation();
         var endTime = new Date();
-        console.log("time:        "+(endTime-startTime)+" ms");
         return endTime-startTime;
+    },
+    
+    benchEditDragSim: function(numIterations, enableECJIT) {
+        var p = new users.timfelgentreff.babelsberg.PerformanceTests.PerformanceTests();
+        p.Iterations = numIterations;
+        bbb.ecjit.enabled = enableECJIT;
+        bbb.ecjit.clearState();
+        var startTime = new Date();
+        p.testEditDragSimulation();
+        var endTime = new Date();
+        return endTime-startTime;
+    },
+    
+    benchDrag2DSim: function(numIterations, ec, enableECJIT) {
+        bbb.ecjit.enabled = enableECJIT;
+        bbb.ecjit.clearState();
+        var startTime = new Date();
+        this.doDrag2DSim(numIterations, ec);
+        var endTime = new Date();
+        return endTime-startTime;
+    },
+    
+    doDrag2DSim: function(numIterations, ec) {
+        var ctx = {
+            mouse: {x: 100, y: 100},
+            wnd: {w: 100, h: 100},
+            comp1: {w: 70, display: 0},
+            comp2: {w: 30, display: 0}
+        };
+        var solver = new ClSimplexSolver();
+        solver.setAutosolve(false);
+        
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w == mouse.x });
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h == mouse.y });
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w <= 400; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h <= 250; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w+comp2.w == wnd.w; });
+        //bbb.always({solver: solver, ctx: ctx}, function () { return comp1.display == wnd.w; });
+        //bbb.always({solver: solver, ctx: ctx}, function () { return comp2.display == wnd.h; });
+        
+        if(ec) {
+            var cb = bbb.edit(ctx.mouse, ["x"]);
+            for(var i = 0; i < numIterations; i++) {
+                cb([i]);
+                console.log("state: "+ctx.mouse.x+" "+ctx.mouse.y+" "+ctx.wnd.w+" "+ctx.wnd.h);
+            }
+            //cb();
+        } else {
+            for(var i = 0; i < numIterations; i++) {
+                ctx.mouse.x = 100+i;
+                //ctx.mouse.y = 100+i;
+            }
+        }
     }
 });
 Object.extend(Global, {
