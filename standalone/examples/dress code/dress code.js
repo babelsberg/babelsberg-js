@@ -1,13 +1,13 @@
 contentLoaded(window, function() {
-	var colors = ["blue", "black", "brown", "white"];
-	var man = {
-		shoes: "brown",
-		shirt: "brown",
-		pants: "brown",
-		hat: "brown"	
-	};
+    var colors = ["blue", "black", "brown", "white"];
+    var man = {
+        shoes: "brown",
+        shirt: "brown",
+        pants: "brown",
+        hat: "brown"    
+    };
     var solver = bbb.defaultSolver = new csp.Solver();
-	
+    
     always: { man.shoes.is in ["brown", "black"] }
     always: { man.shirt.is in ["blue", "white", "brown"] }
     always: { man.pants.is in ["blue", "black", "brown", "white"] }

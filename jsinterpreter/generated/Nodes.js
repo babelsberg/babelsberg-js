@@ -3,32 +3,32 @@ Object.subclass('users.timfelgentreff.jsinterpreter.Node');
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.Sequence',
 'testing', {
-	isSequence: true,
+    isSequence: true,
 },
 'initializing', {
-	initialize: function($super, pos, children) {
-		this.pos = pos;
-		this.children = children;
-		children.forEach(function(node) { node.setParent(this) }, this);
-	},
+    initialize: function($super, pos, children) {
+        this.pos = pos;
+        this.children = children;
+        children.forEach(function(node) { node.setParent(this) }, this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.children) },
-	toString: function () {
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.children) },
+    toString: function () {
                 return Strings.format(
                     '%s(%s)',
                     this.constructor.name, this.children.join(','))
             },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 var indent = this.indent(depth || 0);
                 depth = depth || -1;
                 return this.children.invoke('asJS', depth + 1).join(';\n' + indent);
             },
 },
 'insertion', {
-	insertBefore: function (newNode, existingNode) {
+    insertBefore: function (newNode, existingNode) {
                 for (var i = 0; i < this.children.length; i++)
                     if (this.children[i].nodesMatching(function(node) {
                         return node === existingNode }).length > 0)
@@ -37,28 +37,28 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
                     throw dbgOn(new Error('insertBefore: ' + existingNode + ' not in ' + this));
                 return this.insertAt(newNode, i);
             },
-	insertAt: function (newNode, idx) {
+    insertAt: function (newNode, idx) {
                 this.children.pushAt(newNode, idx);
                 newNode.setParent(this);
                 return newNode;
             },
 },
 'accessing', {
-	parentSequence: function () { return this },
+    parentSequence: function () { return this },
 },
 'stepping', {
-	firstStatement: function () {
+    firstStatement: function () {
                 return this.children.length > 0
                      ? this.children[0].firstStatement()
                      : this;
             },
-	nextStatement: function ($super, node) {
+    nextStatement: function ($super, node) {
                 var idx = this.children.indexOf(node);
                 if (idx >= 0 && idx < this.children.length - 1)
                     return this.children[idx + 1];
                 return $super(this);
             },
-	isComposite: function () {
+    isComposite: function () {
                 return true;
             },
 },
@@ -70,21 +70,21 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.Number',
 'testing', {
-	isNumber: true,
+    isNumber: true,
 },
 'initializing', {
-	initialize: function($super, pos, value) {
-		this.pos = pos;
-		this.value = value;
+    initialize: function($super, pos, value) {
+        this.pos = pos;
+        this.value = value;
 
-	},
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.pos, this.value) },
-	toString: function () { return Strings.format('%s(%s)', this.constructor.name, this.value) },
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.pos, this.value) },
+    toString: function () { return Strings.format('%s(%s)', this.constructor.name, this.value) },
 },
 'conversion', {
-	asJS: function (depth) { return this.value },
+    asJS: function (depth) { return this.value },
 },
 'visiting', {
     accept: function(visitor) {
@@ -94,21 +94,21 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.String',
 'testing', {
-	isString: true,
+    isString: true,
 },
 'initializing', {
-	initialize: function($super, pos, value) {
-		this.pos = pos;
-		this.value = value;
+    initialize: function($super, pos, value) {
+        this.pos = pos;
+        this.value = value;
 
-	},
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, '"' + this.value + '"') },
-	toString: function () { return Strings.format('%s(%s)', this.constructor.name, this.value) },
+    printConstruction: function () { return this.printConstructorCall(this.pos, '"' + this.value + '"') },
+    toString: function () { return Strings.format('%s(%s)', this.constructor.name, this.value) },
 },
 'conversion', {
-	asJS: function (depth) { return '"' + this.value + '"' },
+    asJS: function (depth) { return '"' + this.value + '"' },
 },
 'visiting', {
     accept: function(visitor) {
@@ -118,27 +118,27 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.Cond',
 'testing', {
-	isCond: true,
+    isCond: true,
 },
 'initializing', {
-	initialize: function($super, pos, condExpr, trueExpr, falseExpr) {
-		this.pos = pos;
-		this.condExpr = condExpr;
-		this.trueExpr = trueExpr;
-		this.falseExpr = falseExpr;
-		condExpr.setParent(this);
-		trueExpr.setParent(this);
-		falseExpr.setParent(this);
-	},
+    initialize: function($super, pos, condExpr, trueExpr, falseExpr) {
+        this.pos = pos;
+        this.condExpr = condExpr;
+        this.trueExpr = trueExpr;
+        this.falseExpr = falseExpr;
+        condExpr.setParent(this);
+        trueExpr.setParent(this);
+        falseExpr.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.condExpr, this.trueExpr, this.falseExpr) },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.condExpr, this.trueExpr, this.falseExpr) },
+    toString: function () { return Strings.format(
                 '%s(%s?%s:%s)',
                 this.constructor.name, this.condExpr, this.trueExpr, this.falseExpr) },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 return Strings.format(
                     '(%s) ? (%s) : (%s)',
                     this.condExpr.asJS(depth), this.trueExpr.asJS(depth), this.falseExpr.asJS(depth));
@@ -152,10 +152,10 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.If',
 'testing', {
-	isIf: true,
+    isIf: true,
 },
 'initializing', {
-	initialize: function ($super, pos, condExpr, trueExpr, falseExpr) {
+    initialize: function ($super, pos, condExpr, trueExpr, falseExpr) {
                 this.pos = pos;
                 this.condExpr = condExpr;
                 // FIXME actually this could be done with OMeta
@@ -169,13 +169,13 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
             },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.condExpr, this.trueExpr, this.falseExpr) },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.condExpr, this.trueExpr, this.falseExpr) },
+    toString: function () { return Strings.format(
                 '%s(%s?%s:%s)',
                 this.constructor.name, this.condExpr, this.trueExpr, this.falseExpr) },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 var str = Strings.format(
                     'if (%s) {%s}',
                     this.condExpr.asJS(depth), this.trueExpr.asJS(depth));
@@ -185,13 +185,13 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
             },
 },
 'stepping', {
-	firstStatement: function () {
+    firstStatement: function () {
                 return this.condExpr.firstStatement();
             },
-	nextStatement: function ($super, node) {
+    nextStatement: function ($super, node) {
                 return node === this.condExpr ? this.trueExpr : $super(this);
             },
-	isComposite: function () { return true; },
+    isComposite: function () { return true; },
 },
 'visiting', {
     accept: function(visitor) {
@@ -201,35 +201,35 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.While',
 'testing', {
-	isWhile: true,
+    isWhile: true,
 },
 'initializing', {
-	initialize: function($super, pos, condExpr, body) {
-		this.pos = pos;
-		this.condExpr = condExpr;
-		this.body = body;
-		condExpr.setParent(this);
-		body.setParent(this);
-	},
+    initialize: function($super, pos, condExpr, body) {
+        this.pos = pos;
+        this.condExpr = condExpr;
+        this.body = body;
+        condExpr.setParent(this);
+        body.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.condExpr, this.body) },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.condExpr, this.body) },
+    toString: function () { return Strings.format(
                 '%s(%s?%s)',
                 this.constructor.name, this.condExpr, this.body) },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 return Strings.format(
                     'while (%s) {%s}',
                     this.condExpr.asJS(depth), this.body.asJS(depth));
             },
 },
 'stepping', {
-	firstStatement: function () {
+    firstStatement: function () {
                 return this.condExpr.firstStatement();
             },
-	nextStatement: function ($super, node) {
+    nextStatement: function ($super, node) {
                 if (node === this.condExpr) {
                     return this.body;
                 } else if (node === this.body) {
@@ -238,7 +238,7 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
                     return $super(this);
                 }
             },
-	isComposite: function () {
+    isComposite: function () {
                 return true;
             },
 },
@@ -250,35 +250,35 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.DoWhile',
 'testing', {
-	isDoWhile: true,
+    isDoWhile: true,
 },
 'initializing', {
-	initialize: function($super, pos, body, condExpr) {
-		this.pos = pos;
-		this.body = body;
-		this.condExpr = condExpr;
-		body.setParent(this);
-		condExpr.setParent(this);
-	},
+    initialize: function($super, pos, body, condExpr) {
+        this.pos = pos;
+        this.body = body;
+        this.condExpr = condExpr;
+        body.setParent(this);
+        condExpr.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.body, this.condExpr) },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.body, this.condExpr) },
+    toString: function () { return Strings.format(
                 '%s(%s while%s)',
                 this.constructor.name, this.body, this.condExpr) },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 return Strings.format(
                     'do {%s} while (%s);',
                     this.body.asJS(depth), this.condExpr.asJS(depth));
             },
 },
 'stepping', {
-	firstStatement: function () {
+    firstStatement: function () {
                 return this.body.firstStatement();
             },
-	nextStatement: function ($super, node) {
+    nextStatement: function ($super, node) {
                 if (node === this.condExpr) {
                     return this.body;
                 } else if (node === this.body) {
@@ -287,7 +287,7 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
                     return $super(this);
                 }
             },
-	isComposite: function () {
+    isComposite: function () {
                 return true;
             },
 },
@@ -299,39 +299,39 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.For',
 'testing', {
-	isFor: true,
+    isFor: true,
 },
 'initializing', {
-	initialize: function($super, pos, init, condExpr, body, upd) {
-		this.pos = pos;
-		this.init = init;
-		this.condExpr = condExpr;
-		this.body = body;
-		this.upd = upd;
-		init.setParent(this);
-		condExpr.setParent(this);
-		body.setParent(this);
-		upd.setParent(this);
-	},
+    initialize: function($super, pos, init, condExpr, body, upd) {
+        this.pos = pos;
+        this.init = init;
+        this.condExpr = condExpr;
+        this.body = body;
+        this.upd = upd;
+        init.setParent(this);
+        condExpr.setParent(this);
+        body.setParent(this);
+        upd.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.init, this.condExpr, this.body, this.upd) },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.init, this.condExpr, this.body, this.upd) },
+    toString: function () { return Strings.format(
                 '%s(%s;%s;%s do %s)',
                 this.constructor.name, this.init, this.condExpr, this.upd, this.body) },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 return Strings.format(
                     'for (%s; %s; %s) {%s}',
                     this.init.asJS(depth), this.condExpr.asJS(depth), this.upd.asJS(depth), this.body.asJS(depth));
             },
 },
 'stepping', {
-	firstStatement: function () {
+    firstStatement: function () {
                 return this.init.firstStatement();
             },
-	nextStatement: function ($super, node) {
+    nextStatement: function ($super, node) {
                 if (node === this.init || node === this.upd) {
                     return this.condExpr;
                 } else if (node === this.condExpr) {
@@ -342,7 +342,7 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
                     return $super(this);
                 }
             },
-	isComposite: function () {
+    isComposite: function () {
                 return true;
             },
 },
@@ -354,29 +354,29 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.ForIn',
 'testing', {
-	isForIn: true,
+    isForIn: true,
 },
 'initializing', {
-	initialize: function($super, pos, name, obj, body) {
-		this.pos = pos;
-		this.name = name;
-		this.obj = obj;
-		this.body = body;
-		name.setParent(this);
-		obj.setParent(this);
-		body.setParent(this);
-	},
+    initialize: function($super, pos, name, obj, body) {
+        this.pos = pos;
+        this.name = name;
+        this.obj = obj;
+        this.body = body;
+        name.setParent(this);
+        obj.setParent(this);
+        body.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.name, this.obj, this.body) },
-	toString: function () {
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.name, this.obj, this.body) },
+    toString: function () {
                 return Strings.format(
                     '%s(%s in %s do %s)',
                     this.constructor.name, this.name, this.obj, this.body);
             },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 return Strings.format(
                     'for (%s in %s) {%s}',
                     this.name.asJS(depth), this.obj.asJS(depth), this.body.asJS(depth));
@@ -390,25 +390,25 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.Set',
 'testing', {
-	isSet: true,
+    isSet: true,
 },
 'initializing', {
-	initialize: function($super, pos, left, right) {
-		this.pos = pos;
-		this.left = left;
-		this.right = right;
-		left.setParent(this);
-		right.setParent(this);
-	},
+    initialize: function($super, pos, left, right) {
+        this.pos = pos;
+        this.left = left;
+        this.right = right;
+        left.setParent(this);
+        right.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.left, this.right) },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.left, this.right) },
+    toString: function () { return Strings.format(
                 '%s(%s = %s)',
                 this.constructor.name, this.left, this.right) },
 },
 'conversion', {
-	asJS: function (depth) { return this.left.asJS(depth) + ' = ' + this.right.asJS(depth) },
+    asJS: function (depth) { return this.left.asJS(depth) + ' = ' + this.right.asJS(depth) },
 },
 'visiting', {
     accept: function(visitor) {
@@ -418,26 +418,26 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.ModifyingSet',
 'testing', {
-	isModifyingSet: true,
+    isModifyingSet: true,
 },
 'initializing', {
-	initialize: function($super, pos, left, name, right) {
-		this.pos = pos;
-		this.left = left;
-		this.name = name;
-		this.right = right;
-		left.setParent(this);
-		right.setParent(this);
-	},
+    initialize: function($super, pos, left, name, right) {
+        this.pos = pos;
+        this.left = left;
+        this.name = name;
+        this.right = right;
+        left.setParent(this);
+        right.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.left, '"' + this.name + '"', this.right) },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.left, '"' + this.name + '"', this.right) },
+    toString: function () { return Strings.format(
                 '%s(%s %s %s)',
                 this.constructor.name, this.left, this.name, this.right) },
 },
 'conversion', {
-	asJS: function (depth) { return this.left.asJS(depth) + ' ' + this.name + '= ' + this.right.asJS(depth) },
+    asJS: function (depth) { return this.left.asJS(depth) + ' ' + this.name + '= ' + this.right.asJS(depth) },
 },
 'visiting', {
     accept: function(visitor) {
@@ -447,26 +447,26 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.BinaryOp',
 'testing', {
-	isBinaryOp: true,
+    isBinaryOp: true,
 },
 'initializing', {
-	initialize: function($super, pos, name, left, right) {
-		this.pos = pos;
-		this.name = name;
-		this.left = left;
-		this.right = right;
-		left.setParent(this);
-		right.setParent(this);
-	},
+    initialize: function($super, pos, name, left, right) {
+        this.pos = pos;
+        this.name = name;
+        this.left = left;
+        this.right = right;
+        left.setParent(this);
+        right.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, '"' + this.name + '"', this.left, this.right) },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, '"' + this.name + '"', this.left, this.right) },
+    toString: function () { return Strings.format(
                 '%s(%s %s %s)',
                 this.constructor.name, this.left, this.name, this.right) },
 },
 'conversion', {
-	asJS: function (depth) { return '(' + this.left.asJS(depth) + ') ' + this.name + ' (' + this.right.asJS(depth) + ')' },
+    asJS: function (depth) { return '(' + this.left.asJS(depth) + ') ' + this.name + ' (' + this.right.asJS(depth) + ')' },
 },
 'visiting', {
     accept: function(visitor) {
@@ -476,24 +476,24 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.UnaryOp',
 'testing', {
-	isUnaryOp: true,
+    isUnaryOp: true,
 },
 'initializing', {
-	initialize: function($super, pos, name, expr) {
-		this.pos = pos;
-		this.name = name;
-		this.expr = expr;
-		expr.setParent(this);
-	},
+    initialize: function($super, pos, name, expr) {
+        this.pos = pos;
+        this.name = name;
+        this.expr = expr;
+        expr.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, '"' + this.name + '"', this.expr) },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, '"' + this.name + '"', this.expr) },
+    toString: function () { return Strings.format(
                 '%s(%s%s)',
                 this.constructor.name, this.name, this.expr) },
 },
 'conversion', {
-	asJS: function (depth) { return '(' + this.name + this.expr.asJS(depth) + ')'},
+    asJS: function (depth) { return '(' + this.name + this.expr.asJS(depth) + ')'},
 },
 'visiting', {
     accept: function(visitor) {
@@ -503,24 +503,24 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.PreOp',
 'testing', {
-	isPreOp: true,
+    isPreOp: true,
 },
 'initializing', {
-	initialize: function($super, pos, name, expr) {
-		this.pos = pos;
-		this.name = name;
-		this.expr = expr;
-		expr.setParent(this);
-	},
+    initialize: function($super, pos, name, expr) {
+        this.pos = pos;
+        this.name = name;
+        this.expr = expr;
+        expr.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, '"' + this.name+'"', this.expr) },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, '"' + this.name+'"', this.expr) },
+    toString: function () { return Strings.format(
                 '%s(%s%s)',
                 this.constructor.name, this.name, this.expr) },
 },
 'conversion', {
-	asJS: function (depth) { return '(' + this.name + this.expr.asJS(depth) + ')' },
+    asJS: function (depth) { return '(' + this.name + this.expr.asJS(depth) + ')' },
 },
 'visiting', {
     accept: function(visitor) {
@@ -530,24 +530,24 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.PostOp',
 'testing', {
-	isPostOp: true,
+    isPostOp: true,
 },
 'initializing', {
-	initialize: function($super, pos, name, expr) {
-		this.pos = pos;
-		this.name = name;
-		this.expr = expr;
-		expr.setParent(this);
-	},
+    initialize: function($super, pos, name, expr) {
+        this.pos = pos;
+        this.name = name;
+        this.expr = expr;
+        expr.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.expr) },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.expr) },
+    toString: function () { return Strings.format(
                 '%s(%s%s)',
                 this.constructor.name, this.expr, this.name) },
 },
 'conversion', {
-	asJS: function (depth) { return '(' + this.expr.asJS(depth) + this.name + ')'},
+    asJS: function (depth) { return '(' + this.expr.asJS(depth) + this.name + ')'},
 },
 'visiting', {
     accept: function(visitor) {
@@ -557,20 +557,20 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.This',
 'testing', {
-	isThis: true,
+    isThis: true,
 },
 'initializing', {
-	initialize: function($super, pos) {
-		this.pos = pos;
+    initialize: function($super, pos) {
+        this.pos = pos;
 
-	},
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos) },
-	toString: function () { return this.constructor.name },
+    printConstruction: function () { return this.printConstructorCall(this.pos) },
+    toString: function () { return this.constructor.name },
 },
 'conversion', {
-	asJS: function (depth) { return 'this' },
+    asJS: function (depth) { return 'this' },
 },
 'visiting', {
     accept: function(visitor) {
@@ -580,23 +580,23 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.Variable',
 'testing', {
-	isVariable: true,
+    isVariable: true,
 },
 'initializing', {
-	initialize: function($super, pos, name) {
-		this.pos = pos;
-		this.name = name;
+    initialize: function($super, pos, name) {
+        this.pos = pos;
+        this.name = name;
 
-	},
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"') },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"') },
+    toString: function () { return Strings.format(
                 '%s(%s)',
                 this.constructor.name, this.name) },
 },
 'conversion', {
-	asJS: function (depth) { return this.name },
+    asJS: function (depth) { return this.name },
 },
 'visiting', {
     accept: function(visitor) {
@@ -606,25 +606,25 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.GetSlot',
 'testing', {
-	isGetSlot: true,
+    isGetSlot: true,
 },
 'initializing', {
-	initialize: function($super, pos, slotName, obj) {
-		this.pos = pos;
-		this.slotName = slotName;
-		this.obj = obj;
-		slotName.setParent(this);
-		obj.setParent(this);
-	},
+    initialize: function($super, pos, slotName, obj) {
+        this.pos = pos;
+        this.slotName = slotName;
+        this.obj = obj;
+        slotName.setParent(this);
+        obj.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.slotName, this.obj) },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.slotName, this.obj) },
+    toString: function () { return Strings.format(
                 '%s(%s[%s])',
                 this.constructor.name, this.obj, this.slotName) },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 var objJS = this.obj.asJS(depth);
                 if (this.obj.isFunction) objJS = '(' + objJS + ')';
                 return objJS + '[' + this.slotName.asJS(depth) + ']';
@@ -638,20 +638,20 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.Break',
 'testing', {
-	isBreak: true,
+    isBreak: true,
 },
 'initializing', {
-	initialize: function ($super, pos, label) {
-            		this.pos = pos;
-            		this.label = label || new users.timfelgentreff.jsinterpreter.Label([pos[1], pos[1]], '');
-            		this.label.setParent(this);
-          	},
+    initialize: function ($super, pos, label) {
+                    this.pos = pos;
+                    this.label = label || new users.timfelgentreff.jsinterpreter.Label([pos[1], pos[1]], '');
+                    this.label.setParent(this);
+              },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.label) },
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.label) },
 },
 'conversion', {
-	asJS: function (depth) { return 'break' + this.label.asJS(); },
+    asJS: function (depth) { return 'break' + this.label.asJS(); },
 },
 'visiting', {
     accept: function(visitor) {
@@ -661,19 +661,19 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.Debugger',
 'testing', {
-	isDebugger: true,
+    isDebugger: true,
 },
 'initializing', {
-	initialize: function($super, pos) {
-		this.pos = pos;
+    initialize: function($super, pos) {
+        this.pos = pos;
 
-	},
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos) },
+    printConstruction: function () { return this.printConstructorCall(this.pos) },
 },
 'conversion', {
-	asJS: function (depth) { return 'debugger' },
+    asJS: function (depth) { return 'debugger' },
 },
 'visiting', {
     accept: function(visitor) {
@@ -683,20 +683,20 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.Continue',
 'testing', {
-	isContinue: true,
+    isContinue: true,
 },
 'initializing', {
-	initialize: function ($super, pos, label) {
-            		this.pos = pos;
-            		this.label = label || new users.timfelgentreff.jsinterpreter.Label([pos[1], pos[1]], '');
-            		this.label.setParent(this);
-          	},
+    initialize: function ($super, pos, label) {
+                    this.pos = pos;
+                    this.label = label || new users.timfelgentreff.jsinterpreter.Label([pos[1], pos[1]], '');
+                    this.label.setParent(this);
+              },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.label) },
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.label) },
 },
 'conversion', {
-	asJS: function (depth) { return 'continue' + this.label.asJS(); },
+    asJS: function (depth) { return 'continue' + this.label.asJS(); },
 },
 'visiting', {
     accept: function(visitor) {
@@ -706,23 +706,23 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.ArrayLiteral',
 'testing', {
-	isArrayLiteral: true,
+    isArrayLiteral: true,
 },
 'initializing', {
-	initialize: function($super, pos, elements) {
-		this.pos = pos;
-		this.elements = elements;
-		elements.forEach(function(node) { node.setParent(this) }, this);
-	},
+    initialize: function($super, pos, elements) {
+        this.pos = pos;
+        this.elements = elements;
+        elements.forEach(function(node) { node.setParent(this) }, this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.elements) },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.elements) },
+    toString: function () { return Strings.format(
                 '%s(%s)',
                 this.constructor.name, this.elements.join(',')) },
 },
 'conversion', {
-	asJS: function (depth) { return '[' + this.elements.invoke('asJS').join(',') + ']' },
+    asJS: function (depth) { return '[' + this.elements.invoke('asJS').join(',') + ']' },
 },
 'visiting', {
     accept: function(visitor) {
@@ -732,23 +732,23 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.Return',
 'testing', {
-	isReturn: true,
+    isReturn: true,
 },
 'initializing', {
-	initialize: function($super, pos, expr) {
-		this.pos = pos;
-		this.expr = expr;
-		expr.setParent(this);
-	},
+    initialize: function($super, pos, expr) {
+        this.pos = pos;
+        this.expr = expr;
+        expr.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.expr) },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.expr) },
+    toString: function () { return Strings.format(
                 '%s(%s)',
                 this.constructor.name, this.expr) },
 },
 'conversion', {
-	asJS: function (depth) { return 'return ' + this.expr.asJS(depth) },
+    asJS: function (depth) { return 'return ' + this.expr.asJS(depth) },
 },
 'visiting', {
     accept: function(visitor) {
@@ -758,25 +758,25 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.With',
 'testing', {
-	isWith: true,
+    isWith: true,
 },
 'initializing', {
-	initialize: function($super, pos, obj, body) {
-		this.pos = pos;
-		this.obj = obj;
-		this.body = body;
-		obj.setParent(this);
-		body.setParent(this);
-	},
+    initialize: function($super, pos, obj, body) {
+        this.pos = pos;
+        this.obj = obj;
+        this.body = body;
+        obj.setParent(this);
+        body.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.obj, this.body) },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.obj, this.body) },
+    toString: function () { return Strings.format(
                 '%s(%s %s)',
                 this.constructor.name, this.obj, this.body) },
 },
 'conversion', {
-	asJS: function (depth) { return 'with (' + this.obj.asJS(depth) + ') {' + this.body.asJS(depth) + '}' },
+    asJS: function (depth) { return 'with (' + this.obj.asJS(depth) + ') {' + this.body.asJS(depth) + '}' },
 },
 'visiting', {
     accept: function(visitor) {
@@ -786,30 +786,30 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.Send',
 'testing', {
-	isSend: true,
+    isSend: true,
 },
 'initializing', {
-	initialize: function($super, pos, property, recv, args) {
-		this.pos = pos;
-		this.property = property;
-		this.recv = recv;
-		this.args = args;
-		args.forEach(function(node) { node.setParent(this) }, this);
-		property.setParent(this);
-		recv.setParent(this);
-	},
+    initialize: function($super, pos, property, recv, args) {
+        this.pos = pos;
+        this.property = property;
+        this.recv = recv;
+        this.args = args;
+        args.forEach(function(node) { node.setParent(this) }, this);
+        property.setParent(this);
+        recv.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () {
+    printConstruction: function () {
                 return this.printConstructorCall(this.pos, this.property, this.recv, this.args)
             },
-	toString: function () {
+    toString: function () {
                 return Strings.format('%s(%s[%s](%s))',
                     this.constructor.name, this.recv, this.property, this.args.join(','))
             },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 var recvJS = this.recv.asJS(depth);
                 if (this.recv.isFunction) recvJS = '(' + recvJS + ')';
                 return Strings.format(
@@ -818,7 +818,7 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
             },
 },
 'accessing', {
-	getName: function () { return this.property },
+    getName: function () { return this.property },
 },
 'visiting', {
     accept: function(visitor) {
@@ -828,31 +828,31 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.Call',
 'testing', {
-	isCall: true,
+    isCall: true,
 },
 'initializing', {
-	initialize: function($super, pos, fn, args) {
-		this.pos = pos;
-		this.fn = fn;
-		this.args = args;
-		args.forEach(function(node) { node.setParent(this) }, this);
-		fn.setParent(this);
-	},
+    initialize: function($super, pos, fn, args) {
+        this.pos = pos;
+        this.fn = fn;
+        this.args = args;
+        args.forEach(function(node) { node.setParent(this) }, this);
+        fn.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.fn, this.args) },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.fn, this.args) },
+    toString: function () { return Strings.format(
                 '%s(%s(%s))',
                 this.constructor.name, this.fn, this.args.join(',')) },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 return Strings.format('%s(%s)',
                                       this.fn.asJS(depth), this.args.invoke('asJS').join(','));
             },
 },
 'accessing', {
-	getName: function () { return this.fn.name },
+    getName: function () { return this.fn.name },
 },
 'visiting', {
     accept: function(visitor) {
@@ -862,23 +862,23 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.New',
 'testing', {
-	isNew: true,
+    isNew: true,
 },
 'initializing', {
-	initialize: function($super, pos, clsExpr) {
-		this.pos = pos;
-		this.clsExpr = clsExpr;
-		clsExpr.setParent(this);
-	},
+    initialize: function($super, pos, clsExpr) {
+        this.pos = pos;
+        this.clsExpr = clsExpr;
+        clsExpr.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.clsExpr) },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.clsExpr) },
+    toString: function () { return Strings.format(
                 '%s(%s)',
                 this.constructor.name, this.clsExpr) },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 return 'new ' + this.clsExpr.asJS(depth);
             },
 },
@@ -890,24 +890,24 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.VarDeclaration',
 'testing', {
-	isVarDeclaration: true,
+    isVarDeclaration: true,
 },
 'initializing', {
-	initialize: function($super, pos, name, val) {
-		this.pos = pos;
-		this.name = name;
-		this.val = val;
-		val.setParent(this);
-	},
+    initialize: function($super, pos, name, val) {
+        this.pos = pos;
+        this.name = name;
+        this.val = val;
+        val.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.val) },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.val) },
+    toString: function () { return Strings.format(
                 '%s(%s = %s)',
                 this.constructor.name, this.name, this.val) },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 return Strings.format('var %s = %s', this.name, this.val.asJS(depth));
             },
 },
@@ -919,25 +919,25 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.Throw',
 'testing', {
-	isThrow: true,
+    isThrow: true,
 },
 'initializing', {
-	initialize: function($super, pos, expr) {
-		this.pos = pos;
-		this.expr = expr;
-		expr.setParent(this);
-	},
+    initialize: function($super, pos, expr) {
+        this.pos = pos;
+        this.expr = expr;
+        expr.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.expr) },
-	toString: function () {
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.expr) },
+    toString: function () {
                 return Strings.format(
                     '%s(%s)',
                     this.constructor.name, this.expr)
             },
 },
 'conversion', {
-	asJS: function (depth) { return 'throw ' + this.expr.asJS(depth) },
+    asJS: function (depth) { return 'throw ' + this.expr.asJS(depth) },
 },
 'visiting', {
     accept: function(visitor) {
@@ -947,31 +947,31 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.TryCatchFinally',
 'testing', {
-	isTryCatchFinally: true,
+    isTryCatchFinally: true,
 },
 'initializing', {
-	initialize: function($super, pos, trySeq, err, catchSeq, finallySeq) {
-		this.pos = pos;
-		this.trySeq = trySeq;
-		this.err = err;
-		this.catchSeq = catchSeq;
-		this.finallySeq = finallySeq;
-		trySeq.setParent(this);
-		err.setParent(this);
-		catchSeq.setParent(this);
-		finallySeq.setParent(this);
-	},
+    initialize: function($super, pos, trySeq, err, catchSeq, finallySeq) {
+        this.pos = pos;
+        this.trySeq = trySeq;
+        this.err = err;
+        this.catchSeq = catchSeq;
+        this.finallySeq = finallySeq;
+        trySeq.setParent(this);
+        err.setParent(this);
+        catchSeq.setParent(this);
+        finallySeq.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.trySeq, '"'+this.err.name+'"', this.catchSeq, this.finallySeq) },
-	toString: function () {
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.trySeq, '"'+this.err.name+'"', this.catchSeq, this.finallySeq) },
+    toString: function () {
                 return Strings.format(
                     '%s(%s %s %s)',
                     this.constructor.name, this.trySeq, this.catchSeq, this.finallySeq)
             },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 var baseIndent = this.indent(depth-1),
                     indent = this.indent(depth),
                 str = 'try {\n' + indent + this.trySeq.asJS(depth) + '\n' + baseIndent + '}';
@@ -991,50 +991,50 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.Function',
 'testing', {
-	isFunction: true,
+    isFunction: true,
 },
 'initializing', {
-	initialize: function($super, pos, body, args) {
-		this.pos = pos;
-		this.body = body;
-		this.args = args;
-		args.forEach(function(node) { node.setParent(this) }, this);
-		body.setParent(this);
-	},
+    initialize: function($super, pos, body, args) {
+        this.pos = pos;
+        this.body = body;
+        this.args = args;
+        args.forEach(function(node) { node.setParent(this) }, this);
+        body.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.body, this.args.collect(function(ea) { return '"' + ea.name + '"' })) },
-	toString: function () {
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.body, this.args.collect(function(ea) { return '"' + ea.name + '"' })) },
+    toString: function () {
                 return Strings.format(
                     '%s(function %s(%s) %s)',
                     this.constructor.name, this.name(), this.argNames().join(','), this.body)
             },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 return Strings.format('function%s(%s) {\n%s\n}',
                                       this.name() ? ' ' + this.name() : '', this.argNames().join(','),
                                       this.indent(depth+1) + this.body.asJS(depth+1));
             },
 },
 'accessing', {
-	name: function () {
+    name: function () {
                 if (this._parent && this._parent.isVarDeclaration) {
                     return this._parent.name;
                 }
                 return undefined;
             },
-	parentFunction: function () { return this },
-	argNames: function () { return this.args.collect(function(a){ return a.name }); },
-	statements: function () { return this.body.children },
+    parentFunction: function () { return this },
+    argNames: function () { return this.args.collect(function(a){ return a.name }); },
+    statements: function () { return this.body.children },
 },
 'stepping', {
-	firstStatement: function () { return this.body.firstStatement(); },
-	nextStatement: function (node) { return null; },
-	isComposite: function () { return true; },
+    firstStatement: function () { return this.body.firstStatement(); },
+    nextStatement: function (node) { return null; },
+    isComposite: function () { return true; },
 },
 'evaluation', {
-	eval: function () {
+    eval: function () {
                 return new Function(this.argNames().join(","), this.body.asJS());
             },
 },
@@ -1046,25 +1046,25 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.ObjectLiteral',
 'testing', {
-	isObjectLiteral: true,
+    isObjectLiteral: true,
 },
 'initializing', {
-	initialize: function($super, pos, properties) {
-		this.pos = pos;
-		this.properties = properties;
-		properties.forEach(function(node) { node.setParent(this) }, this);
-	},
+    initialize: function($super, pos, properties) {
+        this.pos = pos;
+        this.properties = properties;
+        properties.forEach(function(node) { node.setParent(this) }, this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.properties) },
-	toString: function () {
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.properties) },
+    toString: function () {
                 return Strings.format(
                     '%s({%s})',
                     this.constructor.name, this.properties.join(','))
             },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 return '{' + this.properties.invoke('asJS').join(',') + '}';
             },
 },
@@ -1076,25 +1076,25 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.ObjProperty',
 'testing', {
-	isObjProperty: true,
+    isObjProperty: true,
 },
 'initializing', {
-	initialize: function($super, pos, name, property) {
-		this.pos = pos;
-		this.name = name;
-		this.property = property;
-		property.setParent(this);
-	},
+    initialize: function($super, pos, name, property) {
+        this.pos = pos;
+        this.name = name;
+        this.property = property;
+        property.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.property) },
-	toString: function () {
+    printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.property) },
+    toString: function () {
           return Strings.format(
               '%s(%s: %s)',
               this.constructor.name, this.name, this.property) },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 return Strings.format('"%s": %s', this.name, this.property.asJS(depth));
             },
 },
@@ -1106,25 +1106,25 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.ObjPropertyGet',
 'testing', {
-	isObjPropertyGet: true,
+    isObjPropertyGet: true,
 },
 'initializing', {
-	initialize: function($super, pos, name, body) {
-		this.pos = pos;
-		this.name = name;
-		this.body = body;
-		body.setParent(this);
-	},
+    initialize: function($super, pos, name, body) {
+        this.pos = pos;
+        this.name = name;
+        this.body = body;
+        body.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.body) },
-	toString: function () {
+    printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.body) },
+    toString: function () {
           return Strings.format(
               '%s(%s() { %s })',
               this.constructor.name, this.name, this.body) },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 return Strings.format('get "%s"() { %s }', this.name, this.body.asJS(depth));
             },
 },
@@ -1136,26 +1136,26 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.ObjPropertySet',
 'testing', {
-	isObjPropertySet: true,
+    isObjPropertySet: true,
 },
 'initializing', {
-	initialize: function($super, pos, name, body, arg) {
-		this.pos = pos;
-		this.name = name;
-		this.body = body;
-		this.arg = arg;
-		body.setParent(this);
-	},
+    initialize: function($super, pos, name, body, arg) {
+        this.pos = pos;
+        this.name = name;
+        this.body = body;
+        this.arg = arg;
+        body.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.body, this.arg) },
-	toString: function () {
+    printConstruction: function () { return this.printConstructorCall(this.pos, '"'+this.name+'"', this.body, this.arg) },
+    toString: function () {
           return Strings.format(
               '%s(%s(%s) { %s })',
               this.constructor.name, this.name, this.arg, this.body) },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 return Strings.format('set "%s"(%s) { %s }', this.name, this.arg, this.body.asJS(depth));
             },
 },
@@ -1167,24 +1167,24 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.Switch',
 'testing', {
-	isSwitch: true,
+    isSwitch: true,
 },
 'initializing', {
-	initialize: function($super, pos, expr, cases) {
-		this.pos = pos;
-		this.expr = expr;
-		this.cases = cases;
-		cases.forEach(function(node) { node.setParent(this) }, this);
-		expr.setParent(this);
-	},
+    initialize: function($super, pos, expr, cases) {
+        this.pos = pos;
+        this.expr = expr;
+        this.cases = cases;
+        cases.forEach(function(node) { node.setParent(this) }, this);
+        expr.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.expr, this.cases) },
-	toString: function () { return Strings.format('%s(%s %s)',
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.expr, this.cases) },
+    toString: function () { return Strings.format('%s(%s %s)',
                                                          this.constructor.name, this.expr, this.cases.join('\n')) },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 return Strings.format('switch (%s) {%s}',
                                       this.expr.asJS(depth), this.cases.invoke('asJS').join('\n'));
             },
@@ -1197,26 +1197,26 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.Case',
 'testing', {
-	isCase: true,
+    isCase: true,
 },
 'initializing', {
-	initialize: function($super, pos, condExpr, thenExpr) {
-		this.pos = pos;
-		this.condExpr = condExpr;
-		this.thenExpr = thenExpr;
-		condExpr.setParent(this);
-		thenExpr.setParent(this);
-	},
+    initialize: function($super, pos, condExpr, thenExpr) {
+        this.pos = pos;
+        this.condExpr = condExpr;
+        this.thenExpr = thenExpr;
+        condExpr.setParent(this);
+        thenExpr.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.condExpr, this.thenExpr) },
-	toString: function () {
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.condExpr, this.thenExpr) },
+    toString: function () {
                 return Strings.format(
                     '%s(%s: %s)',
                     this.constructor.name, this.condExpr, this.thenExpr) },
 },
 'conversion', {
-	asJS: function (depth) {
+    asJS: function (depth) {
                 return 'case ' + this.condExpr.asJS(depth) + ': ' + this.thenExpr.asJS(depth);
             },
 },
@@ -1228,23 +1228,23 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.Default',
 'testing', {
-	isDefault: true,
+    isDefault: true,
 },
 'initializing', {
-	initialize: function($super, pos, defaultExpr) {
-		this.pos = pos;
-		this.defaultExpr = defaultExpr;
-		defaultExpr.setParent(this);
-	},
+    initialize: function($super, pos, defaultExpr) {
+        this.pos = pos;
+        this.defaultExpr = defaultExpr;
+        defaultExpr.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.defaultExpr) },
-	toString: function () { return Strings.format(
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.defaultExpr) },
+    toString: function () { return Strings.format(
                 '%s(default: %s)',
                 this.constructor.name,  this.defaultExpr) },
 },
 'conversion', {
-	asJS: function (depth) { return 'default: ' + this.defaultExpr.asJS(depth) },
+    asJS: function (depth) { return 'default: ' + this.defaultExpr.asJS(depth) },
 },
 'visiting', {
     accept: function(visitor) {
@@ -1254,22 +1254,22 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.Regex',
 'testing', {
-	isRegex: true,
+    isRegex: true,
 },
 'initializing', {
-	initialize: function($super, pos, exprString, flags) {
-		this.pos = pos;
-		this.exprString = exprString;
-		this.flags = flags;
+    initialize: function($super, pos, exprString, flags) {
+        this.pos = pos;
+        this.exprString = exprString;
+        this.flags = flags;
 
-	},
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, this.exprString, this.flags) },
-	toString: function () { return Strings.format('(/%s/%s)', this.exprString, this.flags) },
+    printConstruction: function () { return this.printConstructorCall(this.pos, this.exprString, this.flags) },
+    toString: function () { return Strings.format('(/%s/%s)', this.exprString, this.flags) },
 },
 'conversion', {
-	asJS: function (depth) { return '/' + this.exprString + '/' + this.flags},
+    asJS: function (depth) { return '/' + this.exprString + '/' + this.flags},
 },
 'visiting', {
     accept: function(visitor) {
@@ -1279,21 +1279,21 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.Label',
 'testing', {
-	isLabel: true,
+    isLabel: true,
 },
 'initializing', {
-	initialize: function($super, pos, name) {
-		this.pos = pos;
-		this.name = name;
+    initialize: function($super, pos, name) {
+        this.pos = pos;
+        this.name = name;
 
-	},
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, '"' + this.name + '"') },
-	toString: function () { return Strings.format('%s(%s)', this.constructor.name, this.name) },
+    printConstruction: function () { return this.printConstructorCall(this.pos, '"' + this.name + '"') },
+    toString: function () { return Strings.format('%s(%s)', this.constructor.name, this.name) },
 },
 'conversion', {
-	asJS: function (depth) { return this.name; },
+    asJS: function (depth) { return this.name; },
 },
 'visiting', {
     accept: function(visitor) {
@@ -1303,22 +1303,22 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpreter.LabelDeclaration',
 'testing', {
-	isLabelDeclaration: true,
+    isLabelDeclaration: true,
 },
 'initializing', {
-	initialize: function($super, pos, name, expr) {
-		this.pos = pos;
-		this.name = name;
-		this.expr = expr;
-		expr.setParent(this);
-	},
+    initialize: function($super, pos, name, expr) {
+        this.pos = pos;
+        this.name = name;
+        this.expr = expr;
+        expr.setParent(this);
+    },
 },
 'debugging', {
-	printConstruction: function () { return this.printConstructorCall(this.pos, '"' + this.name + '"', this.expr) },
-	toString: function () { return Strings.format('%s(%s is %s)', this.constructor.name, this.name, this.expr) },
+    printConstruction: function () { return this.printConstructorCall(this.pos, '"' + this.name + '"', this.expr) },
+    toString: function () { return Strings.format('%s(%s is %s)', this.constructor.name, this.name, this.expr) },
 },
 'conversion', {
-	asJS: function (depth) { return this.name + ': ' + this.expr.asJS(depth) },
+    asJS: function (depth) { return this.name + ': ' + this.expr.asJS(depth) },
 },
 'visiting', {
     accept: function(visitor) {
@@ -1328,48 +1328,48 @@ users.timfelgentreff.jsinterpreter.Node.subclass('users.timfelgentreff.jsinterpr
 
 Object.subclass('users.timfelgentreff.jsinterpreter.Visitor',
 'visiting', {
-	visit: function(node) { return node.accept(this) },
-	visitSequence: function(node) {},
-	visitNumber: function(node) {},
-	visitString: function(node) {},
-	visitCond: function(node) {},
-	visitIf: function(node) {},
-	visitWhile: function(node) {},
-	visitDoWhile: function(node) {},
-	visitFor: function(node) {},
-	visitForIn: function(node) {},
-	visitSet: function(node) {},
-	visitModifyingSet: function(node) {},
-	visitBinaryOp: function(node) {},
-	visitUnaryOp: function(node) {},
-	visitPreOp: function(node) {},
-	visitPostOp: function(node) {},
-	visitThis: function(node) {},
-	visitVariable: function(node) {},
-	visitGetSlot: function(node) {},
-	visitBreak: function(node) {},
-	visitDebugger: function(node) {},
-	visitContinue: function(node) {},
-	visitArrayLiteral: function(node) {},
-	visitReturn: function(node) {},
-	visitWith: function(node) {},
-	visitSend: function(node) {},
-	visitCall: function(node) {},
-	visitNew: function(node) {},
-	visitVarDeclaration: function(node) {},
-	visitThrow: function(node) {},
-	visitTryCatchFinally: function(node) {},
-	visitFunction: function(node) {},
-	visitObjectLiteral: function(node) {},
-	visitObjProperty: function(node) {},
-	visitObjPropertyGet: function(node) {},
-	visitObjPropertySet: function(node) {},
-	visitSwitch: function(node) {},
-	visitCase: function(node) {},
-	visitDefault: function(node) {},
-	visitRegex: function(node) {},
-	visitLabel: function(node) {},
-	visitLabelDeclaration: function(node) {},
+    visit: function(node) { return node.accept(this) },
+    visitSequence: function(node) {},
+    visitNumber: function(node) {},
+    visitString: function(node) {},
+    visitCond: function(node) {},
+    visitIf: function(node) {},
+    visitWhile: function(node) {},
+    visitDoWhile: function(node) {},
+    visitFor: function(node) {},
+    visitForIn: function(node) {},
+    visitSet: function(node) {},
+    visitModifyingSet: function(node) {},
+    visitBinaryOp: function(node) {},
+    visitUnaryOp: function(node) {},
+    visitPreOp: function(node) {},
+    visitPostOp: function(node) {},
+    visitThis: function(node) {},
+    visitVariable: function(node) {},
+    visitGetSlot: function(node) {},
+    visitBreak: function(node) {},
+    visitDebugger: function(node) {},
+    visitContinue: function(node) {},
+    visitArrayLiteral: function(node) {},
+    visitReturn: function(node) {},
+    visitWith: function(node) {},
+    visitSend: function(node) {},
+    visitCall: function(node) {},
+    visitNew: function(node) {},
+    visitVarDeclaration: function(node) {},
+    visitThrow: function(node) {},
+    visitTryCatchFinally: function(node) {},
+    visitFunction: function(node) {},
+    visitObjectLiteral: function(node) {},
+    visitObjProperty: function(node) {},
+    visitObjPropertyGet: function(node) {},
+    visitObjPropertySet: function(node) {},
+    visitSwitch: function(node) {},
+    visitCase: function(node) {},
+    visitDefault: function(node) {},
+    visitRegex: function(node) {},
+    visitLabel: function(node) {},
+    visitLabelDeclaration: function(node) {},
 
 })
 });

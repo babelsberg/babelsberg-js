@@ -33,7 +33,7 @@ TestCase.subclass('users.borning.playground.PlaygroundTests', {
         //    // debugging: true
         //    solver: new ClSimplexSolver()
         //    p1.addPt(p2).equals(p3) && p1.equals(pt(100,300))  &&
-        //	p3.x==45 && p3.y==500;
+        //    p3.x==45 && p3.y==500;
         //    } 
     },
     testEquals: function() {

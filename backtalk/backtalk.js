@@ -160,9 +160,9 @@ backtalk.Object.subclass('backtalk.Solver', {
         }
         this.sortedConstraintsForPropagation().detect(function (constraint) {
             this.propagateInstantiationFor(constraint);
-		    if (constraint.domainWipedOut()) {
-		        return true;
-		    }
+            if (constraint.domainWipedOut()) {
+                return true;
+            }
         }.bind(this));
     },
     sortedConstraintsForPropagation: function() {
@@ -275,16 +275,16 @@ backtalk.Object.subclass('backtalk.Context', {
     },
     fromSolver: function(solver) {
         this.valuesToExploreDict = {keys: []};
-		this.currentValuesDict = {keys: []};
-	    solver.variables().each(function (v) {
-	        this.valuesToExploreDict[v.uuid] = v.valuesToExplore.slice();
-	        this.valuesToExploreDict.keys.push(v);
-	        if (v.isInstantiated()) {
-	            this.currentValuesDict[v.uuid] = v.currentValue;
-	            this.currentValuesDict.keys.push(v);
-	        }
-	    }.bind(this));
-	    this.currentVariable = solver.currentVariable;
+        this.currentValuesDict = {keys: []};
+        solver.variables().each(function (v) {
+            this.valuesToExploreDict[v.uuid] = v.valuesToExplore.slice();
+            this.valuesToExploreDict.keys.push(v);
+            if (v.isInstantiated()) {
+                this.currentValuesDict[v.uuid] = v.currentValue;
+                this.currentValuesDict.keys.push(v);
+            }
+        }.bind(this));
+        this.currentVariable = solver.currentVariable;
     },
     restoreInSolver: function(solver) {
         this.valuesToExploreDict.keys.each(function (v) {
