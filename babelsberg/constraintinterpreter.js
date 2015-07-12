@@ -437,7 +437,9 @@ Object.subclass('EditConstraintJIT', {
     },
     
     deleteEdit: function() {
-        this.currentEdit['cb'](); // end edit constraint
+        if(this.currentEdit) {
+            this.currentEdit['cb'](); // end edit constraint
+        }
         this.currentEdit = null;
     },
     
