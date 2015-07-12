@@ -2061,6 +2061,83 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         this.assert(man.shirt !== man.pants, "shirt and pants must not have the same color");
         this.assert(man.pants === "black" || man.pants === "blue" || man.pants === "white", "pants should be 'black', 'blue' or 'white'");
     },
+	testFilteringByPriority: function () {
+        testCase = this;
+        Object.subclass('DummySolver', {
+            always: function(opts, func) { testCase.assert(false, 'should not have asked solver to try'); },            
+            solverName: 'TestDummy',
+            supportsMethods: function() { return true; },
+            supportsSoftConstraints: function() { return false; },
+            supportedDataTypes: function() { return ['number']; }
+        });
+
+        bbb.defaultSolvers = [new DummySolver(), new ClSimplexSolver()];
+        var obj = {a: 2, b: 3};
+        bbb.always({
+            ctx: {
+                obj: obj
+            },
+            logReasons: true,
+            priority: 'low',
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a working solution");
+	},
+	testFilteringByMethods: function () {
+        testCase = this;
+        Object.subclass('DummySolver', {
+            always: function(opts, func) { testCase.assert(false, 'should not have asked solver to try'); },            
+            solverName: 'TestDummy',
+            supportsMethods: function() { return false; },
+            supportsSoftConstraints: function() { return false; },
+            supportedDataTypes: function() { return ['number', 'string']; }
+        });
+        
+        bbb.defaultSolvers = [new DummySolver(), new DBPlanner()];
+        var o = {string: "0",
+                 number: 0};
+
+        bbb.always({
+            ctx: {
+                o: o
+            }, methods: function () {
+                o.string.formula([o.number], function (num) { return num + "" });
+                o.number.formula([o.string], function (str) { return parseInt(str) });
+            },
+            logReasons: true
+        }, function () {
+            return o.string == o.number + "";
+        });
+
+        this.assert(o.string === o.number + "");
+        o.string = "1"
+        this.assert(o.number === 1);
+        o.number = 12
+        this.assert(o.string === "12");
+	},
+	testFilteringByDataType: function () {
+        testCase = this;
+        Object.subclass('DummySolver', {
+            always: function(opts, func) { testCase.assert(false, 'should not have asked solver to try'); },            
+            solverName: 'TestDummy',
+            supportsMethods: function() { return true; },
+            supportsSoftConstraints: function() { return true; },
+            supportedDataTypes: function() { return ['string']; }
+        });
+
+        bbb.defaultSolvers = [new DummySolver(), new ClSimplexSolver()];
+        var obj = {a: 2, b: 3};
+        bbb.always({
+            ctx: {
+                obj: obj
+            },
+            logReasons: true
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a working solution");
+	},
 });
 
 }) // end of module
