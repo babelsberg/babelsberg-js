@@ -160,7 +160,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.PerformanceTests.PerformanceT
 
         var cb = bbb.edit(ctx.mouse, ["location_y"]);
         for (var i = 0; i < this.Iterations; i++) {
-            cb(i);
+            cb([i]);
         }
         // cb();
     },
