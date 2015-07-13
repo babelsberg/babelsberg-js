@@ -255,7 +255,7 @@ Object.subclass('Babelsberg', {
         solvers.some(function(solver) {
             try {
                 constraint = solver.always(opts, func);
-                constraint._options = opts
+                constraint._options = opts;
             } catch (e) {
                 errors.push(e);
                 return false;
