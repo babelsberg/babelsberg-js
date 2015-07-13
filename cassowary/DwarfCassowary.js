@@ -2107,7 +2107,7 @@ module('users.timfelgentreff.cassowary.DwarfCassowary').
                 if (b instanceof ClVariable) {
                     b = b.value();
                 }
-                epsilon = 1.0e-8;
+                var epsilon = 1.0e-8;
                 if (a == 0.0) {
                     return (Math.abs(b) < epsilon);
                 } else if (b == 0.0) {

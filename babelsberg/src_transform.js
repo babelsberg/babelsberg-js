@@ -485,8 +485,10 @@ toRun(function() {
                 return cop.withLayers([AddScriptWithFakeOriginalLayer], function() {
                     // If this layer is not global but only on the
                     // morph, make sure we use it here
-                    return cop.proceed.apply(this, [constraintCode]);
-                });
+                    var ctx123456 = this.getDoitContext() || this,
+                    interactiveEval = function(text123456) { return eval(text123456) };
+                    return interactiveEval.call(ctx123456, constraintCode);
+                }.bind(this));
             }
         }
     });
