@@ -282,7 +282,6 @@ Object.subclass('Babelsberg', {
 
             constraint = this.chooseConstraintBasedOnMetrics(constraints,
                     opts.optimizationPriority);
-            console.log('Selected fastest solver:' + constraint.solver.solverName);
         } else if (constraints.length == 1) {
             constraint = constraints[0];
         }
@@ -582,9 +581,8 @@ Object.subclass('Constraint', {
                 if (oldValue !== value) {
                     variableAssigments[ea.ivarname] = {oldValue: oldValue,
                         newValue: value};
+                    changedVariables += 1;
                 }
-
-                changedVariables += 1;
                 // solveForConnectedVariables might eventually
                 // call updateDownstreamExternalVariables, too.
                 // We need this first, however, for the case when
