@@ -1,24 +1,45 @@
 module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.babelsberg.constraintinterpreter', 'cop.Layers').toRun(function() {
-
     JSLoader.loadJs(module('users.timfelgentreff.csp.underscore-min').uri());
 
     /***************************************************************
      * Abstract Reactive Solver
      ***************************************************************/
-    
+
     Object.subclass("ReactiveSolver", {
         isConstraintObject: true,
+        always: function(opts, func) {
+            var ctx = opts.ctx;
+            func.varMapping = ctx;
+            var cobj = new Constraint(func, this);
+            cobj.allowFailing = true;
+            cobj.addPrimitiveConstraint(new ReactiveSolver.Constraint(this, cobj, func));
+            try {
+                if(!opts.postponeEnabling) { cobj.enable(); }
+            } catch(e) {
+                if(e instanceof ContinuousAssertError) {
+                    cobj.disable();
+                }
+                throw e;
+            }
+            return cobj;
+        },
         constraintVariableFor: function(value, ivarname, bbbCVar) {
             return new ReactiveSolver.Variable(this, value, ivarname, bbbCVar);
         },
+        constraintEnabled: function() {
+            return this.constraint &&
+                this.constraint.enabled &&
+                typeof this.constraint.predicate === "function";
+        },
         weight: 10000
     });
-    
+
     Object.subclass("ReactiveSolver.Variable", {
         isConstraintObject: true,
         initialize: function(solver, value, ivarname, bbbCVar) {
             this.solver = solver;
             this.__val__ = value;
+            this.enabled = false;
         },
         suggestValue: function(value) {
             if(this.__val__ === value) { return value; }
@@ -57,9 +78,15 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
         },
         cnEquals: function() {
             return new ReactiveSolver.PrimitiveConstraint(this, arguments);
+        },
+        enable: function() {
+            this.enabled = true;
+        },
+        disable: function() {
+            this.enabled = false;
         }
     });
-    
+
     Object.subclass("ReactiveSolver.PrimitiveConstraint", {
         isConstraintObject: true,
         initialize: function(variable, args) {
@@ -73,7 +100,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
             this.enabled = false;
         }
     });
-    
+
     Object.subclass("ReactiveSolver.Constraint", {
         isConstraintObject: true,
         initialize: function(solver, bbbConstraint, func) {
@@ -91,13 +118,13 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
             this.enabled = false;
         }
     });
-    
+
     /***************************************************************
      * Continuous asserts
      ***************************************************************/
-    
+
     // TODO: integration with other solvers
-    
+
     Error.subclass("ContinuousAssertError", {
         initialize: function ContinuousAssertError(msg) {
             if (Error.captureStackTrace) {
@@ -109,31 +136,16 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
         },
         name: "ContinuousAssertError"
     });
-    
+
     ReactiveSolver.subclass("AssertSolver", {
         initialize: function(message) {
             this.message = message;
         },
-        always: function(opts, func) {
-            var ctx = opts.ctx;
-            func.varMapping = ctx;
-            var cobj = new Constraint(func, this);
-            cobj.allowFailing = true;
-            cobj.addPrimitiveConstraint(new ReactiveSolver.Constraint(this, cobj, func));
-            try {
-                if(!opts.postponeEnabling) { cobj.enable(); }
-            } catch(e) {
-                if(e instanceof ContinuousAssertError) {
-                    cobj.disable();
-                }
-                throw e;
-            }
-            return cobj;
-        },
         solve: function() {
-            if(this.constraint && this.constraint.enabled && typeof this.constraint.predicate === "function")
-                if(!this.constraint.predicate())
-                    throw new ContinuousAssertError(this.message);
+            if(!this.constraintEnabled()) { return; }
+            if(!this.constraint.predicate()) {
+                throw new ContinuousAssertError(this.message);
+            }
         }
     });
 ReactiveSolver.subclass("RecalculateSolver", {
@@ -175,42 +187,24 @@ Object.extend(Babelsberg.prototype, {
     /***************************************************************
      * Triggering
      ***************************************************************/
-    AssertSolver.subclass("TriggerSolver", {
+    ReactiveSolver.subclass("TriggerSolver", {
         initialize: function(callback) {
             this.callback = callback;
-            this.triggeredOnce = false;
-        },
-        always: function(opts, func) {
-            func.allowUnsolvableOperations = true;
-            func.allowTests = true;
-            var ctx = opts.ctx;
-            func.varMapping = ctx;
-            var cobj = new Constraint(func, this);
-            cobj.allowFailing = true;
-            if (!this.callback) this.callback = opts.callback;
-            cobj.addPrimitiveConstraint(new ReactiveSolver.Constraint(this, cobj, func));
-            if(!opts.postponeEnabling) { cobj.enable(); }
-            return cobj;
+            this.previouslyFulfilled = false;
         },
         solve: function() {
-            if(this.constraint &&
-                this.constraint.enabled &&
-                typeof this.constraint.predicate === "function"
-            ) {
-                if(this.constraint.predicate()) {
-                    if(!this.triggeredOnce) {
-                        this.triggeredOnce = true;
-                        bbb.addCallback(this.callback, this.constraint.bbbConstraint, []);
-                    }
-                } else {
-                    this.triggeredOnce = false;
-                }
+            if(!this.constraintEnabled()) { return; }
+            var predicateFulfilled = this.constraint.predicate();
+
+            if(predicateFulfilled && !this.previouslyFulfilled) {
+                bbb.addCallback(this.callback, this.constraint.bbbConstraint, []);
             }
+            this.previouslyFulfilled = predicateFulfilled;
         },
         weight: 10
     });
-    
-    AssertSolver.subclass("__TriggerDefinition__", {
+
+    Object.subclass("__TriggerDefinition__", {
         initialize: function(opts, func) {
             this.opts = opts;
             this.func = func;
@@ -237,47 +231,41 @@ Object.extend(Babelsberg.prototype, {
     /***************************************************************
      * Layer activation
      ***************************************************************/
-    AssertSolver.subclass("LayerActivationSolver", {
+    // TODO: rename to ActivatorSolver
+    ReactiveSolver.subclass("LayerActivationSolver", {
         initialize: function(layer) {
             this.layer = layer;
         },
-        always: function(opts, func) {
-            var ctx = opts.ctx;
-            func.varMapping = ctx;
-            var cobj = new Constraint(func, this);
-            cobj.allowFailing = true;
-            cobj.addPrimitiveConstraint(new ReactiveSolver.Constraint(this, cobj, func));
-            cobj.enable();
-            return cobj;
-        },
         solve: function() {
-            if(this.constraint &&
-                this.constraint.enabled &&
-                typeof this.constraint.predicate === "function"
-            ) {
-                var predicateFulfilled = this.constraint.predicate();
-                if(predicateFulfilled && !this.layer.isGlobal()) {
-                    this.layer.beGlobal();
-                } else  if(!predicateFulfilled && this.layer.isGlobal()) {
-                    this.layer.beNotGlobal();
-                }
+            if(!this.constraintEnabled()) { return; }
+            var layerIsGlobal = this.layer.isGlobal(),
+                predicateFulfilled = this.constraint.predicate();
+
+            if(predicateFulfilled && !layerIsGlobal) {
+                this.layer.beGlobal();
+            } else if(!predicateFulfilled && layerIsGlobal) {
+                this.layer.beNotGlobal();
             }
         },
         weight: 10
     });
-    
+
+    var activator = function(opts, func, layer) {
+        opts.solver = new LayerActivationSolver(layer);
+        opts.allowUnsolvableOperations = true;
+        opts.allowTests = true;
+        //opts.debugging = true;
+        return bbb.always(opts, func);
+    }
+
     Object.extend(Layer.prototype, {
         activeOn: function(opts, func) {
-            opts.solver = new LayerActivationSolver(this);
-            opts.allowUnsolvableOperations = true;
-            opts.allowTests = true;
-            //opts.debugging = true;
-            bbb.always(opts, func);
-            
+            activator(opts, func, this);
+
             return this;
         }
     });
-    
+
     /***************************************************************
      * Scoped constraints
      ***************************************************************/
@@ -286,66 +274,174 @@ Object.extend(Babelsberg.prototype, {
             opts.postponeEnabling = !this.isGlobal();
             var cobj = bbb.always(opts, func);
 
-            this.constraintObjects = this.constraintObjects || [];
-            this.constraintObjects.push(cobj);
+            this._constraintObjects = this._constraintObjects || [];
+            this._constraintObjects.push(cobj);
+
+            return cobj;
         },
         assert: function(opts, func) {
             opts.postponeEnabling = !this.isGlobal();
             var cobj = bbb.assert(opts, func);
 
-            this.constraintObjects = this.constraintObjects || [];
-            this.constraintObjects.push(cobj);
+            this._constraintObjects = this._constraintObjects || [];
+            this._constraintObjects.push(cobj);
+
+            return cobj;
         },
         trigger: function(opts, func) {
             opts.postponeEnabling = !this.isGlobal();
             var cobj = bbb.trigger(opts, func);
 
-            this.constraintObjects = this.constraintObjects || [];
-            this.constraintObjects.push(cobj);
+            this._constraintObjects = this._constraintObjects || [];
+            this._constraintObjects.push(cobj);
+
+            return cobj;
         },
-        _activate: function() {
-            this.constraintObjects = this.constraintObjects || [];
-            this.constraintObjects.forEach(function(cobj) {
+        _enableConstraints: function() {
+            this._constraintObjects = this._constraintObjects || [];
+            this._constraintObjects.forEach(function(cobj) {
                 cobj.enable();
             });
         },
-        _deactivate: function() {
-            this.constraintObjects = this.constraintObjects || [];
-            this.constraintObjects.forEach(function(cobj) {
+        _disableConstraints: function() {
+            this._constraintObjects = this._constraintObjects || [];
+            this._constraintObjects.forEach(function(cobj) {
                 cobj.disable();
             });
         }
     });
 
-    /* Layer Activation */
+    /* Control Flow-based Layer Activation */
     cop.withLayers = cop.withLayers.wrap(function(callOriginal, layers, func) {
-        layers.forEach(function(layer) { layer._activate(); });
+        layers.forEach(function(layer) { layer._enableConstraints(); });
 
         try {
             return callOriginal(layers, func);
         } finally {
-            layers.forEach(function(layer) { layer._deactivate(); });
+            layers.forEach(function(layer) { layer._disableConstraints(); });
         }
     });
 
     cop.withoutLayers = cop.withoutLayers.wrap(function(callOriginal, layers, func) {
-        layers.forEach(function(layer) { layer._deactivate(); });
-        
+        layers.forEach(function(layer) { layer._disableConstraints(); });
+
         try {
             return callOriginal(layers, func);
         } finally {
-            layers.forEach(function(layer) { layer._activate(); });
+            layers.forEach(function(layer) { layer._enableConstraints(); });
         }
     });
 
     /* Global Layer Activation */
     cop.enableLayer = cop.enableLayer.wrap(function(callOriginal, layer) {
-        layer._activate();
+        layer._enableConstraints();
         return callOriginal(layer);
     });
 
     cop.disableLayer = cop.disableLayer.wrap(function(callOriginal, layer) {
-        layer._deactivate();
+        layer._disableConstraints();
         return callOriginal(layer);
+    });
+
+    /***************************************************************
+     * Unified Notation
+     ***************************************************************/
+
+    Object.subclass("Predicate", {
+        initialize: function(func, opts) {
+            this.func = func;
+            this.opts = opts;
+        },
+        _mergeOptions: function(options1, options2) {
+            var mergedOptions = {};
+
+            Object.extend(mergedOptions, options1);
+            Object.extend(mergedOptions, options2);
+
+            return mergedOptions;
+        },
+        once: function(opts) {
+            return bbb.once(
+                this._mergeOptions(this.opts, opts),
+                this.func
+            );
+        },
+        always: function(opts) {
+            return bbb.always(
+                this._mergeOptions(this.opts, opts),
+                this.func
+            );
+        },
+        assert: function(opts) {
+            return bbb.assert(
+                this._mergeOptions(this.opts, opts),
+                this.func
+            );
+        },
+        trigger: function(callback) {
+            return bbb.trigger(
+                this._mergeOptions(this.opts, { callback: callback }),
+                this.func
+            );
+        },
+        activate: function(layer) {
+            return activator(
+                this.opts,
+                this.func,
+                layer
+            );
+        }
+    });
+
+    Predicate.subclass("LayeredPredicate", {
+        initialize: function($super, func, opts, layer) {
+            $super(func, opts);
+            this.layer = layer;
+        },
+        once: function($super, opts) {
+            if(!this.layer.isGlobal()) return;
+
+            return $super(opts);
+        },
+        always: function(opts) {
+            return this.layer.always(
+                this._mergeOptions(this.opts, opts),
+                this.func
+            );
+        },
+        assert: function(opts) {
+            return this.layer.assert(
+                this._mergeOptions(this.opts, opts),
+                this.func
+            );
+        },
+        trigger: function(callback) {
+            return this.layer.trigger(
+                this._mergeOptions(this.opts, { callback: callback }),
+                this.func
+            );
+        },
+        activate: function(layer) {
+            var cobj = activator(
+                this._mergeOptions(this.opts, { postponeEnabling: !this.layer.isGlobal() }),
+                this.func,
+                layer
+            );
+
+            this.layer._constraintObjects = this.layer._constraintObjects || [];
+            this.layer._constraintObjects.push(cobj);
+
+            return cobj;
+        }
+    });
+
+    predicate = function(func, opts) {
+        return new Predicate(func, opts);
+    }
+
+    Object.extend(Layer.prototype, {
+        predicate: function(func, opts) {
+            return new LayeredPredicate(func, opts, this);
+        }
     });
 });

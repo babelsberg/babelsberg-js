@@ -1012,4 +1012,406 @@ TestCase.subclass('users.timfelgentreff.reactive.reactive_test.ScopedConstraints
     }
 });
 
+TestCase.subclass('users.timfelgentreff.reactive.reactive_test.UnifiedNotationTest', {
+    testPredicateOnce: function() {
+		var vector = { x: 2, y: 5 };
+
+        predicate(function() {
+            return vector.x == vector.y
+        }, {
+            ctx: { vector: vector }
+        }).once({ solver: new ClSimplexSolver() });
+
+		this.assert(vector.x == vector.y, "constraint not solved: vector.x: " + vector.x + ", vector.y:" + vector.y);
+
+        var expectedX = vector.x;
+        vector.y = 42
+
+		this.assert(vector.x == expectedX, "unconstrained variable modified: vector.x: " + vector.x);
+		this.assert(vector.y == 42, "assignment did not work: vector.y: " + vector.y);
+	},
+    testPredicateAlways: function() {
+		var vector = { x: 2, y: 5 };
+
+        predicate(function() {
+            return vector.x == vector.y
+        }, {
+            ctx: { vector: vector }
+        }).always({ solver: new ClSimplexSolver() });
+
+		this.assert(vector.x == vector.y, "constraint not solved: vector.x: " + vector.x + ", vector.y:" + vector.y);
+
+        vector.x = 42;
+
+		this.assert(vector.x == vector.y, "constraint not solved: vector.x: " + vector.x + ", vector.y:" + vector.y);
+		this.assert(vector.x == 42, "assignment did not work: vector.x: " + vector.x);
+	},
+    testPredicateAssert: function() {
+    	var pt = {x: 1, y: 2};
+
+        predicate(function() {
+   			return pt.y > pt.x;
+        }, {
+            ctx: { pt: pt }
+        }).assert({ message: "expected error" });
+
+		new users.timfelgentreff.reactive.reactive_test.AssertTest().assertWithError(
+			ContinuousAssertError,
+			function() { pt.y = -1; },
+			"no ContinuousAssertError was thrown"
+		);
+		this.assert(pt.x === 1, "another variable was modified, pt.x: " + pt.x);
+		this.assert(pt.y === 2, "assignment not reverted, pt.y: " + pt.y);
+	},
+    testPredicateTrigger: function() {
+    	var p = {
+    	    hp: 2,
+    	    alive: true
+  	    };
+
+        predicate(function() {
+            return p.hp <=  0;
+        }, {
+            ctx: {
+                p: p
+            }
+        }).trigger(function() {
+            p.alive = false;
+        });
+
+		this.assert(p.hp === 2, "constraint construction modified variable, p.hp: " + p.hp);
+		this.assert(p.alive === true, "constraint construction modified variable, p.alive: " + p.alive);
+
+		// valid assignment
+		p.hp--;
+		this.assert(p.hp === 1, "assignment did not work, p.hp: " + p.hp);
+		this.assert(p.alive === true, "modified unassigned variable, p.alive: " + p.alive);
+
+		// triggering assignment
+		p.hp--;
+		this.assert(p.hp === 0, "assignment did not work, p.hp: " + p.hp);
+		this.assert(p.alive === false, "desired callback was not triggered");
+	},
+    testPredicateActivator: function() {
+		var the = {
+			condition: false,
+			answer: function() {
+				return 17;
+			}
+		};
+
+	    predicate(function() {
+            return the.condition === true;
+        }, {
+            ctx: {
+                the: the
+            }
+        }).activate(
+            new Layer()
+                .refineObject(the, {
+                    answer: function() {
+                    var oldAnswer = cop.proceed();
+                        return oldAnswer + 25;
+                    }
+                })
+        );
+
+		this.assert(the.answer() === 17, "not the correct answer, but " + the.answer());
+
+		the.condition = true;
+		this.assert(the.answer() === 42, "layer not correctly activated, the.answer(): " + the.answer());
+
+		the.condition = false;
+		this.assert(the.answer() === 17, "layer not correctly de-activated, the.answer(): " + the.answer());
+	},
+    testPredicateTriggerOnce: function() {
+    	var p = {
+    	    hp: 2,
+    	    alive: true
+  	    };
+
+        var pred = predicate(function() {
+            return p.hp <=  0;
+        }, {
+            ctx: {
+                p: p
+            }
+        })
+
+        pred.trigger(function() {
+            p.alive = false;
+        });
+
+		this.assert(p.hp === 2, "constraint construction modified variable, p.hp: " + p.hp);
+		this.assert(p.alive === true, "constraint construction modified variable, p.alive: " + p.alive);
+
+		// one-shot constraint triggering callback
+        pred.once({ solver: new ClSimplexSolver() });
+
+		this.assert(p.hp === 0, "assignment did not work, p.hp: " + p.hp);
+		this.assert(p.alive === false, "desired callback was not triggered");
+	},
+    testLayerPredicateAlways: function() {
+		var temperature = {
+			celsius: 0,
+			fahrenheit: 0
+		};
+
+        var layer = new Layer();
+
+        layer.predicate(function() {
+            return temperature.celsius * 1.8 == temperature.fahrenheit - 32;
+        }, {
+            ctx: {
+                temperature: temperature
+            }
+        }).always({ solver: new ClSimplexSolver() });
+
+		this.assert(temperature.celsius === 0, "attributes changed without modification; temperature.celsius: " + temperature.celsius);
+		this.assert(temperature.fahrenheit === 0, "attributes changed without modification; temperature.fahrenheit: " + temperature.fahrenheit);
+
+		// unconstrained assignment
+		temperature.celsius = 17;
+		this.assert(temperature.celsius === 17, "assignment did not work; temperature.celsius: " + temperature.celsius);
+		this.assert(temperature.fahrenheit === 0, "value changed although no constraint was enabled; temperature.fahrenheit: " + temperature.fahrenheit);
+
+		// layer activation
+		layer.beGlobal();
+		this.assert(temperature.celsius * 1.8 == temperature.fahrenheit - 32, "constraint was not solved after layer activation; temperature.celsius: " + temperature.celsius + ", temperature.fahrenheit: " + temperature.fahrenheit);
+
+		// constrained assignment
+		temperature.celsius = 20;
+		this.assert(temperature.celsius * 1.8 == temperature.fahrenheit - 32, "constraint is not fulfilled after constrained assignment; temperature.celsius: " + temperature.celsius + ", temperature.fahrenheit: " + temperature.fahrenheit);
+		this.assert(temperature.celsius === 20, "assignment did not work; temperature.celsius: " + temperature.celsius);
+
+		var prevCelsius = temperature.celsius;
+		var prevFahrenheit = temperature.fahrenheit;
+
+		// layer deactivation
+		layer.beNotGlobal();
+		this.assert(temperature.celsius * 1.8 == temperature.fahrenheit - 32, "constraint was not solved after layer activation; temperature.celsius: " + temperature.celsius + ", temperature.fahrenheit: " + temperature.fahrenheit);
+		this.assert(temperature.celsius === prevCelsius, "value changed during layer de-activation; temperature.celsius: " + temperature.celsius + ", previous value: " + prevCelsius);
+		this.assert(temperature.fahrenheit === prevFahrenheit, "value changed during layer de-activation; temperature.fahrenheit: " + temperature.fahrenheit + ", previous value: " + prevFahrenheit);
+
+		// unconstrained assignment
+		temperature.celsius = 42;
+		this.assert(temperature.celsius === 42, "assignment did not work; temperature.celsius: " + temperature.celsius);
+		this.assert(temperature.fahrenheit === prevFahrenheit, "value of unassigned variable changed; temperature.fahrenheit: " + temperature.fahrenheit);
+	},
+    testLayerPredicateOnce: function() {
+		var vector = { x: 2, y: 5 };
+
+        var layer = new Layer(),
+            pred = layer.predicate(function() {
+                return vector.x == vector.y
+            }, {
+                ctx: { vector: vector }
+            });
+
+        pred.once({ solver: new ClSimplexSolver() });
+
+		this.assert(vector.x == 2, "variable unexpectedly modified: vector.x: " + vector.x);
+		this.assert(vector.y == 5, "variable unexpectedly modified: vector.y: " + vector.y);
+
+        layer.beGlobal();
+        pred.once({ solver: new ClSimplexSolver() });
+
+		this.assert(vector.x == vector.y, "constraint not solved: vector.x: " + vector.x + ", vector.y:" + vector.y);
+
+        var expectedX = vector.x;
+        vector.y = 42
+
+		this.assert(vector.x == expectedX, "unconstrained variable modified: vector.x: " + vector.x);
+		this.assert(vector.y == 42, "assignment did not work: vector.y: " + vector.y);
+	},
+    testLayerPredicateAssert: function() {
+		var temperature = {
+			celsius: 10,
+			sense: false
+		};
+
+		new Layer()
+			.activeOn({
+				ctx: {
+					temperature: temperature
+				}
+			}, function() {
+				return temperature.sense === true;
+			})
+			.predicate(function() {
+                return temperature.celsius > -273;
+            }, {
+                ctx: {
+                    temperature: temperature
+                }
+            }).assert();
+
+		temperature.celsius = -1000;
+		temperature.celsius = 10;
+
+		temperature.sense = true
+		new users.timfelgentreff.reactive.reactive_test.AssertTest().assertWithError(
+			ContinuousAssertError,
+			function() {
+				temperature.celsius = -1000;
+			},
+			"no ContinuousAssertError was thrown"
+		);
+		this.assert(temperature.celsius === 10, "revert did not work; temperature.celsius: " + temperature.celsius);
+	},
+    testLayerPredicateTrigger: function() {
+		var count = 0, obj = {
+			activated: false,
+			trigger: false,
+			action: function() {
+				count++;
+			}
+		};
+
+		cop.create("triggerLayer")
+			.activeOn({
+				ctx: {
+					obj: obj
+				}
+			}, function() {
+				return obj.activated === true;
+			})
+			.predicate(function() {
+                return obj.trigger === true;
+            }, {
+                ctx: {
+                    obj: obj
+                }
+            }).trigger(obj.action.bind(obj));
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === false, "layer was unintentionally activated");
+		this.assert(obj.trigger === false, "trigger variable was changed");
+
+		// unactivated trigger
+		obj.trigger = true;
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === false, "layer was unintentionally activated");
+		this.assert(obj.trigger === true, "assignment did not work");
+
+		// reset trigger
+		obj.trigger = false;
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === false, "layer was unintentionally activated");
+		this.assert(obj.trigger === false, "assignment did not work");
+
+		// activate layer
+		obj.activated = true;
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === true, "assignment did not work");
+		this.assert(obj.trigger === false, "trigger unintentionally initiated");
+		this.assert(triggerLayer.isGlobal(), "layer not active");
+
+		// activated triggering
+		obj.trigger = true;
+		this.assert(count === 1, "action not triggered once, count: " + count);
+		this.assert(obj.activated === true, "modified unassigned variables");
+		this.assert(obj.trigger === true, "assignment did not work");
+		this.assert(triggerLayer.isGlobal(), "layer not active");
+	},
+    testLayerPredicateTrigger: function() {
+		var count = 0, obj = {
+			activated: false,
+			trigger: false,
+			action: function() {
+				count++;
+			}
+		};
+
+		var layer = new Layer();
+	    layer.activeOn({
+				ctx: {
+					obj: obj
+				}
+			}, function() {
+				return obj.activated === true;
+			});
+	    layer.predicate(function() {
+                return obj.trigger === true;
+            }, {
+                ctx: {
+                    obj: obj
+                }
+            }).trigger(obj.action.bind(obj));
+
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === false, "layer was unintentionally activated");
+		this.assert(obj.trigger === false, "trigger variable was changed");
+
+		// unactivated trigger
+		obj.trigger = true;
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === false, "layer was unintentionally activated");
+		this.assert(obj.trigger === true, "assignment did not work");
+
+		// reset trigger
+		obj.trigger = false;
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === false, "layer was unintentionally activated");
+		this.assert(obj.trigger === false, "assignment did not work");
+
+		// activate layer
+		obj.activated = true;
+		this.assert(count === 0, "action was already triggered, count: " + count);
+		this.assert(obj.activated === true, "assignment did not work");
+		this.assert(obj.trigger === false, "trigger unintentionally initiated");
+		this.assert(layer.isGlobal(), "layer not active");
+
+		// activated triggering
+		obj.trigger = true;
+		this.assert(count === 1, "action not triggered once, count: " + count);
+		this.assert(obj.activated === true, "modified unassigned variables");
+		this.assert(obj.trigger === true, "assignment did not work");
+		this.assert(layer.isGlobal(), "layer not active");
+	},
+    testLayerPredicateActivate: function() {
+		var obj = {
+		    layerShouldBeActive: false,
+			layerActivated: function() { return false; }
+		};
+
+		var activatedLayer = new Layer()
+		    .refineObject(obj, {
+		        layerActivated: function() { return true; }
+		    });
+
+		var scopingLayer = new Layer();
+		scopingLayer.predicate(function() {
+            return obj.layerShouldBeActive;
+        }, {
+            ctx: {
+                obj: obj
+            }
+        })
+        .activate(activatedLayer);
+
+		this.assert(!scopingLayer.isGlobal(), "layer unexpectedly active(1)");
+		this.assert(!activatedLayer.isGlobal(), "layer unexpectedly active(2)");
+		this.assert(obj.layerActivated() === false, "object unexpectedly refined");
+
+        // activator predicate fulfilled but scoping layer not active
+		obj.layerShouldBeActive = true;
+		this.assert(!scopingLayer.isGlobal(), "layer unexpectedly active(3)");
+		this.assert(!activatedLayer.isGlobal(), "layer unexpectedly active(4)");
+		this.assert(obj.layerActivated() === false, "object unexpectedly refined");
+
+        // activate scoping layer
+        scopingLayer.beGlobal();
+		this.assert(scopingLayer.isGlobal(), "layer unexpectedly active(5)");
+		this.assert(activatedLayer.isGlobal(), "layer unexpectedly active(6)");
+		this.assert(obj.layerActivated() === true, "object unexpectedly refined");
+
+        // reset predicate and scoping layer
+		obj.layerShouldBeActive = false;
+		scopingLayer.beNotGlobal();
+		this.assert(!scopingLayer.isGlobal(), "layer unexpectedly active(5)");
+		this.assert(!activatedLayer.isGlobal(), "layer unexpectedly active(6)");
+		this.assert(obj.layerActivated() === false, "object unexpectedly refined");
+	},
+});
+
 }); // end of module
