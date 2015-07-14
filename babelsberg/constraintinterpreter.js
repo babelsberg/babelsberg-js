@@ -140,6 +140,9 @@ Object.subclass('Babelsberg', {
                             evar.finishEdit();
                         });
                     }
+                    solvers.each(function(solver) {
+                        solver.editConstraints.splice(solver.editConstraints.indexOf(callback), 1);
+                    });
                     solvers.invoke('endEdit');
                 } else {
                     var newEditConstants = newObj;
@@ -184,6 +187,12 @@ Object.subclass('Babelsberg', {
             evars.each(function(evar) {
                 evar.prepareEdit();
             });
+        });
+ 
+        solvers.each(function(solver) {
+            if (solver.editConstraints === undefined)
+                solver.editConstraints = [];
+            solver.editConstraints.push(callback);
         });
 
         solvers.invoke('beginEdit');
@@ -414,6 +423,16 @@ Object.subclass('EditConstraintJIT', {
         // should optimize cvar with UUID uuidBySourceCount[0] first, then uuidBySourceCount[1] etc.
         var newCVar = this.cvarData[uuidBySourceCount[0]]['cvar'];
         if(!this.currentEdit) {
+            var abort = false;
+            newCVar.solvers.each(function(solver) {
+                if (solver.editConstraints !== undefined) {
+                    if (solver.editConstraints.length > 0) abort = true;
+                }
+            });
+            if (abort) {
+                console.log("we have already a edit constraint ...");
+                return;
+            };
             this.createEditFor(newCVar);
         } else {
             if(this.currentEdit['cvar'] !== newCVar) {
