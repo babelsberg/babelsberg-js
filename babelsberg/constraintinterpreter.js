@@ -839,7 +839,7 @@ Object.subclass('ConstrainedVariable', {
                         ' took ' + (performance.now() - nBegin) + ' ms' +
                         ' to solve for ' + this.ivarname + ' in suggestValue');
                 }
-                this.solveForConnectedVariables(value, oldValue, solver, source, force);
+                this.solveForConnectedVariables(value, oldValue, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
                 if (this.getValue() !== oldValue) {
@@ -894,13 +894,13 @@ Object.subclass('ConstrainedVariable', {
         });
     },
 
-    solveForConnectedVariables: function(value, priorValue, solver, source, force) {
+    solveForConnectedVariables: function(value, priorValue, source, force) {
         if (force || value !== this.storedValue) {
             (function() {
                 try {
                     // this.setValue(value);
-                    this.updateDownstreamVariables(value, solver);
-                    this.updateConnectedVariables(value, solver);
+                    this.updateDownstreamVariables(value);
+                    this.updateConnectedVariables(value);
                 } catch (e) {
                     if (source) {
                         // is freeing the recursionGuard here necessary?
