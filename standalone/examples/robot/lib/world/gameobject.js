@@ -1,51 +1,51 @@
 Object.subclass("GameObject", {
-	initialize: function(world, name, pos, extent, radius) {
-	    this.world = world;
-		this.name = name;
+    initialize: function(world, name, pos, extent, radius) {
+        this.world = world;
+        this.name = name;
 
-		this.position = pos;
+        this.position = pos;
         this.prevPosition = pos.copy();
-		this.coordinates = Vector2.Zero.copy().sub(new Vector2(-1,-1));
-		this.collisionTiles = {
-    		upperLeft:false,
-    		bottomLeft:true,
-    		upperRight:true,
-    		bottomRight:true
-		};
+        this.coordinates = Vector2.Zero.copy().sub(new Vector2(-1,-1));
+        this.collisionTiles = {
+            upperLeft:false,
+            bottomLeft:true,
+            upperRight:true,
+            bottomRight:true
+        };
 
         this.velocity = Vector2.Zero.copy();
 
-		this.radius = 5;
-		this.extent = extent;
-		this.speed = 3;
-	},
+        this.radius = 5;
+        this.extent = extent;
+        this.speed = 3;
+    },
 
-	update: function(dt) {
-	    this.prevPosition.set(this.position);
+    update: function(dt) {
+        this.prevPosition.set(this.position);
 
         var deltaPos = this.velocity.normalizedCopy().mulFloat(dt*this.speed);
         this.position.addSelf(deltaPos);
 
         if(typeof this.animation !== "undefined")
             this.animation.update(dt);
-	},
-	
-	draw: function(renderer) {
-		if(typeof this.animation !== "undefined") {
-			var halfSize = this.extent.divFloat(2);
-			var aabb = new AABB(
-				this.position.sub(halfSize),
-				this.position.add(halfSize)
-			);
-			this.animation.draw(renderer, aabb);
-		}
+    },
+    
+    draw: function(renderer) {
+        if(typeof this.animation !== "undefined") {
+            var halfSize = this.extent.divFloat(2);
+            var aabb = new AABB(
+                this.position.sub(halfSize),
+                this.position.add(halfSize)
+            );
+            this.animation.draw(renderer, aabb);
+        }
 
-		renderer.drawLine(this.position, this.position.add(this.velocity.mulFloat(5)), "red", 1, 3);
-	},
+        renderer.drawLine(this.position, this.position.add(this.velocity.mulFloat(5)), "red", 1, 3);
+    },
 
-	getTile: function(pos) {
-	    return this.world.map.get(this.world.map.positionToCoordinates(pos));
-	}
+    getTile: function(pos) {
+        return this.world.map.get(this.world.map.positionToCoordinates(pos));
+    }
 });
 
 // possible constraints:
@@ -54,13 +54,13 @@ Object.subclass("GameObject", {
 // - your speed is limited to maxSpeed (cannot adjust speed?)
 // - your velocity is direction.mulFloat(dt*speed)
 GameObject.subclass("Tank", {
-	initialize: function($super, world, pos) {
-	    $super(world, "tank", pos, new Vector2(2, 2), 1);
+    initialize: function($super, world, pos) {
+        $super(world, "tank", pos, new Vector2(2, 2), 1);
 
-		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [0,1,2,3]);
-		this.speed = 16 / 6 * world.map.tileSize.x;
+        this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [0,1,2,3]);
+        this.speed = 16 / 6 * world.map.tileSize.x;
 
-		this.initConstraints(world);
+        this.initConstraints(world);
     },
     initConstraints: function(world) {
         var that = this,
@@ -139,14 +139,14 @@ GameObject.subclass("Tank", {
                    ((that.collisionTiles).bottomRight).index  == 0;
         });
         */
-	}
+    }
 });
 
 Tank.subclass("PlayerTank", {
-	initialize: function($super, world, pos) {
-	    $super(world, pos);
+    initialize: function($super, world, pos) {
+        $super(world, pos);
 
-		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [0,1,2,3]);
+        this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [0,1,2,3]);
     }
 });
 
@@ -154,36 +154,36 @@ Tank.subclass("CPUTank", {
     initialize: function($super, world, pos) {
         $super(world, pos);
 
-		this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [4,5,6,7]);
+        this.animation = new Animation(new AnimationSheet("assets/tank.png", 18, 18), 0.4, [4,5,6,7]);
 
         // immobilize for now
         this.velocity.set(new Vector2(-1,1));
     },
 
-	update: function($super, dt) {
-	    // adjust direction randomly
-	    this.velocity.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
+    update: function($super, dt) {
+        // adjust direction randomly
+        this.velocity.rotateSelf(Math.PI / 180 * (Math.random() - 0.5) * 50);
 
-	    $super(dt);
-	}
+        $super(dt);
+    }
 });
 
 GameObject.subclass("Bullet", {
-	initialize: function($super, world, pos, vel, maxReflections) {
-	    $super(world, "bullet", pos, new Vector2(0.5, 0.5), 0.25);
+    initialize: function($super, world, pos, vel, maxReflections) {
+        $super(world, "bullet", pos, new Vector2(0.5, 0.5), 0.25);
 
         this.velocity.set(vel);
-		this.animation = new Animation(new AnimationSheet("assets/bullet.png", 7, 7), 0.2, [0,1,2,3,2,1]);
+        this.animation = new Animation(new AnimationSheet("assets/bullet.png", 7, 7), 0.2, [0,1,2,3,2,1]);
 
         this.maxReflections = maxReflections || 2;
         this.reflectionCount = 0;
 
-   		this.speed = 16 / 3.7 * world.map.tileSize.x;
+           this.speed = 16 / 3.7 * world.map.tileSize.x;
 
-		this.initConstraints(world);
-	},
+        this.initConstraints(world);
+    },
 
-	initConstraints: function(world) {
+    initConstraints: function(world) {
         var that = this,
             map = this.world.map,
             db = new DBPlanner();
@@ -245,5 +245,5 @@ GameObject.subclass("Bullet", {
             return that.position.divVector(world.map.tileSize).floor().equals(that.coordinates);
         });
         */
-	}
+    }
 });
