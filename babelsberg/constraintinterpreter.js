@@ -19,7 +19,7 @@ Object.subclass('Babelsberg', {
     initialize: function() {
         this.defaultSolvers = [];
         this.callbacks = [];
-        this.ecjit = new EditConstraintJIT();
+        this.ecjit = new EmptyECJIT();
     },
 
     isConstraintObject: true,
@@ -355,14 +355,13 @@ Object.subclass('Babelsberg', {
         }).recursionGuard(bbb, 'isProcessingCallbacks');
     }
 });
-Object.subclass('EditConstraintJIT', {
+Object.subclass('ClassicECJIT', {
     initialize: function() {
-        this.enabled = true;
         this.actionCounterLimit = 25;
         this.countDecayDecrement = 10;
         this.clearState();
     },
-    
+
     /**
      * Function used for instrumenting ConstrainedVariable#suggestValue to
      * implement automatic edit constraints. The boolean return value says
@@ -375,10 +374,6 @@ Object.subclass('EditConstraintJIT', {
      * @return {Boolean} whether suggestValue should be terminated or run normally.
      */
     suggestValueHook: function(cvar, value, source, force) {
-        if(!this.enabled) {
-            return false;
-        }
-        
         if(!(cvar.__uuid__ in this.cvarData)) {
             //console.log("Creating cvarData entry for "+cvar.__uuid__);
             this.cvarData[cvar.__uuid__] = {
@@ -392,22 +387,22 @@ Object.subclass('EditConstraintJIT', {
         if(source) {
             data['sourceCount'] += 1;
         }
-        
+
         this.actionCounter += 1;
         if(this.actionCounter >= this.actionCounterLimit) {
             this.doAction();
             this.actionCounter = 0;
         }
-        
+
         if(source && this.currentEdit && cvar.__uuid__ === this.currentEdit['cvar'].__uuid__) {
             //console.log("Using defined edit-callback!");
             this.currentEdit['cb']([value]);
             return true;
         }
-        
+
         return false;
     },
-    
+
     /**
      * Run some computationally intensive instrumentation and maintenance actions
      * regularly but not on every suggestValueHook invocation.
@@ -454,14 +449,14 @@ Object.subclass('EditConstraintJIT', {
             delete this.cvarData[cvar.__uuid__];
         }, this);
     },
-    
+
     deleteEdit: function() {
         if(this.currentEdit) {
             this.currentEdit['cb'](); // end edit constraint
         }
         this.currentEdit = null;
     },
-    
+
     createEditFor: function(cvar) {
         //console.log("Enabling edit-callback for "+cvar.__uuid__);
         this.currentEdit = {
@@ -470,7 +465,7 @@ Object.subclass('EditConstraintJIT', {
         };
         //this.printState();
     },
-    
+
     clearState: function() {
         this.cvarData = {};
         this.actionCounter = 0;
@@ -478,7 +473,7 @@ Object.subclass('EditConstraintJIT', {
             this.deleteEdit();
         }
     },
-    
+
     printState: function() {
         console.log("=====");
         this.forEachCVarData(function(data) {
@@ -486,7 +481,7 @@ Object.subclass('EditConstraintJIT', {
             console.log("CVar(uuid:"+cvar.__uuid__+", ivarname:"+cvar.ivarname+", count:"+data['count']+", sourceCount:"+data['sourceCount']+")");
         });
     },
-    
+
     forEachCVarData: function(callback) {
         Object.keys(this.cvarData).forEach(function(key) {
             var value = this.cvarData[key];
@@ -494,22 +489,34 @@ Object.subclass('EditConstraintJIT', {
         }, this);
     }
 });
-Object.subclass('EditConstraintJITTest', {
+Object.subclass('EmptyECJIT', {
+    suggestValueHook: function(cvar, value, source, force) {
+        return false;
+    },
+    clearState: function() {
+        // Do nothing. Public interface.
+    },
+    printState: function() {
+        console.log("==== EmptyECJIT ====")
+        console.log(" Nothin' to report. ")
+    },
+});
+Object.subclass('ECJITTests', {
     benchAll: function() {
         var names = ['clAddSim', 'dbAddSim', 'clDrag2DSim', 'clDragSim'],
             scenarios = [
                 {iter: 5}, {iter: 100} //, {iter: 500}
             ];
-            
+
         console.log("====== Start benchmark ======");
         console.log("Simulations: " + names.join(", "));
-        
+
         names.forEach(function (name) {
             scenarios.forEach(function (scenario, index) {
                 this.bench(name, scenario.iter, false);
                 this.bench(name, scenario.iter, true);
                 this.bench(name+"Edit", scenario.iter, false);
-                
+
                 var t0 = this.bench(name, scenario.iter, false);
                 /*t0 += this.bench(name, scenario.iter, false);
                 t0 += this.bench(name, scenario.iter, false);
@@ -522,29 +529,32 @@ Object.subclass('EditConstraintJITTest', {
                 t2 += this.bench(name+"Edit", scenario.iter, false);
                 t2 += this.bench(name+"Edit", scenario.iter, false);
                 t2 = Math.round(t2/3);
-                
+
                 console.log(name+"("+scenario.iter+") - time in ms (ec / ecjit / declarative): "+t2+" / "+t1+" / "+t0);
             }.bind(this));
         }.bind(this));
-        
+
         console.log("====== benchmark done ======");
     },
 
     bench: function(name, iterations, withECJIT) {
         var fn = this[name],
             old_ecjit = bbb.ecjit;
-        
-        bbb.ecjit = new EditConstraintJIT();
-        bbb.ecjit.enabled = withECJIT;
+
+        if(withECJIT) {
+            bbb.ecjit = new ClassicECJIT();
+        } else {
+            bbb.ecjit = new EmptyECJIT();
+        }
 
         var start = new Date();
         fn(iterations);
         var end = new Date();
-        
+
         bbb.ecjit = old_ecjit;
         return end-start;
     },
-    
+
     dbAddSim: function (iterations) {
         var o = {x: 0, y: 0, z: 0},
             solver = new DBPlanner();
@@ -560,7 +570,7 @@ Object.subclass('EditConstraintJITTest', {
             console.assert(o.x + o.y == o.z)
         }
     },
-    
+
     dbAddSimEdit: function (iterations) {
         var o = {x: 0, y: 0, z: 0},
             solver = new DBPlanner();
@@ -578,7 +588,7 @@ Object.subclass('EditConstraintJITTest', {
         }
         cb();
     },
-    
+
     clAddSim: function (iterations) {
         var o = {x: 0, y: 0, z: 0},
             solver = new ClSimplexSolver();
@@ -591,7 +601,7 @@ Object.subclass('EditConstraintJITTest', {
             console.assert(o.x + o.y == o.z)
         }
     },
-    
+
     clAddSimEdit: function (iterations) {
         var o = {x: 0, y: 0, z: 0},
             solver = new ClSimplexSolver();
@@ -606,7 +616,7 @@ Object.subclass('EditConstraintJITTest', {
         }
         cb();
     },
-    
+
     clDragSim: function(numIterations) {
         var ctx = {
                 mouse: {location_y: 0},
@@ -618,7 +628,7 @@ Object.subclass('EditConstraintJITTest', {
                 display: {number: 0}},
             solver = new ClSimplexSolver();
         solver.setAutosolve(false);
-        
+
         bbb.always({solver: solver, ctx: ctx}, function () { return temperature.c == mercury.top });
         bbb.always({solver: solver, ctx: ctx}, function () { return white.top == thermometer.top });
         bbb.always({solver: solver, ctx: ctx}, function () { return white.bottom == mercury.top });
@@ -634,7 +644,7 @@ Object.subclass('EditConstraintJITTest', {
             console.assert(ctx.mouse.location_y == i);
         }
     },
-    
+
     clDragSimEdit: function(numIterations) {
         var ctx = {
                 mouse: {location_y: 0},
@@ -646,7 +656,7 @@ Object.subclass('EditConstraintJITTest', {
                 display: {number: 0}},
             solver = new ClSimplexSolver();
         solver.setAutosolve(false);
-        
+
         bbb.always({solver: solver, ctx: ctx}, function () { return temperature.c == mercury.top });
         bbb.always({solver: solver, ctx: ctx}, function () { return white.top == thermometer.top });
         bbb.always({solver: solver, ctx: ctx}, function () { return white.bottom == mercury.top });
@@ -664,7 +674,7 @@ Object.subclass('EditConstraintJITTest', {
         }
         //cb();
     },
-    
+
     clDrag2DSim: function(numIterations) {
         var ctx = {
             mouse: {x: 100, y: 100},
@@ -674,7 +684,7 @@ Object.subclass('EditConstraintJITTest', {
         };
         var solver = new ClSimplexSolver();
         solver.setAutosolve(false);
-        
+
         bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w == mouse.x });
         bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h == mouse.y });
         bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w <= 400; });
@@ -682,7 +692,7 @@ Object.subclass('EditConstraintJITTest', {
         bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w+comp2.w == wnd.w; });
         //bbb.always({solver: solver, ctx: ctx}, function () { return comp1.display == wnd.w; });
         //bbb.always({solver: solver, ctx: ctx}, function () { return comp2.display == wnd.h; });
-        
+
         for(var i = 0; i < numIterations; i++) {
             ctx.mouse.x = 100+i;
             ctx.mouse.y = 100+i;
@@ -690,7 +700,7 @@ Object.subclass('EditConstraintJITTest', {
             console.assert(ctx.mouse.y == 100+i);
         }
     },
-    
+
     clDrag2DSimEdit: function(numIterations) {
         var ctx = {
             mouse: {x: 100, y: 100},
@@ -700,7 +710,7 @@ Object.subclass('EditConstraintJITTest', {
         };
         var solver = new ClSimplexSolver();
         solver.setAutosolve(false);
-        
+
         bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w == mouse.x });
         bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h == mouse.y });
         bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w <= 400; });
@@ -708,7 +718,7 @@ Object.subclass('EditConstraintJITTest', {
         bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w+comp2.w == wnd.w; });
         //bbb.always({solver: solver, ctx: ctx}, function () { return comp1.display == wnd.w; });
         //bbb.always({solver: solver, ctx: ctx}, function () { return comp2.display == wnd.h; });
-        
+
         var cb = bbb.edit(ctx.mouse, ["x", "y"]);
         for(var i = 0; i < numIterations; i++) {
             cb([100+i, 100+i]);
