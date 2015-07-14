@@ -1087,6 +1087,11 @@ Object.subclass('ConstrainedVariable', {
     },
 
     solveForPrimarySolver: function(value, priorValue, solver, source) {
+        if (this.externalValue == value) {
+            // should just store, solver already has the right value
+            this.setValue(value);
+            return;
+        }
         if (this.isSolveable()) {
             (function() {
                 var wasReadonly = false,
