@@ -599,8 +599,51 @@ Object.subclass('EditConstraintJITTest', {
         for (var i = 0; i < iterations; i++) {
             o.x = i;
 
-            console.log(o);
+            console.assert(o.x + o.y == o.z)
         }
+    },
+    bench: function(name, iterations, withECJIT) {
+        var fn = this[name],
+            ecjit = bbb.ecjit,
+            enabled = ecjit.enabled;
+        
+        ecjit.enable = withECJIT;
+        ecjit.clearState();
+        
+        var start = new Date();
+        
+        fn(iterations);
+        
+        return new Date() - start;
+    },
+    benchAll: function() {
+        var names = ['cassySimulation', 'blueSimulation'],
+            scenarios = [
+                {jit: false, iter: 50},
+                {jit: true, iter: 50},
+                {jit: false, iter: 250},
+                {jit: true, iter: 250},
+                {jit: false, iter: 500},
+                {jit: true, iter: 500},
+            ];
+            
+        console.log("====== Start benchmark ======");
+        console.log("Simulations: " + names.join(", "));
+        
+        names.forEach(function (name) {
+            scenarios.forEach(function (scenario, index) {
+                var numIndex = index + 1,
+                    jit = scenario.jit,
+                    iter = scenario.iter,
+                    duration = this.bench(name, iter, jit);
+                
+                console.log("Bench " + name + " (jit: " + jit + " iter: " + iter + "): " + duration + "ms");
+            }.bind(this));
+        }.bind(this));
+        
+        console.log("====== benchmark done ======");
+        
+        return 42;
     },
 
     blueSimulation: function (iterations) {
@@ -610,19 +653,17 @@ Object.subclass('EditConstraintJITTest', {
             solver: new DBPlanner(),
             ctx: {
                 o: o
-            }, methods: function () {
-                o.x.formula([o.y, o.z], function (y, z) { debugger; return z - y });
-                o.y.formula([o.x, o.z], function (x, z) { debugger; return z - x });
-                o.z.formula([o.x, o.y], function (x, y) { debugger; return x + y });
             }
         }, function () {
-            return o.x + o.y == o.z;
+            return o.x == o.z - o.y &&
+                o.y == o.z - o.x &&
+                o.z == o.x + o.y;
         });
 
         for (var i = 0; i < iterations; i++) {
             o.x = i;
 
-            console.log(o);
+            console.assert(o.x + o.y == o.z)
         }
     }
 });Object.extend(Global, {
