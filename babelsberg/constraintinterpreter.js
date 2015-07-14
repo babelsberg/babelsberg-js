@@ -443,6 +443,11 @@ Object.subclass('Babelsberg', {
                 cb.func.apply(cb.context, cb.args);
             }
         }).recursionGuard(bbb, 'isProcessingCallbacks');
+    },
+
+    isValueClass: function(variable) {
+        // TODO: add more value classes
+        return variable instanceof lively.Point;
     }
 });
 
@@ -473,15 +478,41 @@ cop.create('ConstraintInspectionLayer')
 
         if (!(node._parent instanceof users.timfelgentreff.jsinterpreter.GetSlot) &&
             !(node._parent instanceof users.timfelgentreff.jsinterpreter.Send) &&
-            value != undefined) {
+            !(node._parent instanceof users.timfelgentreff.jsinterpreter.Call) &&
+            value != undefined && !bbb.isValueClass(value)) {
             bbb.seenTypes[typeof value] = true;
         }
         return value;
+    },
+    visitNumber: function(node) {
+        if (!(node._parent instanceof users.timfelgentreff.jsinterpreter.GetSlot)) {
+            bbb.seenTypes[typeof node.value] = true;
+        }
+        return node.value;
+    },
+    visitString: function(node) {
+        if (!(node._parent instanceof users.timfelgentreff.jsinterpreter.GetSlot)) {
+            bbb.seenTypes[typeof node.value] = true;
+        }
+        return node.value;
+    },
+    //FIXME: copy&paste from constraintconstructionlayer
+    shouldInterpret: function(frame, func) {
+        if (func.sourceModule ===
+                Global.users.timfelgentreff.babelsberg.constraintinterpreter) {
+            return false;
+        }
+        if (func.declaredClass === 'Babelsberg') {
+            return false;
+        }
+        var nativeClass = lively.Class.isClass(func) && func.superclass === undefined;
+        return (!(this.isNative(func) || nativeClass)) &&
+                 typeof(func.forInterpretation) == 'function';
     }
 });
 
-cop.create('ConstraintConstructionLayer').
-        refineObject(users.timfelgentreff.jsinterpreter, {
+cop.create('ConstraintConstructionLayer')
+.refineObject(users.timfelgentreff.jsinterpreter, {
     get InterpreterVisitor() {
         return ConstraintInterpreterVisitor;
     }
@@ -1216,10 +1247,7 @@ Object.subclass('ConstrainedVariable', {
     },
 
     isValueClass: function() {
-        // TODO: add more value classes
-        return !this.isSolveable() &&
-            this.storedValue instanceof lively.Point;
-        // return false && this.storedValue instanceof lively.Point;
+        return !this.isSolveable() && bbb.isValueClass(this.storedValue);
     },
 
     get storedValue() {

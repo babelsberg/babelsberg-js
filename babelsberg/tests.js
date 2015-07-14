@@ -2094,7 +2094,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         this.assert(man.shirt !== man.pants, "shirt and pants must not have the same color");
         this.assert(man.pants === "black" || man.pants === "blue" || man.pants === "white", "pants should be 'black', 'blue' or 'white'");
     },
-	testFilteringByPriority: function () {
+    testFilteringByPriority: function () {
         var testCase = this;
         Object.subclass('DummySolver', {
             always: function(opts, func) { testCase._askedDummySolver = true; throw new Error('will be caught'); },
@@ -2117,8 +2117,8 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         });
         this.assert(!this._askedDummySolver, "should not have asked solver to try");
         this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a working solution");
-	},
-	testFilteringByMethods: function () {
+    },
+    testFilteringByMethods: function () {
         var testCase = this;
         Object.subclass('DummySolver', {
             always: function(opts, func) { testCase._askedDummySolver = true; throw new Error('will be caught'); },
@@ -2150,8 +2150,8 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         this.assert(o.number === 1);
         o.number = 12
         this.assert(o.string === "12");
-	},
-	testFilteringByDataTypeOnSlots: function () {
+    },
+    testFilteringByDataTypeOnSlots: function () {
         var testCase = this;
         Object.subclass('DummySolver', {
             always: function(opts, func) { testCase._askedDummySolver = true; throw new Error('will be caught'); }, 
@@ -2173,6 +2173,32 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         });
         this.assert(!this._askedDummySolver, "should not have asked solver to try");
         this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a working solution");
-	},
+    },
+    testFilteringByDataTypeOnCalls: function () {
+        var testCase = this;
+        Object.subclass('DummySolver', {
+            always: function(opts, func) { testCase._askedDummySolver = true; throw new Error('will be caught'); },
+            solverName: 'TestDummy',
+            supportsMethods: function() { return true; },
+            supportsSoftConstraints: function() { return true; },
+            supportedDataTypes: function() { return ['string']; }
+        });
+
+        bbb.defaultSolvers = [new DummySolver(), new ClSimplexSolver()];
+        var obj = {a: 2, get: function(){ return this.a; }};
+        obj[0] = 3;
+        var inc = function(i) { return i + 1;};
+        bbb.always({
+            ctx: {
+                obj: obj,
+                inc: inc
+            },
+            logReasons: true
+        }, function() {
+            return obj.get() == inc(obj[0]);
+        });
+        this.assert(!this._askedDummySolver, "should not have asked solver to try");
+        this.assert(obj.get() == inc(obj[0]), "Automatic solver selection did not produce a working solution");
+    },
 });
 }) // end of module
