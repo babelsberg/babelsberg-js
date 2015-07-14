@@ -482,20 +482,14 @@ Object.subclass('EditConstraintJIT', {
         ].forEach(function(config) {
             console.log("numIterations: "+config['numIterations']);
             // warm-up
-            console.log("-");
             this.benchDeclarativeDragSim(config['numIterations'], false);
-            console.log("-");
             this.benchDeclarativeDragSim(config['numIterations'], true);
-            console.log("-");
             this.benchEditDragSim(config['numIterations'], false);
-            console.log("-");
             var t0 = this.benchDeclarativeDragSim(config['numIterations'], false);
             //t0 = Math.round(t0/1);
-            console.log("-");
             var t1 = this.benchDeclarativeDragSim(config['numIterations'], true);
             t1 += this.benchDeclarativeDragSim(config['numIterations'], true);
             t1 = Math.round(t1/2);
-            console.log("-");
             var t2 = this.benchEditDragSim(config['numIterations'], false);
             t2 += this.benchEditDragSim(config['numIterations'], false);
             t2 = Math.round(t2/2);
@@ -589,7 +583,91 @@ Object.subclass('EditConstraintJIT', {
     }
 });
 Object.subclass('EditConstraintJITTest', {
-    cassySimulation: function (iterations) {
+    benchAll: function() {
+        var names = ['clAddSim', 'dbAddSim', 'clDrag2DSim', 'clDragSim'],
+            scenarios = [
+                {iter: 5}, {iter: 100} //, {iter: 500}
+            ];
+            
+        console.log("====== Start benchmark ======");
+        console.log("Simulations: " + names.join(", "));
+        
+        names.forEach(function (name) {
+            scenarios.forEach(function (scenario, index) {
+                this.bench(name, scenario.iter, false);
+                this.bench(name, scenario.iter, true);
+                this.bench(name+"Edit", scenario.iter, false);
+                
+                var t0 = this.bench(name, scenario.iter, false);
+                /*t0 += this.bench(name, scenario.iter, false);
+                t0 += this.bench(name, scenario.iter, false);
+                t0 = Math.round(t0/3);*/
+                var t1 = this.bench(name, scenario.iter, true);
+                t1 += this.bench(name, scenario.iter, true);
+                t1 += this.bench(name, scenario.iter, true);
+                t1 = Math.round(t1/3);
+                var t2 = this.bench(name+"Edit", scenario.iter, false);
+                t2 += this.bench(name+"Edit", scenario.iter, false);
+                t2 += this.bench(name+"Edit", scenario.iter, false);
+                t2 = Math.round(t2/3);
+                
+                console.log(name+"("+scenario.iter+") - time in ms (ec / ecjit / declarative): "+t2+" / "+t1+" / "+t0);
+            }.bind(this));
+        }.bind(this));
+        
+        console.log("====== benchmark done ======");
+    },
+
+    bench: function(name, iterations, withECJIT) {
+        var fn = this[name],
+            old_ecjit = bbb.ecjit;
+        
+        bbb.ecjit = new EditConstraintJIT();
+        bbb.ecjit.enabled = withECJIT;
+
+        var start = new Date();
+        fn(iterations);
+        var end = new Date();
+        
+        bbb.ecjit = old_ecjit;
+        return end-start;
+    },
+    
+    dbAddSim: function (iterations) {
+        var o = {x: 0, y: 0, z: 0},
+            solver = new DBPlanner();
+
+        bbb.always({solver: solver, ctx: {o: o}}, function () {
+            return o.x == o.z - o.y &&
+                o.y == o.z - o.x &&
+                o.z == o.x + o.y;
+        });
+
+        for (var i = 0; i < iterations; i++) {
+            o.x = i;
+            console.assert(o.x + o.y == o.z)
+        }
+    },
+    
+    dbAddSimEdit: function (iterations) {
+        var o = {x: 0, y: 0, z: 0},
+            solver = new DBPlanner();
+
+        bbb.always({solver: solver, ctx: {o: o}}, function () {
+            return o.x == o.z - o.y &&
+                o.y == o.z - o.x &&
+                o.z == o.x + o.y;
+        });
+
+        var cb = bbb.edit(o, ["x"]);
+        for (var i = 0; i < iterations; i++) {
+            cb([i]);
+            console.assert(o.x + o.y == o.z)
+        }
+        cb();
+    },
+    
+    clAddSim: function (iterations) {
         var o = {x: 0, y: 0, z: 0},
             solver = new ClSimplexSolver();
         solver.setAutosolve(false);
@@ -598,73 +676,134 @@ Object.subclass('EditConstraintJITTest', {
 
         for (var i = 0; i < iterations; i++) {
             o.x = i;
-
             console.assert(o.x + o.y == o.z)
         }
     },
-    bench: function(name, iterations, withECJIT) {
-        var fn = this[name],
-            ecjit = bbb.ecjit,
-            enabled = ecjit.enabled;
-        
-        ecjit.enable = withECJIT;
-        ecjit.clearState();
-        
-        var start = new Date();
-        
-        fn(iterations);
-        
-        return new Date() - start;
-    },
-    benchAll: function() {
-        var names = ['cassySimulation', 'blueSimulation'],
-            scenarios = [
-                {jit: false, iter: 50},
-                {jit: true, iter: 50},
-                {jit: false, iter: 250},
-                {jit: true, iter: 250},
-                {jit: false, iter: 500},
-                {jit: true, iter: 500},
-            ];
-            
-        console.log("====== Start benchmark ======");
-        console.log("Simulations: " + names.join(", "));
-        
-        names.forEach(function (name) {
-            scenarios.forEach(function (scenario, index) {
-                var numIndex = index + 1,
-                    jit = scenario.jit,
-                    iter = scenario.iter,
-                    duration = this.bench(name, iter, jit);
-                
-                console.log("Bench " + name + " (jit: " + jit + " iter: " + iter + "): " + duration + "ms");
-            }.bind(this));
-        }.bind(this));
-        
-        console.log("====== benchmark done ======");
-        
-        return 42;
-    },
+    
+    clAddSimEdit: function (iterations) {
+        var o = {x: 0, y: 0, z: 0},
+            solver = new ClSimplexSolver();
+        solver.setAutosolve(false);
 
-    blueSimulation: function (iterations) {
-        var o = {x: 0, y: 0, z: 0};
+        bbb.always({solver: solver, ctx: {o: o}}, function () { return o.x + o.y == o.z });
 
-        bbb.always({
-            solver: new DBPlanner(),
-            ctx: {
-                o: o
-            }
-        }, function () {
-            return o.x == o.z - o.y &&
-                o.y == o.z - o.x &&
-                o.z == o.x + o.y;
-        });
-
+        var cb = bbb.edit(o, ["x"]);
         for (var i = 0; i < iterations; i++) {
-            o.x = i;
-
+            cb([i]);
             console.assert(o.x + o.y == o.z)
         }
+        cb();
+    },
+    
+    clDragSim: function(numIterations) {
+        var ctx = {
+                mouse: {location_y: 0},
+                mercury: {top: 0, bottom: 0},
+                thermometer: {top: 0, bottom: 0},
+                temperature: {c: 0},
+                gray: {top: 0, bottom: 0},
+                white: {top: 0, bottom: 0},
+                display: {number: 0}},
+            solver = new ClSimplexSolver();
+        solver.setAutosolve(false);
+        
+        bbb.always({solver: solver, ctx: ctx}, function () { return temperature.c == mercury.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return white.top == thermometer.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return white.bottom == mercury.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return gray.top == mercury.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return gray.bottom == mercury.bottom });
+        bbb.always({solver: solver, ctx: ctx}, function () { return display.number == temperature.c });
+        bbb.always({solver: solver, ctx: ctx}, function () { return mercury.top == mouse.location_y });
+        bbb.always({solver: solver, ctx: ctx}, function () { return mercury.top <= thermometer.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return mercury.bottom == thermometer.bottom });
+
+        for (var i = 0; i < numIterations; i++) {
+            ctx.mouse.location_y = i;
+            console.assert(ctx.mouse.location_y == i);
+        }
+    },
+    
+    clDragSimEdit: function(numIterations) {
+        var ctx = {
+                mouse: {location_y: 0},
+                mercury: {top: 0, bottom: 0},
+                thermometer: {top: 0, bottom: 0},
+                temperature: {c: 0},
+                gray: {top: 0, bottom: 0},
+                white: {top: 0, bottom: 0},
+                display: {number: 0}},
+            solver = new ClSimplexSolver();
+        solver.setAutosolve(false);
+        
+        bbb.always({solver: solver, ctx: ctx}, function () { return temperature.c == mercury.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return white.top == thermometer.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return white.bottom == mercury.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return gray.top == mercury.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return gray.bottom == mercury.bottom });
+        bbb.always({solver: solver, ctx: ctx}, function () { return display.number == temperature.c });
+        bbb.always({solver: solver, ctx: ctx}, function () { return mercury.top == mouse.location_y });
+        bbb.always({solver: solver, ctx: ctx}, function () { return mercury.top <= thermometer.top });
+        bbb.always({solver: solver, ctx: ctx}, function () { return mercury.bottom == thermometer.bottom });
+
+        var cb = bbb.edit(ctx.mouse, ["location_y"]);
+        for (var i = 0; i < numIterations; i++) {
+            cb([i]);
+            console.assert(ctx.mouse.location_y == i);
+        }
+        //cb();
+    },
+    
+    clDrag2DSim: function(numIterations) {
+        var ctx = {
+            mouse: {x: 100, y: 100},
+            wnd: {w: 100, h: 100},
+            comp1: {w: 70, display: 0},
+            comp2: {w: 30, display: 0}
+        };
+        var solver = new ClSimplexSolver();
+        solver.setAutosolve(false);
+        
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w == mouse.x });
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h == mouse.y });
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w <= 400; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h <= 250; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w+comp2.w == wnd.w; });
+        //bbb.always({solver: solver, ctx: ctx}, function () { return comp1.display == wnd.w; });
+        //bbb.always({solver: solver, ctx: ctx}, function () { return comp2.display == wnd.h; });
+        
+        for(var i = 0; i < numIterations; i++) {
+            ctx.mouse.x = 100+i;
+            ctx.mouse.y = 100+i;
+            console.assert(ctx.mouse.x == 100+i);
+            console.assert(ctx.mouse.y == 100+i);
+        }
+    },
+    
+    clDrag2DSimEdit: function(numIterations) {
+        var ctx = {
+            mouse: {x: 100, y: 100},
+            wnd: {w: 100, h: 100},
+            comp1: {w: 70, display: 0},
+            comp2: {w: 30, display: 0}
+        };
+        var solver = new ClSimplexSolver();
+        solver.setAutosolve(false);
+        
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w == mouse.x });
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h == mouse.y });
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w <= 400; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h <= 250; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w+comp2.w == wnd.w; });
+        //bbb.always({solver: solver, ctx: ctx}, function () { return comp1.display == wnd.w; });
+        //bbb.always({solver: solver, ctx: ctx}, function () { return comp2.display == wnd.h; });
+        
+        var cb = bbb.edit(ctx.mouse, ["x", "y"]);
+        for(var i = 0; i < numIterations; i++) {
+            cb([100+i, 100+i]);
+            console.assert(ctx.mouse.x == 100+i);
+            console.assert(ctx.mouse.y == 100+i);
+        }
+        //cb();
     }
 });Object.extend(Global, {
     /**
