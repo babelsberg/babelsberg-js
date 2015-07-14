@@ -506,28 +506,30 @@ Object.subclass('ECJITTests', {
         var names = ['clAddSim', 'dbAddSim', 'clDrag2DSim', 'clDragSim'],
             scenarios = [
                 {iter: 5}, {iter: 100} //, {iter: 500}
-            ];
+            ],
+            createEmptyECJIT = function() { return new EmptyECJIT() },
+            createClassicECJIT = function() { return new ClassicECJIT() };
 
         console.log("====== Start benchmark ======");
         console.log("Simulations: " + names.join(", "));
 
         names.forEach(function (name) {
             scenarios.forEach(function (scenario, index) {
-                this.bench(name, scenario.iter, false);
-                this.bench(name, scenario.iter, true);
-                this.bench(name+"Edit", scenario.iter, false);
+                this.bench(name, scenario.iter, createEmptyECJIT());
+                this.bench(name, scenario.iter, createClassicECJIT());
+                this.bench(name+"Edit", scenario.iter, createEmptyECJIT());
 
-                var t0 = this.bench(name, scenario.iter, false);
-                /*t0 += this.bench(name, scenario.iter, false);
-                t0 += this.bench(name, scenario.iter, false);
+                var t0 = this.bench(name, scenario.iter, createEmptyECJIT());
+                /*t0 += this.bench(name, scenario.iter, createEmptyECJIT());
+                t0 += this.bench(name, scenario.iter, createEmptyECJIT());
                 t0 = Math.round(t0/3);*/
-                var t1 = this.bench(name, scenario.iter, true);
-                t1 += this.bench(name, scenario.iter, true);
-                t1 += this.bench(name, scenario.iter, true);
+                var t1 = this.bench(name, scenario.iter, createClassicECJIT());
+                t1 += this.bench(name, scenario.iter, createClassicECJIT());
+                t1 += this.bench(name, scenario.iter, createClassicECJIT());
                 t1 = Math.round(t1/3);
-                var t2 = this.bench(name+"Edit", scenario.iter, false);
-                t2 += this.bench(name+"Edit", scenario.iter, false);
-                t2 += this.bench(name+"Edit", scenario.iter, false);
+                var t2 = this.bench(name+"Edit", scenario.iter, createEmptyECJIT());
+                t2 += this.bench(name+"Edit", scenario.iter, createEmptyECJIT());
+                t2 += this.bench(name+"Edit", scenario.iter, createEmptyECJIT());
                 t2 = Math.round(t2/3);
 
                 console.log(name+"("+scenario.iter+") - time in ms (ec / ecjit / declarative): "+t2+" / "+t1+" / "+t0);
@@ -537,15 +539,11 @@ Object.subclass('ECJITTests', {
         console.log("====== benchmark done ======");
     },
 
-    bench: function(name, iterations, withECJIT) {
+    bench: function(name, iterations, ecjit) {
         var fn = this[name],
             old_ecjit = bbb.ecjit;
 
-        if(withECJIT) {
-            bbb.ecjit = new ClassicECJIT();
-        } else {
-            bbb.ecjit = new EmptyECJIT();
-        }
+        bbb.ecjit = ecjit;
 
         var start = new Date();
         fn(iterations);
