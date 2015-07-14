@@ -827,11 +827,6 @@ Object.subclass('ConstrainedVariable', {
                 oldValue = this.storedValue,
                 solver = this.definingSolver;
 
-            if (!this.hasEnabledConstraint()) {
-                this.setValue(value);
-                return value;
-            }
-
             ConstrainedVariable.$$optionalSetters =
                 ConstrainedVariable.$$optionalSetters || [];
 
