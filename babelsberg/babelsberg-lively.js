@@ -1,5 +1,5 @@
 module('users.timfelgentreff.babelsberg.babelsberg-lively').
-requires('lively.morphic.Halos').
+requires('lively.morphic.Halos','lively.persistence.Serializer').
 toRun(function() {
 // Lively-specific adaptations for Babelsberg/JS
 
