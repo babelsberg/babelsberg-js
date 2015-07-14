@@ -31,7 +31,7 @@ Object.subclass('Babelsberg', {
      * @param {string} accessor The name of the property to be unconstrained.
      */
     unconstrain: function(obj, accessor) {
-        debugger
+        // debugger
         if (!obj) return;
         var cvar = ConstrainedVariable.findConstraintVariableFor(obj, accessor);
         if (!cvar) return;
@@ -256,6 +256,7 @@ Object.subclass('Babelsberg', {
         solvers.some(function(solver) {
             try {
                 constraint = solver.always(opts, func);
+                constraint._options = opts
             } catch (e) {
                 errors.push(e);
                 return false;

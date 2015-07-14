@@ -11,7 +11,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         }, function() {
             return obj.a + obj.b == 3;
         });
-        this.assert(obj.a + obj.b == 3, "Solver failed")
+        this.assert(obj.a + obj.b == 3, "Solver failed: " + obj.a + ", " + obj.b)
     },
 
     testInequality: function() {
@@ -510,7 +510,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
                 return ctx.a == ctx.b && ctx.c == ctx.d;
             });
 
-        this.assert(ctx.a == ctx.b && ctx.c == ctx.d);
+        this.assert(ctx.a == ctx.b && ctx.c == ctx.d, "" + ctx.a + "," + ctx.b + "," + ctx.c + "," + ctx.d);
         // should have two primitive constraints
         this.assert(constraint.constraintobjects.length == 2);
     }
