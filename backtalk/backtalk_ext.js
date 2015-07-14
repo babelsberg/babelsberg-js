@@ -88,7 +88,7 @@ Object.subclass('BacktalkSolver', {
     supportsMethods: function() { return false; },
     supportsSoftConstraints: function() { return false; /* XXX: is this correct? */ },
     supportedDataTypes: function() {
-        return ['number', 'boolean', 'string']; /* XXX: is this correct? */
+        return ['number', 'boolean', 'string', 'object']; /* XXX: is this correct? */
     }
 });
 

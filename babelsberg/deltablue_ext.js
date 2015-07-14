@@ -97,7 +97,7 @@ DBPlanner.addMethods({
     supportsMethods: function() { return true; },
     supportsSoftConstraints: function() { return true; },
     supportedDataTypes: function() {
-        return ['number', 'boolean', 'string'];
+        return ['number', 'boolean', 'string', 'object'];
     }
 });
 

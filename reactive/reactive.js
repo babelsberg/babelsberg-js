@@ -15,7 +15,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
         solverName: 'reactive',
         supportsMethods: function() { return false; },
         supportsSoftConstraints: function() { return false; },
-        supportedDataTypes: function() { return ['number']; /* XXX: is this correct? */ }
+        supportedDataTypes: function() { return ['number', 'boolean', 'string', 'object']; /* XXX: is this correct? */ }
 	});
 	
 	Object.subclass("ReactiveSolver.Variable", {

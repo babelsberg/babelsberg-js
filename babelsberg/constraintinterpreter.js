@@ -366,9 +366,11 @@ Object.subclass('Babelsberg', {
                 func.forInterpretation().apply(undefined, []);
             });
         } catch (e) {
+            bbb.seenTypes = {};
             if (opts.logReasons) {
-                console.log('Parsing the expression for types failed, ' +
-                   'will not check types');
+                console.warn('Parsing the expression for types failed, ' +
+                   'will not check types. Error was:');
+                console.warn(e);
             }
         }
 
@@ -450,9 +452,9 @@ cop.create('ConstraintInspectionLayer')
             name = this.visit(node.slotName),
             value = obj[name];
 
-        // For object.sub.some.member, only consider the type of .member
-        node._isGetSlot = true;
-        if (!node.parent._isGetSlot) {
+        if (!(node._parent instanceof users.timfelgentreff.jsinterpreter.GetSlot) &&
+            !(node._parent instanceof users.timfelgentreff.jsinterpreter.Send) &&
+            value != undefined) {
             bbb.seenTypes[typeof value] = true;
         }
         return value;
