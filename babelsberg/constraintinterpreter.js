@@ -588,7 +588,44 @@ Object.subclass('EditConstraintJIT', {
         }
     }
 });
-Object.extend(Global, {
+Object.subclass('EditConstraintJITTest', {
+    cassySimulation: function (iterations) {
+        var o = {x: 0, y: 0, z: 0},
+            solver = new ClSimplexSolver();
+        solver.setAutosolve(false);
+
+        bbb.always({solver: solver, ctx: {o: o}}, function () { return o.x + o.y == o.z });
+
+        for (var i = 0; i < iterations; i++) {
+            o.x = i;
+
+            console.log(o);
+        }
+    },
+
+    blueSimulation: function (iterations) {
+        var o = {x: 0, y: 0, z: 0};
+
+        bbb.always({
+            solver: new DBPlanner(),
+            ctx: {
+                o: o
+            }, methods: function () {
+                o.x.formula([o.y, o.z], function (y, z) { debugger; return z - y });
+                o.y.formula([o.x, o.z], function (x, z) { debugger; return z - x });
+                o.z.formula([o.x, o.y], function (x, y) { debugger; return x + y });
+            }
+        }, function () {
+            return o.x + o.y == o.z;
+        });
+
+        for (var i = 0; i < iterations; i++) {
+            o.x = i;
+
+            console.log(o);
+        }
+    }
+});Object.extend(Global, {
     /**
      * A globally accessible instance of {@link Babelsberg}
      * @global
