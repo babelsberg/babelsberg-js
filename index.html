@@ -33,7 +33,11 @@
 
 <h2><a name="overview" class="anchor" href="#overview"><span class="octicon octicon-link"></span></a>Overview</h2>
 
-	<p>It allows you to do stuff like this</p>
+<p>Babelsberg/JS is a JavaScript implementation of the Babelsberg
+family of object constraint programming languages, which augments
+standard JavaScript with the ability to state constraints that should be
+automatically maintained.  Here is a simple example:</p>
+
 	
 	<div class="highlight highlight-javascript"><pre><span class="nx">z3</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">ServerZ3</span><span class="p">()</span>
 <span class="nx">z3</span><span class="p">.</span><span class="nx">reset</span><span class="p">()</span>
@@ -51,11 +55,15 @@
 <span class="nx">b</span><span class="p">.</span><span class="nx">getPosition</span><span class="p">()</span> <span class="c1">// lively.pt(99.9,300.0)</span>
 </pre></div>
 	
-	<p>Basically, you can write constraints using the <code>always</code> primitive that you always want to be true,
-	using existing object-oriented abstractions (I am using the methods <code>getPosition</code> and
-	<code>dist</code> in the example above), and the system will maintain them. The extent to which the
-	system is able to keep constraints satisfied depends on the solver that is used. This
-	implementation provides Z3, DeltaBlue, and Cassowary.</p>
+<p>It allows the programmer to write constraints using the 
+<code>always</code> primitive that you always want to hold
+using existing object-oriented abstractions. (The above example uses the
+methods <code>getPosition</code> and
+<code>dist</code>.)  The system will then attempt to satisfy the
+constraints at the time they are asserted, and maintain them as
+further statements perturb the system. The extent to which the system
+is able to keep constraints satisfied depends on the solver that is
+used. This implementation provides Z3, DeltaBlue, and Cassowary.</p>
 	
 	<p>We have used this to implement electrical simulations, a simulation of the Lively Engine,
 	and some graphical layouting examples. The implementation is available to try at <a href="http://lively-web.org/users/robertkrahn/2013-10-16_first-constrained-steps.html">lively-web.org</a>.
@@ -79,16 +87,46 @@
 	
 <h2><a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples</h2>
 
-	<p><a href="http://babelsberg.github.io/babelsberg-js/examples/fabric/layout.html">fabric.js layout</a></p>
-	<p><a href="http://babelsberg.github.io/babelsberg-js/examples/csp/map.html">map coloring</a></p>
-	<p><a href="http://babelsberg.github.io/babelsberg-js/standalone/examples/weplaytanks/weplaytanks.html">We play tanks</a></p>
-	<p>A page with more variety of examples is at <a href="http://lively-kernel.org/babelsberg/users/timfelgentreff/babelsberg-js.html">lively-kernel.org</a>.</p>
+<ul>
+<li><a href="http://babelsberg.github.io/babelsberg-js/examples/fabric/layout.html">fabric.js layout</a></li>
+<li><a href="http://babelsberg.github.io/babelsberg-js/examples/csp/map.html">map coloring</a></li>
+<li><a href="http://babelsberg.github.io/babelsberg-js/standalone/examples/weplaytanks/weplaytanks.html">We play tanks</a></li>
+</ul>
+<p>A page with additional examples is at <a href="http://lively-kernel.org/babelsberg/users/timfelgentreff/babelsberg-js.html">lively-kernel.org</a>.</p>
 <!--
 <h2><a name="gettingstarted" class="anchor" href="#gettingstarted"><span class="octicon octicon-link"></span></a>Getting Started</h2>
 
 	<p>TODO</p>
 
 	-->
+<h2><a name="publications" class="anchor"
+href="#publications"><span class="octicon
+octicon-link"></span></a>Publications</h2>
+
+<ul>
+
+<li>Tim Felgentreff, Alan Borning, and Robert Hirschfeld,
+&ldquo;<a href="http://www.jot.fm/issues/issue_2014_09/article1.pdf">Babelsberg:
+Specifying and Solving Constraints on Object Behavior</a>,&rdquo;
+<em>Journal of Object Technology</em> 13:4, 2014
+This paper describes the general Babelsberg framework and the Ruby
+implementation, but is a good starting point.</li>
+
+<li>Tim Felgentreff, Alan Borning, Jens Lincke, Robert Hirschfeld,
+Yoshiki Ohshima, Bert Freudenberg, and Robert Krahn,
+&ldquo;<a href="http://www.hpi.uni-potsdam.de/hirschfeld/publications/media/FelgentreffBorningHirschfeldLinckeOhshimaFreudenbergKrahn_2014_BabelsbergJsABrowserBasedImplementationOfAnObjectConstraintLanguage_SpringerLNCS.pdf">Babelsberg/JS - A Browser-based Implementation of an Object
+Constraint Language</a>,&rdquo; <em>European Conference on Object-oriented
+Programming</em> (ECOOP), 2014.</li>
+    
+<li>Tim Felgentreff, Todd Millstein, and Alan Borning,
+&ldquo;<a href="http://www.vpri.org/pdf/tr2014002_babelsberg.pdf">Developing
+a Formal Semantics for Babelsberg: A Step-by-Step Approach</a>,&rdquo;
+Technical Report, Viewpoints Research Institute, TR-2014-002a, 2015.
+</li>
+
+</ul>
+
+
 <h2><a name="documentation" class="anchor" href="#documentation"><span class="octicon octicon-link"></span></a>Documentation</h2>
 
 	<ul>
@@ -126,12 +164,19 @@
 <p>
 <a href="https://github.com/timfel">timfel</a> also presented this work at the <a href="http://craft-conf.com/2014/">CRAFT</a> conference.
 A video of his talk is available <a href="https://onedrive.live.com/redir?resid=FCA2914EE7038C6F!17380&amp;authkey=!AEJgnZ0och8WeE4&amp;ithint=video%2c.mp4">here</a>.
-Papers about this implementation are forthcoming. A freely accessible technical report was published <a href="http://opus.kobv.de/ubp/volltexte/2014/6729/pdf/tbhpi81.pdf">here</a>.
 </p>
 
-<p>Created under a grant from Hasso Plattner Institute <img src="http://upload.wikimedia.org/wikipedia/de/c/c9/Hpi_logo.png" alt="HPI Logo" width="50" height="50"></p>
-      </section>
-      <footer>
+<p>
+<img src="http://upload.wikimedia.org/wikipedia/de/c/c9/Hpi_logo.png"
+     alt="HPI Logo" width="50" height="50"> 
+
+Created under a grant from the <a href="http://hpi.de">Hasso Plattner
+Institute</a>, with additional support
+from <a href="http://sap.com">SAP</a> and
+the <a href="http://cdglabs.org">Communications Design Group</a>.</p>
+</section>
+
+<footer>
         <p>This project is maintained by <a href="https://github.com/babelsberg">babelsberg</a></p>
         <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
       </footer>
