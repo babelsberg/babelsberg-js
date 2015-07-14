@@ -1,8 +1,8 @@
 module('users.timfelgentreff.babelsberg.tests').requires(
-	'lively.TestFramework',
-	'users.timfelgentreff.babelsberg.constraintinterpreter',
-	'users.timfelgentreff.babelsberg.src_transform_test',
-	'users.timfelgentreff.reactive.reactive_test'
+    'lively.TestFramework',
+    'users.timfelgentreff.babelsberg.constraintinterpreter',
+    'users.timfelgentreff.babelsberg.src_transform_test',
+    'users.timfelgentreff.reactive.reactive_test'
 ).toRun(function() {
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
@@ -16,7 +16,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         }, function() {
             return obj.a + obj.b == 3;
         });
-        this.assert(obj.a + obj.b == 3, "Solver failed")
+        this.assert(obj.a + obj.b == 3, "Solver failed: " + obj.a + ", " + obj.b)
     },
 
     testInequality: function() {
@@ -32,6 +32,39 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         this.assert(obj.a == 100);
         obj.a = 110;
         this.assert(obj.a == 110);
+    },
+    testDisableConstraint: function() {
+        var obj = {a: 8};
+        var error = false;
+        var c = bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            return obj.a >= 100;
+        });
+        this.assert(obj.a == 100);
+        obj.a = 110;
+        this.assert(obj.a == 110);
+        try {
+            obj.a = 90;
+        } catch(e) {
+            error = true
+        }
+        this.assert(error);
+        c.disable();
+        obj.a = 90;
+        this.assert(obj.a == 90);
+        c.enable();
+        this.assert(obj.a == 100);
+        error = false;
+        try {
+            obj.a = 90;
+        } catch(e) {
+            error = true
+        }
+        this.assert(error);
     },
 
     testSimplePath: function () {
@@ -482,7 +515,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
                 return ctx.a == ctx.b && ctx.c == ctx.d;
             });
 
-        this.assert(ctx.a == ctx.b && ctx.c == ctx.d);
+        this.assert(ctx.a == ctx.b && ctx.c == ctx.d, "" + ctx.a + "," + ctx.b + "," + ctx.c + "," + ctx.d);
         // should have two primitive constraints
         this.assert(constraint.constraintobjects.length == 2);
     }
@@ -1329,14 +1362,14 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.InteractionTest', {
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
     testBacktalkPaperExample: function () {
-	    var solver = bbb.defaultSolver = new csp.Solver();
-    	var man = {
-			shoes: "foo",
-			shirt: "foo",
-			pants: "foo",
-			hat: "foo"
-		};
-	    
+        var solver = bbb.defaultSolver = new csp.Solver();
+        var man = {
+            shoes: "foo",
+            shirt: "foo",
+            pants: "foo",
+            hat: "foo"
+        };
+        
         bbb.always({
             ctx: {
                 bbb: bbb,
@@ -1360,7 +1393,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
         }, function() {
             return man.shirt.is in ["brown", "blue", "white"];;
         });
-	    
+        
         bbb.always({
             ctx: {
                 bbb: bbb,
@@ -1372,7 +1405,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
         }, function() {
             return man.pants.is in ["brown", "blue", "black", "white"];;
         });
-	    
+        
         bbb.always({
             ctx: {
                 bbb: bbb,
@@ -1384,7 +1417,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
         }, function() {
             return man.hat.is in ["brown"];;
         });
-	    
+        
         bbb.always({
             ctx: {
                 bbb: bbb,
@@ -1440,9 +1473,9 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
         this.assert(man.pants === "black" || man.pants === "blue" || man.pants === "white", "pants should be 'black', 'blue' or 'white'");
     },
     testForceToDomain: function () {
-	    var solver = bbb.defaultSolver = new csp.Solver();
-	    var pt = {x: 5, y: 2};
-	    
+        var solver = bbb.defaultSolver = new csp.Solver();
+        var pt = {x: 5, y: 2};
+        
         bbb.always({
             ctx: {
                 bbb: bbb,
@@ -1455,12 +1488,12 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
             return pt.x.is in [1, 2, 3];;
         });
 
-	    this.assert([1, 2, 3].indexOf(pt.x) > -1, "x is not in its domain [1, 2, 3], but " + pt.x);
+        this.assert([1, 2, 3].indexOf(pt.x) > -1, "x is not in its domain [1, 2, 3], but " + pt.x);
     },
     testRemainIfInDomain: function () {
-	    var solver = bbb.defaultSolver = new csp.Solver();
-	    var pt = {x: 5, y: 2};
-	    
+        var solver = bbb.defaultSolver = new csp.Solver();
+        var pt = {x: 5, y: 2};
+        
         bbb.always({
             ctx: {
                 bbb: bbb,
@@ -1473,13 +1506,13 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
             return pt.x.is in [4, 5, 6];;
         });
 
-	    this.assert(pt.x === 5, "x does not stay at 5, but probably raims in its domain [4, 5, 6]; x: " + pt.x);
+        this.assert(pt.x === 5, "x does not stay at 5, but probably raims in its domain [4, 5, 6]; x: " + pt.x);
     },
     testErrorOnEmptyDomain: function () {
-	    var solver = bbb.defaultSolver = new csp.Solver(),
-	    	pt = {x: 5, y: 2},
-	    	errorThrown = false;
-	    
+        var solver = bbb.defaultSolver = new csp.Solver(),
+            pt = {x: 5, y: 2},
+            errorThrown = false;
+        
         bbb.always({
             ctx: {
                 bbb: bbb,
@@ -1492,18 +1525,18 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
             return pt.x.is in [];;
         });
         try {
-		    solver.newVariable(pt, "x", []);
-	    } catch (e) {
-	    	errorThrown = true;
-	    }
+            solver.newVariable(pt, "x", []);
+        } catch (e) {
+            errorThrown = true;
+        }
 
-	    this.assert(errorThrown, "no error was thrown on empty domain");
+        this.assert(errorThrown, "no error was thrown on empty domain");
     },
     testAssignment: function () {
-	    var solver = bbb.defaultSolver = new csp.Solver(),
-	    	pt = {x: 2, y: 6},
-	    	errorThrown = false;
-	    
+        var solver = bbb.defaultSolver = new csp.Solver(),
+            pt = {x: 2, y: 6},
+            errorThrown = false;
+        
         bbb.always({
             ctx: {
                 bbb: bbb,
@@ -1527,7 +1560,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
         }, function() {
             return pt.y.is in [4, 5, 6, 7, 8, 9, 10, 11, 12];;
         });
-	    
+        
         bbb.always({
             ctx: {
                 bbb: bbb,
@@ -1539,20 +1572,20 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
         }, function() {
             return pt.x + 4 === pt.y;;
         });
-	
+    
         pt.x = 8;
         this.assert(pt.x === 8, "assignment 'x = 8' was not successful; x: " + pt.x);
-	    this.assert(pt.y === 12, "constraint 'x + 4 == y' not satisfied; y: " + pt.y);
-	    
-	    pt.y = 7;
-	    this.assert(pt.y === 7, "assignment 'y = 7' was not successful; y: " + pt.y);
-	    this.assert(pt.x === 3, "constraint 'x + 4 == y' not satisfied; x: " + pt.x);
+        this.assert(pt.y === 12, "constraint 'x + 4 == y' not satisfied; y: " + pt.y);
+        
+        pt.y = 7;
+        this.assert(pt.y === 7, "assignment 'y = 7' was not successful; y: " + pt.y);
+        this.assert(pt.x === 3, "constraint 'x + 4 == y' not satisfied; x: " + pt.x);
     },
     testAssignment2: function () {
-	    var solver = bbb.defaultSolver = new csp.Solver(),
-	    	pt = {x: 2, y: 8},
-	    	errorThrown = false;
-	    
+        var solver = bbb.defaultSolver = new csp.Solver(),
+            pt = {x: 2, y: 8},
+            errorThrown = false;
+        
         bbb.always({
             ctx: {
                 bbb: bbb,
@@ -1588,18 +1621,18 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
         }, function() {
             return pt.x + pt.y >= 10;;
         });
-	
+    
         this.assert(pt.x + pt.y >= 10, "constraint 'pt.x + pt.y >= 10' does not hold for x: "+ pt.x+", y: " + pt.y);
 
-	    pt.y = 4;
+        pt.y = 4;
         this.assert(pt.y === 4, "assignment 'y = 4' was not successful; y: " + pt.y);
         this.assert(pt.x + pt.y >= 10, "constraint 'pt.x + pt.y >= 10' does not hold for x: "+ pt.x+", y: " + pt.y);
     },
     testFailingAssignmentOnDomain: function () {
-	    var solver = bbb.defaultSolver = new csp.Solver(),
-	    	pt = {x: 5, y: 2},
-	    	errorThrown = false;
-	    
+        var solver = bbb.defaultSolver = new csp.Solver(),
+            pt = {x: 5, y: 2},
+            errorThrown = false;
+        
         bbb.always({
             ctx: {
                 bbb: bbb,
@@ -1611,21 +1644,21 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
         }, function() {
             return pt.x.is in [1, 2, 3];;
         });
-	    
-	    try {
-	        pt.x = 0;
-	    } catch (e) {
-	    	errorThrown = true;
-	    }
-	
-	    this.assert(errorThrown, "no error was thrown on new value x = 0 with domain [1, 2, 3]; x: " + pt.x);
+        
+        try {
+            pt.x = 0;
+        } catch (e) {
+            errorThrown = true;
+        }
+    
+        this.assert(errorThrown, "no error was thrown on new value x = 0 with domain [1, 2, 3]; x: " + pt.x);
     },
     testFailingAssignment: function () {
-    	// try x = 0 with constraint x > 4
-	    var solver = bbb.defaultSolver = new csp.Solver(),
-	    	pt = {x: 2, y: 8},
-	    	errorThrown = false;
-	    
+        // try x = 0 with constraint x > 4
+        var solver = bbb.defaultSolver = new csp.Solver(),
+            pt = {x: 2, y: 8},
+            errorThrown = false;
+        
         bbb.always({
             ctx: {
                 bbb: bbb,
@@ -1649,51 +1682,51 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
         }, function() {
             return pt.y.is in [1, 2, 3, 4, 5, 6, 7, 8, 9];;
         });
-	    
-	    bbb.always({
-	        ctx: {
-	            bbb: bbb,
-	            csp: csp,
-	            solver: solver,
-	            pt: pt,
-	            _$_self: this.doitContext || this
-	        }
-	    }, function() {
-	        return pt.x > 4;;
-	    });
-	
-	    bbb.always({
-	        ctx: {
-	            bbb: bbb,
-	            csp: csp,
-	            solver: solver,
-	            pt: pt,
-	            _$_self: this.doitContext || this
-	        }
-	    }, function() {
-	        return pt.x + pt.y === 10;;
-	    });
+        
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x > 4;;
+        });
+    
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                solver: solver,
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x + pt.y === 10;;
+        });
 
-	    this.assert(pt.x > 4, "constraint 'pt.x  > 4' does not hold for x: "+ pt.x);
-	    this.assert(pt.x + pt.y === 10, "constraint 'pt.x + pt.y === 10' does not hold for x: "+ pt.x + ", y: " + pt.y);
-	
-	    var oldValueX = pt.x;
-	    var oldValueY = pt.y;
-	    
-	    try {
-	        pt.y = 7;
-	    } catch (e) {
-	    	errorThrown = true;
-	    }
+        this.assert(pt.x > 4, "constraint 'pt.x  > 4' does not hold for x: "+ pt.x);
+        this.assert(pt.x + pt.y === 10, "constraint 'pt.x + pt.y === 10' does not hold for x: "+ pt.x + ", y: " + pt.y);
+    
+        var oldValueX = pt.x;
+        var oldValueY = pt.y;
+        
+        try {
+            pt.y = 7;
+        } catch (e) {
+            errorThrown = true;
+        }
         this.assert(errorThrown, "no error was thrown on new value y = 7 with constraints 'pt.x + pt.y === 10' and 'pt.x  > 4'; x: " + pt.x + ", y: " + pt.y);
-	    this.assert(pt.y === oldValueY, "old value of y not restored after failed assignment; currentY: " + pt.y + ", oldY: " + oldValueY);
-	    this.assert(pt.x === oldValueX, "old value of x not restored after failed assignment; currentX: " + pt.x + ", oldX: " + oldValueX);
+        this.assert(pt.y === oldValueY, "old value of y not restored after failed assignment; currentY: " + pt.y + ", oldY: " + oldValueY);
+        this.assert(pt.x === oldValueX, "old value of x not restored after failed assignment; currentX: " + pt.x + ", oldX: " + oldValueX);
     },
     testUnsatisfiableConstraint: function () {
-	    var solver = bbb.defaultSolver = new csp.Solver(),
-	    	pt = {x: 5, y: 2},
-	    	errorThrown = false;
-	    
+        var solver = bbb.defaultSolver = new csp.Solver(),
+            pt = {x: 5, y: 2},
+            errorThrown = false;
+        
         bbb.always({
             ctx: {
                 bbb: bbb,
@@ -1705,134 +1738,134 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.CSPTest', {
         }, function() {
             return pt.x.is in [1, 2, 3];;
         });
-	    
-	    try {
-	        bbb.always({
-	            ctx: {
-	                bbb: bbb,
-	                csp: csp,
-	                solver: solver,
-	                pt: pt,
-	                _$_self: this.doitContext || this
-	            }
-	        }, function() {
-	            return pt.x >= 5;;
-	        });
-	    } catch (e) {
-	    	errorThrown = true;
-	    }
-	
-	    this.assert(errorThrown, "no error was thrown on unsatisfiable constraint");
+        
+        try {
+            bbb.always({
+                ctx: {
+                    bbb: bbb,
+                    csp: csp,
+                    solver: solver,
+                    pt: pt,
+                    _$_self: this.doitContext || this
+                }
+            }, function() {
+                return pt.x >= 5;;
+            });
+        } catch (e) {
+            errorThrown = true;
+        }
+    
+        this.assert(errorThrown, "no error was thrown on unsatisfiable constraint");
     }
 });
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
     testOnErrorCassowaryConstraintConstruction: function () {
         var obj = {a: 0},
-			onErrorCalled = false;
+            onErrorCalled = false;
 
-		bbb.defaultSolver = new ClSimplexSolver();
-		
-		bbb.always({
-			onError: function() {
-				onErrorCalled = true;
-			},
-			ctx: {
-				bbb: bbb,
-				obj: obj,
-				_$_self: this.doitContext || this
-			}
-		}, function() {
-			return obj.a == 0;;
-		});
+        bbb.defaultSolver = new ClSimplexSolver();
+        
+        bbb.always({
+            onError: function() {
+                onErrorCalled = true;
+            },
+            ctx: {
+                bbb: bbb,
+                obj: obj,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return obj.a == 0;;
+        });
 
-		bbb.always({
-			onError: function() {
-				onErrorCalled = true;
-			},
-			ctx: {
-				bbb: bbb,
-				obj: obj,
-				_$_self: this.doitContext || this
-			}
-		}, function() {
-			return obj.a == 10;;
-		});
-	
-		this.assert(onErrorCalled, "onError was not called; obj.a: " + obj.a);
+        bbb.always({
+            onError: function() {
+                onErrorCalled = true;
+            },
+            ctx: {
+                bbb: bbb,
+                obj: obj,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return obj.a == 10;;
+        });
+    
+        this.assert(onErrorCalled, "onError was not called; obj.a: " + obj.a);
     },
     testOnErrorCassowaryAssignment: function () {
         var obj = {a: 0},
-			onErrorCalled = false;
+            onErrorCalled = false;
 
-		bbb.defaultSolver = new ClSimplexSolver();
-		
-		bbb.always({
-			onError: function() {
-				onErrorCalled = true;
-			},
-			ctx: {
-				bbb: bbb,
-				obj: obj,
-				_$_self: this.doitContext || this
-			}
-		}, function() {
-			return obj.a == 0;;
-		});
+        bbb.defaultSolver = new ClSimplexSolver();
+        
+        bbb.always({
+            onError: function() {
+                onErrorCalled = true;
+            },
+            ctx: {
+                bbb: bbb,
+                obj: obj,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return obj.a == 0;;
+        });
 
-		obj.a = 10;
-		
-		this.assert(onErrorCalled, "onError was not called; obj.a: " + obj.a);
+        obj.a = 10;
+        
+        this.assert(onErrorCalled, "onError was not called; obj.a: " + obj.a);
     },
     _testOnErrorDeltaBlueConstraintConstruction: function () {
         var obj = {int: 17, str: "17"},
-			onErrorCalled = false;
+            onErrorCalled = false;
 
-		bbb.defaultSolver = new DBPlanner();
-		
-		bbb.always({
-			onError: function() {
-				onErrorCalled = true;
-			},
-			ctx: {
-				obj: obj
-			}, methods: function() {
-				obj.int.formula([obj.str], function (str) { return parseInt(str); });
-				obj.str.formula([obj.int], function (int) { return int + ""; })
-			}
-		}, function () {
-			return obj.int + "" === obj.str;
-		});
-		bbb.always({
-			onError: function() {
-				onErrorCalled = true;
-			},
-			ctx: {
-				obj: obj
-			}, methods: function() {
-				obj.int.formula([obj.str], function (str) { return parseInt(str)-1; });
-				obj.str.formula([obj.int], function (int) { return (int+1) + ""; })
-			}
-		}, function () {
-			return (obj.int+1) + "" === obj.str;
-		});
+        bbb.defaultSolver = new DBPlanner();
+        
+        bbb.always({
+            onError: function() {
+                onErrorCalled = true;
+            },
+            ctx: {
+                obj: obj
+            }, methods: function() {
+                obj.int.formula([obj.str], function (str) { return parseInt(str); });
+                obj.str.formula([obj.int], function (int) { return int + ""; })
+            }
+        }, function () {
+            return obj.int + "" === obj.str;
+        });
+        bbb.always({
+            onError: function() {
+                onErrorCalled = true;
+            },
+            ctx: {
+                obj: obj
+            }, methods: function() {
+                obj.int.formula([obj.str], function (str) { return parseInt(str)-1; });
+                obj.str.formula([obj.int], function (int) { return (int+1) + ""; })
+            }
+        }, function () {
+            return (obj.int+1) + "" === obj.str;
+        });
 
-		obj.str = "10";
-		
-		this.assert(onErrorCalled, "onError was not called; obj.a: " + obj.a);
+        obj.str = "10";
+        
+        this.assert(onErrorCalled, "onError was not called; obj.a: " + obj.a);
     },
     testOnErrorCSPConstraintConstruction: function () {
         var pt = {x: 5, y: 2},
-			onErrorCalled = false,
-			errorMessage = "";
+            onErrorCalled = false,
+            errorMessage = "";
 
-		bbb.defaultSolver = new csp.Solver();
-	    
+        bbb.defaultSolver = new csp.Solver();
+        
         bbb.always({
-			onError: function(e) {
-				onErrorCalled = true;
-				errorMessage = e.message;
-			},
+            onError: function(e) {
+                onErrorCalled = true;
+                errorMessage = e.message;
+            },
             ctx: {
                 pt: pt,
                 _$_self: this.doitContext || this
@@ -1840,35 +1873,35 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
         }, function() {
             return pt.x.is in [1, 2, 3];;
         });
-	    
-		bbb.always({
-			onError: function(e) {
-				onErrorCalled = true;
-				errorMessage = e.message;
-			},
-			ctx: {
-				pt: pt,
-				_$_self: this.doitContext || this
-			}
-		}, function() {
-			return pt.x >= 5;;
-		});
-	
-	    this.assert(onErrorCalled, "onError was not called");
-	    this.assert(errorMessage === "constraint cannot be satisfied", "an unexpected error was thrown, message: " + errorMessage);
+        
+        bbb.always({
+            onError: function(e) {
+                onErrorCalled = true;
+                errorMessage = e.message;
+            },
+            ctx: {
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x >= 5;;
+        });
+    
+        this.assert(onErrorCalled, "onError was not called");
+        this.assert(errorMessage === "constraint cannot be satisfied", "an unexpected error was thrown, message: " + errorMessage);
     },
     testOnErrorCSPAssignment: function () {
         var pt = {x: 1, y: 2},
-			onErrorCalled = false,
-			errorMessage = "";
+            onErrorCalled = false,
+            errorMessage = "";
 
-		bbb.defaultSolver = new csp.Solver();
-	    
+        bbb.defaultSolver = new csp.Solver();
+        
         bbb.always({
-			onError: function(e) {
-				onErrorCalled = true;
-				errorMessage = e.message;
-			},
+            onError: function(e) {
+                onErrorCalled = true;
+                errorMessage = e.message;
+            },
             ctx: {
                 pt: pt,
                 _$_self: this.doitContext || this
@@ -1877,25 +1910,25 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
             return pt.x.is in [1, 2, 3];;
         });
 
-	    this.assert(!onErrorCalled, "onError called unexpectedly");
+        this.assert(!onErrorCalled, "onError called unexpectedly");
 
-		pt.x = 5;
-	
-	    this.assert(onErrorCalled, "onError was not called");
-	    this.assert(errorMessage === "assigned value is not contained in domain", "an unexpected error was thrown, message: " + errorMessage);
+        pt.x = 5;
+    
+        this.assert(onErrorCalled, "onError was not called");
+        this.assert(errorMessage === "assigned value is not contained in domain", "an unexpected error was thrown, message: " + errorMessage);
     },
     testOnErrorRelaxConstraintConstruction: function () {
         var pt = {x: 5},
-			onErrorCalled = false,
-			errorMessage = "";
+            onErrorCalled = false,
+            errorMessage = "";
 
-		bbb.defaultSolver = new Relax();
-	    
+        bbb.defaultSolver = new Relax();
+        
         bbb.always({
-			onError: function(e) {
-				onErrorCalled = true;
-				errorMessage = e.message;
-			},
+            onError: function(e) {
+                onErrorCalled = true;
+                errorMessage = e.message;
+            },
             ctx: {
                 pt: pt,
                 _$_self: this.doitContext || this
@@ -1903,31 +1936,31 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
         }, function() {
             return pt.x == 5;;
         });
-	    
-		bbb.always({
-			onError: function(e) {
-				onErrorCalled = true;
-				errorMessage = e.message;
-			},
-			ctx: {
-				pt: pt,
-				_$_self: this.doitContext || this
-			}
-		}, function() {
-			return pt.x >= 20;;
-		});
-	
-	    this.assert(onErrorCalled, "onError was not called");
-	    this.assert(errorMessage === "Could not satisfy constraint", "an unexpected error was thrown, message: " + errorMessage);
+        
+        bbb.always({
+            onError: function(e) {
+                onErrorCalled = true;
+                errorMessage = e.message;
+            },
+            ctx: {
+                pt: pt,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return pt.x >= 20;;
+        });
+    
+        this.assert(onErrorCalled, "onError was not called");
+        this.assert(errorMessage === "Could not satisfy constraint", "an unexpected error was thrown, message: " + errorMessage);
     }
 });
 
 TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionTest', {
-	setUp: function () {
+    setUp: function () {
         bbb.defaultSolvers = [new ClSimplexSolver(), new DBPlanner(), new csp.Solver()];
         bbb.defaultSolver = null;
-	},
-	testSimpleConstraintWithoutSolver: function () {
+    },
+    testSimpleConstraintWithoutSolver: function () {
         var obj = {a: 2, b: 3};
         bbb.always({
             ctx: {
@@ -1937,7 +1970,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
             return obj.a + obj.b == 3;
         });
         this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a working solution");
-	},
+    },
     testSimplePropagationShouldChooseDeltaBlue: function() {
         var o = {string: "0",
                  number: 0};
@@ -1960,13 +1993,13 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         this.assert(o.string === "12");
     },
     testBacktalkPaperExampleWithAutomaticSolverSelection: function () {
-    	var man = {
-			shoes: "foo",
-			shirt: "foo",
-			pants: "foo",
-			hat: "foo"
-		};
-	    
+        var man = {
+            shoes: "foo",
+            shirt: "foo",
+            pants: "foo",
+            hat: "foo"
+        };
+        
         bbb.always({
             ctx: {
                 bbb: bbb,
@@ -1988,7 +2021,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         }, function() {
             return man.shirt.is in ["brown", "blue", "white"];;
         });
-	    
+        
         bbb.always({
             ctx: {
                 bbb: bbb,
@@ -1999,7 +2032,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         }, function() {
             return man.pants.is in ["brown", "blue", "black", "white"];;
         });
-	    
+        
         bbb.always({
             ctx: {
                 bbb: bbb,
@@ -2010,7 +2043,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         }, function() {
             return man.hat.is in ["brown"];;
         });
-	    
+        
         bbb.always({
             ctx: {
                 bbb: bbb,
@@ -2142,5 +2175,4 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a working solution");
 	},
 });
-
 }) // end of module

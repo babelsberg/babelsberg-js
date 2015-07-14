@@ -48,10 +48,10 @@ Object.subclass('Babelsberg', {
         var existingSetter = obj.__lookupSetter__(newName),
             existingGetter = obj.__lookupGetter__(newName);
         if (existingGetter) {
-            obj.__defineGetter__(this.accessor, existingGetter);
+            obj.__defineGetter__(accessor, existingGetter);
         }
         if (existingSetter) {
-            obj.__defineSetter__(this.accessor, existingSetter);
+            obj.__defineSetter__(accessor, existingSetter);
         }
         if (!existingSetter || !existingGetter) {
             delete obj[accessor];
@@ -265,6 +265,7 @@ Object.subclass('Babelsberg', {
             try {
                 var constraint = solver.always(Object.clone(opts), func);
                 constraint.logTimings = opts.logTimings;
+                constraint._options = opts;
                 constraints.push(constraint);
             } catch (e) {
                 errors.push(e);
@@ -329,6 +330,24 @@ Object.subclass('Babelsberg', {
         }
         bbb.processCallbacks();
         return constraint;
+    },
+
+    stay: function(opts, func) {
+        func.allowTests = (opts.allowTests === true);
+        func.allowUnsolvableOperations = (opts.allowUnsolvableOperations === true);
+        func.debugging = opts.debugging;
+        func.onError = opts.onError;
+        func.varMapping = opts.ctx;
+        var solver = (opts.solver || this.defaultSolver),
+            c = new Constraint(func, solver);
+        c.constraintvariables.each(function(cv) {
+            try {
+                cv.externalVariables(solver).stay(opts.priority);
+            } catch (e) {
+                console.log('Warning: could not add stay to ' + cv.ivarname);
+            }
+        }.bind(this));
+        return true;
     },
 
     /**
@@ -622,10 +641,10 @@ Object.subclass('Constraint', {
         if (obj === true) {
             if (this.allowTests) {
                 this.isTest = true;
-                alertOK(
-                    'Warning: Constraint expression returned true. ' +
-                        'Re-running whenever the value changes'
-                );
+                // alertOK(
+                //     'Warning: Constraint expression returned true. ' +
+                //         'Re-running whenever the value changes'
+                // );
             } else {
                 throw new Error(
                     'Constraint expression returned true, but was not marked as test. ' +
@@ -852,11 +871,6 @@ Object.subclass('ConstrainedVariable', {
                 oldValue = this.storedValue,
                 solver = this.definingSolver;
 
-            if (!this.hasEnabledConstraint()) {
-                this.setValue(value);
-                return value;
-            }
-
             ConstrainedVariable.$$optionalSetters =
                 ConstrainedVariable.$$optionalSetters || [];
 
@@ -869,7 +883,7 @@ Object.subclass('ConstrainedVariable', {
                         ' took ' + (performance.now() - nBegin) + ' ms' +
                         ' to solve for ' + this.ivarname + ' in suggestValue');
                 }
-                this.solveForConnectedVariables(value, oldValue, solver, source, force);
+                this.solveForConnectedVariables(value, oldValue, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
                 if (this.getValue() !== oldValue) {
@@ -924,13 +938,13 @@ Object.subclass('ConstrainedVariable', {
         });
     },
 
-    solveForConnectedVariables: function(value, priorValue, solver, source, force) {
+    solveForConnectedVariables: function(value, priorValue, source, force) {
         if (force || value !== this.storedValue) {
             (function() {
                 try {
                     // this.setValue(value);
-                    this.updateDownstreamVariables(value, solver);
-                    this.updateConnectedVariables(value, solver);
+                    this.updateDownstreamVariables(value);
+                    this.updateConnectedVariables(value);
                 } catch (e) {
                     if (source) {
                         // is freeing the recursionGuard here necessary?
@@ -1625,6 +1639,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
             if (retval) {
                 switch (typeof(retval)) {
                 case 'object':
+                case 'function':
                     retval[ConstrainedVariable.ThisAttrName] = cvar;
                     break;
                 case 'number':

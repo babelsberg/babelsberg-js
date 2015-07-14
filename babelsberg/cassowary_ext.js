@@ -51,6 +51,12 @@ ClAbstractVariable.addMethods({
     isConstraintObject: true,
 
     stay: function(strength) {
+        if (!(strength instanceof ClStrength)) {
+            strength = this.solver.strength[strength];
+        }
+        if (this.stayConstraint) {
+            this.solver.removeConstraint(this.stayConstraint);
+        }
         var cn = new ClStayConstraint(this, strength || ClStrength.weak, 1.0);
         this.solver.addConstraint(cn);
         this.stayConstraint = cn;
@@ -72,6 +78,8 @@ ClAbstractVariable.addMethods({
     suggestValue: function(value) {
         var c = this.cnEquals(value),
             s = this.solver;
+        // uncomment this to make assignments be strong rather than required
+        // c.changeStrength(ClStrength.strong);
         s.addConstraint(c);
         try {
             s.solve();
