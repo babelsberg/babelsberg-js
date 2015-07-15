@@ -2101,6 +2101,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
             solverName: 'TestDummy',
             supportsMethods: function() { return true; },
             supportsSoftConstraints: function() { return false; },
+            supportsFiniteDomains: function() { return false; },
             supportedDataTypes: function() { return ['number']; }
         });
 
@@ -2125,6 +2126,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
             solverName: 'TestDummy',
             supportsMethods: function() { return false; },
             supportsSoftConstraints: function() { return false; },
+            supportsFiniteDomains: function() { return false; },
             supportedDataTypes: function() { return ['number', 'string']; }
         });
         
@@ -2158,6 +2160,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
             solverName: 'TestDummy',
             supportsMethods: function() { return true; },
             supportsSoftConstraints: function() { return true; },
+            supportsFiniteDomains: function() { return false; },
             supportedDataTypes: function() { return ['string']; }
         });
 
@@ -2181,6 +2184,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
             solverName: 'TestDummy',
             supportsMethods: function() { return true; },
             supportsSoftConstraints: function() { return true; },
+            supportsFiniteDomains: function() { return false; },
             supportedDataTypes: function() { return ['string']; }
         });
 
@@ -2200,5 +2204,33 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         this.assert(!this._askedDummySolver, "should not have asked solver to try");
         this.assert(obj.get() == inc(obj[0]), "Automatic solver selection did not produce a working solution");
     },
+    testFilteringByFiniteDomains: function () {
+        var testCase = this;
+        Object.subclass('DummySolver', {
+            always: function(opts, func) { testCase._askedDummySolver = true; throw new Error('will be caught'); },
+            solverName: 'TestDummy',
+            supportsMethods: function() { return true; },
+            supportsSoftConstraints: function() { return true; },
+            supportsFiniteDomains: function() { return false; },
+            supportedDataTypes: function() { return ['string']; }
+        });
+
+        bbb.defaultSolvers = [new DummySolver(), new csp.Solver()];
+        
+        var man = {
+            shoes: "foo"
+        };
+        
+        bbb.always({
+            ctx: {
+                man: man
+            },
+            logReasons: true
+        }, function() {
+            return man.shoes.is in ["brown", "black"];;
+        });
+        this.assert(!this._askedDummySolver, "should not have asked solver to try");
+        this.assert(man.shoes === "brown" || man.shoes === "black", "Automatic solver selection did not produce a working solution");
+    }
 });
 }) // end of module

@@ -380,16 +380,17 @@ Object.subclass('Babelsberg', {
 
         // FIXME: this global state is ugly
         bbb.seenTypes = {};
+        bbb.seenFiniteDomain = false;
         try {
             cop.withLayers([ConstraintInspectionLayer], function() {
                 func.forInterpretation().apply(undefined, []);
             });
         } catch (e) {
             bbb.seenTypes = {};
+            bbb.seenFiniteDomain = false;
             if (opts.logReasons) {
                 console.warn('Parsing the expression for types failed, ' +
-                   'will not check types. Error was:');
-                console.warn(e);
+                   'will not check types:', e);
             }
         }
 
@@ -411,6 +412,14 @@ Object.subclass('Babelsberg', {
                 return false;
             }
 
+            if (bbb.seenFiniteDomain && !solver.supportsFiniteDomains()) {
+                if (opts.logReasons) {
+                    console.log('Ignoring ' + solver.solverName +
+                        ' because it does not support finite domains');
+                }
+                return false;
+            }
+
             for (var type in bbb.seenTypes) {
                 if (solver.supportedDataTypes().indexOf(type) == -1) {
                     if (opts.logReasons) {
@@ -425,6 +434,7 @@ Object.subclass('Babelsberg', {
         });
 
         delete bbb.seenTypes;
+        delete bbb.seenFiniteDomain;
         return result;
     },
 
@@ -495,6 +505,13 @@ cop.create('ConstraintInspectionLayer')
             bbb.seenTypes[typeof node.value] = true;
         }
         return node.value;
+    },
+    visitBinaryOp: function(node) {
+        if (node.name == 'in' &&
+            node.right instanceof users.timfelgentreff.jsinterpreter.ArrayLiteral) {
+            bbb.seenFiniteDomain = true;
+        }
+        cop.proceed(node);
     },
     //FIXME: copy&paste from constraintconstructionlayer
     shouldInterpret: function(frame, func) {
