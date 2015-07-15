@@ -2080,7 +2080,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         this.assert(constraint.solver === bbb.defaultSolvers[0], 'The solver with the smaller distance should have been chosen (albeit slower)');
     },
 
-    testChoiceWithNumberOfChangedVariablesOverTime1: function() {
+    testChoiceWithNumberOfChangedVariablesOverTime2: function() {
         this.preparePatchedSolvers();
         var constraint0 = null, constraint1 = null;
         bbb.defaultSolvers[0].forcedDelay = 10;
