@@ -10,12 +10,13 @@ connectivity of the sides, along with midpoint constraints on the points at the 
 ###Running Standalone
 
 You'll need to have a local server running on your machine.  On Macintosh, an easy way to do this is using this command:
+
        python -m SimpleHTTPServer 9001
 
 Then start a browser (Chrome recommended), and browse to `localhost:9001`. Navigate to the directory with the examples and 
 open the desired `.html` file.  For example, for `quadrilateral.html`, if you've cloned the git repository into
 `babelsberg-js`, go to `http://localhost:9001/babelsberg-js/standalone/examples/cassowary/quadrilateral.html`.  Then 
-select any point in the diagram with the mouse and move it -- the constraints shoudl be maintained.
+select any point in the diagram with the mouse and move it -- the constraints should be maintained.
 
 ###Quadrilateral Variations
 
