@@ -16,7 +16,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         }, function() {
             return obj.a + obj.b == 3;
         });
-        this.assert(obj.a + obj.b == 3, "Solver failed")
+        this.assert(obj.a + obj.b == 3, "Solver failed: " + obj.a + ", " + obj.b)
     },
 
     testInequality: function() {
@@ -32,6 +32,39 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
         this.assert(obj.a == 100);
         obj.a = 110;
         this.assert(obj.a == 110);
+    },
+    testDisableConstraint: function() {
+        var obj = {a: 8};
+        var error = false;
+        var c = bbb.always({
+            solver: new ClSimplexSolver(),
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            return obj.a >= 100;
+        });
+        this.assert(obj.a == 100);
+        obj.a = 110;
+        this.assert(obj.a == 110);
+        try {
+            obj.a = 90;
+        } catch(e) {
+            error = true
+        }
+        this.assert(error);
+        c.disable();
+        obj.a = 90;
+        this.assert(obj.a == 90);
+        c.enable();
+        this.assert(obj.a == 100);
+        error = false;
+        try {
+            obj.a = 90;
+        } catch(e) {
+            error = true
+        }
+        this.assert(error);
     },
 
     testSimplePath: function () {
@@ -482,7 +515,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.ConstraintTest', {
                 return ctx.a == ctx.b && ctx.c == ctx.d;
             });
 
-        this.assert(ctx.a == ctx.b && ctx.c == ctx.d);
+        this.assert(ctx.a == ctx.b && ctx.c == ctx.d, "" + ctx.a + "," + ctx.b + "," + ctx.c + "," + ctx.d);
         // should have two primitive constraints
         this.assert(constraint.constraintobjects.length == 2);
     }
@@ -2308,5 +2341,4 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         this.assert(man.pants === "black" || man.pants === "blue" || man.pants === "white", "pants should be 'black', 'blue' or 'white'");
     },
 });
-
 }) // end of module

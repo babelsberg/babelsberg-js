@@ -72,7 +72,7 @@ Global.ChunkParser = {
   parseString: function() {
     var string1Opened;
     var string2Opened;
-	if (this.chunkStart === '\'' || this.chunkStart === '"') return;
+    if (this.chunkStart === '\'' || this.chunkStart === '"') return;
     if (this.next === '\'') string1Opened = true;
     if (this.next === '"') string2Opened = true;
     if (!string1Opened && !string2Opened) return;
@@ -105,9 +105,9 @@ Global.ChunkParser = {
   parseRest: function() {
     this.parseEscapedChar();
     if (!this.isString) {
-	    this.parseRegex();
-	    this.parseString();
-	    this.parseComment();
+        this.parseRegex();
+        this.parseString();
+        this.parseComment();
     }
     if (this.next === this.chunkEnd && this.counter === 0) // end
       return true;

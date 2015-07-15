@@ -48,10 +48,10 @@ Object.subclass('Babelsberg', {
         var existingSetter = obj.__lookupSetter__(newName),
             existingGetter = obj.__lookupGetter__(newName);
         if (existingGetter) {
-            obj.__defineGetter__(this.accessor, existingGetter);
+            obj.__defineGetter__(accessor, existingGetter);
         }
         if (existingSetter) {
-            obj.__defineSetter__(this.accessor, existingSetter);
+            obj.__defineSetter__(accessor, existingSetter);
         }
         if (!existingSetter || !existingGetter) {
             delete obj[accessor];
@@ -240,6 +240,10 @@ Object.subclass('Babelsberg', {
      *     If true, allows the use of operations that are not supported by the solver.
      * @param {boolean} [opts.debugging=false]
      *     If true, calls debugger at certain points during constraint construction.
+     * @param {boolean} [opts.logTimings=false]
+     *     If true, prints solver timings to console.
+     * @param {boolean} [opts.logReasons=false]
+     *     If true, logs why certain solvers are not used for a constraint.
      * @param {function} func The constraint to be fulfilled.
      */
     always: function(opts, func) {
@@ -257,7 +261,10 @@ Object.subclass('Babelsberg', {
 
         solvers.each(function(solver) {
             try {
-                constraints.push(solver.always(Object.clone(opts), func));
+                var constraint = solver.always(Object.clone(opts), func);
+                constraint.logTimings = opts.logTimings;
+                constraint._options = opts;
+                constraints.push(constraint);
             } catch (e) {
                 errors.push(e);
                 return false;
@@ -279,7 +286,6 @@ Object.subclass('Babelsberg', {
                     Constraint.current = null;
                 }
             }
-
             constraint = this.chooseConstraintBasedOnMetrics(constraints,
                     opts.optimizationPriority);
         } else if (constraints.length == 1) {
@@ -309,6 +315,24 @@ Object.subclass('Babelsberg', {
         }
         bbb.processCallbacks();
         return constraint;
+    },
+
+    stay: function(opts, func) {
+        func.allowTests = (opts.allowTests === true);
+        func.allowUnsolvableOperations = (opts.allowUnsolvableOperations === true);
+        func.debugging = opts.debugging;
+        func.onError = opts.onError;
+        func.varMapping = opts.ctx;
+        var solver = (opts.solver || this.defaultSolver),
+            c = new Constraint(func, solver);
+        c.constraintvariables.each(function(cv) {
+            try {
+                cv.externalVariables(solver).stay(opts.priority);
+            } catch (e) {
+                console.log('Warning: could not add stay to ' + cv.ivarname);
+            }
+        }.bind(this));
+        return true;
     },
 
     /**
@@ -341,15 +365,19 @@ Object.subclass('Babelsberg', {
 
         solvers.each(function(solver) {
             if (opts.methods && !solver.supportsMethods()) {
-                console.log('Ignoring ' + solver.solverName +
-                    ' because it does not support opts.methods');
+                if (opts.logReasons) {
+                    console.log('Ignoring ' + solver.solverName +
+                        ' because it does not support opts.methods');
+                }
                 return false;
             }
 
             if (opts.priority && opts.priority != 'required' &&
                 !solver.supportsSoftConstraints()) {
-                console.log('Ignoring ' + solver.solverName +
-                    ' because it does not support soft constraints');
+                if (opts.logReasons) {
+                    console.log('Ignoring ' + solver.solverName +
+                        ' because it does not support soft constraints');
+                }
                 return false;
             }
 
@@ -512,6 +540,7 @@ Object.subclass('Constraint', {
     addConstraintVariable: function(v) {
         if (v && !this.constraintvariables.include(v)) {
             this.constraintvariables.push(v);
+            v.logTimings = this.logTimings;
         }
     },
     get predicate() {
@@ -570,8 +599,10 @@ Object.subclass('Constraint', {
             var begin = performance.now();
             this.solver.solve();
             var end = performance.now();
-            console.log('Time to Solve in enable with ' + this.solver.solverName + ': ' +
-                        (end - begin) + ' ms');
+            if (this.logTimings) {
+                console.log('Time to Solve in enable with ' + this.solver.solverName + ': ' +
+                    (end - begin) + ' ms to solve for ' + this.ivarname);
+            }
 
             var changedVariables = 0;
             var variableAssigments = {};
@@ -614,10 +645,10 @@ Object.subclass('Constraint', {
         if (obj === true) {
             if (this.allowTests) {
                 this.isTest = true;
-                alertOK(
-                    'Warning: Constraint expression returned true. ' +
-                        'Re-running whenever the value changes'
-                );
+                // alertOK(
+                //     'Warning: Constraint expression returned true. ' +
+                //         'Re-running whenever the value changes'
+                // );
             } else {
                 throw new Error(
                     'Constraint expression returned true, but was not marked as test. ' +
@@ -844,11 +875,6 @@ Object.subclass('ConstrainedVariable', {
                 oldValue = this.storedValue,
                 solver = this.definingSolver;
 
-            if (!this.hasEnabledConstraint()) {
-                this.setValue(value);
-                return value;
-            }
-
             ConstrainedVariable.$$optionalSetters =
                 ConstrainedVariable.$$optionalSetters || [];
 
@@ -856,9 +882,11 @@ Object.subclass('ConstrainedVariable', {
                 var begin = performance.now();
                 // never uses multiple solvers, since it gets the defining Solver
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
-                console.log('Time to Solve in suggestValue with the solver ' +
-                    (solver ? solver.solverName : '(no solver)') + ' for ' +
-                    this.ivarname + ': ' + (performance.now() - begin) + ' ms');
+                if (this.logTimings) {
+                    console.log('Time to Solve in suggestValue with the solver ' +
+                        (solver ? solver.solverName : '(no solver)') + ' for ' +
+                        this.ivarname + ': ' + (performance.now() - begin) + ' ms');
+                }
                 this.solveForConnectedVariables(value, oldValue, solver, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
@@ -914,13 +942,13 @@ Object.subclass('ConstrainedVariable', {
         });
     },
 
-    solveForConnectedVariables: function(value, priorValue, solver, source, force) {
+    solveForConnectedVariables: function(value, priorValue, source, force) {
         if (force || value !== this.storedValue) {
             (function() {
                 try {
                     // this.setValue(value);
-                    this.updateDownstreamVariables(value, solver);
-                    this.updateConnectedVariables(value, solver);
+                    this.updateDownstreamVariables(value);
+                    this.updateConnectedVariables(value);
                 } catch (e) {
                     if (source) {
                         // is freeing the recursionGuard here necessary?
@@ -1615,6 +1643,7 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
             if (retval) {
                 switch (typeof(retval)) {
                 case 'object':
+                case 'function':
                     retval[ConstrainedVariable.ThisAttrName] = cvar;
                     break;
                 case 'number':

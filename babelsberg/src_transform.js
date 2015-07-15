@@ -11,6 +11,11 @@ toRun(function() {
                     (node.label.name === 'always') &&
                     (node.body instanceof UglifyJS.AST_BlockStatement));
         },
+    isStay: function(node) {
+        return ((node instanceof UglifyJS.AST_LabeledStatement) &&
+                (node.label.name === 'stay') &&
+                (node.body instanceof UglifyJS.AST_BlockStatement));
+    },
 
         isRule: function(node) {
             if ((node instanceof UglifyJS.AST_Label) &&
@@ -138,6 +143,8 @@ toRun(function() {
                     return self.transformConstraint(ast, node, 'once');
                 } else if (self.isTrigger(node)) {
                     return self.transformConstraint(ast, node, 'when');
+                } else if (self.isStay(node)) {
+                    return self.transformConstraint(ast, node, 'stay');
                 } else if (self.isRule(node)) {
                     var node = self.createRuleFor(node);
                     self.isTransformed = true;
@@ -216,7 +223,7 @@ toRun(function() {
                         "Labeled arguments in `always:' have to be simple statements"
                     );
                 }
-                if (ea.label.name == 'store') {
+                if (ea.label.name == 'store' || ea.label.name == 'name') {
                     store = new UglifyJS.AST_Assign({
                         start: ea.start,
                         end: ea.end,
@@ -478,8 +485,10 @@ toRun(function() {
                 return cop.withLayers([AddScriptWithFakeOriginalLayer], function() {
                     // If this layer is not global but only on the
                     // morph, make sure we use it here
-                    return cop.proceed.apply(this, [constraintCode]);
-                });
+                    var ctx123456 = this.getDoitContext() || this,
+                    interactiveEval = function(text123456) { return eval(text123456) };
+                    return interactiveEval.call(ctx123456, constraintCode);
+                }.bind(this));
             }
         }
     });
