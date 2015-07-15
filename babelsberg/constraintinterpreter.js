@@ -600,8 +600,8 @@ Object.subclass('Constraint', {
             this.solver.solve();
             var end = performance.now();
             if (this.logTimings) {
-                console.log('Time to Solve in enable with ' + this.solver.solverName + ': ' +
-                    (end - begin) + ' ms to solve for ' + this.ivarname);
+                console.log('Time to Solve in enable with ' + this.solver.solverName +
+                    ': ' + (end - begin) + ' ms to solve for ' + this.ivarname);
             }
 
             var changedVariables = 0;
