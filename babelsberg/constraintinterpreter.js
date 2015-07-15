@@ -508,7 +508,9 @@ Object.subclass('ECJITTests', {
                 {iter: 5}, {iter: 100} //, {iter: 500}
             ],
             createEmptyECJIT = function() { return new EmptyECJIT() },
-            createClassicECJIT = function() { return new ClassicECJIT() };
+            createClassicECJIT = function() { return new ClassicECJIT() },
+            pad = function(s, n) { return lively.lang.string.pad(s+"", n-(s+"").length) },
+            padl = function(s, n) { return lively.lang.string.pad(s+"", n-(s+"").length,true) };
 
         console.log("====== Start benchmark ======");
         console.log("Simulations: " + names.join(", "));
@@ -532,7 +534,7 @@ Object.subclass('ECJITTests', {
                 t2 += this.bench(name+"Edit", scenario.iter, createEmptyECJIT());
                 t2 = Math.round(t2/3);
 
-                console.log(name+"("+scenario.iter+") - time in ms (ec / ecjit / declarative): "+t2+" / "+t1+" / "+t0);
+                console.log(pad(name+"("+scenario.iter+"):", 20)+"time in ms (ec/ecjit/decl): "+padl(t2,4)+" / "+padl(t1,4)+" / "+padl(t0,4));
             }.bind(this));
         }.bind(this));
 
