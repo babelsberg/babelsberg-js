@@ -672,7 +672,7 @@ Object.subclass('ECJITTests', {
             cb([i]);
             console.assert(ctx.mouse.location_y == i);
         }
-        //cb();
+        cb();
     },
 
     clDrag2DSim: function(numIterations) {
@@ -690,8 +690,8 @@ Object.subclass('ECJITTests', {
         bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w <= 400; });
         bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h <= 250; });
         bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w+comp2.w == wnd.w; });
-        //bbb.always({solver: solver, ctx: ctx}, function () { return comp1.display == wnd.w; });
-        //bbb.always({solver: solver, ctx: ctx}, function () { return comp2.display == wnd.h; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp1.display == wnd.w; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp2.display == wnd.h; });
 
         for(var i = 0; i < numIterations; i++) {
             ctx.mouse.x = 100+i;
@@ -716,8 +716,8 @@ Object.subclass('ECJITTests', {
         bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w <= 400; });
         bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h <= 250; });
         bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w+comp2.w == wnd.w; });
-        //bbb.always({solver: solver, ctx: ctx}, function () { return comp1.display == wnd.w; });
-        //bbb.always({solver: solver, ctx: ctx}, function () { return comp2.display == wnd.h; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp1.display == wnd.w; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp2.display == wnd.h; });
 
         var cb = bbb.edit(ctx.mouse, ["x", "y"]);
         for(var i = 0; i < numIterations; i++) {
@@ -725,7 +725,7 @@ Object.subclass('ECJITTests', {
             console.assert(ctx.mouse.x == 100+i);
             console.assert(ctx.mouse.y == 100+i);
         }
-        //cb();
+        cb();
     }
 });Object.extend(Global, {
     /**
