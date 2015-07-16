@@ -358,6 +358,7 @@ Object.subclass('Babelsberg', {
 Object.subclass('ClassicECJIT', {
     initialize: function() {
         this.actionCounterLimit = 25;
+        this.name = 'classic';
         this.countDecayDecrement = 10;
         this.clearState();
     },
@@ -485,6 +486,8 @@ Object.subclass('ClassicECJIT', {
     }
 });
 Object.subclass('EmptyECJIT', {
+    name: 'empty',
+    
     /**
      * Function used for instrumenting ConstrainedVariable#suggestValue to
      * implement automatic edit constraints. The boolean return value says
@@ -514,39 +517,47 @@ Object.subclass('ECJITTests', {
                 {iter: 5}, {iter: 100} //, {iter: 500}
             ],
             createEmptyECJIT = function() { return new EmptyECJIT() },
-            createClassicECJIT = function() { return new ClassicECJIT() },
+            createECJITs = [function() { return new ClassicECJIT() }],
             pad = function(s, n) { return lively.lang.string.pad(s+"", n-(s+"").length) },
             padl = function(s, n) { return lively.lang.string.pad(s+"", n-(s+"").length,true) };
 
         console.log("====== Start benchmark ======");
-        //console.log("Simulations: " + names.join(", "));
-        console.log("Times in ms (ec / classic / no-jit):");
+        console.log("Simulations: " + names.join(", "));
+        console.log("Times in ms (ec / "+createECJITs.map(function(fn) { return fn().name }).join(" / ")+" / no-jit):");
 
         names.forEach(function (name) {
-            scenarios.forEach(function (scenario, index) {
+            scenarios.forEach(function (scenario) {
                 this.bench(name, scenario.iter, createEmptyECJIT());
-                this.bench(name, scenario.iter, createClassicECJIT());
+                createECJITs.forEach(function (fn) {
+                    this.bench(name, scenario.iter, fn());
+                }, this);
                 this.bench(name+"Edit", scenario.iter, createEmptyECJIT());
 
                 var t0 = this.bench(name, scenario.iter, createEmptyECJIT());
-                /*t0 += this.bench(name, scenario.iter, createEmptyECJIT());
-                t0 += this.bench(name, scenario.iter, createEmptyECJIT());
-                t0 = Math.round(t0/3);*/
-                var t1 = this.bench(name, scenario.iter, createClassicECJIT());
-                t1 += this.bench(name, scenario.iter, createClassicECJIT());
-                t1 += this.bench(name, scenario.iter, createClassicECJIT());
-                t1 = Math.round(t1/3);
+                var t1s = [];
+                createECJITs.forEach(function (fn) {
+                    var t1 = this.bench(name, scenario.iter, fn());
+                    t1 += this.bench(name, scenario.iter, fn());
+                    t1 += this.bench(name, scenario.iter, fn());
+                    t1 = Math.round(t1/3);
+                    t1s.push(t1);
+                }, this);
                 var t2 = this.bench(name+"Edit", scenario.iter, createEmptyECJIT());
                 t2 += this.bench(name+"Edit", scenario.iter, createEmptyECJIT());
                 t2 += this.bench(name+"Edit", scenario.iter, createEmptyECJIT());
                 t2 = Math.round(t2/3);
                 
-                var speedupMsg = "";
-                if(t2 < t1 && t1 < t0) {
-                    speedupMsg = " ("+padl(Math.round((t1-t2)/(t0-t2)*100),2)+"%)";
-                }
+                var output = pad(name+"("+scenario.iter+"):", 30)+" "+padl(t2,4)+" / ";
+                output += t1s.map(function (t1) {
+                    var speedupMsg = "";
+                    if(t2 <= t1 && t1 < t0) {
+                        speedupMsg = " ("+padl(Math.round((t1-t2)/(t0-t2)*100),2)+"%)";
+                    }
+                    return padl(t1,4)+pad(speedupMsg,6);
+                }, this).join(" / ");
+                output += " / "+padl(t0,4);
 
-                console.log(pad(name+"("+scenario.iter+"):", 30)+" "+padl(t2,4)+" / "+padl(t1,4)+pad(speedupMsg,6)+" / "+padl(t0,4));
+                console.log(output);
             }.bind(this));
         }.bind(this));
 
