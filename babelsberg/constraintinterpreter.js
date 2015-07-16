@@ -519,7 +519,8 @@ Object.subclass('ECJITTests', {
             padl = function(s, n) { return lively.lang.string.pad(s+"", n-(s+"").length,true) };
 
         console.log("====== Start benchmark ======");
-        console.log("Simulations: " + names.join(", "));
+        //console.log("Simulations: " + names.join(", "));
+        console.log("Times in ms (ec / classic / no-jit):");
 
         names.forEach(function (name) {
             scenarios.forEach(function (scenario, index) {
@@ -539,8 +540,13 @@ Object.subclass('ECJITTests', {
                 t2 += this.bench(name+"Edit", scenario.iter, createEmptyECJIT());
                 t2 += this.bench(name+"Edit", scenario.iter, createEmptyECJIT());
                 t2 = Math.round(t2/3);
+                
+                var speedupMsg = "";
+                if(t2 < t1 && t1 < t0) {
+                    speedupMsg = " ("+padl(Math.round((t1-t2)/(t0-t2)*100),2)+"%)";
+                }
 
-                console.log(pad(name+"("+scenario.iter+"):", 30)+"time in ms (ec/ecjit/decl): "+padl(t2,4)+" / "+padl(t1,4)+" / "+padl(t0,4));
+                console.log(pad(name+"("+scenario.iter+"):", 30)+" "+padl(t2,4)+" / "+padl(t1,4)+pad(speedupMsg,6)+" / "+padl(t0,4));
             }.bind(this));
         }.bind(this));
 
