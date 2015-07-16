@@ -188,7 +188,7 @@ Object.subclass('Babelsberg', {
                 evar.prepareEdit();
             });
         });
- 
+
         solvers.each(function(solver) {
             if (solver.editConstraints === undefined)
                 solver.editConstraints = [];
@@ -485,9 +485,204 @@ Object.subclass('ClassicECJIT', {
         }, this);
     }
 });
+Object.subclass('AbstractECJIT', {
+    /**
+     * Run some computationally intensive instrumentation and maintenance actions
+     * regularly but not on every suggestValueHook invocation.
+     * @private
+     */
+    doAction: function() {
+        var cvarData = this.cvarData;
+        // sort UUIDs descending by the sourceCount of their cvar
+        var uuidBySourceCount = Object.keys(this.cvarData).sort(function(a,b) {
+            return cvarData[b]['sourceCount'] - cvarData[a]['sourceCount'];
+        });
+
+        // should optimize cvar with UUID uuidBySourceCount[0] first, then uuidBySourceCount[1] etc.
+        var newCVar = this.cvarData[uuidBySourceCount[0]]['cvar'];
+        if(!this.currentEdit) {
+            var abort = false;
+            newCVar.solvers.each(function(solver) {
+                if (solver.editConstraints !== undefined) {
+                    if (solver.editConstraints.length > 0) abort = true;
+                }
+            });
+            if (abort) {
+                console.log("we have already a edit constraint ...");
+                return;
+            };
+            this.createEditFor(newCVar);
+        } else {
+            if(this.currentEdit['cvar'] !== newCVar) {
+                this.deleteEdit();
+                this.createEditFor(newCVar);
+            }
+        }
+
+        var expired = [];
+        this.forEachCVarData(function(data) {
+            data['count'] = Math.max(data['count']-this.countDecayDecrement, 0);
+            data['sourceCount'] = Math.max(data['sourceCount']-this.countDecayDecrement, 0);
+            if(data['sourceCount'] <= 0) {
+                //expired.push(data['cvar']);
+            }
+        });
+        expired.forEach(function(cvar) {
+            console.log("Purging cvarData entry for "+cvar.__uuid__);
+            delete this.cvarData[cvar.__uuid__];
+        }, this);
+    },
+
+    deleteEdit: function() {
+        if(this.currentEdit) {
+            //console.log("Disable edit-callback for "+this.currentEdit['cvar'].__uuid__);
+            this.currentEdit['cb'](); // end edit constraint
+        }
+        this.currentEdit = null;
+    },
+
+    createEditFor: function(cvar) {
+        //console.log("Enabling edit-callback for "+cvar.__uuid__);
+        this.currentEdit = {
+            'cvar': cvar,
+            'cb': bbb.edit(cvar.obj, [cvar.ivarname])
+        };
+        //this.printState();
+    },
+
+    clearState: function() {
+        this.cvarData = {};
+        this.actionCounter = 0;
+        if(this.currentEdit) {
+            this.deleteEdit();
+        }
+    },
+
+    printState: function() {
+        console.log("=====");
+        this.forEachCVarData(function(data) {
+            var cvar = data['cvar'];
+            console.log("CVar(uuid:"+cvar.__uuid__+", ivarname:"+cvar.ivarname+", count:"+data['count']+", sourceCount:"+data['sourceCount']+")");
+        });
+    },
+
+    forEachCVarData: function(callback) {
+        Object.keys(this.cvarData).forEach(function(key) {
+            var value = this.cvarData[key];
+            callback.bind(this)(value);
+        }, this);
+    }
+});
+AbstractECJIT.subclass('MultiplicativeAdaptiveECJIT', {
+    name: 'mul',
+
+    initialize: function() {
+        this.actionCounterMax = 64;
+        this.actionCounterMin = 4;
+        this.currentActionLimit = this.actionCounterMin;
+        this.countDecayDecrement = 10;
+        this.clearState();
+    },
+
+    /**
+     * Function used for instrumenting ConstrainedVariable#suggestValue to
+     * implement automatic edit constraints. The boolean return value says
+     * whether ConstrainedVariable#suggestValue may proceed normally or should
+     * be terminated since an edit constraint is enabled.
+     * @function EditConstraintJIT#suggestValueHook
+     * @public
+     * @param {Object} cvar The ConstrainedVariable on which suggestValue() was called.
+     * @param {Object} value The new value which was suggested.
+     * @return {Boolean} whether suggestValue should be terminated or run normally.
+     */
+    suggestValueHook: function(cvar, value) {
+        if(!(cvar.__uuid__ in this.cvarData)) {
+            //console.log("Creating cvarData entry for "+cvar.__uuid__);
+            this.cvarData[cvar.__uuid__] = {
+                'cvar': cvar,
+                'sourceCount': 0
+            }
+        }
+        var data = this.cvarData[cvar.__uuid__];
+        data['sourceCount'] += 1;
+
+        this.actionCounter += 1;
+        //console.log("actionCounters: counter=" + this.actionCounter + " limit=" + this.currentActionLimit);
+        if(this.actionCounter >= this.currentActionLimit) {
+            var oldEdit = this.currentEdit;
+            this.doAction();
+            if ((oldEdit === undefined) || (oldEdit === this.currentEdit)) {
+                this.currentActionLimit = Math.min(this.currentActionLimit * 2, this.actionCounterMax);
+            } else {
+                this.currentActionLimit = Math.max(this.currentActionLimit / 2, this.actionCounterMin);
+            }
+            this.actionCounter = 0;
+        }
+
+        if(this.currentEdit && cvar.__uuid__ === this.currentEdit['cvar'].__uuid__) {
+            this.currentEdit['cb']([value]);
+            return true;
+        }
+
+        return false;
+    }
+});
+AbstractECJIT.subclass('AdditiveAdaptiveECJIT', {
+    name: 'add',
+
+    initialize: function() {
+        this.actionCounterMax = 64;
+        this.actionCounterMin = 2;
+        this.currentActionLimit = 2 * this.actionCounterMin;
+        this.countDecayDecrement = 10;
+        this.clearState();
+    },
+
+
+    /**
+     * Function used for instrumenting ConstrainedVariable#suggestValue to
+     * implement automatic edit constraints. The boolean return value says
+     * whether ConstrainedVariable#suggestValue may proceed normally or should
+     * be terminated since an edit constraint is enabled.
+     * @function EditConstraintJIT#suggestValueHook
+     * @public
+     * @param {Object} cvar The ConstrainedVariable on which suggestValue() was called.
+     * @param {Object} value The new value which was suggested.
+     * @return {Boolean} whether suggestValue should be terminated or run normally.
+     */
+    suggestValueHook: function(cvar, value) {
+        if(!(cvar.__uuid__ in this.cvarData)) {
+            //console.log("Creating cvarData entry for "+cvar.__uuid__);
+            this.cvarData[cvar.__uuid__] = {
+                'cvar': cvar,
+                'sourceCount': 0
+            }
+        }
+        var data = this.cvarData[cvar.__uuid__];
+        data['sourceCount'] += 1;
+
+        this.actionCounter += 1;
+        if(this.actionCounter >= this.currentActionLimit) {
+            this.doAction();
+            this.actionCounter = 0;
+        }
+
+        if(this.currentEdit && cvar.__uuid__ === this.currentEdit['cvar'].__uuid__) {
+            this.currentEdit['cb']([value]);
+            if (this.currentActionLimit < this.actionCounterMax)
+                this.currentActionLimit += 1;
+            return true;
+        } else {
+            if (this.currentActionLimit > this.actionCounterMin)
+                this.currentActionLimit -= 1;
+        }
+
+        return false;
+    }
+});
 Object.subclass('EmptyECJIT', {
     name: 'empty',
-    
+
     /**
      * Function used for instrumenting ConstrainedVariable#suggestValue to
      * implement automatic edit constraints. The boolean return value says
@@ -517,7 +712,11 @@ Object.subclass('ECJITTests', {
                 {iter: 5}, {iter: 100} //, {iter: 500}
             ],
             createEmptyECJIT = function() { return new EmptyECJIT() },
-            createECJITs = [function() { return new ClassicECJIT() }],
+            createECJITs = [
+                function() { return new ClassicECJIT() },
+                function() { return new AdditiveAdaptiveECJIT() },
+                function() { return new MultiplicativeAdaptiveECJIT() }
+            ],
             pad = function(s, n) { return lively.lang.string.pad(s+"", n-(s+"").length) },
             padl = function(s, n) { return lively.lang.string.pad(s+"", n-(s+"").length,true) };
 
@@ -546,7 +745,7 @@ Object.subclass('ECJITTests', {
                 t2 += this.bench(name+"Edit", scenario.iter, createEmptyECJIT());
                 t2 += this.bench(name+"Edit", scenario.iter, createEmptyECJIT());
                 t2 = Math.round(t2/3);
-                
+
                 var output = pad(name+"("+scenario.iter+"):", 30)+" "+padl(t2,4)+" / ";
                 output += t1s.map(function (t1) {
                     var speedupMsg = "";
@@ -754,11 +953,11 @@ Object.subclass('ECJITTests', {
         }
         cb();
     },
-    
+
     clDrag2DSim: function(numIterations) {
         this.clDrag2DSimParam(numIterations, 1);
     },
-    
+
     clDrag2DSimEdit: function(numIterations) {
         this.clDrag2DSimEditParam(numIterations, 1);
     },
@@ -766,7 +965,7 @@ Object.subclass('ECJITTests', {
     clDrag2DSimFastX: function(numIterations) {
         this.clDrag2DSimParam(numIterations, 3);
     },
-    
+
     clDrag2DSimFastXEdit: function(numIterations) {
         this.clDrag2DSimEditParam(numIterations, 3);
     }
