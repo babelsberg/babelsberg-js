@@ -912,8 +912,7 @@ Object.subclass('ECJITTests', {
 
         bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w == mouse.x });
         bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h == mouse.y });
-        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w <= 400; });
-        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h <= 250; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w <= 400; });
         bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w+comp2.w == wnd.w; });
         bbb.always({solver: solver, ctx: ctx}, function () { return comp1.display == wnd.w; });
         bbb.always({solver: solver, ctx: ctx}, function () { return comp2.display == wnd.h; });
@@ -942,8 +941,7 @@ Object.subclass('ECJITTests', {
 
         bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w == mouse.x });
         bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h == mouse.y });
-        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w <= 400; });
-        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h <= 250; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w <= 400; });
         bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w+comp2.w == wnd.w; });
         bbb.always({solver: solver, ctx: ctx}, function () { return comp1.display == wnd.w; });
         bbb.always({solver: solver, ctx: ctx}, function () { return comp2.display == wnd.h; });
@@ -985,8 +983,7 @@ Object.subclass('ECJITTests', {
 
         bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w == mouse.x });
         bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h == mouse.y });
-        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w <= 400; });
-        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h <= 250; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w <= 400; });
         bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w+comp2.w == wnd.w; });
         bbb.always({solver: solver, ctx: ctx}, function () { return comp1.display == wnd.w; });
         bbb.always({solver: solver, ctx: ctx}, function () { return comp2.display == wnd.h; });
@@ -1015,8 +1012,7 @@ Object.subclass('ECJITTests', {
 
         bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w == mouse.x });
         bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h == mouse.y });
-        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w <= 400; });
-        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h <= 250; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w <= 400; });
         bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w+comp2.w == wnd.w; });
         bbb.always({solver: solver, ctx: ctx}, function () { return comp1.display == wnd.w; });
         bbb.always({solver: solver, ctx: ctx}, function () { return comp2.display == wnd.h; });
@@ -1053,6 +1049,70 @@ Object.subclass('ECJITTests', {
     
     clDrag2DSimChangeTenthEdit: function(numIterations) {
         this.clDrag2DSimChangeEditParam(numIterations, numIterations/10);
+    },
+    
+    clDrag2DSimFreqChangeParam: function(numIterations, switchFreq) {
+        var ctx = {
+            mouse: {x: 100, y: 100},
+            wnd: {w: 100, h: 100},
+            comp1: {w: 70, display: 0},
+            comp2: {w: 30, display: 0}
+        };
+        var solver = new ClSimplexSolver();
+        solver.setAutosolve(false);
+
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w == mouse.x });
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h == mouse.y });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w <= 400; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w+comp2.w == wnd.w; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp1.display == wnd.w; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp2.display == wnd.h; });
+
+        for(var i = 0; i < numIterations; i++) {
+            if(i % (switchFreq*2) < switchFreq) {
+                ctx.mouse.x = 100+i;
+                console.assert(ctx.mouse.x == 100+i);
+            } else {
+                ctx.mouse.y = 100+i;
+                console.assert(ctx.mouse.y == 100+i);
+            }
+        }
+    },
+    
+    clDrag2DSimFreqChangeEditParam: function(numIterations, switchFreq) {
+        var ctx = {
+            mouse: {x: 100, y: 100},
+            wnd: {w: 100, h: 100},
+            comp1: {w: 70, display: 0},
+            comp2: {w: 30, display: 0}
+        };
+        var solver = new ClSimplexSolver();
+        solver.setAutosolve(false);
+
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w == mouse.x });
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h == mouse.y });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w <= 400; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w+comp2.w == wnd.w; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp1.display == wnd.w; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp2.display == wnd.h; });
+
+        /*for(var i = 0; i < numIterations; i++) {
+            if(i % (switchFreq*2) < switchFreq) {
+                ctx.mouse.x = 100+i;
+                console.assert(ctx.mouse.x == 100+i);
+            } else {
+                ctx.mouse.y = 100+i;
+                console.assert(ctx.mouse.y == 100+i);
+            }
+        }*/
+    },
+    
+    clDrag2DSimFreqChange5: function(numIterations) {
+        this.clDrag2DSimChangeParam(numIterations, 5);
+    },
+    
+    clDrag2DSimFreqChange5Edit: function(numIterations) {
+        //this.clDrag2DSimChangeEditParam(numIterations, 5);
     }
 });Object.extend(Global, {
     /**
