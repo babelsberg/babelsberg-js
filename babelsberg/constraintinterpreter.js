@@ -503,7 +503,7 @@ Object.subclass('EmptyECJIT', {
 });
 Object.subclass('ECJITTests', {
     benchAll: function() {
-        var names = ['clAddSim', 'dbAddSim', 'clDrag2DSim', 'clDragSim'],
+        var names = ['clAddSim', 'dbAddSim', 'clDragSim', 'clDrag2DSim', 'clDrag2DSimFastX'],
             scenarios = [
                 {iter: 5}, {iter: 100} //, {iter: 500}
             ],
@@ -534,7 +534,7 @@ Object.subclass('ECJITTests', {
                 t2 += this.bench(name+"Edit", scenario.iter, createEmptyECJIT());
                 t2 = Math.round(t2/3);
 
-                console.log(pad(name+"("+scenario.iter+"):", 20)+"time in ms (ec/ecjit/decl): "+padl(t2,4)+" / "+padl(t1,4)+" / "+padl(t0,4));
+                console.log(pad(name+"("+scenario.iter+"):", 30)+"time in ms (ec/ecjit/decl): "+padl(t2,4)+" / "+padl(t1,4)+" / "+padl(t0,4));
             }.bind(this));
         }.bind(this));
 
@@ -548,7 +548,7 @@ Object.subclass('ECJITTests', {
         bbb.ecjit = ecjit;
 
         var start = new Date();
-        fn(iterations);
+        fn.bind(this)(iterations);
         var end = new Date();
 
         bbb.ecjit = old_ecjit;
@@ -675,7 +675,7 @@ Object.subclass('ECJITTests', {
         cb();
     },
 
-    clDrag2DSim: function(numIterations) {
+    clDrag2DSimParam: function(numIterations, sheer) {
         var ctx = {
             mouse: {x: 100, y: 100},
             wnd: {w: 100, h: 100},
@@ -695,13 +695,17 @@ Object.subclass('ECJITTests', {
 
         for(var i = 0; i < numIterations; i++) {
             ctx.mouse.x = 100+i;
-            ctx.mouse.y = 100+i;
+            if(i % sheer == 0) {
+                ctx.mouse.y = 100+i;
+            }
             console.assert(ctx.mouse.x == 100+i);
-            console.assert(ctx.mouse.y == 100+i);
+            if(i % sheer == 0) {
+                console.assert(ctx.mouse.y == 100+i);
+            }
         }
     },
 
-    clDrag2DSimEdit: function(numIterations) {
+    clDrag2DSimEditParam: function(numIterations, sheer) {
         var ctx = {
             mouse: {x: 100, y: 100},
             wnd: {w: 100, h: 100},
@@ -721,11 +725,27 @@ Object.subclass('ECJITTests', {
 
         var cb = bbb.edit(ctx.mouse, ["x", "y"]);
         for(var i = 0; i < numIterations; i++) {
-            cb([100+i, 100+i]);
+            cb([100+i, Math.floor((100+i)/sheer)*sheer]);
             console.assert(ctx.mouse.x == 100+i);
-            console.assert(ctx.mouse.y == 100+i);
+            console.assert(ctx.mouse.y == Math.floor((100+i)/sheer)*sheer);
         }
         cb();
+    },
+    
+    clDrag2DSim: function(numIterations) {
+        this.clDrag2DSimParam(numIterations, 1);
+    },
+    
+    clDrag2DSimEdit: function(numIterations) {
+        this.clDrag2DSimEditParam(numIterations, 1);
+    },
+
+    clDrag2DSimFastX: function(numIterations) {
+        this.clDrag2DSimParam(numIterations, 3);
+    },
+    
+    clDrag2DSimFastXEdit: function(numIterations) {
+        this.clDrag2DSimEditParam(numIterations, 3);
     }
 });Object.extend(Global, {
     /**
