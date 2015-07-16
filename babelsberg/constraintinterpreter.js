@@ -373,20 +373,16 @@ Object.subclass('ClassicECJIT', {
      * @param {Object} value The new value which was suggested.
      * @return {Boolean} whether suggestValue should be terminated or run normally.
      */
-    suggestValueHook: function(cvar, value, source, force) {
+    suggestValueHook: function(cvar, value) {
         if(!(cvar.__uuid__ in this.cvarData)) {
             //console.log("Creating cvarData entry for "+cvar.__uuid__);
             this.cvarData[cvar.__uuid__] = {
                 'cvar': cvar,
-                'count': 0,
                 'sourceCount': 0
             }
         }
         var data = this.cvarData[cvar.__uuid__];
-        data['count'] += 1;
-        if(source) {
-            data['sourceCount'] += 1;
-        }
+        data['sourceCount'] += 1;
 
         this.actionCounter += 1;
         if(this.actionCounter >= this.actionCounterLimit) {
@@ -394,8 +390,7 @@ Object.subclass('ClassicECJIT', {
             this.actionCounter = 0;
         }
 
-        if(source && this.currentEdit && cvar.__uuid__ === this.currentEdit['cvar'].__uuid__) {
-            //console.log("Using defined edit-callback!");
+        if(this.currentEdit && cvar.__uuid__ === this.currentEdit['cvar'].__uuid__) {
             this.currentEdit['cb']([value]);
             return true;
         }
@@ -490,7 +485,18 @@ Object.subclass('ClassicECJIT', {
     }
 });
 Object.subclass('EmptyECJIT', {
-    suggestValueHook: function(cvar, value, source, force) {
+    /**
+     * Function used for instrumenting ConstrainedVariable#suggestValue to
+     * implement automatic edit constraints. The boolean return value says
+     * whether ConstrainedVariable#suggestValue may proceed normally or should
+     * be terminated since an edit constraint is enabled.
+     * @function EditConstraintJIT#suggestValueHook
+     * @public
+     * @param {Object} cvar The ConstrainedVariable on which suggestValue() was called.
+     * @param {Object} value The new value which was suggested.
+     * @return {Boolean} whether suggestValue should be terminated or run normally.
+     */
+    suggestValueHook: function(cvar, value) {
         return false;
     },
     clearState: function() {
@@ -1142,7 +1148,7 @@ Object.subclass('ConstrainedVariable', {
             ConstrainedVariable.$$optionalSetters =
                 ConstrainedVariable.$$optionalSetters || [];
 
-            if(bbb.ecjit.suggestValueHook(this, value, source, force)) {
+            if(source && bbb.ecjit.suggestValueHook(this, value)) {
                 return value;
             }
 
