@@ -706,7 +706,7 @@ Object.subclass('EmptyECJIT', {
 });
 Object.subclass('ECJITTests', {
     benchAll: function() {
-        var names = ['clAddSim', 'dbAddSim', 'clDragSim', 'clDrag2DSim', 'clDrag2DSimFastX'],
+        var names = ['clAddSim', 'dbAddSim', 'clDragSim', 'clDrag2DSim', 'clDrag2DSimFastX', 'clDrag2DSimChangeHalf', 'clDrag2DSimChangeTenth'],
             scenarios = [
                 {iter: 5}, {iter: 100} //, {iter: 500}
             ],
@@ -967,6 +967,88 @@ Object.subclass('ECJITTests', {
 
     clDrag2DSimFastXEdit: function(numIterations) {
         this.clDrag2DSimEditParam(numIterations, 3);
+    },
+    
+    clDrag2DSimChangeParam: function(numIterations, numSwitch) {
+        var ctx = {
+            mouse: {x: 100, y: 100},
+            wnd: {w: 100, h: 100},
+            comp1: {w: 70, display: 0},
+            comp2: {w: 30, display: 0}
+        };
+        var solver = new ClSimplexSolver();
+        solver.setAutosolve(false);
+
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w == mouse.x });
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h == mouse.y });
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w <= 400; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h <= 250; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w+comp2.w == wnd.w; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp1.display == wnd.w; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp2.display == wnd.h; });
+
+        for(var i = 0; i < numIterations; i++) {
+            if(i < numSwitch) {
+                ctx.mouse.x = 100+i;
+                console.assert(ctx.mouse.x == 100+i);
+            } else {
+                ctx.mouse.y = 100+(i-numSwitch);
+                console.assert(ctx.mouse.x == numSwitch-1);
+                console.assert(ctx.mouse.y == 100+(i-numSwitch));
+            }
+        }
+    },
+    
+    clDrag2DSimChangeEditParam: function(numIterations, numSwitch) {
+        var ctx = {
+            mouse: {x: 100, y: 100},
+            wnd: {w: 100, h: 100},
+            comp1: {w: 70, display: 0},
+            comp2: {w: 30, display: 0}
+        };
+        var solver = new ClSimplexSolver();
+        solver.setAutosolve(false);
+
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w == mouse.x });
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h == mouse.y });
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.w <= 400; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return wnd.h <= 250; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp1.w+comp2.w == wnd.w; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp1.display == wnd.w; });
+        bbb.always({solver: solver, ctx: ctx}, function () { return comp2.display == wnd.h; });
+
+        var cb = bbb.edit(ctx.mouse, ["x"]);
+        for(var i = 0; i < numIterations; i++) {
+            if(i < numSwitch) {
+                cb([100+i]);
+                console.assert(ctx.mouse.x == 100+i);
+            } else {
+                if(i == numSwitch) {
+                    cb();
+                    cb = bbb.edit(ctx.mouse, ["y"]);
+                }
+                cb([100+(i-numSwitch)]);
+                console.assert(ctx.mouse.x == numSwitch-1);
+                console.assert(ctx.mouse.y == 100+(i-numSwitch));
+            }
+        }
+        cb();
+    },
+    
+    clDrag2DSimChangeHalf: function(numIterations) {
+        this.clDrag2DSimChangeParam(numIterations, numIterations/2);
+    },
+    
+    clDrag2DSimChangeHalfEdit: function(numIterations) {
+        this.clDrag2DSimChangeEditParam(numIterations, numIterations/2);
+    },
+    
+    clDrag2DSimChangeTenth: function(numIterations) {
+        this.clDrag2DSimChangeParam(numIterations, numIterations/10);
+    },
+    
+    clDrag2DSimChangeTenthEdit: function(numIterations) {
+        this.clDrag2DSimChangeEditParam(numIterations, numIterations/10);
     }
 });Object.extend(Global, {
     /**
