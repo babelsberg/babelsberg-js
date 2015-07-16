@@ -434,7 +434,6 @@ Object.subclass('ClassicECJIT', {
 
         var expired = [];
         this.forEachCVarData(function(data) {
-            data['count'] = Math.max(data['count']-this.countDecayDecrement, 0);
             data['sourceCount'] = Math.max(data['sourceCount']-this.countDecayDecrement, 0);
             if(data['sourceCount'] <= 0) {
                 //expired.push(data['cvar']);
@@ -474,7 +473,7 @@ Object.subclass('ClassicECJIT', {
         console.log("=====");
         this.forEachCVarData(function(data) {
             var cvar = data['cvar'];
-            console.log("CVar(uuid:"+cvar.__uuid__+", ivarname:"+cvar.ivarname+", count:"+data['count']+", sourceCount:"+data['sourceCount']+")");
+            console.log("CVar(uuid:"+cvar.__uuid__+", ivarname:"+cvar.ivarname+", sourceCount:"+data['sourceCount']+")");
         });
     },
 
