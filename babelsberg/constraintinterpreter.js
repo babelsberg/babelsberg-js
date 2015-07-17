@@ -679,6 +679,50 @@ AbstractECJIT.subclass('AdditiveAdaptiveECJIT', {
         return false;
     }
 });
+AbstractECJIT.subclass('LastECJIT', {
+    name: 'last',
+
+    initialize: function() {
+        this.clearState();
+    },
+
+
+    /**
+     * Function used for instrumenting ConstrainedVariable#suggestValue to
+     * implement automatic edit constraints. The boolean return value says
+     * whether ConstrainedVariable#suggestValue may proceed normally or should
+     * be terminated since an edit constraint is enabled.
+     * @function EditConstraintJIT#suggestValueHook
+     * @public
+     * @param {Object} cvar The ConstrainedVariable on which suggestValue() was called.
+     * @param {Object} value The new value which was suggested.
+     * @return {Boolean} whether suggestValue should be terminated or run normally.
+     */
+    suggestValueHook: function(cvar, value) {
+        // should optimize cvar with UUID uuidBySourceCount[0] first, then uuidBySourceCount[1] etc.
+        if(!this.currentEdit) {
+            var abort = false;
+            cvar.solvers.each(function(solver) {
+                if (solver.editConstraints !== undefined) {
+                    if (solver.editConstraints.length > 0) abort = true;
+                }
+            });
+            if (abort) {
+                console.log("we have already a edit constraint ...");
+                return false;
+            }
+            this.createEditFor(cvar);
+        } else {
+            if(this.currentEdit['cvar'] !== cvar) {
+                this.deleteEdit();
+                this.createEditFor(cvar);
+            }
+        }
+
+        this.currentEdit['cb']([value]);
+        return true;
+    }
+});
 Object.subclass('EmptyECJIT', {
     name: 'empty',
 
@@ -714,7 +758,8 @@ Object.subclass('ECJITTests', {
             createECJITs = [
                 function() { return new ClassicECJIT() },
                 function() { return new AdditiveAdaptiveECJIT() },
-                function() { return new MultiplicativeAdaptiveECJIT() }
+                function() { return new MultiplicativeAdaptiveECJIT() },
+                function() { return new LastECJIT() }
             ],
             pad = function(s, n) { return lively.lang.string.pad(s+"", n-(s+"").length) },
             padl = function(s, n) { return lively.lang.string.pad(s+"", n-(s+"").length,true) };
