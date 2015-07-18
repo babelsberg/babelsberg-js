@@ -982,7 +982,6 @@ Object.subclass('ConstrainedVariable', {
                         }
                 }
                 this.solveForConnectedVariables(value, oldValue, source, force);
-                // this.solveForConnectedVariables(value, oldValue, solver, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
                 if (this.getValue() !== oldValue) {
