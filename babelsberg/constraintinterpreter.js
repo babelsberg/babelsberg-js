@@ -1180,8 +1180,8 @@ Object.subclass('ConstrainedVariable', {
                     }
             }
 
-            // if (this._constraints.length > 0 && !hasEnabledConstraint)
-            //     return;
+            if (this._constraints.length > 0 && !hasEnabledConstraint)
+                return;
 
             if (s.weight > solver.weight) {
                 solver = s;
