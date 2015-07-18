@@ -415,20 +415,45 @@ Object.subclass('Babelsberg', {
                 Constraint.current = null;
             }
         }
-        var min = Number.MAX_VALUE;
         var minIndex = -1;
+        var constraint = null;
+        if (opts.optimizationPriority === undefined) {
+            opts.optimizationPriority = ['time', 'numberOfChangedVariables'];
+        }
+        var minimumConstraintMetrics = {};
+        for (var i = 0; i < opts.optimizationPriority.length; i++) {
+            minimumConstraintMetrics[opts.optimizationPriority[i]] = Number.MAX_VALUE;
+        }
         for (var i = 0; i < constraints.length; i++) {
-            if (constraints[i] && constraints[i].comparisonMetrics.time < min) {
-                min = constraints[i].comparisonMetrics.time;
-                minIndex = i;
+            if (!constraints[i]) {
+                continue;
+            }
+            for (var m = 0; m < opts.optimizationPriority.length; m++) {
+                var metricName = opts.optimizationPriority[m];
+                var iMetric = constraints[i].comparisonMetrics[metricName];
+                if (typeof iMetric === 'function') {
+                    iMetric = iMetric.call(constraints[i].comparisonMetrics);
+                }
+                var currentMinimum = minimumConstraintMetrics[metricName];
+                if (typeof currentMinimum === 'function') {
+                    currentMinimum = currentMinimum.call(minimumConstraintMetrics);
+                }
+                if (iMetric > currentMinimum) {
+                    break; // do not check further metrics
+                }
+                if (iMetric != currentMinimum) {
+                    // iMetric is either smaller or NaN
+                    minimumConstraintMetrics = constraints[i].comparisonMetrics;
+                    minIndex = i;
+                    if (iMetric < currentMinimum) {
+                        break; // do not check further metrics
+                    }
+                }
             }
         }
         if (minIndex > -1) {
             constraint = constraints[minIndex];
-            if (opts.logTimings) {
-                console.log('Selected fastest solver:' +
-                            constraint.solver.solverName);
-            }
+            console.log('Selected best solver: ' + constraint.solver.solverName);
         }
         return constraint;
     },
@@ -636,20 +661,25 @@ Object.subclass('Constraint', {
             }
             this._enabled = true;
             this.constraintvariables.each(function(v) {v._resetIsSolveable();});
-            var nBegin = performance.now();
+            var begin = performance.now();
             this.solver.solve();
-            var nEnd = performance.now();
+            var end = performance.now();
             if (this.opts.logTimings) {
                 console.log((this.solver ? this.solver.solverName : '(no solver)') +
-                    ' took ' + (nEnd - nBegin) + ' ms to solve for ' +
+                    ' took ' + (end - nBegin) + ' ms to solve for ' +
                     this.ivarname + ' in enable');
             }
 
-            var oVariables = {};
+            var changedVariables = 0;
+            var variableAssigments = {};
             this.constraintvariables.each(function(ea) {
                 var value = ea.getValue();
-                oVariables[ea.ivarname] = value;
-
+                var oldValue = ea.storedValue;
+                if (oldValue !== value) {
+                    variableAssigments[ea.ivarname] = {oldValue: oldValue,
+                        newValue: value};
+                    changedVariables += 1;
+                }
                 // solveForConnectedVariables might eventually
                 // call updateDownstreamExternalVariables, too.
                 // We need this first, however, for the case when
@@ -660,7 +690,20 @@ Object.subclass('Constraint', {
                     ea.solveForConnectedVariables(value);
                 }
             });
-            this.comparisonMetrics = {time: nEnd - nBegin, values: oVariables};
+            this.comparisonMetrics = {time: end - begin,
+                numberOfChangedVariables: changedVariables,
+                assignments: variableAssigments};
+            Object.extend(this.comparisonMetrics, {
+               squaredChangeDistance: function() {
+                   var sumOfSquaredDistances = 0;
+                   for (var varname in this.assignments) {
+                       var assignment = this.assignments[varname];
+                       var distance = assignment.newValue - assignment.oldValue;
+                       sumOfSquaredDistances += distance * distance;
+                   }
+                   return sumOfSquaredDistances;
+               }
+            });
         }
     },
 
@@ -922,12 +965,12 @@ Object.subclass('ConstrainedVariable', {
                         !definingConstraint.isAnyVariableCurrentlySuggested;
                     definingConstraint.isAnyVariableCurrentlySuggested = true;
                 }
-                var nBegin = performance.now();
+                var begin = performance.now();
                 // never uses multiple solvers, since it gets the defining Solver
                 this.solveForPrimarySolver(value, oldValue, solver, source, force);
                 if (definingConstraint && definingConstraint.opts.logTimings) {
                     console.log((solver ? solver.solverName : '(no solver)') +
-                        ' took ' + (performance.now() - nBegin) + ' ms' +
+                        ' took ' + (performance.now() - begin) + ' ms' +
                         ' to solve for ' + this.ivarname + ' in suggestValue');
                 }
                 if (isInitiatingSuggestForDefiningConstraint) {
@@ -939,6 +982,7 @@ Object.subclass('ConstrainedVariable', {
                         }
                 }
                 this.solveForConnectedVariables(value, oldValue, source, force);
+                // this.solveForConnectedVariables(value, oldValue, solver, source, force);
                 this.findAndOptionallyCallSetters(callSetters);
             } catch (e) {
                 if (this.getValue() !== oldValue) {
