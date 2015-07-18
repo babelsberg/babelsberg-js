@@ -418,8 +418,8 @@ Object.subclass('Babelsberg', {
         var min = Number.MAX_VALUE;
         var minIndex = -1;
         for (var i = 0; i < constraints.length; i++) {
-            if (constraints[i] && constraints[i].oComparisonMetrics.time < min) {
-                min = constraints[i].oComparisonMetrics.time;
+            if (constraints[i] && constraints[i].comparisonMetrics.time < min) {
+                min = constraints[i].comparisonMetrics.time;
                 minIndex = i;
             }
         }
@@ -660,7 +660,7 @@ Object.subclass('Constraint', {
                     ea.solveForConnectedVariables(value);
                 }
             });
-            this.oComparisonMetrics = {time: nEnd - nBegin, values: oVariables};
+            this.comparisonMetrics = {time: nEnd - nBegin, values: oVariables};
         }
     },
 
