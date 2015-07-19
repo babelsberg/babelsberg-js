@@ -453,7 +453,7 @@ Object.subclass('ClassicECJIT', {
     },
 
     createEditFor: function(cvar) {
-        //console.log("Enabling edit-callback for "+cvar.__uuid__);
+        //console.log("Enabling edit-callback for "+cvar.__uuid__+" "+cvar.ivarname);
         this.currentEdit = {
             'cvar': cvar,
             'cb': bbb.edit(cvar.obj, [cvar.ivarname])
@@ -541,7 +541,7 @@ Object.subclass('AbstractECJIT', {
     },
 
     createEditFor: function(cvar) {
-        //console.log("Enabling edit-callback for "+cvar.__uuid__);
+        //console.log("Enabling edit-callback for "+cvar.__uuid__+" "+cvar.ivarname);
         this.currentEdit = {
             'cvar': cvar,
             'cb': bbb.edit(cvar.obj, [cvar.ivarname])
@@ -1141,6 +1141,7 @@ Object.subclass('ECJITTests', {
         bbb.always({solver: solver, ctx: ctx}, function () { return comp1.display == wnd.w; });
         bbb.always({solver: solver, ctx: ctx}, function () { return comp2.display == wnd.h; });
 
+        // TODO: optimized code
         /*for(var i = 0; i < numIterations; i++) {
             if(i % (switchFreq*2) < switchFreq) {
                 ctx.mouse.x = 100+i;
