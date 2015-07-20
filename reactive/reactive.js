@@ -13,6 +13,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
             var cobj = new Constraint(func, this);
             cobj.allowFailing = true;
             cobj.addPrimitiveConstraint(new ReactiveSolver.Constraint(this, cobj, func));
+            cobj.opts = opts;
             try {
                 if(!opts.postponeEnabling) { cobj.enable(); }
             } catch(e) {
