@@ -203,7 +203,7 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
         }
         func.varMapping = opts.ctx;
         var constraint = new Constraint(func, this);
-        constraint.enable();
+        // constraint.enable();
         return constraint;
     },
     constraintVariableFor: function(value, ivarname, cvar) {
