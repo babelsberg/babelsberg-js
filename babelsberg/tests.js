@@ -2442,10 +2442,6 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         bbb.defaultSolvers[0].forcedDelay = 0;
         bbb.defaultSolvers[1].forcedDelay = 10;
         for (var i = 0; i < 2; i++) {
-            // BUG with variable changes feature:
-            // the definingSolver for CV a is wrong, because the check
-            // whether there is an enabled constraint is commented out
-            // in CV._searchDefiningSolver
             obj.a += 1;
         }
         this.assert(constraint.solver === bbb.defaultSolvers[0],
