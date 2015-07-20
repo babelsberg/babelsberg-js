@@ -255,8 +255,10 @@ Object.subclass('Babelsberg', {
         func.allowUnsolvableOperations = (opts.allowUnsolvableOperations === true);
         func.debugging = opts.debugging;
         func.onError = opts.onError;
+        //TODO: remove this from all solver implementations or move to filterSolvers
+        func.varMapping = opts.ctx;
 
-        solvers = this.filterSolvers(solvers, opts);
+        solvers = this.filterSolvers(solvers, opts, func);
         var constraints = this.createEquivalentConstraints(solvers, opts, func, errors);
         var constraint = this.chooseConstraint(constraints, opts, errors);
         if (!opts.postponeEnabling && constraint) {
@@ -339,8 +341,24 @@ Object.subclass('Babelsberg', {
         }
     },
 
-    filterSolvers: function(solvers, opts) {
+    filterSolvers: function(solvers, opts, func) {
         var result = [];
+
+        // FIXME: this global state is ugly
+        bbb.seenTypes = {};
+        bbb.seenFiniteDomain = false;
+        try {
+            cop.withLayers([ConstraintInspectionLayer], function() {
+                func.forInterpretation().apply(undefined, []);
+            });
+        } catch (e) {
+            bbb.seenTypes = {};
+            bbb.seenFiniteDomain = false;
+            if (opts.logReasons) {
+                console.warn('Parsing the expression for types failed, ' +
+                   'will not check types:', e);
+            }
+        }
 
         solvers.each(function(solver) {
             if (opts.methods && !solver.supportsMethods()) {
@@ -360,9 +378,29 @@ Object.subclass('Babelsberg', {
                 return false;
             }
 
+            if (bbb.seenFiniteDomain && !solver.supportsFiniteDomains()) {
+                if (opts.logReasons) {
+                    console.log('Ignoring ' + solver.solverName +
+                        ' because it does not support finite domains');
+                }
+                return false;
+            }
+
+            for (var type in bbb.seenTypes) {
+                if (solver.supportedDataTypes().indexOf(type) == -1) {
+                    if (opts.logReasons) {
+                        console.log('Ignoring ' + solver.solverName +
+                            ' because it does not support ' + type + ' variables');
+                    }
+                    return false;
+                }
+            }
+
             result.push(solver);
         });
 
+        delete bbb.seenTypes;
+        delete bbb.seenFiniteDomain;
         return result;
     },
 
@@ -511,6 +549,11 @@ Object.subclass('Babelsberg', {
                 cb.func.apply(cb.context, cb.args);
             }
         }).recursionGuard(bbb, 'isProcessingCallbacks');
+    },
+
+    isValueClass: function(variable) {
+        // TODO: add more value classes
+        return variable instanceof lively.Point;
     }
 });
 
@@ -532,8 +575,57 @@ users.timfelgentreff.jsinterpreter.Send.addMethods({
     }
 });
 
-cop.create('ConstraintConstructionLayer').
-        refineObject(users.timfelgentreff.jsinterpreter, {
+cop.create('ConstraintInspectionLayer')
+.refineClass(users.timfelgentreff.jsinterpreter.InterpreterVisitor, {
+    visitGetSlot: function(node) {
+        var obj = this.visit(node.obj),
+            name = this.visit(node.slotName),
+            value = obj[name];
+
+        if (!(node._parent instanceof users.timfelgentreff.jsinterpreter.GetSlot) &&
+            !(node._parent instanceof users.timfelgentreff.jsinterpreter.Send) &&
+            !(node._parent instanceof users.timfelgentreff.jsinterpreter.Call) &&
+            value != undefined && !bbb.isValueClass(value)) {
+            bbb.seenTypes[typeof value] = true;
+        }
+        return value;
+    },
+    visitNumber: function(node) {
+        if (!(node._parent instanceof users.timfelgentreff.jsinterpreter.GetSlot)) {
+            bbb.seenTypes[typeof node.value] = true;
+        }
+        return node.value;
+    },
+    visitString: function(node) {
+        if (!(node._parent instanceof users.timfelgentreff.jsinterpreter.GetSlot)) {
+            bbb.seenTypes[typeof node.value] = true;
+        }
+        return node.value;
+    },
+    visitBinaryOp: function(node) {
+        if (node.name == 'in' &&
+            node.right instanceof users.timfelgentreff.jsinterpreter.ArrayLiteral) {
+            bbb.seenFiniteDomain = true;
+        }
+        cop.proceed(node);
+    },
+    //FIXME: copy&paste from constraintconstructionlayer
+    shouldInterpret: function(frame, func) {
+        if (func.sourceModule ===
+                Global.users.timfelgentreff.babelsberg.constraintinterpreter) {
+            return false;
+        }
+        if (func.declaredClass === 'Babelsberg') {
+            return false;
+        }
+        var nativeClass = lively.Class.isClass(func) && func.superclass === undefined;
+        return (!(this.isNative(func) || nativeClass)) &&
+                 typeof(func.forInterpretation) == 'function';
+    }
+});
+
+cop.create('ConstraintConstructionLayer')
+.refineObject(users.timfelgentreff.jsinterpreter, {
     get InterpreterVisitor() {
         return ConstraintInterpreterVisitor;
     }
@@ -1340,10 +1432,7 @@ Object.subclass('ConstrainedVariable', {
     },
 
     isValueClass: function() {
-        // TODO: add more value classes
-        return !this.isSolveable() &&
-            this.storedValue instanceof lively.Point;
-        // return false && this.storedValue instanceof lively.Point;
+        return !this.isSolveable() && bbb.isValueClass(this.storedValue);
     },
 
     get storedValue() {

@@ -84,6 +84,13 @@ Object.subclass('BacktalkSolver', {
     },
     weight: 200,
     isConstraintObject: true,
+    solverName: 'Backtalk',
+    supportsMethods: function() { return false; },
+    supportsSoftConstraints: function() { return false; /* XXX: is this correct? */ },
+    supportsFiniteDomains: function() { return true; },
+    supportedDataTypes: function() {
+        return ['number', 'boolean', 'string', 'object']; /* XXX: is this correct? */
+    }
 });
 
 Object.subclass('BacktalkVariable', {
