@@ -486,6 +486,7 @@ Object.subclass('Babelsberg', {
         if (constraint !== currentConstraint) {
             currentConstraint.solver = constraint.solver;
             // yes, constraint does not replace currentConstraint, only its solver
+            currentConstraint.resetDefiningSolverOfVariables();
         }
         constraints.each(function(each) {
             if (each !== currentConstraint)
@@ -840,6 +841,12 @@ Object.subclass('Constraint', {
         // TODO: eject those external variables also from their solvers
         // because the solvers might be put to use somewhere else and should not be
         // bothered with old (possibly duplicated) variables, should they?
+    },
+
+    resetDefiningSolverOfVariables: function() {
+        this.constraintvariables.each(function(eachVar) {
+            eachVar.resetDefiningSolver();
+        });
     }
 });
 Object.extend(Constraint, {
@@ -1303,6 +1310,10 @@ Object.subclass('ConstrainedVariable', {
         }
 
         return {solver: solver, constraint: constraint};
+    },
+
+    resetDefiningSolver: function() {
+        this._definingSolver = null;
     },
 
     get solvers() {
