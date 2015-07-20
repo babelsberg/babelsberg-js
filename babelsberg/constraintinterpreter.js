@@ -667,8 +667,7 @@ Object.subclass('Constraint', {
             var end = performance.now();
             if (this.opts.logTimings) {
                 console.log((this.solver ? this.solver.solverName : '(no solver)') +
-                    ' took ' + (end - nBegin) + ' ms to solve for ' +
-                    this.ivarname + ' in enable');
+                    ' took ' + (end - nBegin) + ' ms to solve in enable');
             }
 
             var changedVariables = 0;
