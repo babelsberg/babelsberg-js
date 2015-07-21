@@ -1141,16 +1141,17 @@ Object.subclass('ECJITTests', {
         bbb.always({solver: solver, ctx: ctx}, function () { return comp1.display == wnd.w; });
         bbb.always({solver: solver, ctx: ctx}, function () { return comp2.display == wnd.h; });
 
-        // TODO: optimized code
-        /*for(var i = 0; i < numIterations; i++) {
+        var cb = bbb.edit(ctx.mouse, ["x", "y"]);
+        for(var i = 0; i < numIterations; i++) {
             if(i % (switchFreq*2) < switchFreq) {
-                ctx.mouse.x = 100+i;
+                cb([100+i, 100+i/(switchFreq*2)]);
                 console.assert(ctx.mouse.x == 100+i);
             } else {
-                ctx.mouse.y = 100+i;
+                cb([100+i/(switchFreq*2), 100+i]);
                 console.assert(ctx.mouse.y == 100+i);
             }
-        }*/
+        }
+        cb();
     },
     
     clDrag2DSimFreqChange5: function(numIterations) {
@@ -1158,7 +1159,7 @@ Object.subclass('ECJITTests', {
     },
     
     clDrag2DSimFreqChange5Edit: function(numIterations) {
-        //this.clDrag2DSimChangeEditParam(numIterations, 5);
+        this.clDrag2DSimChangeEditParam(numIterations, 5);
     }
 });Object.extend(Global, {
     /**
