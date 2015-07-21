@@ -2045,6 +2045,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
             ctx: {
                 obj: obj
             },
+            logTimings: true,
             optimizationPriority: ['time', 'squaredChangeDistance'],
         }, function() {
             return obj.a + obj.b == 3;
