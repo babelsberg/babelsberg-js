@@ -143,24 +143,23 @@ contentLoaded(window, function() {
 
     bbb.ecjit = new ClassicECJIT();
     bbb.ecjit.actionCounterLimit = 25;
-    bbb.ecjit.countDecayDecrement = 1;
+    bbb.ecjit.countDecayDecrement = 10;
     //bbb.ecjit = new AdditiveAdaptiveECJIT();
     //bbb.ecjit = new MultiplicativeAdaptiveECJIT();
+    //bbb.ecjit = new LastECJIT();
     
-    var start = new Date();
     canvas.renderAll();
     var i = 0;
+    var iInc = 10;
     function anim1() {
         side1.x1 = i;
         canvas._objects.each(function (o) { o.set(o); o.setCoords(); });
         canvas.renderAll();
-        i += 10;
-        if (i < 700) {
-            requestAnimationFrame(anim1);
-        } else {
-            var end = new Date();
-            console.log(end-start);
+        i += iInc;
+        if (i < 10 || i > 700) {
+            iInc *= -1;
         }
+        requestAnimationFrame(anim1);
     }
     anim1();
 });
