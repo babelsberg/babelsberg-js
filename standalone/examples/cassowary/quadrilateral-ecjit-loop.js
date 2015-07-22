@@ -142,20 +142,47 @@ contentLoaded(window, function() {
     // anim();
 
     bbb.ecjit = new ClassicECJIT();
+    bbb.ecjit.actionCounterLimit = 2;
+    bbb.ecjit.countDecayDecrement = 20;
     //bbb.ecjit.actionCounterLimit = 10;
     //bbb.ecjit = new AdditiveAdaptiveECJIT();
     //bbb.ecjit = new MultiplicativeAdaptiveECJIT();
     
     canvas.renderAll();
-    var i = 0;
-    var iInc = 10;
+    var i = 5;
+    var j = 5;
+    var changeX = true;
+    var iInc = 5;
+    var jInc = 5;
+    side1.x1 = i;
+    side1.y1 = j;
     function anim1() {
-        side1.x1 = i;
-        canvas._objects.each(function (o) { o.set(o); o.setCoords(); });
+        if(changeX) {
+            side1.x1 = i;
+            i += iInc;
+        } else {
+            side1.y1 = j;
+            j += jInc;
+        }
+        //console.log(i+" "+j+" "+iInc+" "+jInc)
+        if(true) {
+            var old_jit = bbb.ecjit;
+            bbb.ecjit = new EmptyECJIT();
+            canvas._objects.each(function (o) { o.set(o); o.setCoords(); });
+            bbb.ecjit = old_jit;
+        } else {
+            canvas._objects.each(function (o) { o.set(o); o.setCoords(); });
+        }
         canvas.renderAll();
-        i += iInc;
-        if(i < 10 || i > 700) {
+        if(i < 0 || i > 695) {
+            changeX = false;
             iInc *= -1;
+            i += iInc;
+        }
+        if(j < 0 || j > 190) {
+            changeX = true;
+            jInc *= -1;
+            j += jInc;
         }
         requestAnimationFrame(anim1);
     }

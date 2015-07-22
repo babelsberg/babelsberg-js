@@ -152,7 +152,14 @@ contentLoaded(window, function() {
     var i = 0;
     function anim1() {
         side1.x1 = i;
-        canvas._objects.each(function (o) { o.set(o); o.setCoords(); });
+        if(true) {
+            var old_jit = bbb.ecjit;
+            bbb.ecjit = new EmptyECJIT();
+            canvas._objects.each(function (o) { o.set(o); o.setCoords(); });
+            bbb.ecjit = old_jit;
+        } else {
+            canvas._objects.each(function (o) { o.set(o); o.setCoords(); });
+        }
         canvas.renderAll();
         i += 10;
         if (i < 700) {
