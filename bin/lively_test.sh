@@ -32,9 +32,10 @@ standalone/babelsberg.z3.js
 z3/emz3/z3.js
 z3/emz3/z3.js.map
 z3/emz3/z3.js.mem"; do
-	    curl -T $TRAVIS_BUILD_DIR/$script http://www.lively-kernel.org/babelsberg/
-	    curl -T $TRAVIS_BUILD_DIR/$script -utimfel:$BINTRAY_KEY https://api.bintray.com/content/babelsberg/babelsberg-js/Nightlies/latest/$script
-	    curl -X POST -utimfel:$BINTRAY_KEY https://api.bintray.com/content/babelsberg/babelsberg-js/Nightlies/latest/publish
+	        curl -T $TRAVIS_BUILD_DIR/$script http://www.lively-kernel.org/babelsberg/
+	        curl -T $TRAVIS_BUILD_DIR/$script -utimfel:$BINTRAY_KEY https://api.bintray.com/content/babelsberg/babelsberg-js/Nightlies/latest/$script
+	        curl -X POST -utimfel:$BINTRAY_KEY https://api.bintray.com/content/babelsberg/babelsberg-js/Nightlies/latest/publish
+	    done
 	fi
     fi
 fi
