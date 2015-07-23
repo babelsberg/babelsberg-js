@@ -510,15 +510,15 @@ Object.subclass('Babelsberg', {
 
     reevaluateSolverSelection: function(currentConstraint, updatedConstraintVariable) {
         var currentSolver = currentConstraint.solver;
+        var func = currentConstraint._predicate;
         var opts = currentConstraint.originalOpts;
         var solvers = this.chooseSolvers(opts.solver);
         solvers = solvers.filter(function(each) { return each !== currentSolver; });
-        solvers = this.filterSolvers(solvers, opts);
+        solvers = this.filterSolvers(solvers, opts, func);
         if (solvers.length < 1)
             return; // no other solver is qualified to enforce this constraint
         var errors = [];
-        var constraints = this.createEquivalentConstraints(solvers, opts,
-                                   currentConstraint._predicate, errors);
+        var constraints = this.createEquivalentConstraints(solvers, opts, func, errors);
         constraints.push(currentConstraint);
         var constraint = this.chooseConstraint(constraints, opts, errors);
         if (constraint !== currentConstraint) {
