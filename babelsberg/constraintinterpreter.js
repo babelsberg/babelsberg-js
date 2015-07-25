@@ -273,16 +273,15 @@ Object.subclass('Babelsberg', {
             } catch (e) {
                 errors.push(e);
                 constraint.disable();
-                constraint.isAbandoned = true;
+                constraint.abandon();
                 constraint = null;
             }
         }
         if (constraint) {
             constraints.each(function(each) {
                 if (each !== constraint && each !== null)
-                    each.isAbandoned = true;
+                    each.abandon();
             });
-            constraint.compactExternalVariablesOfConstrainedVariables();
         } else {
             if (typeof opts.onError === 'function') {
                 bbb.addCallback(opts.onError, opts.onError.constraint, errors);
@@ -510,15 +509,15 @@ Object.subclass('Babelsberg', {
 
     reevaluateSolverSelection: function(currentConstraint, updatedConstraintVariable) {
         var currentSolver = currentConstraint.solver;
+        var func = currentConstraint._predicate;
         var opts = currentConstraint.originalOpts;
         var solvers = this.chooseSolvers(opts.solver);
         solvers = solvers.filter(function(each) { return each !== currentSolver; });
-        solvers = this.filterSolvers(solvers, opts);
+        solvers = this.filterSolvers(solvers, opts, func);
         if (solvers.length < 1)
             return; // no other solver is qualified to enforce this constraint
         var errors = [];
-        var constraints = this.createEquivalentConstraints(solvers, opts,
-                                   currentConstraint._predicate, errors);
+        var constraints = this.createEquivalentConstraints(solvers, opts, func, errors);
         constraints.push(currentConstraint);
         var constraint = this.chooseConstraint(constraints, opts, errors);
         if (constraint !== currentConstraint) {
@@ -528,10 +527,9 @@ Object.subclass('Babelsberg', {
         }
         constraints.each(function(each) {
             if (each !== currentConstraint)
-                each.isAbandoned = true;
+                each.abandon();
         });
         currentConstraint.enable();
-        currentConstraint.compactExternalVariablesOfConstrainedVariables();
     },
 
     addCallback: function(func, context, args) {
@@ -921,15 +919,17 @@ Object.subclass('Constraint', {
         }
     },
 
+
     /**
-     * From ConstrainedVariables remove all external variables which only relate to
-     * abandoned constraints.
+     * Indicate that this Constraint will never be enabled again.
+     * Causes external variables of related ConstrainedVariables to be detached
+     * if they were connected to their solver only via this Constraint.
      */
-    compactExternalVariablesOfConstrainedVariables: function() {
+    abandon: function() {
         this.constraintvariables.each(function(eachVar) {
-            eachVar.compactExternalVariables();
-        });
-        // TODO: eject those external variables also from their solvers
+            eachVar.abandonConstraint(this);
+        }, this);
+        // TODO: eject those external variables also from their solvers if possible
         // because the solvers might be put to use somewhere else and should not be
         // bothered with old (possibly duplicated) variables, should they?
     },
@@ -1499,30 +1499,27 @@ Object.subclass('ConstrainedVariable', {
     },
 
     /**
-     * Removes all external variables which belong only to abandoned constraints.
+     * Removes all external variables which are used only by the specified Constraint.
+     * @param {Constraint} abandonedConstraint the Constraint about to be purged
      */
-    compactExternalVariables: function() {
-        var externalVariable;
-        var wasAbandonedOrUsesOtherSolver = function(constraint) {
-            return constraint.solver !== externalVariable.__solver__ ||
-                constraint.isAbandoned;
-        };
-
-        var externalVariableKeysToRemove = [];
-        for (var solverUUID in this._externalVariables) {
-            if (this._externalVariables[solverUUID] === null) {
-                externalVariableKeysToRemove.push(solverUUID);
-                continue;
-            }
-            if (!this._externalVariables[solverUUID].isConstraintObject)
-                continue;
-            externalVariable = this._externalVariables[solverUUID];
-            // search enabled Constraint for this variable's solver
-            var allAbandoned = this._constraints.every(wasAbandonedOrUsesOtherSolver);
-            if (allAbandoned) {
-                externalVariableKeysToRemove.push(solverUUID);
-            }
-        }
+    abandonConstraint: function(abandonedConstraint) {
+        // remove abandonedConstraint from this._constraints
+        var abandonedIndex = this._constraints.indexOf(abandonedConstraint);
+        if (abandonedIndex !== -1)
+            this._constraints.splice(abandonedIndex, 1);
+        // collect all external variables which can be detached
+        var externalVariableKeysToRemove = Object.keys(this._externalVariables).findAll(
+            function(eachSolverUUID) {
+                var externalVariable = this._externalVariables[eachSolverUUID];
+                if (externalVariable === null)
+                    return true; // delete the nulls by the way
+                var hasSomeOtherConstraintForThisSolver = this._constraints.some(
+                    function(eachConstraint) {
+                        return eachConstraint.solver === externalVariable.__solver__;
+                    });
+                return !hasSomeOtherConstraintForThisSolver;
+            }.bind(this));
+        // detach collected external variables
         externalVariableKeysToRemove.each(function(each) {
             delete this._externalVariables[each];
         }.bind(this));
