@@ -2599,7 +2599,8 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         var constraint = bbb.always({
             ctx: {
                 obj: obj
-            }
+            },
+            reevaluationInterval: 3
         }, function() {
             return obj.a + obj.b == 3 && obj.c == obj.a + obj.b;
         });
@@ -2610,7 +2611,6 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         };
         bbb.defaultSolvers[1].solveCalls = 0;
         bbb.defaultSolvers[1].forcedSolveAction = bbb.defaultSolvers[0].forcedSolveAction;
-        constraint.reevaluationInterval = 3;
         var otherSolver = bbb.defaultSolvers[constraint.solver === bbb.defaultSolvers[0] ?
             1 : 0];
         for (var i = 0; i < 2; i++) {

@@ -413,6 +413,8 @@ Object.subclass('Babelsberg', {
             try {
                 var optsForSolver = Object.clone(opts);
                 var constraint = solver.always(optsForSolver, func);
+                if (!!opts.reevaluationInterval)
+                    constraint.reevaluationInterval = opts.reevaluationInterval;
                 constraint.opts = optsForSolver;
                 constraint.originalOpts = opts;
                 constraints.push(constraint);
