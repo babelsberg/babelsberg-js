@@ -2014,29 +2014,8 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
             "squaredChangeDistance should be the sum of the squared distances");
     },
 
-    preparePatchedSolvers: function() {
-        // prepare solvers of which the solving time and actions can be dictated
-        patchedSolver = new ClSimplexSolver();
-        patchedSolver.forcedDelay = 0;
-        patchedSolver.solve = function() {
-            var begin = performance.now();
-            while (performance.now() < begin + this.forcedDelay) {
-                ; // busy wait, no sleep in JavaScript
-                // and setTimeout is not what we want
-            }
-            console.log('finished busy wait');
-            if (typeof this.forcedSolveAction === 'function') {
-                return this.forcedSolveAction();
-            }
-            return ClSimplexSolver.prototype.solve.apply(this, arguments);
-        }
-        PatchedSolver = function() {}
-        PatchedSolver.prototype = patchedSolver;
-        bbb.defaultSolvers = [new PatchedSolver(), new PatchedSolver()];
-    },
-
     testChoiceWithTimeOverDistance1: function() {
-        this.preparePatchedSolvers();
+        preparePatchedSolvers();
         bbb.defaultSolvers[0].forcedDelay = 0;
         bbb.defaultSolvers[1].forcedDelay = 10;
         // when: create actual constraint
@@ -2055,7 +2034,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
     },
 
     testChoiceWithTimeOverDistance2: function() {
-        this.preparePatchedSolvers();
+        preparePatchedSolvers();
         bbb.defaultSolvers[0].forcedDelay = 10;
         bbb.defaultSolvers[1].forcedDelay = 0;
         // when: create actual constraint
@@ -2073,7 +2052,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
     },
 
     testChoiceWithDistanceOverTime1: function() {
-        this.preparePatchedSolvers();
+        preparePatchedSolvers();
         var constraint0 = null, constraint1 = null;
         bbb.defaultSolvers[0].forcedDelay = 10;
         bbb.defaultSolvers[0].forcedSolveAction = function () {
@@ -2108,7 +2087,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
     },
 
     testChoiceWithNumberOfChangedVariablesOverTime1: function() {
-        this.preparePatchedSolvers();
+        preparePatchedSolvers();
         var constraint0 = null, constraint1 = null;
         bbb.defaultSolvers[0].forcedDelay = 10;
         bbb.defaultSolvers[0].forcedSolveAction = function () {
@@ -2137,7 +2116,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
     },
 
     testChoiceWithNumberOfChangedVariablesOverTime2: function() {
-        this.preparePatchedSolvers();
+        preparePatchedSolvers();
         var constraint0 = null, constraint1 = null;
         bbb.defaultSolvers[0].forcedDelay = 10;
         bbb.defaultSolvers[0].forcedSolveAction = function () {
@@ -2166,7 +2145,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
     },
 
     testChoiceWithDistanceOverTime2: function() {
-        this.preparePatchedSolvers();
+        preparePatchedSolvers();
         var constraint0 = null, constraint1 = null;
         bbb.defaultSolvers[0].forcedDelay = 0;
         bbb.defaultSolvers[0].forcedSolveAction = function () {
