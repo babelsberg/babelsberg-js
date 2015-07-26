@@ -2567,7 +2567,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         var obj = {a: 2, b: 3};
         bbb.defaultSolvers[0].forcedDelay = 10;
         bbb.defaultSolvers[1].forcedDelay = 0;
-        bbb.defaultRecalculationInterval = 2; // recalculate after two updates
+        bbb.defaultReevaluationInterval = 2; // recalculate after two updates
         var constraint = bbb.always({
             ctx: {
                 obj: obj
@@ -2584,10 +2584,10 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         }
         this.assert(constraint.solver === bbb.defaultSolvers[0],
                     "the solver should have changed to the new faster solver");
-        bbb.defaultSolvers[1].forcedSolveAction = (function() {
+        bbb.defaultSolvers[1].forcedSolveAction = function() {
             this.assert(false, 'The slower solver should not be called anymore.');
-        }).bind(this);
-        constraint.recalculationInterval = 1000;
+        }.bind(this);
+        constraint.reevaluationInterval = 1000;
         obj.a += 1;
     },
 
@@ -2610,7 +2610,7 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectio
         };
         bbb.defaultSolvers[1].solveCalls = 0;
         bbb.defaultSolvers[1].forcedSolveAction = bbb.defaultSolvers[0].forcedSolveAction;
-        constraint.recalculationInterval = 3;
+        constraint.reevaluationInterval = 3;
         var otherSolver = bbb.defaultSolvers[constraint.solver === bbb.defaultSolvers[0] ?
             1 : 0];
         for (var i = 0; i < 2; i++) {

@@ -18,7 +18,7 @@ Object.subclass('Babelsberg', {
 
     initialize: function() {
         this.defaultSolvers = [new ClSimplexSolver(), new DBPlanner(), new csp.Solver()];
-        this.defaultRecalculationInterval = 1000;
+        this.defaultReevaluationInterval = 1000;
         this.callbacks = [];
     },
 
@@ -674,7 +674,7 @@ Object.subclass('Constraint', {
         this.constraintobjects = [];
         this.constraintvariables = [];
         this.solver = solver;
-        this.recalculationInterval = bbb.defaultRecalculationInterval;
+        this.reevaluationInterval = bbb.defaultReevaluationInterval;
         this.updateCounter = 0;
 
         // FIXME: this global state is ugly
@@ -1074,7 +1074,7 @@ Object.subclass('ConstrainedVariable', {
                 if (isInitiatingSuggestForDefiningConstraint) {
                     definingConstraint.updateCounter += 1;
                     if (definingConstraint.updateCounter >=
-                        definingConstraint.recalculationInterval) {
+                        definingConstraint.reevaluationInterval) {
                             bbb.reevaluateSolverSelection(definingConstraint, this);
                             definingConstraint.updateCounter = 0;
                         }
