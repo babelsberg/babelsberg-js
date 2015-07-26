@@ -278,10 +278,7 @@ Object.subclass('Babelsberg', {
             }
         }
         if (constraint) {
-            constraints.each(function(each) {
-                if (each !== constraint && each !== null)
-                    each.abandon();
-            });
+            this.abandonAllConstraintsExcept(constraint, constraints);
         } else {
             if (typeof opts.onError === 'function') {
                 bbb.addCallback(opts.onError, opts.onError.constraint, errors);
@@ -295,6 +292,13 @@ Object.subclass('Babelsberg', {
         }
         bbb.processCallbacks();
         return constraint;
+    },
+
+    abandonAllConstraintsExcept: function(constraintToKeep, constraints) {
+        constraints.each(function(each) {
+            if (each !== constraintToKeep && each !== null)
+                each.abandon();
+        });
     },
 
     stay: function(opts, func) {
@@ -449,6 +453,7 @@ Object.subclass('Babelsberg', {
             } catch (e) {
                 errors.push(e);
                 constraints[i].disable();
+                constraints[i].abandon();
                 constraints[i] = null;
             } finally {
                 Constraint.current = null;
@@ -527,10 +532,7 @@ Object.subclass('Babelsberg', {
             // yes, constraint does not replace currentConstraint, only its solver
             currentConstraint.resetDefiningSolverOfVariables();
         }
-        constraints.each(function(each) {
-            if (each !== currentConstraint)
-                each.abandon();
-        });
+        this.abandonAllConstraintsExcept(currentConstraint, constraints);
         currentConstraint.enable();
     },
 
