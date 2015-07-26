@@ -1959,12 +1959,12 @@ Object.subclass('users.timfelgentreff.babelsberg.tests.DefaultSolversFixture', {
     saveDefaultSolvers: function(defaultSolvers) {
         this.previousDefaultSolvers = bbb.defaultSolvers;
         this.previousDefaultSolver = bbb.defaultSolver;
-        this.previousRecalculationInterval = bbb.defaultRecalculationInterval;
+        this.previousReevaluationInterval = bbb.defaultReevaluationInterval;
     },
     restoreDefaultSolvers: function() {
         bbb.defaultSolvers = this.previousDefaultSolvers;
         bbb.defaultSolver = this.previousDefaultSolver;
-        bbb.defaultRecalculationInterval = this.previousRecalculationInterval;
+        bbb.defaultReevaluationInterval = this.previousReevaluationInterval;
     },
 });
 
