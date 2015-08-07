@@ -83,7 +83,7 @@ contentLoaded(window, function() {
     });
 
     //setup default solver
-    bbb.defaultSolver = new CassowaryJS();
+    bbb.defaultSolver = new CassowaryRhea();
 
     always: {p1.left+p2.left == 2*m1.left};
     always: {p1.top+p2.top == 2*m1.top};
