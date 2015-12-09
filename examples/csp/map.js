@@ -1,9 +1,12 @@
 contentLoaded(window, function() {
     var InitializedEmZ3 = new EmZ3();
     var dirty = false;
-    var colors = ["red", "green", "blue", "yellow"],
-    defaultStateNames = _.map(["AUT", "BEL", "CZE", "FRA", "DEU",
-                               "LUX", "NLD", "POL", "CHE"], function (name) {
+    var colors = ["#fcaf3e", "#8ae234", "#729fcf", "#ef2929"],
+        defaultStateNames = _.map(["AUT", "BEL", "CZE", "FRA", "DEU",
+                                   // "HUN", "GRE", "HRV", "MKD", "BGR", "LTU", "MNE",
+                                   // "ROU", "SVK", "SVN", "SRB", "BIH", "CS-KM", "ALB",
+                                   "LUX", "NLD", "POL", "CHE", "ITA", "NOR", "SWE", "FIN",
+                                   "GBR", "IRL", "ESP", "DNK", "PRT"], function (name) {
                                    return "countries/" + name + ".geo.json";
                                });
     intersectionCache = {};
