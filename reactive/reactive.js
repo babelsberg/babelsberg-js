@@ -13,6 +13,7 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
             var cobj = new Constraint(func, this);
             cobj.allowFailing = true;
             cobj.addPrimitiveConstraint(new ReactiveSolver.Constraint(this, cobj, func));
+            cobj.opts = opts;
             try {
                 if(!opts.postponeEnabling) { cobj.enable(); }
             } catch(e) {
@@ -31,7 +32,12 @@ module('users.timfelgentreff.reactive.reactive').requires('users.timfelgentreff.
                 this.constraint.enabled &&
                 typeof this.constraint.predicate === "function";
         },
-        weight: 10000
+        weight: 10000,
+        solverName: 'reactive',
+        supportsMethods: function() { return false; },
+        supportsSoftConstraints: function() { return false; },
+        supportsFiniteDomains: function() { return false; },
+        supportedDataTypes: function() { return ['number', 'boolean', 'string', 'object']; /* XXX: is this correct? */ }
     });
 
     Object.subclass("ReactiveSolver.Variable", {

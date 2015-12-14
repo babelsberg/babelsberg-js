@@ -1954,4 +1954,676 @@ TestCase.subclass('users.timfelgentreff.babelsberg.tests.OnErrorTest', {
         this.assert(errorMessage === "Could not satisfy constraint", "an unexpected error was thrown, message: " + errorMessage);
     }
 });
+
+Object.subclass('users.timfelgentreff.babelsberg.tests.DefaultSolversFixture', {
+    saveDefaultSolvers: function(defaultSolvers) {
+        this.previousDefaultSolvers = bbb.defaultSolvers;
+        this.previousDefaultSolver = bbb.defaultSolver;
+        this.previousReevaluationInterval = bbb.defaultReevaluationInterval;
+    },
+    restoreDefaultSolvers: function() {
+        bbb.defaultSolvers = this.previousDefaultSolvers;
+        bbb.defaultSolver = this.previousDefaultSolver;
+        bbb.defaultReevaluationInterval = this.previousReevaluationInterval;
+    },
+});
+
+function preparePatchedSolvers() {
+    // prepare solvers of which the solving time and actions can be dictated
+    patchedSolver = new ClSimplexSolver();
+    patchedSolver.forcedDelay = 0;
+    patchedSolver.solve = function() {
+        var begin = performance.now();
+        while (performance.now() < begin + this.forcedDelay) {
+            ; // busy wait, no sleep in JavaScript
+            // and setTimeout is not what we want
+        }
+        if (typeof this.forcedSolveAction === 'function') {
+            return this.forcedSolveAction();
+        }
+        return ClSimplexSolver.prototype.solve.apply(this, arguments);
+    }
+    PatchedSolver = function() {}
+    PatchedSolver.prototype = patchedSolver;
+    bbb.defaultSolvers = [new PatchedSolver(), new PatchedSolver()];
+}
+
+TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionDetailsTest', {
+    setUp: function () {
+        this.defaultSolversFixture = new users.timfelgentreff.babelsberg.tests.DefaultSolversFixture();
+        this.defaultSolversFixture.saveDefaultSolvers();
+        bbb.defaultSolvers = [new ClSimplexSolver(), new DBPlanner(), new csp.Solver()];
+        bbb.defaultSolver = null;
+    },
+
+    tearDown: function () {
+        this.defaultSolversFixture.restoreDefaultSolvers();
+    },
+
+    testSquaredChangeDistance: function () {
+        var obj = {a: 2, b: 3};
+        var constraint = bbb.always({
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        this.assert(constraint.comparisonMetrics.squaredChangeDistance() ==
+                    (obj.a - 2) * (obj.a - 2) + (obj.b - 3) * (obj.b - 3),
+            "squaredChangeDistance should be the sum of the squared distances");
+    },
+
+    testChoiceWithTimeOverDistance1: function() {
+        preparePatchedSolvers();
+        bbb.defaultSolvers[0].forcedDelay = 0;
+        bbb.defaultSolvers[1].forcedDelay = 10;
+        // when: create actual constraint
+        var obj = {a: 2, b: 3};
+        var constraint = bbb.always({
+            ctx: {
+                obj: obj
+            },
+            logTimings: true,
+            optimizationPriority: ['time', 'squaredChangeDistance'],
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        // then: assert that the faster solver was chosen
+        this.assert(constraint.solver === bbb.defaultSolvers[0], 'The faster solver should have been chosen');
+    },
+
+    testChoiceWithTimeOverDistance2: function() {
+        preparePatchedSolvers();
+        bbb.defaultSolvers[0].forcedDelay = 10;
+        bbb.defaultSolvers[1].forcedDelay = 0;
+        // when: create actual constraint
+        var obj = {a: 2, b: 3};
+        var constraint = bbb.always({
+            ctx: {
+                obj: obj
+            },
+            optimizationPriority: ['time', 'squaredChangeDistance'],
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        // then: assert that the faster solver was chosen
+        this.assert(constraint.solver === bbb.defaultSolvers[1], 'The faster solver should have been chosen');
+    },
+
+    testChoiceWithDistanceOverTime1: function() {
+        preparePatchedSolvers();
+        var constraint0 = null, constraint1 = null;
+        bbb.defaultSolvers[0].forcedDelay = 10;
+        bbb.defaultSolvers[0].forcedSolveAction = function () {
+            if (!!Constraint.current) {
+                Constraint.current.enable = arguments.callee;
+                constraint0 = Constraint.current;
+            }
+            constraint0.constraintvariables[0].setValue(2);
+            constraint0.constraintvariables[1].setValue(1);
+        }
+        bbb.defaultSolvers[1].forcedDelay = 0;
+        bbb.defaultSolvers[1].forcedSolveAction = function () {
+            if (!!Constraint.current) {
+                Constraint.current.enable = arguments.callee;
+                constraint1 = Constraint.current;
+            }
+            constraint1.constraintvariables[0].setValue(10);
+            constraint1.constraintvariables[1].setValue(-7);
+        }
+        // when: create actual constraint
+        var obj = {a: 2, b: 3};
+        var constraint = bbb.always({
+            ctx: {
+                obj: obj
+            },
+            optimizationPriority: ['squaredChangeDistance', 'time'],
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        // then
+        this.assert(constraint.solver === bbb.defaultSolvers[0], 'The solver with the smaller distance should have been chosen (albeit slower)');
+    },
+
+    testChoiceWithNumberOfChangedVariablesOverTime1: function() {
+        preparePatchedSolvers();
+        var constraint0 = null, constraint1 = null;
+        bbb.defaultSolvers[0].forcedDelay = 10;
+        bbb.defaultSolvers[0].forcedSolveAction = function () {
+        }
+        bbb.defaultSolvers[1].forcedDelay = 0;
+        bbb.defaultSolvers[1].forcedSolveAction = function () {
+            if (!!Constraint.current) {
+                Constraint.current.enable = arguments.callee;
+                constraint1 = Constraint.current;
+            }
+            constraint1.constraintvariables[0].setValue(10);
+            constraint1.constraintvariables[1].setValue(-7);
+        }
+        // when: create actual constraint
+        var obj = {a: 2, b: 1};
+        var constraint = bbb.always({
+            ctx: {
+                obj: obj
+            },
+            optimizationPriority: ['numberOfChangedVariables', 'time'],
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        // then
+        this.assert(constraint.solver === bbb.defaultSolvers[0], 'The solver with the smaller distance should have been chosen (albeit slower)');
+    },
+
+    testChoiceWithNumberOfChangedVariablesOverTime2: function() {
+        preparePatchedSolvers();
+        var constraint0 = null, constraint1 = null;
+        bbb.defaultSolvers[0].forcedDelay = 10;
+        bbb.defaultSolvers[0].forcedSolveAction = function () {
+            if (!!Constraint.current) {
+                Constraint.current.enable = arguments.callee;
+                constraint0 = Constraint.current;
+            }
+            constraint0.constraintvariables[0].setValue(10);
+            constraint0.constraintvariables[1].setValue(-7);
+        }
+        bbb.defaultSolvers[1].forcedDelay = 0;
+        bbb.defaultSolvers[1].forcedSolveAction = function () {
+        }
+        // when: create actual constraint
+        var obj = {a: 2, b: 1};
+        var constraint = bbb.always({
+            ctx: {
+                obj: obj
+            },
+            optimizationPriority: ['numberOfChangedVariables', 'time'],
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        // then
+        this.assert(constraint.solver === bbb.defaultSolvers[1], 'The solver with the smaller distance should have been chosen (albeit slower)');
+    },
+
+    testChoiceWithDistanceOverTime2: function() {
+        preparePatchedSolvers();
+        var constraint0 = null, constraint1 = null;
+        bbb.defaultSolvers[0].forcedDelay = 0;
+        bbb.defaultSolvers[0].forcedSolveAction = function () {
+            if (!!Constraint.current) {
+                Constraint.current.enable = arguments.callee;
+                constraint0 = Constraint.current;
+            }
+            constraint0.constraintvariables[0].setValue(10);
+            constraint0.constraintvariables[1].setValue(-7);
+        }
+        bbb.defaultSolvers[1].forcedDelay = 10;
+        bbb.defaultSolvers[1].forcedSolveAction = function () {
+            if (!!Constraint.current) {
+                Constraint.current.enable = arguments.callee;
+                constraint1 = Constraint.current;
+            }
+            constraint1.constraintvariables[0].setValue(2);
+            constraint1.constraintvariables[1].setValue(1);
+        }
+        // when: create actual constraint
+        var obj = {a: 2, b: 3};
+        var constraint = bbb.always({
+            ctx: {
+                obj: obj
+            },
+            optimizationPriority: ['squaredChangeDistance', 'time'],
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        // then
+        this.assert(constraint.solver === bbb.defaultSolvers[1], 'The solver with the smaller distance should have been chosen (albeit slower)');
+    },
+
+    testStringsAndSquaredChangeDistance: function() {
+        // we do not support a distance for string values
+        // but it should not break the solver selection process
+        var subject = {hat: '', shoes: 'black'};
+        var constraint = bbb.always({
+            ctx: {
+                subject: subject
+            },
+            optimizationPriority: ['squaredChangeDistance', 'time'],
+        }, function () {
+            return subject.hat === subject.shoes;
+        });
+        this.assert(subject.hat === subject.shoes);
+    },
+
+});
+
+TestCase.subclass('users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionTest', {
+    setUp: function () {
+        this.defaultSolversFixture = new users.timfelgentreff.babelsberg.tests.DefaultSolversFixture();
+        this.defaultSolversFixture.saveDefaultSolvers();
+        bbb.defaultSolvers = [new ClSimplexSolver(), new DBPlanner(), new csp.Solver()];
+        bbb.defaultSolver = null;
+    },
+
+    tearDown: function() {
+        this.defaultSolversFixture.restoreDefaultSolvers();
+    },
+
+    testSimpleConstraintWithoutSolver: function () {
+        var obj = {a: 2, b: 3};
+        bbb.always({
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a working solution");
+    },
+
+    testSuggestingNewValues: function () {
+        var obj = {a: 2, b: 3};
+        bbb.always({
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a " +
+                    "working solution");
+        obj.a = 1;
+        this.assert(obj.a === 1, "Assignment should be honored");
+        this.assert(obj.a + obj.b == 3, "Constraint should have adapted the other " +
+                    "variable to fulfill the constraint");
+        obj.b = 3;
+        this.assert(obj.b === 3, "Assignment should be honored");
+        this.assert(obj.a + obj.b == 3, "Constraint should have adapted the other " +
+                    "variable to fulfill the constraint");
+    },
+
+    testSelfAssignmentOperations: function () {
+        bbb.defaultSolvers = [new ClSimplexSolver(), new ClSimplexSolver()];
+        var obj = {a: 2, b: 3};
+        bbb.always({
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a " +
+                    "working solution");
+        var oldA = obj.a;
+        obj.a += 1;
+        this.assert(obj.a === oldA + 1, "Assignment should be honored");
+        this.assert(obj.a + obj.b == 3, "Constraint should have adapted the other " +
+                    "variable to fulfill the constraint");
+        obj.a += 1;
+        this.assert(obj.a === oldA + 2, "Assignment should be honored");
+        this.assert(obj.a + obj.b == 3, "Constraint should have adapted the other " +
+                    "variable to fulfill the constraint");
+    },
+
+    // TODO: move this to Details test case
+    testConstraintVariableDefiningConstraint: function () {
+        var obj = {a: 2, b: 3};
+        var constraint = bbb.always({
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        for (var i = 0; i < constraint.constraintvariables.length; i++) {
+            var constraintVariable = constraint.constraintvariables[i];
+            this.assert(constraintVariable.definingConstraint === constraint);
+        }
+    },
+
+    testSimplePropagationShouldChooseDeltaBlue: function() {
+        var o = {string: "0",
+                 number: 0};
+
+        bbb.always({
+            ctx: {
+                o: o
+            }, methods: function () {
+                o.string.formula([o.number], function (num) { return num + "" });
+                o.number.formula([o.string], function (str) { return parseInt(str) });
+            }
+        }, function () {
+            return o.string == o.number + "";
+        });
+
+        this.assert(o.string === o.number + "");
+        o.string = "1"
+        this.assert(o.number === 1);
+        o.number = 12
+        this.assert(o.string === "12");
+    },
+    testBacktalkPaperExampleWithAutomaticSolverSelection: function () {
+        var man = {
+            shoes: "foo",
+            shirt: "foo",
+            pants: "foo",
+            hat: "foo"
+        };
+        
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shoes.is in ["brown", "black"];;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shirt.is in ["brown", "blue", "white"];;
+        });
+        
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.pants.is in ["brown", "blue", "black", "white"];;
+        });
+        
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.hat.is in ["brown"];;
+        });
+        
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shoes === man.hat;;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shoes !== man.pants;;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shoes !== man.shirt;;
+        });
+
+        bbb.always({
+            ctx: {
+                bbb: bbb,
+                csp: csp,
+                man: man,
+                _$_self: this.doitContext || this
+            }
+        }, function() {
+            return man.shirt !== man.pants;;
+        });
+
+        this.assert(man.hat === "brown", "hat's domain is restricted to 'brown' only");
+        this.assert(man.shoes === "brown", "shoes have to be 'brown'");
+        this.assert(man.shirt === "blue" || man.shirt === "white", "shirt has to be 'blue' or 'white'");
+        this.assert(man.shirt !== man.pants, "shirt and pants must not have the same color");
+        this.assert(man.pants === "black" || man.pants === "blue" || man.pants === "white", "pants should be 'black', 'blue' or 'white'");
+    },
+    testFilteringByPriority: function () {
+        var testCase = this;
+        Object.subclass('DummySolver', {
+            always: function(opts, func) { testCase._askedDummySolver = true; throw new Error('will be caught'); },
+            solverName: 'TestDummy',
+            supportsMethods: function() { return true; },
+            supportsSoftConstraints: function() { return false; },
+            supportsFiniteDomains: function() { return false; },
+            supportedDataTypes: function() { return ['number']; }
+        });
+
+        bbb.defaultSolvers = [new DummySolver(), new ClSimplexSolver()];
+        var obj = {a: 2, b: 3};
+        bbb.always({
+            ctx: {
+                obj: obj
+            },
+            logReasons: true,
+            priority: 'low',
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        this.assert(!this._askedDummySolver, "should not have asked solver to try");
+        this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a working solution");
+    },
+    testFilteringByMethods: function () {
+        var testCase = this;
+        Object.subclass('DummySolver', {
+            always: function(opts, func) { testCase._askedDummySolver = true; throw new Error('will be caught'); },
+            solverName: 'TestDummy',
+            supportsMethods: function() { return false; },
+            supportsSoftConstraints: function() { return false; },
+            supportsFiniteDomains: function() { return false; },
+            supportedDataTypes: function() { return ['number', 'string']; }
+        });
+        
+        bbb.defaultSolvers = [new DummySolver(), new DBPlanner()];
+        var o = {string: "0",
+                 number: 0};
+
+        bbb.always({
+            ctx: {
+                o: o
+            }, methods: function () {
+                o.string.formula([o.number], function (num) { return num + "" });
+                o.number.formula([o.string], function (str) { return parseInt(str) });
+            },
+            logReasons: true
+        }, function () {
+            return o.string == o.number + "";
+        });
+
+        this.assert(!this._askedDummySolver, "should not have asked solver to try");
+        this.assert(o.string === o.number + "");
+        o.string = "1"
+        this.assert(o.number === 1);
+        o.number = 12
+        this.assert(o.string === "12");
+    },
+    testFilteringByDataTypeOnSlots: function () {
+        var testCase = this;
+        Object.subclass('DummySolver', {
+            always: function(opts, func) { testCase._askedDummySolver = true; throw new Error('will be caught'); }, 
+            solverName: 'TestDummy',
+            supportsMethods: function() { return true; },
+            supportsSoftConstraints: function() { return true; },
+            supportsFiniteDomains: function() { return false; },
+            supportedDataTypes: function() { return ['string']; }
+        });
+
+        bbb.defaultSolvers = [new DummySolver(), new ClSimplexSolver()];
+        var obj = {a: 2, b: 3};
+        bbb.always({
+            ctx: {
+                obj: obj
+            },
+            logReasons: true
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        this.assert(!this._askedDummySolver, "should not have asked solver to try");
+        this.assert(obj.a + obj.b == 3, "Automatic solver selection did not produce a working solution");
+    },
+    testFilteringByDataTypeOnCalls: function () {
+        var testCase = this;
+        Object.subclass('DummySolver', {
+            always: function(opts, func) { testCase._askedDummySolver = true; throw new Error('will be caught'); },
+            solverName: 'TestDummy',
+            supportsMethods: function() { return true; },
+            supportsSoftConstraints: function() { return true; },
+            supportsFiniteDomains: function() { return false; },
+            supportedDataTypes: function() { return ['string']; }
+        });
+
+        bbb.defaultSolvers = [new DummySolver(), new ClSimplexSolver()];
+        var obj = {a: 2, get: function(){ return this.a; }};
+        obj[0] = 3;
+        var inc = function(i) { return i + 1;};
+        bbb.always({
+            ctx: {
+                obj: obj,
+                inc: inc
+            },
+            logReasons: true
+        }, function() {
+            return obj.get() == inc(obj[0]);
+        });
+        this.assert(!this._askedDummySolver, "should not have asked solver to try");
+        this.assert(obj.get() == inc(obj[0]), "Automatic solver selection did not produce a working solution");
+    },
+    testFilteringByFiniteDomains: function () {
+        var testCase = this;
+        Object.subclass('DummySolver', {
+            always: function(opts, func) { testCase._askedDummySolver = true; throw new Error('will be caught'); },
+            solverName: 'TestDummy',
+            supportsMethods: function() { return true; },
+            supportsSoftConstraints: function() { return true; },
+            supportsFiniteDomains: function() { return false; },
+            supportedDataTypes: function() { return ['string']; }
+        });
+
+        bbb.defaultSolvers = [new DummySolver(), new csp.Solver()];
+        
+        var man = {
+            shoes: "foo"
+        };
+        
+        bbb.always({
+            ctx: {
+                man: man
+            },
+            logReasons: true
+        }, function() {
+            return man.shoes.is in ["brown", "black"];;
+        });
+        this.assert(!this._askedDummySolver, "should not have asked solver to try");
+        this.assert(man.shoes === "brown" || man.shoes === "black", "Automatic solver selection did not produce a working solution");
+    },
+    testReevaluationAfterDefaultNumberOfSolvingOperations: function() {
+        preparePatchedSolvers();
+        var obj = {a: 2, b: 3};
+        bbb.defaultSolvers[0].forcedDelay = 10;
+        bbb.defaultSolvers[1].forcedDelay = 0;
+        bbb.defaultReevaluationInterval = 2; // recalculate after two updates
+        var constraint = bbb.always({
+            ctx: {
+                obj: obj
+            }
+        }, function() {
+            return obj.a + obj.b == 3;
+        });
+        this.assert(constraint.solver === bbb.defaultSolvers[1],
+                    "the initially faster solver should have been chosen");
+        bbb.defaultSolvers[0].forcedDelay = 0;
+        bbb.defaultSolvers[1].forcedDelay = 10;
+        for (var i = 0; i < 2; i++) {
+            obj.a += 1;
+        }
+        this.assert(constraint.solver === bbb.defaultSolvers[0],
+                    "the solver should have changed to the new faster solver");
+        bbb.defaultSolvers[1].forcedSolveAction = function() {
+            this.assert(false, 'The slower solver should not be called anymore.');
+        }.bind(this);
+        constraint.reevaluationInterval = 1000;
+        obj.a += 1;
+    },
+
+    testCallsToSolvers: function() {
+        preparePatchedSolvers();
+        var obj = {a: 2, b: 3, c: 5};
+        bbb.defaultSolvers[0].forcedDelay = 10;
+        bbb.defaultSolvers[1].forcedDelay = 0;
+        var constraint = bbb.always({
+            ctx: {
+                obj: obj
+            },
+            reevaluationInterval: 3
+        }, function() {
+            return obj.a + obj.b == 3 && obj.c == obj.a + obj.b;
+        });
+        bbb.defaultSolvers[0].solveCalls = 0;
+        bbb.defaultSolvers[0].forcedSolveAction = function() {
+            this.solveCalls += 1;
+            ClSimplexSolver.prototype.solve.call(this);
+        };
+        bbb.defaultSolvers[1].solveCalls = 0;
+        bbb.defaultSolvers[1].forcedSolveAction = bbb.defaultSolvers[0].forcedSolveAction;
+        var otherSolver = bbb.defaultSolvers[constraint.solver === bbb.defaultSolvers[0] ?
+            1 : 0];
+        for (var i = 0; i < 2; i++) {
+            obj.a += 1;
+        }
+        this.assert(constraint.solver.solveCalls >= 2, 'Chosen solver should have ' +
+                    'been called two times');
+        this.assert(otherSolver.solveCalls === 0, 'Unselected solver should ' +
+                    'not have been called');
+        constraint.solver.solveCalls = 0;
+        otherSolver.solveCalls = 0;
+        obj.a += 1; // should cause reevaluation
+        this.assert(constraint.solver.solveCalls >= 1, 'Chosen solver should have ' +
+                    'been called for reevaluation');
+        this.assert(otherSolver.solveCalls >= 1, 'Unselected solver should ' +
+                    'have been called for reevaluation');
+        // in case the solver has changed, update our otherSolver variable
+        // (it should not, but we do not wish to assert that here)
+        var otherSolver = bbb.defaultSolvers[constraint.solver === bbb.defaultSolvers[0] ?
+            1 : 0];
+        constraint.solver.solveCalls = 0;
+        otherSolver.solveCalls = 0;
+        for (var i = 0; i < 2; i++) {
+            obj.a += 1;
+        }
+        this.assert(constraint.solver.solveCalls >= 2, 'Chosen solver should be called');
+        this.assert(otherSolver.solveCalls === 0, 'Unchosen solver should not be called');
+        constraint.solver.solveCalls = 0;
+        otherSolver.solveCalls = 0;
+        obj.a += 1; // should cause reevaluation
+        this.assert(constraint.solver.solveCalls >= 1, 'Chosen solver should have ' +
+                    'been called for reevaluation');
+        this.assert(otherSolver.solveCalls >= 1, 'Unselected solver should ' +
+                    'have been called for reevaluation');
+    }
+});
 }) // end of module
