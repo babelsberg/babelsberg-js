@@ -1016,7 +1016,7 @@ Object.subclass('ECJITTests', {
     clDrag2DSimFastXEdit: function(numIterations) {
         this.clDrag2DSimEditParam(numIterations, 3);
     },
-    
+
     clDrag2DSimChangeParam: function(numIterations, numSwitch) {
         var ctx = {
             mouse: {x: 100, y: 100},
@@ -1045,7 +1045,7 @@ Object.subclass('ECJITTests', {
             }
         }
     },
-    
+
     clDrag2DSimChangeEditParam: function(numIterations, numSwitch) {
         var ctx = {
             mouse: {x: 100, y: 100},
@@ -1080,23 +1080,23 @@ Object.subclass('ECJITTests', {
         }
         cb();
     },
-    
+
     clDrag2DSimChangeHalf: function(numIterations) {
         this.clDrag2DSimChangeParam(numIterations, numIterations/2);
     },
-    
+
     clDrag2DSimChangeHalfEdit: function(numIterations) {
         this.clDrag2DSimChangeEditParam(numIterations, numIterations/2);
     },
-    
+
     clDrag2DSimChangeTenth: function(numIterations) {
         this.clDrag2DSimChangeParam(numIterations, numIterations/10);
     },
-    
+
     clDrag2DSimChangeTenthEdit: function(numIterations) {
         this.clDrag2DSimChangeEditParam(numIterations, numIterations/10);
     },
-    
+
     clDrag2DSimFreqChangeParam: function(numIterations, switchFreq) {
         var ctx = {
             mouse: {x: 100, y: 100},
@@ -1124,7 +1124,7 @@ Object.subclass('ECJITTests', {
             }
         }
     },
-    
+
     clDrag2DSimFreqChangeEditParam: function(numIterations, switchFreq) {
         var ctx = {
             mouse: {x: 100, y: 100},
@@ -1154,11 +1154,11 @@ Object.subclass('ECJITTests', {
         }
         cb();
     },
-    
+
     clDrag2DSimFreqChange5: function(numIterations) {
         this.clDrag2DSimChangeParam(numIterations, 5);
     },
-    
+
     clDrag2DSimFreqChange5Edit: function(numIterations) {
         this.clDrag2DSimChangeEditParam(numIterations, 5);
     }
