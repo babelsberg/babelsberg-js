@@ -1584,9 +1584,14 @@ Object.subclass('ConstrainedVariable', {
 
     solveForPrimarySolver: function(value, priorValue, solver, source) {
         if (this.externalValue == value) {
-            // should just store, solver already has the right value
-            this.setValue(value);
-            return;
+            // XXX: The solver already has the right value, but
+            // we mustn't just store and return - if there are multiple
+            // cooperating solvers that are connect to this variable via
+            // the transitive closure of constraints, they wouldn't receive
+            // the updated value.
+            // TODO: Add a faster path to trigger these and then do the below:
+            // this.setValue(value);
+            // return;
         }
         if (this.isSolveable()) {
             (function() {
@@ -1887,7 +1892,12 @@ Object.subclass('ConstrainedVariable', {
 
     get externalValue() {
         var value;
-        return this.pvtGetExternalValue(this.externalVariable);
+        try {
+            return this.pvtGetExternalValue(this.externalVariable);
+        } catch(e) {
+            // catch all here
+            return null;
+        }
     },
 
     pvtGetExternalValue: function(evar) {
