@@ -26,6 +26,15 @@ ClSimplexSolver.addMethods({
         var constraint = new Constraint(func, this);
         constraint.priority = priority;
         return constraint;
+    },
+    solverName: 'Cassowary',
+    supportsMethods: function() { return false; },
+    supportsSoftConstraints: function() { return true; },
+    supportsFiniteDomains: function() { return false; },
+    supportedDataTypes: function() {
+        // Cassowary does not support strings, but there are actively used scenarios
+        // where js-coercion from string to float is used - these cases would be blown
+        return ['number', 'string']; /* XXX: is this correct? */
     }
 });
 

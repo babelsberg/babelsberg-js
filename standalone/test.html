@@ -66,15 +66,31 @@
 	<script src="../backtalk/tests.js"></script>
 	
 	<script type="text/javascript">
-		obj = {a: 1, b: 2}
-		s = new ClSimplexSolver();
-		bbb.always({solver: s, ctx: {obj: obj}}, function () {
-			return obj.a + 7 <= obj.b
-		});
-		obj.a = 10;
-		console.log(obj.a, obj.b);
+		//Workaround: the travis test setup does not support performance
+		// Fall back to Date if performance is not available
+		window.performance = window.performance || {};
+		performance.now = (function() {
+		  return performance.now       ||
+				 performance.mozNow    ||
+				 performance.msNow     ||
+				 performance.oNow      ||
+				 performance.webkitNow ||
+				 function() { return new Date().getTime(); };
+		})();
+
+		(function() {
+			var obje = {a: 1, b: 2}
+			s = new ClSimplexSolver();
+			bbb.always({solver: s, ctx: {obje: obje}}, function () {
+				return obje.a + 7 <= obje.b
+			});
+			obje.a = 10;
+			console.log(obje.a, obje.b);
+		})();
 		
 		new users.timfelgentreff.babelsberg.tests.ConstraintTest().runAll();
+		new users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionTest().runAll();
+		new users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionDetailsTest().runAll();
 		new users.timfelgentreff.babelsberg.tests.PropagationTest().runAll();
 		new users.timfelgentreff.babelsberg.tests.InteractionTest().runAll();
 		new users.timfelgentreff.babelsberg.src_transform_test.TransformTest().runAll();
@@ -97,13 +113,16 @@
 	</script>
 	
 	<script type="text/babelsbergscript">
-		obj = {a: 1, b: 2}
-		s = new ClSimplexSolver();
-		always: { solver: s
-			obj.a + 7 <= obj.b
-		}
-		obj.a = 10;
-		console.log(obj.a, obj.b);
+
+		(function() {
+			var objec = {a: 1, b: 2}
+			s = new ClSimplexSolver();
+			always: { solver: s
+				objec.a + 7 <= objec.b
+			}
+			objec.a = 10;
+			console.log(objec.a, objec.b);
+		})();
 	</script>
 	
 	</head>
