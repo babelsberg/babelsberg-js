@@ -1,6 +1,16 @@
 module('users.timfelgentreff.sutherland.relax_bbb').
     requires('users.timfelgentreff.sutherland.relax').toRun(function() {
 
+// Automatic solver selection interface
+Relax.prototype.solverName = "Sutherland's Relaxation";
+Relax.prototype.supportsMethods = function () { return false; };
+Relax.prototype.supportsFiniteDomains = function () { return false; };
+Relax.prototype.supportedDataTypes = function () {
+    // Like Cassowary, Relax does not support strings, but there are actively
+    // used scenarios where js-coercion from string to float is used - these
+    // cases would be blown
+    return ['number', 'string'];
+};
 
 // Babelsberg required interface
 // addConstraint, removeConstraint

@@ -7,6 +7,9 @@ module('users.timfelgentreff.babelsberg.constraintinterpreter').requires(
     'users.timfelgentreff.babelsberg.core_ext',
     'users.timfelgentreff.babelsberg.src_transform',
     'users.timfelgentreff.babelsberg.babelsberg-lively',
+    // 'users.timfelgentreff.z3.StrZ3',
+    // 'users.timfelgentreff.z3.CommandLineZ3',
+    'users.timfelgentreff.backtalk.backtalk_ext',
     'users.timfelgentreff.sutherland.relax_bbb').
 toRun(function() {
 
@@ -17,7 +20,14 @@ toRun(function() {
 Object.subclass('Babelsberg', {
 
     initialize: function() {
-        this.defaultSolvers = [new ClSimplexSolver(), new DBPlanner(), new csp.Solver()];
+        this.defaultSolvers = [
+            new ClSimplexSolver(),
+            new DBPlanner(),
+            new Relax(),
+            // new CommandLineZ3(),
+            // new StrZ3(),
+            new BacktalkSolver(),
+            new csp.Solver()];
         this.defaultReevaluationInterval = 1000;
         this.callbacks = [];
         this.ecjit = new EmptyECJIT();
@@ -963,7 +973,17 @@ Object.subclass('EmptyECJIT', {
 });
 Object.subclass('ECJITTests', {
     benchAll: function() {
-        var names = ['clAddSim', 'dbAddSim', 'clDragSim', 'clDrag2DSim', 'clDrag2DSimFastX', 'clDrag2DSimChangeHalf', 'clDrag2DSimChangeTenth'],
+        var llpad;
+        if (!lively.lang || !lively.lang.string) { // during headless tests
+            llpad = function(str, n, bool) { var p = "                               "; return (p + str).slice(-n); };
+        } else {
+            llpad = lively.lang.string.pad;
+        }
+
+        var names = ['clAddSim', 'dbAddSim', // 'clDragSim',
+                     'clDrag2DSim', 'clDrag2DSimFastX',
+                     // 'clDrag2DSimChangeHalf', 'clDrag2DSimChangeTenth'
+                    ],
             scenarios = [
                 {iter: 5}, {iter: 100} //, {iter: 500}
             ],
@@ -974,8 +994,8 @@ Object.subclass('ECJITTests', {
                 function() { return new MultiplicativeAdaptiveECJIT() },
                 function() { return new LastECJIT() }
             ],
-            pad = function(s, n) { return lively.lang.string.pad(s+"", n-(s+"").length) },
-            padl = function(s, n) { return lively.lang.string.pad(s+"", n-(s+"").length,true) };
+            pad = function(s, n) { return llpad(s+"", n-(s+"").length) },
+            padl = function(s, n) { return llpad(s+"", n-(s+"").length,true) };
 
         console.log("====== Start benchmark ======");
         console.log("Simulations: " + names.join(", "));

@@ -2,12 +2,18 @@ module('users.timfelgentreff.z3.StrZ3').requires('users.timfelgentreff.z3.Comman
 
 
     CommandLineZ3.subclass('StrZ3', {
+        solverName: 'Z3-str',
+        supportsMethods: function() { return false; },
+        supportedDataTypes: function() {
+            return ['number', 'string', 'boolean'];
+        },
+
         applyResult: function(r) {
             r = r.split("************************\n", 2)[1]
-            
+
             if (r.startsWith(">> SAT")/* || r.indexOf("\nsat\n") != -1 */) {
                 r = r.split("\n").slice(2) // remove header lines
-                
+
                 var assignments = r.map(function (str) {
                     var both = str.split(" -> "),
                         name = both[0].trim(),
@@ -15,7 +21,7 @@ module('users.timfelgentreff.z3.StrZ3').requires('users.timfelgentreff.z3.Comman
                     if (!name) return;
                     return {name: name, value: value};
                 }.bind(this));
-                
+
                 assignments.compact().each(function (a) {
                     this.varsByName[a.name].value = a.value;
                     if (!this.sync) {
@@ -50,7 +56,7 @@ module('users.timfelgentreff.z3.StrZ3').requires('users.timfelgentreff.z3.Comman
                 id = this.uuid,
                 filename = this.constructor.z3Path + "-" + id,
                 commandString = this.constructor.z3Path + ' -f ' + filename;
-            
+
             if (this.sync) {
                 // XXX: for some reason, thenDos don't get called synchronously??
                 lively.ide.CommandLineInterface.writeFile(filename, {sync: true, content: string});
@@ -65,7 +71,7 @@ module('users.timfelgentreff.z3.StrZ3').requires('users.timfelgentreff.z3.Comman
                 });
             }
         },
-        
+
         constraintVariableFor: function($super, value, ivarname, cvar) {
             if ((typeof(value) == "string") || (value instanceof String)) {
                 var name = ivarname + "" + this.variables.length;
@@ -77,7 +83,7 @@ module('users.timfelgentreff.z3.StrZ3').requires('users.timfelgentreff.z3.Comman
                 return $super(value, ivarname, cvar);
             }
         },
-        
+
         pruneUnusedVariables: function() {
             // Z3str does not take unused variables well
             var constraints = ["\n"].concat(this.constraints).reduce(function (acc, c) {
@@ -119,11 +125,11 @@ NaCLZ3Variable.subclass('StrZ3Variable', {
             return cop.proceed();
         }
     },
-    
+
     get cnlength() {
         return this.size();
     },
-    
+
     toString: function() {
         return this.value.toString()
     }
@@ -150,7 +156,7 @@ function initStrZ3Layer() {
         var z3Name = StrZ3.functionMap[method][0],
             arity = StrZ3.functionMap[method][1],
             isString = !!StrZ3.functionMap[method][2];
-        
+
         o[method] = (function (a, b) {
             if (this.isString) {
                 var result;

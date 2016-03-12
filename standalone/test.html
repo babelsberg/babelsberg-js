@@ -39,11 +39,16 @@
 	<script src="../csp/underscore-min.js"></script>
 	<script src="../csp/csp.js"></script>
 	<script src="../babelsberg/csp_ext.js"></script>
+	<!-- // Relax -->
+	<script src="../sutherland/relax.js"></script>
+	<!-- // BackTalk -->
+	<script src="../backtalk/backtalk.js"></script>
+	<script src="../backtalk/constraints.js"></script>
+	<script src="../backtalk/backtalk_ext.js"></script>
 	<!-- // Babelsberg/js -->
 	<script src="../babelsberg/core_ext.js"></script>
 	<script src="../babelsberg/constraintinterpreter.js"></script>
 	<!-- // Relax -->
-	<script src="../sutherland/relax.js"></script>
 	<script src="../sutherland/relax_bbb.js"></script>
 	<!-- // reactive: assert, trigger, layer.activeOn, layer.always, ... -->
 	<script src="../reactive/reactive.js"></script>
@@ -60,9 +65,6 @@
 	<script src="../babelsberg/src_transform.js"></script>
 	<script src="babelsbergscript.js"></script>
 	<!-- // BackTalk -->
-	<script src="../backtalk/backtalk.js"></script>
-	<script src="../backtalk/constraints.js"></script>
-	<script src="../backtalk/backtalk_ext.js"></script>
 	<script src="../backtalk/tests.js"></script>
 	
 	<script type="text/javascript">
@@ -110,6 +112,8 @@
 		new backtalk.BinaryConstraintTest().runAll();
 		new backtalk.SolverTest().runAll();
 		new backtalk.VariableTest().runAll();
+
+		new ECJITTests().benchAll();
 	</script>
 	
 	<script type="text/babelsbergscript">

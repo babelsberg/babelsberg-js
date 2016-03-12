@@ -1,5 +1,13 @@
 module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z3.NaClZ3', "lively.ide.CommandLineInterface").toRun(function() {
     NaCLZ3.subclass("CommandLineZ3", {
+
+        solverName: 'Commandline-Z3',
+        supportsSoftConstraints: function() { return true; },
+        supportsFiniteDomains: function() { return true; },
+        supportedDataTypes: function() {
+            return ['number', 'boolean', 'string', 'object']; /* XXX: is this correct? */
+        },
+
         loadModule: function () {
             // No module used
         },
