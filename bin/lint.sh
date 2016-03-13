@@ -9,7 +9,28 @@ if [ $? -ne 0 ]; then
 fi
 
 FOLDERS=(babelsberg cassowary csp deltablue standalone sutherland)
-EXCLUDE_FILES="uglify.js,PerformanceTests.js,tests.js,src_transform_test.js,zombietest.js,prototype.js,test_harness.js,underscore-min.js,testsuite.js"
+EXCLUDE_FILES="uglify.js,\
+PerformanceTests.js,\
+tests.js,\
+src_transform_test.js,\
+zombietest.js,\
+prototype.js,\
+test_harness.js,\
+underscore-min.js,\
+testsuite.js,\
+babelsberg.backtalk.js,\
+babelsberg.cassowary.js,\
+babelsberg.core.js,\
+babelsberg.csp.js,\
+babelsberg.deltablue.js,\
+babelsberg.mini.js,\
+babelsberg.mini.prototype.js,\
+babelsberg.reactive.js,\
+babelsberg.sutherland.js,\
+babelsberg.z3.js,\
+cassowaryjs.js,\
+rhea.js,\
+rhea.emscripten.js"
 EXCLUDE_FOLDERS="examples"
 CUSTOM_JSDOC_TAGS="example,function,global,name,tutorial"
 MAX_LINE_LEN=90

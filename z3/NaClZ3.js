@@ -203,7 +203,7 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
         }
         func.varMapping = opts.ctx;
         var constraint = new Constraint(func, this);
-        constraint.enable();
+        // constraint.enable();
         return constraint;
     },
     constraintVariableFor: function(value, ivarname, cvar) {
@@ -288,6 +288,11 @@ module('users.timfelgentreff.z3.NaClZ3').requires().toRun(function() {
             return acc + "\n" + "(assert " + c.print() + ")";
         });
     },
+    solverName: 'Z3',
+    supportsMethods: function() { return false; },
+    supportsSoftConstraints: function() { return false; },
+    supportsFiniteDomains: function() { return false; },
+    supportedDataTypes: function() { return ['number', 'boolean']; },
 });
 
     if (URL && URL.codeBase && URL.codeBase.withFilename) {

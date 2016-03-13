@@ -1,0 +1,46 @@
+{
+    "name": "babelsberg-js",
+    "version": "0.1.0",
+    "homepage": "http://babelsberg.github.io/babelsberg-js",
+    "authors": [
+        "Tim Felgentreff <tim.felgentreff@hpi.de>",
+        "Stefan Lehmann <stefan.lehmann@hpi.de>",
+        "Alan Borning <alan@cs.washington.edu>",
+        "Jens Lincke <jens.lincke@hpi.de>"
+    ],
+    "description": "Babelsberg/JS provides Object-Constraint Programming in Javascript",
+    "main": "standalone/babelsberg.mini.js",
+    "dependencies": {
+        "prototype.js": "~1.7.0"
+    },
+    "keywords": [
+        "babelsberg",
+        "object-constraint-programming"
+    ],
+    "license": "BSD-3-Clause",
+    "ignore": [
+        "**/.*",
+        "**/*.sh",
+        "**/*.html",
+        "**/*.json",
+        "**/*.metainfo",
+        "bin",
+        "borning",
+        "examples",
+        "midijs",
+        "ohshima",
+        "PartsBin",
+        "standalone/examples",
+        "tutorials",
+        "vanoverveld",
+        "z3/z3",
+        "z3/lib32",
+        "z3/lib64",
+        "z3/*.smt",
+        "z3/*.nexe",
+        "z3/*.nmf",
+        "z3/z3str.py-client-*",
+        "node_modules",
+        "bower_components"
+    ]
+}

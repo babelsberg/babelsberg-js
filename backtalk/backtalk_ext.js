@@ -37,7 +37,6 @@ Object.subclass('BacktalkSolver', {
         func.allowUnsolvableOperations = true;
         func.varMapping = ctx;
         var cobj = new Constraint(func, this);
-        debugger
         if (cobj.constraintobjects.length === 1 && needsFunc) {
             this.convertTestToFuncConstraint(cobj, func, opts);
         }
@@ -85,6 +84,13 @@ Object.subclass('BacktalkSolver', {
     },
     weight: 200,
     isConstraintObject: true,
+    solverName: 'Backtalk',
+    supportsMethods: function() { return false; },
+    supportsSoftConstraints: function() { return false; /* XXX: is this correct? */ },
+    supportsFiniteDomains: function() { return true; },
+    supportedDataTypes: function() {
+        return ['number', 'boolean', 'string', 'object']; /* XXX: is this correct? */
+    }
 });
 
 Object.subclass('BacktalkVariable', {
@@ -155,7 +161,6 @@ Object.subclass('BacktalkVariable', {
     },
     cnIn: function(ary) {
         var domain;
-        debugger
         if (ary instanceof this.constructor) {
             domain = ary.value();
         } else {

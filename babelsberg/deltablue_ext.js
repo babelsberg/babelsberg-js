@@ -92,6 +92,13 @@ DBPlanner.addMethods({
             edit.myOutput.value = newValues[idx];
         });
         this.currentEditPlan.execute();
+    },
+    solverName: 'DeltaBlue',
+    supportsMethods: function() { return true; },
+    supportsSoftConstraints: function() { return true; },
+    supportsFiniteDomains: function() { return false; },
+    supportedDataTypes: function() {
+        return ['number', 'boolean', 'string', 'object'];
     }
 });
 

@@ -16,7 +16,7 @@ BabelsbergScript code can be loaded just like any other JavaScript using the `sc
 <html>
 <head>
 <!-- Load the Babelsberg.js library -->
-<script type="text/javascript" src="js/babelsberg.mini.prototype.js"></script>
+<script type="text/javascript" src="http://lively-kernel.org/babelsberg/babelsberg.mini.prototype.js"></script>
 <!-- Define inlined BabelsbergScript -->
 <script type="text/babelsberg">
 	// Create a solver and an object to work with.
