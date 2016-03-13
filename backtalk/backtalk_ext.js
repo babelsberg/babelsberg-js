@@ -1,8 +1,7 @@
 module('users.timfelgentreff.backtalk.backtalk_ext').
 requires(
     'users.timfelgentreff.backtalk.backtalk',
-    'users.timfelgentreff.backtalk.constraints',
-    'users.timfelgentreff.babelsberg.constraintinterpreter').
+    'users.timfelgentreff.backtalk.constraints').
 toRun(function() {
 
 Object.subclass('BacktalkSolver', {
