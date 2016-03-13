@@ -138,6 +138,7 @@ refineClass(NaCLZ3Constraint, {
 })
 NaCLZ3Variable.subclass('CommandLineZ3Variable', {
     stay: function (strength) {
+        if (this.solver.disableStay) return;
         strength = strength || this.solver.strength.weak;
         if (!this._stayCn) {
             this._stayCn = new NaCLZ3BinaryExpression("=", this, this.value, this.solver);
