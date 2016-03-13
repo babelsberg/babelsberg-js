@@ -27,8 +27,9 @@ Object.subclass('Babelsberg', {
             new Relax(),
             // new CommandLineZ3(),
             // new StrZ3(),
-            new BacktalkSolver(),
-            new csp.Solver()];
+            // new BacktalkSolver(),
+            // new csp.Solver()
+        ];
         this.defaultReevaluationInterval = 1000;
         this.callbacks = [];
         this.ecjit = new EmptyECJIT();
