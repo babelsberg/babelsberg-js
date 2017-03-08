@@ -452,6 +452,30 @@ if (!window.module) {
         };
     }
 
+    Array.prototype.equals = (function(otherArray) {
+        // Returns true iff each element in `this` is equal (`==`) to its
+        // corresponding element in `otherArray`
+        var len = this.length;
+        if (!otherArray || len !== otherArray.length) return false;
+        for (var i = 0; i < len; i++) {
+            if (this[i] && otherArray[i] && this[i].equals && otherArray[i].equals) {
+                if (!this[i].equals(otherArray[i])) {
+                    return false;
+                } else {
+                    continue;
+                }
+            }
+            if (this[i] != otherArray[i]) return false;
+        }
+        return true;
+    });
+
+    if (typeof(Set) == 'undefined') {
+        Global.Set = function() {
+            throw 'Set not supported';
+        };
+    }
+
     window.alertOK = (function(msg) {
         console.log(msg);
     });

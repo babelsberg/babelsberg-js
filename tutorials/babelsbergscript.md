@@ -12,11 +12,12 @@ BabelsbergScript is the plain old JavaScript that you are used to, but added con
 BabelsbergScript code can be loaded just like any other JavaScript using the `script` tag, except for the type being set to `"text/babelsbergscript"`:
 
 ```html
+<<<<<<< HEAD
 &#60!DOCTYPE html&#62
 &#60html&#62
 &#60head&#62
 &#60!-- Load the Babelsberg.js library --&#62
-&#60script type="text/javascript" src="js/babelsberg.mini.prototype.js"&#62&#60/script&#62
+&#60script type="text/javascript" src="http://lively-kernel.org/babelsberg/babelsberg.mini.prototype.js"&#62&#60/script&#62
 &#60!-- Define inlined BabelsbergScript --&#62
 &#60script type="text/babelsberg"&#62
 	// Create a solver and an object to work with.

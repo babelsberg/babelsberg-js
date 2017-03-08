@@ -11,6 +11,49 @@ toRun(function() {
                     (node.label.name === 'always') &&
                     (node.body instanceof UglifyJS.AST_BlockStatement));
         },
+    isStay: function(node) {
+        return ((node instanceof UglifyJS.AST_LabeledStatement) &&
+                (node.label.name === 'stay') &&
+                (node.body instanceof UglifyJS.AST_BlockStatement));
+    },
+
+        isRule: function(node) {
+            if ((node instanceof UglifyJS.AST_Label) &&
+                    node.name === 'rule') {
+                this.__ruleLabelSeen = node;
+                return true;
+            } else if (this.__ruleLabelSeen &&
+                    node instanceof UglifyJS.AST_String) {
+                return true;
+            } else if ((node instanceof UglifyJS.AST_LabeledStatement) &&
+                    (node.label.name === 'rule') &&
+                    (node.body instanceof UglifyJS.AST_BlockStatement)) {
+                return true;
+            } else if ((node instanceof UglifyJS.AST_LabeledStatement) &&
+                    (node.body.body instanceof UglifyJS.AST_SimpleStatement) &&
+                    (node.body.body.body instanceof UglifyJS.AST_Call) &&
+                    (node.body.body.body.expression instanceof UglifyJS.AST_Dot) &&
+                    (node.body.body.body.expression.property === 'rule') &&
+                    (node.body.body.body.expression.expression.name === 'bbb')) {
+                // rule label with string that was transformed... remove the label
+                this.__ruleLabelRemove = true;
+                return true;
+            }
+            this.__ruleLabelSeen = null;
+            return false;
+        },
+
+        isOnce: function(node) {
+            return ((node instanceof UglifyJS.AST_LabeledStatement) &&
+                    (node.label.name === 'once') &&
+                    (node.body instanceof UglifyJS.AST_BlockStatement));
+        },
+
+        isTrigger: function(node) {
+            return ((node instanceof UglifyJS.AST_Call) &&
+                    (node.expression instanceof UglifyJS.AST_SymbolRef) &&
+                    (node.expression.name === 'when'));
+        },
 
         isRule: function(node) {
             if ((node instanceof UglifyJS.AST_Label) &&
@@ -138,6 +181,8 @@ toRun(function() {
                     return self.transformConstraint(ast, node, 'once');
                 } else if (self.isTrigger(node)) {
                     return self.transformConstraint(ast, node, 'when');
+                } else if (self.isStay(node)) {
+                    return self.transformConstraint(ast, node, 'stay');
                 } else if (self.isRule(node)) {
                     var node = self.createRuleFor(node);
                     self.isTransformed = true;
@@ -216,7 +261,7 @@ toRun(function() {
                         "Labeled arguments in `always:' have to be simple statements"
                     );
                 }
-                if (ea.label.name == 'store') {
+                if (ea.label.name == 'store' || ea.label.name == 'name') {
                     store = new UglifyJS.AST_Assign({
                         start: ea.start,
                         end: ea.end,
@@ -385,6 +430,9 @@ toRun(function() {
         if (name === 'ro') {
             name = 'bbb.readonly';
         }
+        if (name === 'system') {
+            name = 'bbb.system()';
+        }
         return new UglifyJS.AST_SymbolRef({name: name});
     }
 
@@ -475,8 +523,10 @@ toRun(function() {
                 return cop.withLayers([AddScriptWithFakeOriginalLayer], function() {
                     // If this layer is not global but only on the
                     // morph, make sure we use it here
-                    return cop.proceed.apply(this, [constraintCode]);
-                });
+                    var ctx123456 = this.getDoitContext() || this,
+                    interactiveEval = function(text123456) { return eval(text123456) };
+                    return interactiveEval.call(ctx123456, constraintCode);
+                }.bind(this));
             }
         }
     });

@@ -25,10 +25,17 @@
     },
     "enemyTanks": [
         {
-            "type": "BrownTurret",
-            "position": { "x": 33, "y": 14},
+            "type": "Yellow",
+            "position": { "x": 31, "y": 14},
             "velocity": { "x": 0, "y": 0},
             "turretDirection": { "x": -1, "y": 0}
+        }
+    ],
+    "powerUps": [
+        {
+            "type": "Spring",
+            "position": { "x": 16, "y": 14},
+            "timeout": 180
         }
     ]
 }

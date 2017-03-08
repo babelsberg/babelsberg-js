@@ -25,10 +25,17 @@
     },
     "enemyTanks": [
         {
-            "type": "TealHunter",
+            "type": "Blue",
             "position": { "x": 31, "y": 19},
             "velocity": { "x": -1, "y": 0},
             "turretDirection": { "x": -1, "y": 0}
+        }
+    ],
+    "powerUps": [
+        {
+            "type": "Sticky",
+            "position": { "x": 29, "y": 9},
+            "timeout": 10
         }
     ]
 }

@@ -704,11 +704,11 @@ users.timfelgentreff.jsinterpreter.Parser.jsParser = LivelyJSParser;',
     'break': {
         className: 'Break', rules: [':pos', 'trans:label'],
         initializing: {
-          	initialize: function($super, pos, label) {
-            		this.pos = pos;
-            		this.label = label || new users.timfelgentreff.jsinterpreter.Label([pos[1], pos[1]], '');
-            		this.label.setParent(this);
-          	},
+              initialize: function($super, pos, label) {
+                    this.pos = pos;
+                    this.label = label || new users.timfelgentreff.jsinterpreter.Label([pos[1], pos[1]], '');
+                    this.label.setParent(this);
+              },
         },
         debugging: {
             printConstruction: function() { return this.printConstructorCall(this.pos, this.label) },
@@ -731,11 +731,11 @@ users.timfelgentreff.jsinterpreter.Parser.jsParser = LivelyJSParser;',
     'continue': {
         className: 'Continue', rules: [':pos', 'trans:label'],
         initializing: {
-          	initialize: function($super, pos, label) {
-            		this.pos = pos;
-            		this.label = label || new users.timfelgentreff.jsinterpreter.Label([pos[1], pos[1]], '');
-            		this.label.setParent(this);
-          	},
+              initialize: function($super, pos, label) {
+                    this.pos = pos;
+                    this.label = label || new users.timfelgentreff.jsinterpreter.Label([pos[1], pos[1]], '');
+                    this.label.setParent(this);
+              },
         },
         debugging: {
             printConstruction: function() { return this.printConstructorCall(this.pos, this.label) },

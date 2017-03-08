@@ -92,6 +92,13 @@ DBPlanner.addMethods({
             edit.myOutput.value = newValues[idx];
         });
         this.currentEditPlan.execute();
+    },
+    solverName: 'DeltaBlue',
+    supportsMethods: function() { return true; },
+    supportsSoftConstraints: function() { return true; },
+    supportsFiniteDomains: function() { return false; },
+    supportedDataTypes: function() {
+        return ['number', 'boolean', 'string', 'object'];
     }
 });
 
@@ -232,7 +239,7 @@ DBVariable.addMethods({
                 var inputs = Constraint.current.constraintvariables.map(function(cvar) {
                     return cvar.externalVariable;
                 }).filter(function(evar) {
-                    return evar && evar !== this;
+                    return evar && evar !== this && typeof(evar.name) == 'string';
                 }.bind(this));
 
                 var c = new UserDBConstraint(function() {}, Constraint.current.solver);

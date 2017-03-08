@@ -1,5 +1,13 @@
 module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z3.NaClZ3', "lively.ide.CommandLineInterface").toRun(function() {
     NaCLZ3.subclass("CommandLineZ3", {
+
+        solverName: 'Commandline-Z3',
+        supportsSoftConstraints: function() { return true; },
+        supportsFiniteDomains: function() { return true; },
+        supportedDataTypes: function() {
+            return ['number', 'boolean', 'string', 'object']; /* XXX: is this correct? */
+        },
+
         loadModule: function () {
             // No module used
         },
@@ -19,7 +27,7 @@ module('users.timfelgentreff.z3.CommandLineZ3').requires('users.timfelgentreff.z
                     return acc + v.name + " "
                 }) + "))");
             // console.log(string);
-            var commandString = this.constructor.z3Path + ' -T:4 -smt2 -in',
+            var commandString = this.constructor.z3Path + '.sh',
                 self = this;
 
             if (!this.sync) {
@@ -138,6 +146,7 @@ refineClass(NaCLZ3Constraint, {
 })
 NaCLZ3Variable.subclass('CommandLineZ3Variable', {
     stay: function (strength) {
+        if (this.solver.disableStay) return;
         strength = strength || this.solver.strength.weak;
         if (!this._stayCn) {
             this._stayCn = new NaCLZ3BinaryExpression("=", this, this.value, this.solver);

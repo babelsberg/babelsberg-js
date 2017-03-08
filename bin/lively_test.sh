@@ -12,22 +12,30 @@ fi
 npm install
 node bin/lk-server --no-partsbin-check &
 sleep 15
-sed -i 's/var testList = baseTests;/var testList = [\"users.timfelgentreff.babelsberg.tests\", \"users.ohshima.ElectricalCircuitTests\", \"users.ohshima.ElectricalComponentsTests\"]; browserTests = [];/' run_tests.js
+sed -i 's/var testList = baseTests;/var testList = [\"users.timfelgentreff.babelsberg.tests\", \"users.ohshima.ElectricalCircuitTests\", \"users.ohshima.ElectricalComponentsTests\", \"users.timfelgentreff.reactive.reactive_test\", \"users.timfelgentreff.z3.Z3BBBTests\", \"users.timfelgentreff.backtalk.tests\"]; browserTests = [];/' run_tests.js
 npm test
 exitcode=$?
 
 if [ $exitcode -eq 0 ]; then
     if [ "$TRAVIS_BRANCH" == "master" ]; then
 	if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
-	    curl -T $TRAVIS_BUILD_DIR/standalone/babelsberg.mini.js http://www.lively-kernel.org/babelsberg/
-	    curl -T $TRAVIS_BUILD_DIR/standalone/babelsberg.mini.prototype.js http://www.lively-kernel.org/babelsberg/
-	    curl -T $TRAVIS_BUILD_DIR/standalone/babelsberg.cassowary.js http://www.lively-kernel.org/babelsberg/
-	    curl -T $TRAVIS_BUILD_DIR/standalone/babelsberg.core.js http://www.lively-kernel.org/babelsberg/
-	    curl -T $TRAVIS_BUILD_DIR/standalone/babelsberg.csp.js http://www.lively-kernel.org/babelsberg/
-	    curl -T $TRAVIS_BUILD_DIR/standalone/babelsberg.deltablue.js http://www.lively-kernel.org/babelsberg/
-	    curl -T $TRAVIS_BUILD_DIR/standalone/babelsberg.sutherland.js http://www.lively-kernel.org/babelsberg/
-	    curl -T $TRAVIS_BUILD_DIR/standalone/babelsberg.reactive.js http://www.lively-kernel.org/babelsberg/
-	    curl -T $TRAVIS_BUILD_DIR/standalone/babelsberg.z3.js http://www.lively-kernel.org/babelsberg/
+            for script in "standalone/babelsberg.mini.js
+standalone/babelsberg.mini.prototype.js
+standalone/babelsberg.cassowary.js
+standalone/babelsberg.core.js
+standalone/babelsberg.csp.js
+standalone/babelsberg.deltablue.js
+standalone/babelsberg.backtalk.js
+standalone/babelsberg.reactive.js
+standalone/babelsberg.sutherland.js
+standalone/babelsberg.z3.js
+z3/emz3/z3.js
+z3/emz3/z3.js.map
+z3/emz3/z3.js.mem"; do
+	        curl -T $TRAVIS_BUILD_DIR/$script http://www.lively-kernel.org/babelsberg/
+	        curl -T $TRAVIS_BUILD_DIR/$script -utimfel:$BINTRAY_KEY https://api.bintray.com/content/babelsberg/babelsberg-js/Nightlies/latest/$script
+	        curl -X POST -utimfel:$BINTRAY_KEY https://api.bintray.com/content/babelsberg/babelsberg-js/Nightlies/latest/publish
+	    done
 	fi
     fi
 fi

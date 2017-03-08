@@ -1,18 +1,28 @@
 module('users.timfelgentreff.sutherland.relax_bbb').
     requires('users.timfelgentreff.sutherland.relax').toRun(function() {
 
+// Automatic solver selection interface
+Relax.prototype.solverName = "Sutherland's Relaxation";
+Relax.prototype.supportsMethods = function() { return false; };
+Relax.prototype.supportsFiniteDomains = function() { return false; };
+Relax.prototype.supportedDataTypes = function() {
+    // Like Cassowary, Relax does not support strings, but there are actively
+    // used scenarios where js-coercion from string to float is used - these
+    // cases would be blown
+    return ['number', 'string'];
+};
 
 // Babelsberg required interface
 // addConstraint, removeConstraint
 
 Relax.prototype.always = function(opts, func) {
     if (opts.priority) {
-        throw 'soft constraints not implemented for Z3';
+        throw 'soft constraints not implemented for relax';
     }
     func.varMapping = opts.ctx;
     var constraint = new Constraint(func, this);
     this.addConstraint(constraint.constraintobjects[0]);
-    this.solve();
+    //this.solve();
     return constraint;
 };
 
@@ -42,6 +52,12 @@ Relax.prototype.solve = function() {
 };
 
 Relax.prototype.weight = 100;
+
+Relax.prototype.solverName = 'Relax';
+Relax.prototype.supportsMethods = function() { return false; };
+Relax.prototype.supportsSoftConstraints = function() { return false; };
+Relax.prototype.supportsFiniteDomains = function() { return false; };
+Relax.prototype.supportedDataTypes = function() { return ['number']; };
 
 RelaxNode.prototype.isConstraintObject = function() {
     return true;
@@ -161,6 +177,14 @@ RelaxNode.prototype.divide = function(r) {
     );
 };
 
+RelaxNode.prototype.modulo = function(r) {
+    return new RelaxNode(
+        '(' + this.expr + ' % ' + _expr(r) + ')',
+        this.vars.concat(r.vars).uniq(),
+        this.solver
+    );
+};
+
 RelaxNode.prototype.pow = function(r) {
     return new RelaxNode(
         'Math.pow(' + this.expr + ', ' + _expr(r) + ')',
@@ -197,7 +221,7 @@ RelaxNode.prototype.cnOr = function(r) {
     return this;
 };
 
-RelaxNode.prototype.enable = function() { /* ignored */ };
+RelaxNode.prototype.enable = function() { this.solver.solve(); };
 RelaxNode.prototype.disable = function() { /* ignored */ };
 
 }); // end of module

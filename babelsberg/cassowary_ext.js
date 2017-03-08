@@ -26,6 +26,15 @@ ClSimplexSolver.addMethods({
         var constraint = new Constraint(func, this);
         constraint.priority = priority;
         return constraint;
+    },
+    solverName: 'Cassowary',
+    supportsMethods: function() { return false; },
+    supportsSoftConstraints: function() { return true; },
+    supportsFiniteDomains: function() { return false; },
+    supportedDataTypes: function() {
+        // Cassowary does not support strings, but there are actively used scenarios
+        // where js-coercion from string to float is used - these cases would be blown
+        return ['number', 'string']; /* XXX: is this correct? */
     }
 });
 
@@ -47,6 +56,12 @@ ClAbstractVariable.addMethods({
     isConstraintObject: true,
 
     stay: function(strength) {
+        if (!(strength instanceof ClStrength)) {
+            strength = this.solver.strength[strength];
+        }
+        if (this.stayConstraint) {
+            this.solver.removeConstraint(this.stayConstraint);
+        }
         var cn = new ClStayConstraint(this, strength || ClStrength.weak, 1.0);
         this.solver.addConstraint(cn);
         this.stayConstraint = cn;
@@ -68,6 +83,8 @@ ClAbstractVariable.addMethods({
     suggestValue: function(value) {
         var c = this.cnEquals(value),
             s = this.solver;
+        // uncomment this to make assignments be strong rather than required
+        // c.changeStrength(ClStrength.strong);
         s.addConstraint(c);
         try {
             s.solve();

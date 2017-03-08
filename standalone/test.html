@@ -39,11 +39,16 @@
 	<script src="../csp/underscore-min.js"></script>
 	<script src="../csp/csp.js"></script>
 	<script src="../babelsberg/csp_ext.js"></script>
+	<!-- // Relax -->
+	<script src="../sutherland/relax.js"></script>
+	<!-- // BackTalk -->
+	<script src="../backtalk/backtalk.js"></script>
+	<script src="../backtalk/constraints.js"></script>
+	<script src="../backtalk/backtalk_ext.js"></script>
 	<!-- // Babelsberg/js -->
 	<script src="../babelsberg/core_ext.js"></script>
 	<script src="../babelsberg/constraintinterpreter.js"></script>
 	<!-- // Relax -->
-	<script src="../sutherland/relax.js"></script>
 	<script src="../sutherland/relax_bbb.js"></script>
 	<!-- // reactive: assert, trigger, layer.activeOn, layer.always, ... -->
 	<script src="../reactive/reactive.js"></script>
@@ -55,26 +60,38 @@
 	<script src="../ohshima/ElectricalComponents.js"></script>
 	<script src="../ohshima/ElectricalComponentsTests.js"></script>
 	<script src="../ohshima/ElectricalCircuitTests.js"></script>
+	<script src="../backtalk/tests.js"></script>
 	<!-- // src transform -->
 	<script src="../babelsberg/uglify.js"></script>
 	<script src="../babelsberg/src_transform.js"></script>
 	<script src="babelsbergscript.js"></script>
-	<!-- // BackTalk -->
-	<script src="../backtalk/backtalk.js"></script>
-	<script src="../backtalk/constraints.js"></script>
-	<script src="../backtalk/backtalk_ext.js"></script>
-	<script src="../backtalk/tests.js"></script>
 	
 	<script type="text/javascript">
-		obj = {a: 1, b: 2}
-		s = new ClSimplexSolver();
-		bbb.always({solver: s, ctx: {obj: obj}}, function () {
-			return obj.a + 7 <= obj.b
-		});
-		obj.a = 10;
-		console.log(obj.a, obj.b);
+		//Workaround: the travis test setup does not support performance
+		// Fall back to Date if performance is not available
+		window.performance = window.performance || {};
+		performance.now = (function() {
+		  return performance.now       ||
+				 performance.mozNow    ||
+				 performance.msNow     ||
+				 performance.oNow      ||
+				 performance.webkitNow ||
+				 function() { return new Date().getTime(); };
+		})();
+
+		(function() {
+			var obje = {a: 1, b: 2}
+			s = new ClSimplexSolver();
+			bbb.always({solver: s, ctx: {obje: obje}}, function () {
+				return obje.a + 7 <= obje.b
+			});
+			obje.a = 10;
+			console.log(obje.a, obje.b);
+		})();
 		
 		new users.timfelgentreff.babelsberg.tests.ConstraintTest().runAll();
+		new users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionTest().runAll();
+		new users.timfelgentreff.babelsberg.tests.AutomaticSolverSelectionDetailsTest().runAll();
 		new users.timfelgentreff.babelsberg.tests.PropagationTest().runAll();
 		new users.timfelgentreff.babelsberg.tests.InteractionTest().runAll();
 		new users.timfelgentreff.babelsberg.src_transform_test.TransformTest().runAll();
@@ -85,6 +102,7 @@
 		new users.timfelgentreff.reactive.reactive_test.TriggerTest().runAll();
 		new users.timfelgentreff.reactive.reactive_test.LayerActivationTest().runAll();
 		new users.timfelgentreff.reactive.reactive_test.ScopedConstraintsTest().runAll();
+		new users.timfelgentreff.reactive.reactive_test.UnifiedNotationTest().runAll();
 
 		new users.ohshima.ElectricalCircuitTests.Test1().runAll();
 		new users.ohshima.ElectricalComponentsTests.Test1().runAll();
@@ -93,16 +111,21 @@
 		new backtalk.BinaryConstraintTest().runAll();
 		new backtalk.SolverTest().runAll();
 		new backtalk.VariableTest().runAll();
+
+		new ECJITTests().benchAll();
 	</script>
 	
 	<script type="text/babelsbergscript">
-		obj = {a: 1, b: 2}
-		s = new ClSimplexSolver();
-		always: { solver: s
-			obj.a + 7 <= obj.b
-		}
-		obj.a = 10;
-		console.log(obj.a, obj.b);
+
+		(function() {
+			var objec = {a: 1, b: 2}
+			s = new ClSimplexSolver();
+			always: { solver: s
+				objec.a + 7 <= objec.b
+			}
+			objec.a = 10;
+			console.log(objec.a, objec.b);
+		})();
 	</script>
 	
 	</head>
