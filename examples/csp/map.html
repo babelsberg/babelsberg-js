@@ -35,6 +35,7 @@
 	 !-- <script src="../../babelsberg/src_transform.js"></script>
 	 !-- <script src="../../standalone/babelsbergscript.js"></script>
           -->
+	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.sutherland.js"></script>
 	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.csp.js"></script>
 	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.backtalk.js"></script>
 	<script src="http://www.lively-kernel.org/babelsberg/babelsberg.z3.js"></script>
@@ -58,186 +59,192 @@
 		  <option value="EmZ3">Emscripten Z3</option>
 		</select>
 
-		<div style="float: left; position: relative; overflow: scroll; max-height: 800px">
-		  <input type="checkbox" name="country" value="countries/AFG.geo.json">Afghanistan<br>
-		  <input type="checkbox" name="country" value="countries/AGO.geo.json">Angola<br>
-		  <input type="checkbox" name="country" value="countries/ALB.geo.json">Albania<br>
-		  <input type="checkbox" name="country" value="countries/ARE.geo.json">United_Arab_Emirates<br>
-		  <input type="checkbox" name="country" value="countries/ARG.geo.json">Argentina<br>
-		  <input type="checkbox" name="country" value="countries/ARM.geo.json">Armenia<br>
-		  <input type="checkbox" name="country" value="countries/ATA.geo.json">Antarctica<br>
-		  <input type="checkbox" name="country" value="countries/ATF.geo.json">French_Southern_and_Antarctic_Lands<br>
-		  <input type="checkbox" name="country" value="countries/AUS.geo.json">Australia<br>
-		  <input type="checkbox" name="country" value="countries/AUT.geo.json">Austria<br>
-		  <input type="checkbox" name="country" value="countries/AZE.geo.json">Azerbaijan<br>
-		  <input type="checkbox" name="country" value="countries/BDI.geo.json">Burundi<br>
-		  <input type="checkbox" name="country" value="countries/BEL.geo.json">Belgium<br>
-		  <input type="checkbox" name="country" value="countries/BEN.geo.json">Benin<br>
-		  <input type="checkbox" name="country" value="countries/BFA.geo.json">Burkina_Faso<br>
-		  <input type="checkbox" name="country" value="countries/BGD.geo.json">Bangladesh<br>
-		  <input type="checkbox" name="country" value="countries/BGR.geo.json">Bulgaria<br>
-		  <input type="checkbox" name="country" value="countries/BHS.geo.json">The_Bahamas<br>
-		  <input type="checkbox" name="country" value="countries/BIH.geo.json">Bosnia_and_Herzegovina<br>
-		  <input type="checkbox" name="country" value="countries/BLR.geo.json">Belarus<br>
-		  <input type="checkbox" name="country" value="countries/BLZ.geo.json">Belize<br>
-		  <input type="checkbox" name="country" value="countries/BMU.geo.json">Bermuda<br>
-		  <input type="checkbox" name="country" value="countries/BOL.geo.json">Bolivia<br>
-		  <input type="checkbox" name="country" value="countries/BRA.geo.json">Brazil<br>
-		  <input type="checkbox" name="country" value="countries/BRN.geo.json">Brunei<br>
-		  <input type="checkbox" name="country" value="countries/BTN.geo.json">Bhutan<br>
-		  <input type="checkbox" name="country" value="countries/BWA.geo.json">Botswana<br>
-		  <input type="checkbox" name="country" value="countries/CAF.geo.json">Central_African_Republic<br>
-		  <input type="checkbox" name="country" value="countries/CAN.geo.json">Canada<br>
-		  <input type="checkbox" name="country" value="countries/CHE.geo.json">Switzerland<br>
-		  <input type="checkbox" name="country" value="countries/CHL.geo.json">Chile<br>
-		  <input type="checkbox" name="country" value="countries/CHN.geo.json">China<br>
-		  <input type="checkbox" name="country" value="countries/CIV.geo.json">Ivory_Coast<br>
-		  <input type="checkbox" name="country" value="countries/CMR.geo.json">Cameroon<br>
-		  <input type="checkbox" name="country" value="countries/COD.geo.json">Democratic_Republic_of_the_Congo<br>
-		  <input type="checkbox" name="country" value="countries/COG.geo.json">Republic_of_the_Congo<br>
-		  <input type="checkbox" name="country" value="countries/COL.geo.json">Colombia<br>
-		  <input type="checkbox" name="country" value="countries/CRI.geo.json">Costa_Rica<br>
-		  <input type="checkbox" name="country" value="countries/CS-KM.geo.json">Kosovo<br>
-		  <input type="checkbox" name="country" value="countries/CUB.geo.json">Cuba<br>
-		  <input type="checkbox" name="country" value="countries/CYP.geo.json">Cyprus<br>
-		  <input type="checkbox" name="country" value="countries/CZE.geo.json">Czech_Republic<br>
-		  <input type="checkbox" name="country" value="countries/DEU.geo.json">Germany<br>
-		  <input type="checkbox" name="country" value="countries/DJI.geo.json">Djibouti<br>
-		  <input type="checkbox" name="country" value="countries/DNK.geo.json">Denmark<br>
-		  <input type="checkbox" name="country" value="countries/DOM.geo.json">Dominican_Republic<br>
-		  <input type="checkbox" name="country" value="countries/DZA.geo.json">Algeria<br>
-		  <input type="checkbox" name="country" value="countries/ECU.geo.json">Ecuador<br>
-		  <input type="checkbox" name="country" value="countries/EGY.geo.json">Egypt<br>
-		  <input type="checkbox" name="country" value="countries/ERI.geo.json">Eritrea<br>
-		  <input type="checkbox" name="country" value="countries/ESH.geo.json">Western_Sahara<br>
-		  <input type="checkbox" name="country" value="countries/ESP.geo.json">Spain<br>
-		  <input type="checkbox" name="country" value="countries/EST.geo.json">Estonia<br>
-		  <input type="checkbox" name="country" value="countries/ETH.geo.json">Ethiopia<br>
-		  <input type="checkbox" name="country" value="countries/FIN.geo.json">Finland<br>
-		  <input type="checkbox" name="country" value="countries/FJI.geo.json">Fiji<br>
-		  <input type="checkbox" name="country" value="countries/FLK.geo.json">Falkland_Islands<br>
-		  <input type="checkbox" name="country" value="countries/FRA.geo.json">France<br>
-		  <input type="checkbox" name="country" value="countries/GAB.geo.json">Gabon<br>
-		  <input type="checkbox" name="country" value="countries/GBR.geo.json">United_Kingdom<br>
-		  <input type="checkbox" name="country" value="countries/GEO.geo.json">Georgia<br>
-		  <input type="checkbox" name="country" value="countries/GHA.geo.json">Ghana<br>
-		  <input type="checkbox" name="country" value="countries/GIN.geo.json">Guinea<br>
-		  <input type="checkbox" name="country" value="countries/GMB.geo.json">Gambia<br>
-		  <input type="checkbox" name="country" value="countries/GNB.geo.json">Guinea_Bissau<br>
-		  <input type="checkbox" name="country" value="countries/GNQ.geo.json">Equatorial_Guinea<br>
-		  <input type="checkbox" name="country" value="countries/GRC.geo.json">Greece<br>
-		  <input type="checkbox" name="country" value="countries/GRL.geo.json">Greenland<br>
-		  <input type="checkbox" name="country" value="countries/GTM.geo.json">Guatemala<br>
-		  <input type="checkbox" name="country" value="countries/GUF.geo.json">French_Guiana<br>
-		  <input type="checkbox" name="country" value="countries/GUY.geo.json">Guyana<br>
-		  <input type="checkbox" name="country" value="countries/HND.geo.json">Honduras<br>
-		  <input type="checkbox" name="country" value="countries/HRV.geo.json">Croatia<br>
-		  <input type="checkbox" name="country" value="countries/HTI.geo.json">Haiti<br>
-		  <input type="checkbox" name="country" value="countries/HUN.geo.json">Hungary<br>
-		  <input type="checkbox" name="country" value="countries/IDN.geo.json">Indonesia<br>
-		  <input type="checkbox" name="country" value="countries/IND.geo.json">India<br>
-		  <input type="checkbox" name="country" value="countries/IRL.geo.json">Ireland<br>
-		  <input type="checkbox" name="country" value="countries/IRN.geo.json">Iran<br>
-		  <input type="checkbox" name="country" value="countries/IRQ.geo.json">Iraq<br>
-		  <input type="checkbox" name="country" value="countries/ISL.geo.json">Iceland<br>
-		  <input type="checkbox" name="country" value="countries/ISR.geo.json">Israel<br>
-		  <input type="checkbox" name="country" value="countries/ITA.geo.json">Italy<br>
-		  <input type="checkbox" name="country" value="countries/JAM.geo.json">Jamaica<br>
-		  <input type="checkbox" name="country" value="countries/JOR.geo.json">Jordan<br>
-		  <input type="checkbox" name="country" value="countries/JPN.geo.json">Japan<br>
-		  <input type="checkbox" name="country" value="countries/KAZ.geo.json">Kazakhstan<br>
-		  <input type="checkbox" name="country" value="countries/KEN.geo.json">Kenya<br>
-		  <input type="checkbox" name="country" value="countries/KGZ.geo.json">Kyrgyzstan<br>
-		  <input type="checkbox" name="country" value="countries/KHM.geo.json">Cambodia<br>
-		  <input type="checkbox" name="country" value="countries/KOR.geo.json">South_Korea<br>
-		  <input type="checkbox" name="country" value="countries/KWT.geo.json">Kuwait<br>
-		  <input type="checkbox" name="country" value="countries/LAO.geo.json">Laos<br>
-		  <input type="checkbox" name="country" value="countries/LBN.geo.json">Lebanon<br>
-		  <input type="checkbox" name="country" value="countries/LBR.geo.json">Liberia<br>
-		  <input type="checkbox" name="country" value="countries/LBY.geo.json">Libya<br>
-		  <input type="checkbox" name="country" value="countries/LKA.geo.json">Sri_Lanka<br>
-		  <input type="checkbox" name="country" value="countries/LSO.geo.json">Lesotho<br>
-		  <input type="checkbox" name="country" value="countries/LTU.geo.json">Lithuania<br>
-		  <input type="checkbox" name="country" value="countries/LUX.geo.json">Luxembourg<br>
-		  <input type="checkbox" name="country" value="countries/LVA.geo.json">Latvia<br>
-		  <input type="checkbox" name="country" value="countries/MAR.geo.json">Morocco<br>
-		  <input type="checkbox" name="country" value="countries/MDA.geo.json">Moldova<br>
-		  <input type="checkbox" name="country" value="countries/MDG.geo.json">Madagascar<br>
-		  <input type="checkbox" name="country" value="countries/MEX.geo.json">Mexico<br>
-		  <input type="checkbox" name="country" value="countries/MKD.geo.json">Macedonia<br>
-		  <input type="checkbox" name="country" value="countries/MLI.geo.json">Mali<br>
-		  <input type="checkbox" name="country" value="countries/MLT.geo.json">Malta<br>
-		  <input type="checkbox" name="country" value="countries/MMR.geo.json">Myanmar<br>
-		  <input type="checkbox" name="country" value="countries/MNE.geo.json">Montenegro<br>
-		  <input type="checkbox" name="country" value="countries/MNG.geo.json">Mongolia<br>
-		  <input type="checkbox" name="country" value="countries/MOZ.geo.json">Mozambique<br>
-		  <input type="checkbox" name="country" value="countries/MRT.geo.json">Mauritania<br>
-		  <input type="checkbox" name="country" value="countries/MWI.geo.json">Malawi<br>
-		  <input type="checkbox" name="country" value="countries/MYS.geo.json">Malaysia<br>
-		  <input type="checkbox" name="country" value="countries/NAM.geo.json">Namibia<br>
-		  <input type="checkbox" name="country" value="countries/NCL.geo.json">New_Caledonia<br>
-		  <input type="checkbox" name="country" value="countries/NER.geo.json">Niger<br>
-		  <input type="checkbox" name="country" value="countries/NGA.geo.json">Nigeria<br>
-		  <input type="checkbox" name="country" value="countries/NIC.geo.json">Nicaragua<br>
-		  <input type="checkbox" name="country" value="countries/NLD.geo.json">Netherlands<br>
-		  <input type="checkbox" name="country" value="countries/NOR.geo.json">Norway<br>
-		  <input type="checkbox" name="country" value="countries/NPL.geo.json">Nepal<br>
-		  <input type="checkbox" name="country" value="countries/NZL.geo.json">New_Zealand<br>
-		  <input type="checkbox" name="country" value="countries/OMN.geo.json">Oman<br>
-		  <input type="checkbox" name="country" value="countries/PAK.geo.json">Pakistan<br>
-		  <input type="checkbox" name="country" value="countries/PAN.geo.json">Panama<br>
-		  <input type="checkbox" name="country" value="countries/PER.geo.json">Peru<br>
-		  <input type="checkbox" name="country" value="countries/PHL.geo.json">Philippines<br>
-		  <input type="checkbox" name="country" value="countries/PNG.geo.json">Papua_New_Guinea<br>
-		  <input type="checkbox" name="country" value="countries/POL.geo.json">Poland<br>
-		  <input type="checkbox" name="country" value="countries/PRI.geo.json">Puerto_Rico<br>
-		  <input type="checkbox" name="country" value="countries/PRK.geo.json">North_Korea<br>
-		  <input type="checkbox" name="country" value="countries/PRT.geo.json">Portugal<br>
-		  <input type="checkbox" name="country" value="countries/PRY.geo.json">Paraguay<br>
-		  <input type="checkbox" name="country" value="countries/PSE.geo.json">West_Bank<br>
-		  <input type="checkbox" name="country" value="countries/QAT.geo.json">Qatar<br>
-		  <input type="checkbox" name="country" value="countries/ROU.geo.json">Romania<br>
-		  <input type="checkbox" name="country" value="countries/RUS.geo.json">Russia<br>
-		  <input type="checkbox" name="country" value="countries/RWA.geo.json">Rwanda<br>
-		  <input type="checkbox" name="country" value="countries/SAU.geo.json">Saudi_Arabia<br>
-		  <input type="checkbox" name="country" value="countries/SDN.geo.json">Sudan<br>
-		  <input type="checkbox" name="country" value="countries/SEN.geo.json">Senegal<br>
-		  <input type="checkbox" name="country" value="countries/SLB.geo.json">Solomon_Islands<br>
-		  <input type="checkbox" name="country" value="countries/SLE.geo.json">Sierra_Leone<br>
-		  <input type="checkbox" name="country" value="countries/SLV.geo.json">El_Salvador<br>
-		  <input type="checkbox" name="country" value="countries/SOM.geo.json">Somalia<br>
-		  <input type="checkbox" name="country" value="countries/SRB.geo.json">Republic_of_Serbia<br>
-		  <input type="checkbox" name="country" value="countries/SSD.geo.json">South_Sudan<br>
-		  <input type="checkbox" name="country" value="countries/SUR.geo.json">Suriname<br>
-		  <input type="checkbox" name="country" value="countries/SVK.geo.json">Slovakia<br>
-		  <input type="checkbox" name="country" value="countries/SVN.geo.json">Slovenia<br>
-		  <input type="checkbox" name="country" value="countries/SWE.geo.json">Sweden<br>
-		  <input type="checkbox" name="country" value="countries/SWZ.geo.json">Swaziland<br>
-		  <input type="checkbox" name="country" value="countries/SYR.geo.json">Syria<br>
-		  <input type="checkbox" name="country" value="countries/TCD.geo.json">Chad<br>
-		  <input type="checkbox" name="country" value="countries/TGO.geo.json">Togo<br>
-		  <input type="checkbox" name="country" value="countries/THA.geo.json">Thailand<br>
-		  <input type="checkbox" name="country" value="countries/TJK.geo.json">Tajikistan<br>
-		  <input type="checkbox" name="country" value="countries/TKM.geo.json">Turkmenistan<br>
-		  <input type="checkbox" name="country" value="countries/TLS.geo.json">East_Timor<br>
-		  <input type="checkbox" name="country" value="countries/TTO.geo.json">Trinidad_and_Tobago<br>
-		  <input type="checkbox" name="country" value="countries/TUN.geo.json">Tunisia<br>
-		  <input type="checkbox" name="country" value="countries/TUR.geo.json">Turkey<br>
-		  <input type="checkbox" name="country" value="countries/TWN.geo.json">Taiwan<br>
-		  <input type="checkbox" name="country" value="countries/TZA.geo.json">United_Republic_of_Tanzania<br>
-		  <input type="checkbox" name="country" value="countries/UGA.geo.json">Uganda<br>
-		  <input type="checkbox" name="country" value="countries/UKR.geo.json">Ukraine<br>
-		  <input type="checkbox" name="country" value="countries/URY.geo.json">Uruguay<br>
-		  <input type="checkbox" name="country" value="countries/USA.geo.json">United_States_of_America<br>
-		  <input type="checkbox" name="country" value="countries/UZB.geo.json">Uzbekistan<br>
-		  <input type="checkbox" name="country" value="countries/VEN.geo.json">Venezuela<br>
-		  <input type="checkbox" name="country" value="countries/VNM.geo.json">Vietnam<br>
-		  <input type="checkbox" name="country" value="countries/VUT.geo.json">Vanuatu<br>
-		  <input type="checkbox" name="country" value="countries/YEM.geo.json">Yemen<br>
-		  <input type="checkbox" name="country" value="countries/ZAF.geo.json">South_Africa<br>
-		  <input type="checkbox" name="country" value="countries/ZMB.geo.json">Zambia<br>
-		  <input type="checkbox" name="country" value="countries/ZWE.geo.json">Zimbabwe<br>
+                <div style="float: left; position: relative; max-height: 800px" id="colors">
 		</div>
+		
+
+		<!-- 
+                 !-- <div style="float: left; position: relative; overflow: scroll; max-height: 800px">
+		 !--   <input type="checkbox" name="country" value="countries/AFG.geo.json">Afghanistan<br>
+		 !--   <input type="checkbox" name="country" value="countries/AGO.geo.json">Angola<br>
+		 !--   <input type="checkbox" name="country" value="countries/ALB.geo.json">Albania<br>
+		 !--   <input type="checkbox" name="country" value="countries/ARE.geo.json">United_Arab_Emirates<br>
+		 !--   <input type="checkbox" name="country" value="countries/ARG.geo.json">Argentina<br>
+		 !--   <input type="checkbox" name="country" value="countries/ARM.geo.json">Armenia<br>
+		 !--   <input type="checkbox" name="country" value="countries/ATA.geo.json">Antarctica<br>
+		 !--   <input type="checkbox" name="country" value="countries/ATF.geo.json">French_Southern_and_Antarctic_Lands<br>
+		 !--   <input type="checkbox" name="country" value="countries/AUS.geo.json">Australia<br>
+		 !--   <input type="checkbox" name="country" value="countries/AUT.geo.json">Austria<br>
+		 !--   <input type="checkbox" name="country" value="countries/AZE.geo.json">Azerbaijan<br>
+		 !--   <input type="checkbox" name="country" value="countries/BDI.geo.json">Burundi<br>
+		 !--   <input type="checkbox" name="country" value="countries/BEL.geo.json">Belgium<br>
+		 !--   <input type="checkbox" name="country" value="countries/BEN.geo.json">Benin<br>
+		 !--   <input type="checkbox" name="country" value="countries/BFA.geo.json">Burkina_Faso<br>
+		 !--   <input type="checkbox" name="country" value="countries/BGD.geo.json">Bangladesh<br>
+		 !--   <input type="checkbox" name="country" value="countries/BGR.geo.json">Bulgaria<br>
+		 !--   <input type="checkbox" name="country" value="countries/BHS.geo.json">The_Bahamas<br>
+		 !--   <input type="checkbox" name="country" value="countries/BIH.geo.json">Bosnia_and_Herzegovina<br>
+		 !--   <input type="checkbox" name="country" value="countries/BLR.geo.json">Belarus<br>
+		 !--   <input type="checkbox" name="country" value="countries/BLZ.geo.json">Belize<br>
+		 !--   <input type="checkbox" name="country" value="countries/BMU.geo.json">Bermuda<br>
+		 !--   <input type="checkbox" name="country" value="countries/BOL.geo.json">Bolivia<br>
+		 !--   <input type="checkbox" name="country" value="countries/BRA.geo.json">Brazil<br>
+		 !--   <input type="checkbox" name="country" value="countries/BRN.geo.json">Brunei<br>
+		 !--   <input type="checkbox" name="country" value="countries/BTN.geo.json">Bhutan<br>
+		 !--   <input type="checkbox" name="country" value="countries/BWA.geo.json">Botswana<br>
+		 !--   <input type="checkbox" name="country" value="countries/CAF.geo.json">Central_African_Republic<br>
+		 !--   <input type="checkbox" name="country" value="countries/CAN.geo.json">Canada<br>
+		 !--   <input type="checkbox" name="country" value="countries/CHE.geo.json">Switzerland<br>
+		 !--   <input type="checkbox" name="country" value="countries/CHL.geo.json">Chile<br>
+		 !--   <input type="checkbox" name="country" value="countries/CHN.geo.json">China<br>
+		 !--   <input type="checkbox" name="country" value="countries/CIV.geo.json">Ivory_Coast<br>
+		 !--   <input type="checkbox" name="country" value="countries/CMR.geo.json">Cameroon<br>
+		 !--   <input type="checkbox" name="country" value="countries/COD.geo.json">Democratic_Republic_of_the_Congo<br>
+		 !--   <input type="checkbox" name="country" value="countries/COG.geo.json">Republic_of_the_Congo<br>
+		 !--   <input type="checkbox" name="country" value="countries/COL.geo.json">Colombia<br>
+		 !--   <input type="checkbox" name="country" value="countries/CRI.geo.json">Costa_Rica<br>
+		 !--   <input type="checkbox" name="country" value="countries/CS-KM.geo.json">Kosovo<br>
+		 !--   <input type="checkbox" name="country" value="countries/CUB.geo.json">Cuba<br>
+		 !--   <input type="checkbox" name="country" value="countries/CYP.geo.json">Cyprus<br>
+		 !--   <input type="checkbox" name="country" value="countries/CZE.geo.json">Czech_Republic<br>
+		 !--   <input type="checkbox" name="country" value="countries/DEU.geo.json">Germany<br>
+		 !--   <input type="checkbox" name="country" value="countries/DJI.geo.json">Djibouti<br>
+		 !--   <input type="checkbox" name="country" value="countries/DNK.geo.json">Denmark<br>
+		 !--   <input type="checkbox" name="country" value="countries/DOM.geo.json">Dominican_Republic<br>
+		 !--   <input type="checkbox" name="country" value="countries/DZA.geo.json">Algeria<br>
+		 !--   <input type="checkbox" name="country" value="countries/ECU.geo.json">Ecuador<br>
+		 !--   <input type="checkbox" name="country" value="countries/EGY.geo.json">Egypt<br>
+		 !--   <input type="checkbox" name="country" value="countries/ERI.geo.json">Eritrea<br>
+		 !--   <input type="checkbox" name="country" value="countries/ESH.geo.json">Western_Sahara<br>
+		 !--   <input type="checkbox" name="country" value="countries/ESP.geo.json">Spain<br>
+		 !--   <input type="checkbox" name="country" value="countries/EST.geo.json">Estonia<br>
+		 !--   <input type="checkbox" name="country" value="countries/ETH.geo.json">Ethiopia<br>
+		 !--   <input type="checkbox" name="country" value="countries/FIN.geo.json">Finland<br>
+		 !--   <input type="checkbox" name="country" value="countries/FJI.geo.json">Fiji<br>
+		 !--   <input type="checkbox" name="country" value="countries/FLK.geo.json">Falkland_Islands<br>
+		 !--   <input type="checkbox" name="country" value="countries/FRA.geo.json">France<br>
+		 !--   <input type="checkbox" name="country" value="countries/GAB.geo.json">Gabon<br>
+		 !--   <input type="checkbox" name="country" value="countries/GBR.geo.json">United_Kingdom<br>
+		 !--   <input type="checkbox" name="country" value="countries/GEO.geo.json">Georgia<br>
+		 !--   <input type="checkbox" name="country" value="countries/GHA.geo.json">Ghana<br>
+		 !--   <input type="checkbox" name="country" value="countries/GIN.geo.json">Guinea<br>
+		 !--   <input type="checkbox" name="country" value="countries/GMB.geo.json">Gambia<br>
+		 !--   <input type="checkbox" name="country" value="countries/GNB.geo.json">Guinea_Bissau<br>
+		 !--   <input type="checkbox" name="country" value="countries/GNQ.geo.json">Equatorial_Guinea<br>
+		 !--   <input type="checkbox" name="country" value="countries/GRC.geo.json">Greece<br>
+		 !--   <input type="checkbox" name="country" value="countries/GRL.geo.json">Greenland<br>
+		 !--   <input type="checkbox" name="country" value="countries/GTM.geo.json">Guatemala<br>
+		 !--   <input type="checkbox" name="country" value="countries/GUF.geo.json">French_Guiana<br>
+		 !--   <input type="checkbox" name="country" value="countries/GUY.geo.json">Guyana<br>
+		 !--   <input type="checkbox" name="country" value="countries/HND.geo.json">Honduras<br>
+		 !--   <input type="checkbox" name="country" value="countries/HRV.geo.json">Croatia<br>
+		 !--   <input type="checkbox" name="country" value="countries/HTI.geo.json">Haiti<br>
+		 !--   <input type="checkbox" name="country" value="countries/HUN.geo.json">Hungary<br>
+		 !--   <input type="checkbox" name="country" value="countries/IDN.geo.json">Indonesia<br>
+		 !--   <input type="checkbox" name="country" value="countries/IND.geo.json">India<br>
+		 !--   <input type="checkbox" name="country" value="countries/IRL.geo.json">Ireland<br>
+		 !--   <input type="checkbox" name="country" value="countries/IRN.geo.json">Iran<br>
+		 !--   <input type="checkbox" name="country" value="countries/IRQ.geo.json">Iraq<br>
+		 !--   <input type="checkbox" name="country" value="countries/ISL.geo.json">Iceland<br>
+		 !--   <input type="checkbox" name="country" value="countries/ISR.geo.json">Israel<br>
+		 !--   <input type="checkbox" name="country" value="countries/ITA.geo.json">Italy<br>
+		 !--   <input type="checkbox" name="country" value="countries/JAM.geo.json">Jamaica<br>
+		 !--   <input type="checkbox" name="country" value="countries/JOR.geo.json">Jordan<br>
+		 !--   <input type="checkbox" name="country" value="countries/JPN.geo.json">Japan<br>
+		 !--   <input type="checkbox" name="country" value="countries/KAZ.geo.json">Kazakhstan<br>
+		 !--   <input type="checkbox" name="country" value="countries/KEN.geo.json">Kenya<br>
+		 !--   <input type="checkbox" name="country" value="countries/KGZ.geo.json">Kyrgyzstan<br>
+		 !--   <input type="checkbox" name="country" value="countries/KHM.geo.json">Cambodia<br>
+		 !--   <input type="checkbox" name="country" value="countries/KOR.geo.json">South_Korea<br>
+		 !--   <input type="checkbox" name="country" value="countries/KWT.geo.json">Kuwait<br>
+		 !--   <input type="checkbox" name="country" value="countries/LAO.geo.json">Laos<br>
+		 !--   <input type="checkbox" name="country" value="countries/LBN.geo.json">Lebanon<br>
+		 !--   <input type="checkbox" name="country" value="countries/LBR.geo.json">Liberia<br>
+		 !--   <input type="checkbox" name="country" value="countries/LBY.geo.json">Libya<br>
+		 !--   <input type="checkbox" name="country" value="countries/LKA.geo.json">Sri_Lanka<br>
+		 !--   <input type="checkbox" name="country" value="countries/LSO.geo.json">Lesotho<br>
+		 !--   <input type="checkbox" name="country" value="countries/LTU.geo.json">Lithuania<br>
+		 !--   <input type="checkbox" name="country" value="countries/LUX.geo.json">Luxembourg<br>
+		 !--   <input type="checkbox" name="country" value="countries/LVA.geo.json">Latvia<br>
+		 !--   <input type="checkbox" name="country" value="countries/MAR.geo.json">Morocco<br>
+		 !--   <input type="checkbox" name="country" value="countries/MDA.geo.json">Moldova<br>
+		 !--   <input type="checkbox" name="country" value="countries/MDG.geo.json">Madagascar<br>
+		 !--   <input type="checkbox" name="country" value="countries/MEX.geo.json">Mexico<br>
+		 !--   <input type="checkbox" name="country" value="countries/MKD.geo.json">Macedonia<br>
+		 !--   <input type="checkbox" name="country" value="countries/MLI.geo.json">Mali<br>
+		 !--   <input type="checkbox" name="country" value="countries/MLT.geo.json">Malta<br>
+		 !--   <input type="checkbox" name="country" value="countries/MMR.geo.json">Myanmar<br>
+		 !--   <input type="checkbox" name="country" value="countries/MNE.geo.json">Montenegro<br>
+		 !--   <input type="checkbox" name="country" value="countries/MNG.geo.json">Mongolia<br>
+		 !--   <input type="checkbox" name="country" value="countries/MOZ.geo.json">Mozambique<br>
+		 !--   <input type="checkbox" name="country" value="countries/MRT.geo.json">Mauritania<br>
+		 !--   <input type="checkbox" name="country" value="countries/MWI.geo.json">Malawi<br>
+		 !--   <input type="checkbox" name="country" value="countries/MYS.geo.json">Malaysia<br>
+		 !--   <input type="checkbox" name="country" value="countries/NAM.geo.json">Namibia<br>
+		 !--   <input type="checkbox" name="country" value="countries/NCL.geo.json">New_Caledonia<br>
+		 !--   <input type="checkbox" name="country" value="countries/NER.geo.json">Niger<br>
+		 !--   <input type="checkbox" name="country" value="countries/NGA.geo.json">Nigeria<br>
+		 !--   <input type="checkbox" name="country" value="countries/NIC.geo.json">Nicaragua<br>
+		 !--   <input type="checkbox" name="country" value="countries/NLD.geo.json">Netherlands<br>
+		 !--   <input type="checkbox" name="country" value="countries/NOR.geo.json">Norway<br>
+		 !--   <input type="checkbox" name="country" value="countries/NPL.geo.json">Nepal<br>
+		 !--   <input type="checkbox" name="country" value="countries/NZL.geo.json">New_Zealand<br>
+		 !--   <input type="checkbox" name="country" value="countries/OMN.geo.json">Oman<br>
+		 !--   <input type="checkbox" name="country" value="countries/PAK.geo.json">Pakistan<br>
+		 !--   <input type="checkbox" name="country" value="countries/PAN.geo.json">Panama<br>
+		 !--   <input type="checkbox" name="country" value="countries/PER.geo.json">Peru<br>
+		 !--   <input type="checkbox" name="country" value="countries/PHL.geo.json">Philippines<br>
+		 !--   <input type="checkbox" name="country" value="countries/PNG.geo.json">Papua_New_Guinea<br>
+		 !--   <input type="checkbox" name="country" value="countries/POL.geo.json">Poland<br>
+		 !--   <input type="checkbox" name="country" value="countries/PRI.geo.json">Puerto_Rico<br>
+		 !--   <input type="checkbox" name="country" value="countries/PRK.geo.json">North_Korea<br>
+		 !--   <input type="checkbox" name="country" value="countries/PRT.geo.json">Portugal<br>
+		 !--   <input type="checkbox" name="country" value="countries/PRY.geo.json">Paraguay<br>
+		 !--   <input type="checkbox" name="country" value="countries/PSE.geo.json">West_Bank<br>
+		 !--   <input type="checkbox" name="country" value="countries/QAT.geo.json">Qatar<br>
+		 !--   <input type="checkbox" name="country" value="countries/ROU.geo.json">Romania<br>
+		 !--   <input type="checkbox" name="country" value="countries/RUS.geo.json">Russia<br>
+		 !--   <input type="checkbox" name="country" value="countries/RWA.geo.json">Rwanda<br>
+		 !--   <input type="checkbox" name="country" value="countries/SAU.geo.json">Saudi_Arabia<br>
+		 !--   <input type="checkbox" name="country" value="countries/SDN.geo.json">Sudan<br>
+		 !--   <input type="checkbox" name="country" value="countries/SEN.geo.json">Senegal<br>
+		 !--   <input type="checkbox" name="country" value="countries/SLB.geo.json">Solomon_Islands<br>
+		 !--   <input type="checkbox" name="country" value="countries/SLE.geo.json">Sierra_Leone<br>
+		 !--   <input type="checkbox" name="country" value="countries/SLV.geo.json">El_Salvador<br>
+		 !--   <input type="checkbox" name="country" value="countries/SOM.geo.json">Somalia<br>
+		 !--   <input type="checkbox" name="country" value="countries/SRB.geo.json">Republic_of_Serbia<br>
+		 !--   <input type="checkbox" name="country" value="countries/SSD.geo.json">South_Sudan<br>
+		 !--   <input type="checkbox" name="country" value="countries/SUR.geo.json">Suriname<br>
+		 !--   <input type="checkbox" name="country" value="countries/SVK.geo.json">Slovakia<br>
+		 !--   <input type="checkbox" name="country" value="countries/SVN.geo.json">Slovenia<br>
+		 !--   <input type="checkbox" name="country" value="countries/SWE.geo.json">Sweden<br>
+		 !--   <input type="checkbox" name="country" value="countries/SWZ.geo.json">Swaziland<br>
+		 !--   <input type="checkbox" name="country" value="countries/SYR.geo.json">Syria<br>
+		 !--   <input type="checkbox" name="country" value="countries/TCD.geo.json">Chad<br>
+		 !--   <input type="checkbox" name="country" value="countries/TGO.geo.json">Togo<br>
+		 !--   <input type="checkbox" name="country" value="countries/THA.geo.json">Thailand<br>
+		 !--   <input type="checkbox" name="country" value="countries/TJK.geo.json">Tajikistan<br>
+		 !--   <input type="checkbox" name="country" value="countries/TKM.geo.json">Turkmenistan<br>
+		 !--   <input type="checkbox" name="country" value="countries/TLS.geo.json">East_Timor<br>
+		 !--   <input type="checkbox" name="country" value="countries/TTO.geo.json">Trinidad_and_Tobago<br>
+		 !--   <input type="checkbox" name="country" value="countries/TUN.geo.json">Tunisia<br>
+		 !--   <input type="checkbox" name="country" value="countries/TUR.geo.json">Turkey<br>
+		 !--   <input type="checkbox" name="country" value="countries/TWN.geo.json">Taiwan<br>
+		 !--   <input type="checkbox" name="country" value="countries/TZA.geo.json">United_Republic_of_Tanzania<br>
+		 !--   <input type="checkbox" name="country" value="countries/UGA.geo.json">Uganda<br>
+		 !--   <input type="checkbox" name="country" value="countries/UKR.geo.json">Ukraine<br>
+		 !--   <input type="checkbox" name="country" value="countries/URY.geo.json">Uruguay<br>
+		 !--   <input type="checkbox" name="country" value="countries/USA.geo.json">United_States_of_America<br>
+		 !--   <input type="checkbox" name="country" value="countries/UZB.geo.json">Uzbekistan<br>
+		 !--   <input type="checkbox" name="country" value="countries/VEN.geo.json">Venezuela<br>
+		 !--   <input type="checkbox" name="country" value="countries/VNM.geo.json">Vietnam<br>
+		 !--   <input type="checkbox" name="country" value="countries/VUT.geo.json">Vanuatu<br>
+		 !--   <input type="checkbox" name="country" value="countries/YEM.geo.json">Yemen<br>
+		 !--   <input type="checkbox" name="country" value="countries/ZAF.geo.json">South_Africa<br>
+		 !--   <input type="checkbox" name="country" value="countries/ZMB.geo.json">Zambia<br>
+		 !--   <input type="checkbox" name="country" value="countries/ZWE.geo.json">Zimbabwe<br>
+		 !-- </div>
+                  -->
 
 		<div id="times" style="float:right; position:relative;">
 		</div>

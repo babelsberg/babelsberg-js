@@ -1,12 +1,15 @@
 contentLoaded(window, function() {
     var InitializedEmZ3 = new EmZ3();
+    var relax = Relax();
     var dirty = false;
     var colors = ["#fcaf3e", "#8ae234", "#729fcf", "#ef2929"],
         defaultStateNames = _.map(["AUT", "BEL", "CZE", "FRA", "DEU",
                                    // "HUN", "GRE", "HRV", "MKD", "BGR", "LTU", "MNE",
-                                   // "ROU", "SVK", "SVN", "SRB", "BIH", "CS-KM", "ALB",
+                                   "ROU", "SVK", "SVN", "SRB", "BIH", "CS-KM", "ALB",
                                    "LUX", "NLD", "POL", "CHE", "ITA", "NOR", "SWE", "FIN",
-                                   "GBR", "IRL", "ESP", "DNK", "PRT"], function (name) {
+            "GBR", "IRL", "DNK",
+            "ESP",
+            "PRT"], function (name) {
                                    return "countries/" + name + ".geo.json";
                                });
     intersectionCache = {};
@@ -41,20 +44,43 @@ contentLoaded(window, function() {
         ctx.stroke();
     };
 
+    var selectedColor = colors[colors.length - 1];
+    var colorsDiv = document.getElementById('colors');
+    _.each(colors, function (color, index) {
+        var input = document.createElement("input");
+        input.type = "radio";
+        input.name = "color-selection";
+        input.id = color;
+        input.value = color;
+        input.checked = true;
+        input.onchange = (function () {
+            if (input.checked) {
+                selectedColor = color;
+            }
+        });
+        colorsDiv.appendChild(input);
+        var label = document.createElement("label");
+        label.for = color;
+        label.style = "background-color: " + color;
+        label.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+        colorsDiv.appendChild(label);
+        colorsDiv.appendChild(document.createElement("br"));
+    });
+
     var timesDiv = document.getElementById('times');
     var solverSelect = document.getElementById('solver');
     solverSelect.onchange = (function () {
         doIt.call();
     });
 
-    _.each(document.getElementsByName("country"), function(n) {
-        if (defaultStateNames.indexOf(n.value) >= 0) {
-            n.checked = true;
-        }
-        n.onchange = (function () {
-            doIt.call();
-        });
-    });
+    // _.each(document.getElementsByName("country"), function(n) {
+    //     if (defaultStateNames.indexOf(n.value) >= 0) {
+    //         n.checked = true;
+    //     }
+    //     n.onchange = (function () {
+    //         doIt.call();
+    //     });
+    // });
 
     var loaded = function(error /*, states ... */) {
         if (solverSelect.value === "EmZ3") {
@@ -119,9 +145,12 @@ contentLoaded(window, function() {
             }, this);
         }, this);
 
-        var el = document.createElement("div");
-        el.innerText = solverSelect.value + " - time: " + tTotal + "ms";
-        timesDiv.insertBefore(el, timesDiv.firstChild);
+        function logTime() {
+            var el = document.createElement("div");
+            el.innerText = solverSelect.value + " - time: " + tTotal + "ms";
+            timesDiv.insertBefore(el, timesDiv.firstChild);
+        }
+        logTime();
 
         var worldAABB = _.reduce(states, function(mem, state) {
             var stateAABB = _.reduce(state.geometry.aabbs, function(mem, aabb) {
@@ -130,13 +159,60 @@ contentLoaded(window, function() {
             return mem.combine(stateAABB);
         }, new AABB([], []));
 
+        // always: {
+        //     solver: relax;
+        //     worldToCanvasFactor == ro(worldHeight) / ro(canvasHeight);
+        // }
+
         // prepare canvas
         var worldWidth = worldAABB.max[0] - worldAABB.min[0],
-        worldHeight = worldAABB.max[1] - worldAABB.min[1],
-        canvasWidth = 800,
-        canvasHeight = worldHeight / worldWidth * canvasWidth,
-        c = document.getElementById("canvas"),
-        ctx = c.getContext("2d");
+            worldHeight = worldAABB.max[1] - worldAABB.min[1],
+            canvasWidth = 800,
+            canvasHeight = worldHeight / worldWidth * canvasWidth,
+            worldToCanvasFactor = canvasHeight / worldHeight,
+            worldLeft = worldAABB.min[0],
+            worldTop = worldAABB.min[1],
+            c = document.getElementById("canvas"),
+            ctx = c.getContext("2d");
+
+        function redraw() {
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            ctx.save();
+            ctx.translate(canvasWidth / 2, canvasHeight / 2);
+            ctx.scale(canvasWidth, canvasHeight);
+            ctx.scale(1, -1);
+            ctx.scale(1 / worldWidth, 1 / worldHeight);
+            ctx.translate(
+                -(worldAABB.max[0] + worldAABB.min[0])/2,
+                -(worldAABB.max[1] + worldAABB.min[1])/2
+            );
+
+            // draw polygons
+            _.each(states, function(state) {
+                ctx.fillStyle = state.color;
+                drawMultipolygon(state.geometry, ctx);
+            });
+
+            ctx.restore();
+        };
+
+        c.addEventListener("click", function(evt) {
+            var state = _.find(states, function(state, index) {
+                var worldX = evt.offsetX / worldToCanvasFactor + worldLeft,
+                    worldY = (canvasHeight - evt.offsetY) / worldToCanvasFactor + worldTop;
+                return Intersection.geometryContainsPoint(state.geometry, [worldX, worldY]);
+            });
+            if (state) {
+                console.log("You clicked on: " + state.name);
+                t0, tTotal = 0;
+                t0 = performance.now();
+                state.color = selectedColor;
+                tTotal = tTotal + (performance.now() - t0);
+                logTime();
+                redraw();
+            }
+            return false;
+        });
 
         c.width = canvasWidth;
         c.height = canvasHeight;
@@ -144,24 +220,7 @@ contentLoaded(window, function() {
         ctx.strokeStyle = "black";
         ctx.lineWidth = 1/8;
 
-        ctx.save();
-
-        ctx.translate(canvasWidth / 2, canvasHeight / 2);
-        ctx.scale(canvasWidth, canvasHeight);
-        ctx.scale(1, -1);
-        ctx.scale(1 / worldWidth, 1 / worldHeight);
-        ctx.translate(
-                -(worldAABB.max[0] + worldAABB.min[0])/2,
-                -(worldAABB.max[1] + worldAABB.min[1])/2
-        );
-
-        // draw polygons
-        _.each(states, function(state) {
-            ctx.fillStyle = state.color;
-            drawMultipolygon(state.geometry, ctx);
-        });
-
-        ctx.restore();
+        redraw();
     };
 
     doIt = function() {
