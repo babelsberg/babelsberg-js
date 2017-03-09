@@ -21,13 +21,14 @@ Object.subclass('Babelsberg', {
 
     initialize: function() {
         this.defaultSolvers = [
-            new ClSimplexSolver(),
-            new DBPlanner(),
-            new Relax(),
+            // new ClSimplexSolver(),
+            // new DBPlanner(),
+            // new Relax(),
             // new CommandLineZ3(),
             // new StrZ3(),
-            new BacktalkSolver(),
-            new csp.Solver()];
+            // new BacktalkSolver(),
+            // new csp.Solver()
+        ];
         this.defaultReevaluationInterval = 1000;
         this.callbacks = [];
         this.ecjit = new EmptyECJIT();
@@ -1679,7 +1680,7 @@ Object.subclass('Constraint', {
             var begin = performance.now();
             this.solver.solve();
             var end = performance.now();
-            if (this.opts.logTimings) {
+            if (this.opts && this.opts.logTimings) {
                 console.log((this.solver ? this.solver.solverName : '(no solver)') +
                     ' took ' + (end - begin) + ' ms to solve in enable');
             }

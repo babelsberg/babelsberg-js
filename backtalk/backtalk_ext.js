@@ -8,7 +8,7 @@ toRun(function() {
 Object.subclass('BacktalkSolver', {
     initialize: function() {
         this.csp = new backtalk.CSP();
-        this.solver = new backtalk.Solver(this.csp);
+        this.solver = new backtalk.Solver(this.csp, 5000);
     },
     reset: function() {
         this.solver.reset();
@@ -16,7 +16,7 @@ Object.subclass('BacktalkSolver', {
 
     constraintVariableFor: function(value, ivarname, cobj) {
         // skip syntax
-        if (value === undefined && ivarname === 'is') return;
+        if (value === undefined && ivarname === 'is') return undefined;
         return new BacktalkVariable(ivarname, value, this);
     },
     solve: function() {
@@ -40,7 +40,7 @@ Object.subclass('BacktalkSolver', {
         if (cobj.constraintobjects.length === 1 && needsFunc) {
             this.convertTestToFuncConstraint(cobj, func, opts);
         }
-        
+
         return cobj;
     },
     convertTestToFuncConstraint: function(cobj, func, opts) {
@@ -61,8 +61,8 @@ Object.subclass('BacktalkSolver', {
                     if (varB) varB.currentValue = vB;
                 }
             });
-        
-        
+
+
         if (cobj.constraintvariables.length === 1) {
             varA = cobj.constraintvariables[0].externalVariables(this).variable;
             cobj.constraintobjects[0] = BacktalkConstraint.unaryFunc(
@@ -108,14 +108,15 @@ Object.subclass('BacktalkVariable', {
         this.solver = solver;
         this.solver.csp.addVariable(this.variable);
     },
-    
+
     isConstraintObject: true,
     suggestValue: function(v) {
         var rhs = this.ensureVariable(v),
             c = BacktalkConstraint.cnEquals(this.variable, rhs),
-            oldValues = this.solver.csp.variables.map(function (v) {
-                return [v, v.currentValue];
-            });
+            oldValues = [];
+        this.solver.csp.variables.forEach(function (v) {
+            oldValues.push([v, v.currentValue]);
+        });
         c.enable();
         try {
             this.solver.solve();
@@ -144,7 +145,7 @@ Object.subclass('BacktalkVariable', {
     isReadonly: function() {
         return !!this.readonlyConstraint;
     },
-    
+
     cnEquals: function(v) {
         var rhs = this.ensureVariable(v);
         return BacktalkConstraint.cnEquals(this.variable, rhs);

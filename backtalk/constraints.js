@@ -22,33 +22,55 @@ backtalk.BinaryConstraint.subclass('backtalk.EqualityConstraint', {
 });
 backtalk.BinaryConstraint.subclass('backtalk.InequalityConstraint', {
     enforceArcConsistency: function() {
-        if (this.valuesToExploreA().length > 1 &&
-            this.valuesToExploreB().length > 1) {
+        var valA = this.valuesToExploreA(),
+            valB = this.valuesToExploreB();
+        if (valA.size > 1 && valB.size > 1) {
             return;
-        }
-        if (this.valuesToExploreA().length === 0) {
+        } else if (valA.size === 0) {
             this.variableB.valuesToExplore = [];
             return;
-        }
-        if (this.valuesToExploreB().length === 0) {
+        } else if (valB.size === 0) {
             this.variableA.valuesToExplore = [];
             return;
         }
-        var self = this;
-        this.variableB.filterToReject(function (value) {
-            return self.valuesToExploreA().without(value).length === 0;
-        });
-        this.variableA.filterToReject(function (value) {
-            return self.valuesToExploreB().without(value).length === 0;
-        });
+
+        if (valA.size == 1) {
+            for (let value of valB) {
+                if (valA.has(value)) {
+                    valB.delete(value);
+                    break;
+                }
+            }
+        } else if (valB.size == 1) {
+            for (let value of valA) {
+                if (valB.has(value)) {
+                    valA.delete(value);
+                    break;
+                }
+            }
+        }
     },
     isConsistent: function() {
-        var self = this;
-        return (this.valuesToExploreA().every(function (value) {
-            return self.valuesToExploreB().without(value).length > 0
-        }) && this.valuesToExploreB().every(function (value) {
-            return self.valuesToExploreA().without(value).length > 0
-        }));
+        let valA = this.valuesToExploreA(),
+            valB = this.valuesToExploreB();
+        if (valA.size > 1 && valB.size > 1) {
+            return true;
+        }
+        if (valA.size == 1) {
+            for (let value of valB) {
+                if (valA.has(value)) {
+                    return false;
+                }
+            }
+        }
+        if (valB.size == 1) {
+            for (let value of valA) {
+                if (valB.has(value)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 });
 backtalk.BinaryConstraint.subclass('backtalk.FunctionBinaryConstraint', {
@@ -57,44 +79,67 @@ backtalk.BinaryConstraint.subclass('backtalk.FunctionBinaryConstraint', {
         this.func = func;
     },
     enforceArcConsistency: function() {
-        var sizeA = this.valuesToExploreA().length,
-            sizeB = this.valuesToExploreB().length,
+        var sizeA = this.valuesToExploreA().size,
+            sizeB = this.valuesToExploreB().size,
             self = this,
             previousSizeA, previousSizeB;
         cond();
-        while(previousSizeA !== sizeA && previousSizeB !== sizeB) {
+        while (previousSizeA !== sizeA && previousSizeB !== sizeB) {
             cond();
         }
 
         function cond() {
+            var valB = self.valuesToExploreB();
             self.variableA.filterToSelect(function (a) {
-                return self.valuesToExploreB().some(function (b) {
-                    return self.func(a, b);
-                });
+                for (let b of valB) {
+                    if (self.func(a, b)) {
+                        return true;
+                    }
+                }
+                return false;
             });
+            var valA = self.valuesToExploreA();
             self.variableB.filterToSelect(function (b) {
-                return self.valuesToExploreA().some(function (a) {
-                    return self.func(a, b);
-                });
+                for (let a of valA) {
+                    if (self.func(a, b)) {
+                        return true;
+                    }
+                }
+                return false;
             });
             previousSizeA = sizeA;
-            sizeA = self.valuesToExploreA().length;
+            sizeA = self.valuesToExploreA().size;
             previousSizeB = sizeB;
-            sizeB = self.valuesToExploreB().length;
+            sizeB = self.valuesToExploreB().size;
         };
     },
     isConsistent: function() {
-        var condA = this.valuesToExploreA().every(function (a) {
-                return this.valuesToExploreB().some(function (b) {
-                    return this.func(a, b);
-                }.bind(this))
-            }.bind(this)),
-            condB = this.valuesToExploreB().every(function (b) {
-                return this.valuesToExploreA().some(function (a) {
-                    return this.func(a, b);
-                }.bind(this))
-            }.bind(this))
-        return condA && condB;
+        var valA = this.valuesToExploreA(),
+            valB = this.valuesToExploreB(),
+            ok = false;
+        for (let a of valA) {
+            ok = false;
+            for (let b of valB) {
+                if (this.func(a, b)) {
+                    ok = true;
+                    break;
+                }
+            }
+            if (!ok) return false;
+        }
+
+        for (let b of valB) {
+            ok = false;
+            for (let a of valA) {
+                if (this.func(a, b)) {
+                    ok = true;
+                    break;
+                }
+            }
+            if (!ok) return false;
+        }
+
+        return true;
     }
 });
 
@@ -105,9 +150,12 @@ backtalk.UnaryConstraint.subclass('backtalk.FunctionUnaryConstraint', {
         }.bind(this));
     },
     isConsistent: function() {
-        return this.valuesToExplore().every(function (v) {
-            return this.func(v);
-        }.bind(this));
+        for (let v of this.valuesToExplore()) {
+            if (!this.func(v)) {
+                return false;
+            }
+        }
+        return true;
     },
     initialize: function($super, v, func) {
         $super(v);

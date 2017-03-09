@@ -212,8 +212,8 @@ if (!window.module) {
                 // construct in interactive development
                 klass = targetScope[shortName];
             } else {
-                klass = function() {
-                    if (this.initialize) this.initialize.apply(this, arguments);
+                klass = function(...rest) {
+                    if (this.initialize) this.initialize(...rest);
                     return this;
                 };
                 klass.name = shortName;
@@ -475,6 +475,26 @@ if (!window.module) {
             throw 'Set not supported';
         };
     }
+
+    Set.prototype.union = function(other) {
+        return new Set([...this, ...other]);
+    };
+
+    Set.prototype.intersect = function(other) {
+        let s = new Set();
+        for (let value of other) {
+            if (this.has(value)) {
+                s.add(value);
+            }
+        }
+        return s;
+    };
+
+    Set.prototype.without = function(value) {
+        let s = new Set(this);
+        s.delete(value);
+        return s;
+    };
 
     window.alertOK = (function(msg) {
         console.log(msg);
