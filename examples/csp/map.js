@@ -58,7 +58,8 @@ contentLoaded(window, function() {
     }
 
     Color.prototype.equals = function (other) {
-        return (this.r == other.r && this.g == other.g && this.b == other.b);
+        // return (this.r == other.r && this.g == other.g && this.b == other.b);
+        return this === other;
     };
 
     Color.prototype.isValid = function () {
@@ -70,21 +71,23 @@ contentLoaded(window, function() {
                 this.b >= 0);
     };
 
+    window.colorCache = {};
+
     Color.fromString = function(str) {
-        return new Color(
-            parseInt(str.slice(1,3), 16),
-            parseInt(str.slice(3,5), 16),
-            parseInt(str.slice(5,7), 16)
-        );
+        var c = window.colorCache[str];
+        if (!c) {
+            c = new Color(
+                parseInt(str.slice(1,3), 16),
+                parseInt(str.slice(3,5), 16),
+                parseInt(str.slice(5,7), 16)
+            );
+            window.colorCache[str] = c;
+        }
+        return c;
     };
 
     Color.prototype.toString = function(str) {
         return "(new Color(" + [this.r, this.g, this.b].join(",") + "))";
-    };
-
-    window.NameMap = {
-        "white": "#ffffff",
-        "black": "#000000"
     };
 
     String.prototype.equals = function(other) {
@@ -92,6 +95,7 @@ contentLoaded(window, function() {
     };
 
     window.Color = Color;
+    Color.white = Color.fromString("#ffffff");
 
     var colors = ["#fcaf3e", "#8ae234", "#729fcf", "#ef2929"];
     var colorsDiv = document.getElementById('colors');
@@ -219,7 +223,7 @@ contentLoaded(window, function() {
                 return {
                     geometry: geometry,
                     name: state.properties.name,
-                    color: "#ffffff" // new Color(255, 255, 255)
+                    color: new Color(255, 255, 255)// "#ffffff"
                 };
             })
             .map(function(state) {
@@ -238,15 +242,15 @@ contentLoaded(window, function() {
             bbb.unconstrainAll(state.color);
             if (firstTime) {
                 firstTime = false;
-                state.color = "#ffffff";// new Color(255, 255, 255);
+                state.color = new Color(255, 255, 255);//"#ffffff"
             }
         });
         t0 = performance.now();
         try {
             Babelsberg.execute(
                 "var colors = [" +
-                    // colors.map((c) => Color.fromString(c).toString()).join(", ") +
-                    "'" + colors.join("', '") + "'" +
+                    colors.map((c) => "Color.fromString('" + c +"')").join(", ") +
+                    // "'" + colors.join("', '") + "'" +
                     "];\n" + code.innerText,
                 {states: states, colors: colors}
             );
@@ -301,8 +305,8 @@ contentLoaded(window, function() {
 
             // draw polygons
             _.each(states, function(state) {
-                // var fillStyle = "#" + state.color.r.toString(16) + state.color.g.toString(16) + state.color.b.toString(16);
-                var fillStyle = state.color;
+                var fillStyle = "#" + state.color.r.toString(16) + state.color.g.toString(16) + state.color.b.toString(16);
+                // var fillStyle = state.color;
                 console.log(state.name + " - " + fillStyle);
                 ctx.fillStyle = fillStyle;
                 drawMultipolygon(state.geometry, ctx);
@@ -322,8 +326,8 @@ contentLoaded(window, function() {
                 t0, tTotal = 0;
                 t0 = performance.now();
                 try {
-                    // state.color = Color.fromString(selectedColor);
-                    state.color = selectedColor;
+                    state.color = Color.fromString(selectedColor);
+                    // state.color = selectedColor;
                 } catch(e) {
                     logTime(" Constraints unsatisfiable: " + e);
                     throw e;
