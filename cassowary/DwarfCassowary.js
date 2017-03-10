@@ -849,7 +849,7 @@ module('users.timfelgentreff.cassowary.DwarfCassowary').
                 return true;
             },
 
-            toString: function() {
+            toString: function($super) {
                 return 'edit' + $super();
             }
         });
@@ -865,7 +865,7 @@ module('users.timfelgentreff.cassowary.DwarfCassowary').
                 return true;
             },
 
-            toString: function() {
+            toString: function($super) {
                 return 'stay ' + $super();
             }
         });
@@ -984,7 +984,7 @@ module('users.timfelgentreff.cassowary.DwarfCassowary').
                 CL.Assert(this._strength instanceof ClStrength, '_strength not set');
             },
 
-            toString: function() {
+            toString: function($super) {
                 return $super() + ' = 0)';
             }
         });

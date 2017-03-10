@@ -577,7 +577,10 @@ Object.subclass('Babelsberg', {
 
     isValueClass: function(variable) {
         // TODO: add more value classes
-        return variable instanceof lively.Point;
+        if (lively.Point) {
+            return variable instanceof lively.Point;
+        }
+        return false;
     }
 });
 Object.subclass('ClassicECJIT', {
