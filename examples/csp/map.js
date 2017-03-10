@@ -1,4 +1,11 @@
 contentLoaded(window, function() {
+    var oldlog = console.log;
+    var consolelog = document.getElementById("consolelog");
+    console.log = function(...rest) {
+        oldlog(...rest);
+        consolelog.innerText = consolelog.innerText + "\n" + rest;
+    };
+
     var InitializedEmZ3;
     var relax = Relax();
     var dirty = false,
@@ -44,7 +51,49 @@ contentLoaded(window, function() {
         ctx.stroke();
     };
 
-    var colors = ["white", "#fcaf3e", "#8ae234", "#729fcf", "#ef2929"];
+    function Color(r, g, b) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+    }
+
+    Color.prototype.equals = function (other) {
+        return (this.r == other.r && this.g == other.g && this.b == other.b);
+    };
+
+    Color.prototype.isValid = function () {
+        return (this.r <= 255 &&
+                this.r >= 0 &&
+                this.g <= 255 &&
+                this.g >= 0 &&
+                this.b <= 255 &&
+                this.b >= 0);
+    };
+
+    Color.fromString = function(str) {
+        return new Color(
+            parseInt(str.slice(1,3), 16),
+            parseInt(str.slice(3,5), 16),
+            parseInt(str.slice(5,7), 16)
+        );
+    };
+
+    Color.prototype.toString = function(str) {
+        return "(new Color(" + [this.r, this.g, this.b].join(",") + "))";
+    };
+
+    window.NameMap = {
+        "white": "#ffffff",
+        "black": "#000000"
+    };
+
+    String.prototype.equals = function(other) {
+        return this == other || (this == "#ffffff" && other == "white");
+    };
+
+    window.Color = Color;
+
+    var colors = ["#fcaf3e", "#8ae234", "#729fcf", "#ef2929"];
     var colorsDiv = document.getElementById('colors');
     var selectedColor = colors[colors.length - 1];
     function recreateColorChoices() {
@@ -121,6 +170,7 @@ contentLoaded(window, function() {
                 doIt();
             } catch (e) {
                 code.style.border = "3px solid red";
+                logTime(" Constraints unsatisfiable: " + e);
                 throw e;
             }
         }
@@ -137,10 +187,10 @@ contentLoaded(window, function() {
             if (!InitializedEmZ3) {
                 InitializedEmZ3 = new EmZ3();
             }
-            bbb.defaultSolver = InitializedEmZ3;
+            bbb.defaultSolvers = [InitializedEmZ3];
             dirty = true;
         } else {
-            bbb.defaultSolver = new (eval(solverSelect.value))();
+            bbb.defaultSolvers = eval(solverSelect.value);
         }
         if (dirty) {
             // InitializedEmZ3 = new EmZ3();
@@ -169,7 +219,7 @@ contentLoaded(window, function() {
                 return {
                     geometry: geometry,
                     name: state.properties.name,
-                    color: new Number(0)
+                    color: "#ffffff" // new Color(255, 255, 255)
                 };
             })
             .map(function(state) {
@@ -185,22 +235,26 @@ contentLoaded(window, function() {
 
         _.each(states, function(state) {
             bbb.unconstrainAll(state);
+            bbb.unconstrainAll(state.color);
             if (firstTime) {
                 firstTime = false;
-                state.color = "white";// colors[Math.floor(Math.random() * colors.length)];
+                state.color = "#ffffff";// new Color(255, 255, 255);
             }
         });
         t0 = performance.now();
-        // try {
+        try {
             Babelsberg.execute(
-                "var colors = ['" + colors.join("', '") + "'];\n" + code.innerText,
+                "var colors = [" +
+                    // colors.map((c) => Color.fromString(c).toString()).join(", ") +
+                    "'" + colors.join("', '") + "'" +
+                    "];\n" + code.innerText,
                 {states: states, colors: colors}
             );
-        // } catch(e) {
-        //     code.style.border = "3px solid red";
-        //     logTime(" Constraints unsatisfiable");
-        //     throw e;
-        // }
+        } catch(e) {
+            code.style.border = "3px solid red";
+            logTime(" Constraints unsatisfiable: " + e);
+            throw e;
+        }
         tTotal = performance.now() - t0;
 
         function logTime(msg) {
@@ -247,7 +301,10 @@ contentLoaded(window, function() {
 
             // draw polygons
             _.each(states, function(state) {
-                ctx.fillStyle = state.color;
+                // var fillStyle = "#" + state.color.r.toString(16) + state.color.g.toString(16) + state.color.b.toString(16);
+                var fillStyle = state.color;
+                console.log(state.name + " - " + fillStyle);
+                ctx.fillStyle = fillStyle;
                 drawMultipolygon(state.geometry, ctx);
             });
 
@@ -264,7 +321,13 @@ contentLoaded(window, function() {
                 console.log("You clicked on: " + state.name);
                 t0, tTotal = 0;
                 t0 = performance.now();
-                state.color = selectedColor;
+                try {
+                    // state.color = Color.fromString(selectedColor);
+                    state.color = selectedColor;
+                } catch(e) {
+                    logTime(" Constraints unsatisfiable: " + e);
+                    throw e;
+                }
                 tTotal = tTotal + (performance.now() - t0);
                 logTime(" time: " + tTotal +  "ms");
                 redraw();
