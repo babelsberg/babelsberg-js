@@ -93,14 +93,14 @@
 		
 	  <div style="float: right; position: relative; max-height: 800px" id="colors"></div>
 
-	  <details>
+	  <details style="font-size: 28px;">
 	    <summary>Constraints</summary>
 	    <pre>
 	      <code class="javascript" id="code" contenteditable="true">
 // define domains for colors
 this.states.forEach(function(state) {
-    always: { state.color.is in colors }
-    // state.color = colors[Math.floor(Math.random() * (colors.length - 1))];
+    always: { state.getColor().is in colors }
+    // state.setColor(colors[Math.floor(Math.random() * (colors.length - 1))]);
 });
     <!-- 
      !-- colors.forEach(function(color) {
@@ -113,14 +113,14 @@ this.states.forEach(function(state) {
 this.states.forEach(function(state1, index1) {
     this.states.forEach(function(state2, index2) {
         if(index1 < index2 && state1.sharesBorderWith(state2)) {
-            always: { !state1.color.equals(state2.color) }
+            always: { !state1.getColor().equals(state2.getColor()) }
         }
     }, this);
 }, this);
 	      </code>
 	    </pre>
 	  </details>
-	  <details>
+	  <details style="font-size: 28px;">
 	    <summary>Log</summary>
 	    <p id="consolelog" style="max-height: 800px; overflow-y: scroll;">
 	    </p>

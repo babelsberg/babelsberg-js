@@ -3,7 +3,7 @@ contentLoaded(window, function() {
     var consolelog = document.getElementById("consolelog");
     console.log = function(...rest) {
         oldlog(...rest);
-        consolelog.innerText = consolelog.innerText + "\n" + rest;
+        consolelog.innerText = rest + "\n" + consolelog.innerText;
     };
 
     var InitializedEmZ3;
@@ -11,7 +11,7 @@ contentLoaded(window, function() {
     var dirty = false,
         defaultStateNames = _.map(["AUT", "BEL", "CZE", "FRA", "DEU",
                                    // "HUN", "GRE", "HRV", "MKD", "BGR", "LTU", "MNE",
-                                   // "ROU", "SVK", "SVN", "SRB", "BIH", "CS-KM", "ALB",
+                                   "ROU", "SVK", "SVN", "SRB", "BIH", "CS-KM", "ALB",
                                    "LUX", "NLD", "POL", "CHE", "ITA", "NOR", "SWE", "FIN",
                                    "HUN", "HRV",
             "GBR", "IRL", "DNK",
@@ -82,13 +82,8 @@ contentLoaded(window, function() {
         return "(new Color(" + [this.r, this.g, this.b].join(",") + "))";
     };
 
-    window.NameMap = {
-        "white": "#ffffff",
-        "black": "#000000"
-    };
-
     String.prototype.equals = function(other) {
-        return this == other || (this == "#ffffff" && other == "white");
+        return this == other;
     };
 
     window.Color = Color;
@@ -139,7 +134,11 @@ contentLoaded(window, function() {
         moreButton.type = "color";
         moreButton.value = "+";
         moreButton.onchange = function() {
-            colors.push(moreButton.value);
+            if (moreButton.value == "#ffffff") {
+                colors.push("white"); // hack
+            } else {
+                colors.push(moreButton.value);
+            }
             recreateColorChoices();
         };
         colorsDiv.appendChild(moreButton);
@@ -204,6 +203,20 @@ contentLoaded(window, function() {
             dirty = false;
         }
 
+        window.State = function State() {
+        };
+
+        State.prototype.sharesBorderWith = function(anotherState) {
+            return intersectStates(this, anotherState);
+        };
+        State.prototype.getColor = function() {
+            return this.color;
+        };
+        State.prototype.setColor = function(name) {
+            // if (name == "white") name = "#ffffff";
+            this.color = name;
+        };
+
         // prepare data
         var states = _.chain(arguments)
             .filter(function(state, index) {
@@ -216,17 +229,14 @@ contentLoaded(window, function() {
                 if(geometry.type === "Polygon")
                     geometry.coordinates = [geometry.coordinates];
                 geometry.coordinates = _.pluck(geometry.coordinates, 0);
-                return {
-                    geometry: geometry,
-                    name: state.properties.name,
-                    color: "#ffffff" // new Color(255, 255, 255)
-                };
+                var s = new State();
+                s.geometry = geometry;
+                s.name = state.properties.name
+                s.color = "#000000"// "#ffffff" // new Color(255, 255, 255)
+                return s;
             })
             .map(function(state) {
                 state.geometry.aabbs = _.map(state.geometry.coordinates, AABB.fromPath);
-                state.sharesBorderWith = (anotherState) => {
-                    return intersectStates(state, anotherState);
-                };
                 return state;
             })
             .value();
@@ -238,7 +248,7 @@ contentLoaded(window, function() {
             bbb.unconstrainAll(state.color);
             if (firstTime) {
                 firstTime = false;
-                state.color = "#ffffff";// new Color(255, 255, 255);
+                state.color = "#000000";//"#ffffff";// new Color(255, 255, 255);
             }
         });
         t0 = performance.now();
@@ -303,7 +313,7 @@ contentLoaded(window, function() {
             _.each(states, function(state) {
                 // var fillStyle = "#" + state.color.r.toString(16) + state.color.g.toString(16) + state.color.b.toString(16);
                 var fillStyle = state.color;
-                console.log(state.name + " - " + fillStyle);
+                // console.log(state.name + " - " + fillStyle);
                 ctx.fillStyle = fillStyle;
                 drawMultipolygon(state.geometry, ctx);
             });
