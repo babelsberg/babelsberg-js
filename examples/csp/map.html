@@ -66,6 +66,7 @@
 
 	<script src="Intersection.js"></script>
 	<script src="map.js"></script>
+	<script src="imperative.js"></script>
 
 	<script src="../../csp/underscore-min.js"></script>
 	<!-- 
@@ -81,6 +82,7 @@
 	    <option value="[new ClSimplexSolver()]">Cassowary</option>
 	    <!-- <option value="[new csp.Solver()]">Simple CSP</option> -->
 	    <option value="[new Relax(), new ClSimplexSolver(), new BacktalkSolver()] ">Automatic selection</option>
+	    <option value="">Imperative Solution</option>
 	  </select>
 
           <div style="float: left; position: relative; max-height: 800px" id="colors">
@@ -98,25 +100,15 @@
 	    <pre>
 	      <code class="javascript" id="code" contenteditable="true">
 // define domains for colors
-this.states.forEach(function(state) {
+states.forEach((state) => {
     always: { state.getColor().is in colors }
-    // state.setColor(colors[Math.floor(Math.random() * (colors.length - 1))]);
 });
-    <!-- 
-     !-- colors.forEach(function(color) {
-     !--     always: {
-     !--        priority: "strong"
-     !--        state.color.equals(color);
-     !--     }
-     !-- });
-      -->
-this.states.forEach(function(state1, index1) {
-    this.states.forEach(function(state2, index2) {
-        if(index1 < index2 && state1.sharesBorderWith(state2)) {
-            always: { !state1.getColor().equals(state2.getColor()) }
-        }
-    }, this);
-}, this);
+
+states.forEachPair((state1, state2) => {
+    if (state1.neighbourOf(state2)) {
+        always: { !state1.getColor().equals(state2.getColor()) }
+    }
+});
 	      </code>
 	    </pre>
 	  </details>

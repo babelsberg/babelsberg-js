@@ -92,8 +92,8 @@ contentLoaded(window, function() {
                 if (idx1 < idx2) {
                     func(e1, e2);
                 }
-            });
-        });
+            }.bind(this));
+        }.bind(this));
     };
 
     window.Color = Color;
@@ -187,6 +187,7 @@ contentLoaded(window, function() {
 
     var firstTime = true;
     var loaded = function(error /*, states ... */) {
+        var imperative = false;
         if (error) {
             code.style.border = "3px solid red";
             throw error;
@@ -198,6 +199,8 @@ contentLoaded(window, function() {
             }
             bbb.defaultSolvers = [InitializedEmZ3];
             dirty = true;
+        } else if (solverSelect.value == "") {
+            imperative = true;
         } else {
             bbb.defaultSolvers = eval(solverSelect.value);
         }
@@ -263,15 +266,19 @@ contentLoaded(window, function() {
         });
         t0 = performance.now();
         try {
-            Babelsberg.execute(
-                "var colors = [" +
-                    // colors.map((c) => Color.fromString(c).toString()).join(", ") +
-                    "'" + colors.join("', '") + "'" +
-                    "];\n" +
-                    "var states = this.states;\n" +
-                    code.innerText.replace(/\(([a-zA-Z0-9$_ ]+,)*([a-zA-Z0-9$_ ]+)?\)\s*=>\s*{/, "function($1$2) {"),
-                {states: states, colors: colors}
-            );
+            if (imperative) {
+                colorizeMap(states, colors);
+            } else {
+                Babelsberg.execute(
+                    "var colors = [" +
+                        // colors.map((c) => Color.fromString(c).toString()).join(", ") +
+                        "'" + colors.join("', '") + "'" +
+                        "];\n" +
+                        "var states = this.states;\n" +
+                        code.innerText.replace(/\(([a-zA-Z0-9$_ ]+,)*([a-zA-Z0-9$_ ]+)?\)\s*=>\s*{/g, "function($1$2) {"),
+                    {states: states, colors: colors}
+                );
+            }
         } catch(e) {
             code.style.border = "3px solid red";
             logTime(" Constraints unsatisfiable: " + e);
