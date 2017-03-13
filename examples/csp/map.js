@@ -86,6 +86,16 @@ contentLoaded(window, function() {
         return this == other;
     };
 
+    Array.prototype.forEachPair = function(func) {
+        this.forEach(function (e1, idx1) {
+            this.forEach(function (e2, idx2) {
+                if (idx1 < idx2) {
+                    func(e1, e2);
+                }
+            });
+        });
+    };
+
     window.Color = Color;
 
     var colors = ["#fcaf3e", "#8ae234", "#729fcf", "#ef2929"];
@@ -206,7 +216,7 @@ contentLoaded(window, function() {
         window.State = function State() {
         };
 
-        State.prototype.sharesBorderWith = function(anotherState) {
+        State.prototype.neighbourOf = function(anotherState) {
             return intersectStates(this, anotherState);
         };
         State.prototype.getColor = function() {
@@ -257,7 +267,9 @@ contentLoaded(window, function() {
                 "var colors = [" +
                     // colors.map((c) => Color.fromString(c).toString()).join(", ") +
                     "'" + colors.join("', '") + "'" +
-                    "];\n" + code.innerText,
+                    "];\n" +
+                    "var states = this.states;\n" +
+                    code.innerText.replace(/\(([a-zA-Z0-9$_ ]+,)*([a-zA-Z0-9$_ ]+)?\)\s*=>\s*{/, "function($1$2) {"),
                 {states: states, colors: colors}
             );
         } catch(e) {
