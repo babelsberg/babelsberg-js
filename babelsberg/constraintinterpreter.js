@@ -2814,14 +2814,14 @@ users.timfelgentreff.jsinterpreter.InterpreterVisitor.
             if (!retval || !retval.isConstraintObject) {
                 var objStr = Strings.safeToString(obj),
                     retStr = Strings.safeToString(retval);
-                console.log(
-                    Constraint.current.solver.constructor.name +
-                        ' cannot reason about the variable ' + objStr + '[' +
-                        name + '], a ' + retStr + ' of type ' +
-                        (typeof(retval) == 'object' ?
-                         retval.constructor.name :
-                         typeof(retval))
-                );
+                // console.log(
+                //     Constraint.current.solver.constructor.name +
+                //         ' cannot reason about the variable ' + objStr + '[' +
+                //         name + '], a ' + retStr + ' of type ' +
+                //         (typeof(retval) == 'object' ?
+                //          retval.constructor.name :
+                //          typeof(retval))
+                // );
                 Constraint.current.haltIfDebugging();
             }
             if (retval) {
