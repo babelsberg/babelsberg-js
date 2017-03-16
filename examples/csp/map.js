@@ -1,4 +1,9 @@
 contentLoaded(window, function() {
+    if (location.search == "?demo") {
+        window.open(location.href.sub(location.search, ""), undefined, "width=1280,height=960,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=no,toolbar=no");
+        return;
+    }
+
     var oldlog = console.log;
     var consolelog = document.getElementById("consolelog");
     console.log = function(...rest) {
@@ -11,7 +16,8 @@ contentLoaded(window, function() {
     var dirty = false,
         defaultStateNames = _.map(["AUT", "BEL", "CZE", "FRA", "DEU",
                                    // "HUN", "GRE", "HRV", "MKD", "BGR", "LTU", "MNE",
-                                   "ROU", "SVK", "SVN", "SRB", "BIH", "CS-KM", "ALB",
+                                   // "ROU",
+                                   "SVK", "SVN", "SRB", "BIH", "CS-KM", "ALB",
                                    "LUX", "NLD", "POL", "CHE", "ITA", "NOR", "SWE", "FIN",
                                    "HUN", "HRV",
             "GBR", "IRL", "DNK",
@@ -111,6 +117,7 @@ contentLoaded(window, function() {
             input.id = color;
             input.value = color;
             input.checked = true;
+            input.style = "display: none;";
             input.onchange = (function () {
                 if (input.checked) {
                     selectedColor = color;
@@ -127,7 +134,7 @@ contentLoaded(window, function() {
             var button = document.createElement("input");
             button.type = "button";
             button.value = "-";
-            button.style = "margin-left: 4px;";
+            button.style = "margin-left: 4px; border: none; background-color: transparent; vertical-align: top; cursor: not-allowed;";
             button.onclick = () => {
                 colors.splice(index, 1);
                 colorsDiv.removeChild(input);
@@ -143,6 +150,7 @@ contentLoaded(window, function() {
         var moreButton = document.createElement("input");
         moreButton.type = "color";
         moreButton.value = "+";
+        moreButton.style = "border: none; padding: 5px; background-color: white; border-radius: 16px; margin-top: 40px; width: 22px; margin-right: 22px;";
         moreButton.onchange = function() {
             if (moreButton.value == "#ffffff") {
                 colors.push("white"); // hack
@@ -151,6 +159,10 @@ contentLoaded(window, function() {
             }
             recreateColorChoices();
         };
+        var plusSign = document.createElement("span");
+        plusSign.style = "vertical-align: middle; font-size: 14px; padding-left: 15px; margin-top: 40px; background-color: transparent";
+        plusSign.innerText = "+";
+        colorsDiv.appendChild(plusSign);
         colorsDiv.appendChild(moreButton);
     }
     recreateColorChoices();
@@ -171,16 +183,19 @@ contentLoaded(window, function() {
     // });
 
     var code = document.getElementById("code");
-    code.style.border = "3px solid green";
+    code.style = "border: 5px solid transparent";
     code.onkeyup = function (evt) {
         if (evt.altKey && evt.key == "s") {
-            code.style.border = "3px solid green";
+            code.style = "border: 5px solid transparent;color: rgba(0, 0, 0, 0.3);";
             try {
                 doIt();
             } catch (e) {
-                code.style.border = "3px solid red";
+                code.style = "border: 5px solid red";
                 logTime(" Constraints unsatisfiable: " + e);
                 throw e;
+            } finally {
+                code.style = "border: 5px solid transparent";
+                Prism.highlightAll();
             }
         }
     };
@@ -189,7 +204,7 @@ contentLoaded(window, function() {
     var loaded = function(error /*, states ... */) {
         var imperative = false;
         if (error) {
-            code.style.border = "3px solid red";
+            code.style = "border: 5px solid red";
             throw error;
         }
 
@@ -265,6 +280,7 @@ contentLoaded(window, function() {
             }
         });
         t0 = performance.now();
+        code.style = "border: 5px solid transparent;color: rgba(0, 0, 0, 0.3);";
         try {
             if (imperative) {
                 colorizeMap(states, colors);
@@ -280,9 +296,11 @@ contentLoaded(window, function() {
                 );
             }
         } catch(e) {
-            code.style.border = "3px solid red";
+            code.style = "border: 5px solid red";
             logTime(" Constraints unsatisfiable: " + e);
             throw e;
+        } finally {
+            code.style = "border: 5px solid transparent";
         }
         tTotal = performance.now() - t0;
 
@@ -308,7 +326,7 @@ contentLoaded(window, function() {
         // prepare canvas
         var worldWidth = worldAABB.max[0] - worldAABB.min[0],
             worldHeight = worldAABB.max[1] - worldAABB.min[1],
-            canvasWidth = 800,
+            canvasWidth = window.innerWidth / 2.5,
             canvasHeight = worldHeight / worldWidth * canvasWidth,
             worldToCanvasFactor = canvasHeight / worldHeight,
             worldLeft = worldAABB.min[0],

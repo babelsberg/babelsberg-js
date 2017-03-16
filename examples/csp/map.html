@@ -60,10 +60,91 @@
           -->
 	<script src="d3.v3.min.js"></script>
 	<script src="queue.v1.min.js"></script>
-	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
-	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
-	<script>hljs.initHighlightingOnLoad();</script>
+	<style type="text/css">
+	  input[type=radio] + label {
+	  cursor: pointer;
+	  margin-left: 18pt;
+	  }
+	  input[type=radio]:checked + label {
+	  margin-left: -4pt;	  
+	  }
 
+	  body {
+	  margin-right: 0pt;
+	  overflow: hidden;
+	  }
+
+	  pre {
+	  padding-top: 0pt !important;
+	  padding-bottom: 0pt !important;
+	  padding-left: 16pt !important;
+	  padding-right: 0pt !important;
+	  left: -8pt;
+	  }
+
+	  * {
+	  outline: none !important;
+	  }
+
+	  summary {
+	     color: #333;
+	  }
+
+	  #solver {
+	  background-color: lightblue;
+	  color: #444;
+	  }
+
+	  h1 {
+	  font-weight: normal;
+	  margin-left: auto;
+	  margin-right: auto;
+	  margin-bottom: 3em;
+	  text-align: left;
+	  font-size: 22pt;
+	  padding-left: 1ex;
+	  color: rgb(221, 97, 8);
+	  }
+
+	  #colors {
+	  background-color: #222; position: absolute; 
+	  right: -20px;
+	  top: 50%;
+	  max-height: 800pt; font-size: 14pt;
+	  border-bottom-left-radius: 10pt;
+	  border-top-left-radius: 10pt;
+	  background-color: #ddd;
+	  padding: 4pt;
+	  padding-top: 16pt;
+	  }
+
+	  #logo {
+	  position: absolute;
+	  top: 18pt;
+	  right: 8pt;
+	  height: 60pt;
+	  }
+
+	  #logo-left {
+	  position: absolute;
+	  top: 12pt;
+	  right: 120pt;
+	  height: 90pt;
+	  }
+	</style>
+	<!-- 
+         !-- <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+	 !-- <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+	 !-- <script>hljs.initHighlightingOnLoad();</script>
+          -->
+
+	<script src="prism.js"></script>
+	<link rel="stylesheet" href="prism.css"></link>
+        <script type="text/javascript">
+	  Prism.languages.javascript.keyword = new RegExp(Prism.languages.javascript.keyword.source.sub("|if|", "|always|if|"));
+	  Prism.highlightAll();
+	</script> 
+	
 	<script src="Intersection.js"></script>
 	<script src="map.js"></script>
 	<script src="imperative.js"></script>
@@ -73,49 +154,53 @@
          !-- <script src="../../csp/csp.js"></script>
 	 !-- <script src="../../babelsberg/csp_ext.js"></script>
           -->
-
 	</head>
-	<body>
-	  <select id="solver">
-	    <option value="[new BacktalkSolver()]">Backtalk</option>
-	    <option value="[new Relax()]">Sutherland's Relaxation</option>
-	    <option value="[new ClSimplexSolver()]">Cassowary</option>
-	    <!-- <option value="[new csp.Solver()]">Simple CSP</option> -->
-	    <option value="[new Relax(), new ClSimplexSolver(), new BacktalkSolver()] ">Automatic selection</option>
-	    <option value="">Imperative Solution</option>
-	  </select>
-
-          <div style="float: left; position: relative; max-height: 800px" id="colors">
-	  </div>
-
-	  <div id="times" style="float:left; position:relative; max-height: 100px; overflow-y: scroll;">
-	  </div>
-		
-	  <canvas id="canvas"></canvas>
-		
-	  <div style="float: right; position: relative; max-height: 800px" id="colors"></div>
-
-	  <details style="font-size: 28px;">
+<body style="font-family: Verdana;">
+  <h1>Map Coloring with Babelsberg/JS</h1>
+  
+	  <details open style="font-size: 18pt; float: left; margin-bottom: 22pt;">
 	    <summary>Constraints</summary>
-	    <pre>
-	      <code class="javascript" id="code" contenteditable="true">
-// define domains for colors
+	    <pre style="margin: 0pt; padding 0pt; border-top-right-radius: 10pt; border-bottom-right-radius: 10pt; position: relative; top: 0pt; width: 60ex;">
+<code class="language-javascript" id="code" contenteditable="true">
 states.forEach((state) => {
-    always: { state.getColor().is in colors }
+  always: { state.getColor().is in colors }
 });
 
 states.forEachPair((state1, state2) => {
-    if (state1.neighbourOf(state2)) {
-        always: { !state1.getColor().equals(state2.getColor()) }
+  if (state1.neighbourOf(state2)) {
+    always: {
+      !state1.getColor().equals(state2.getColor())
     }
-});
-	      </code>
+  }
+});</code>
 	    </pre>
+	    Solver: <select style="font-size: 18pt; border-radius: 10pt; border-color: #ccc;" id="solver">
+	      <option value="[new BacktalkSolver()]">Backtalk</option>
+	      <option value="[new Relax()]">Sutherland's Relaxation</option>
+	      <option value="[new ClSimplexSolver()]">Cassowary</option>
+	      <!-- <option value="[new csp.Solver()]">Simple CSP</option> -->
+	      <option value="[new Relax(), new ClSimplexSolver(), new BacktalkSolver()] ">Automatic selection</option>
+	      <option value="">Imperative Solution</option>
+	    </select>
+
+	    <img src="https://avatars0.githubusercontent.com/u/5947853?v=3&s=200" id="logo-left" />
+	    <img src="https://hpi.de/fileadmin/templates/img/hpi_logo_srgb_wb_sl1_web80.png" id="logo" />
+
 	  </details>
-	  <details style="font-size: 28px;">
+          <div id="colors">
+	  </div>
+
+	  <canvas style="margin: 10pt;" id="canvas"></canvas>
+		
+	  <details style="clear: both; position: relative; font-size: 14pt; max-width: 60ex">
 	    <summary>Log</summary>
-	    <p id="consolelog" style="max-height: 800px; overflow-y: scroll;">
-	    </p>
+	    <div id="consolelog" style="max-height: 42pt; overflow-y: scroll;">
+	    </div>
 	  </details>
 	</body>
+	<details style="position: relative; font-size: 14pt; max-width: 60ex">
+	  <summary>Solver Output</summary>
+	  <div id="times" style="float:left; position:relative; max-height: 42pt; overflow-y: scroll;">
+	  </div>
+	</details>
 </html>
