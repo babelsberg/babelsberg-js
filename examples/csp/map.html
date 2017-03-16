@@ -171,7 +171,7 @@ states.forEach((state) => {
 });
 
 states.forEachPair((state1, state2) => {
-  if (state1.neighbourOf(state2)) {
+  if (state1.neighborOf(state2)) {
     always: {
       !state1.getColor().equals(state2.getColor())
     }

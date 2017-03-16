@@ -234,7 +234,7 @@ contentLoaded(window, function() {
         window.State = function State() {
         };
 
-        State.prototype.neighbourOf = function(anotherState) {
+        State.prototype.neighborOf = function(anotherState) {
             return intersectStates(this, anotherState);
         };
         State.prototype.getColor = function() {
