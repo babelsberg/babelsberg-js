@@ -290,7 +290,7 @@ contentLoaded(window, function() {
                         // colors.map((c) => Color.fromString(c).toString()).join(", ") +
                         "'" + colors.join("', '") + "'" +
                         "];\n" +
-                        "var states = this.states;\n" +
+                        "var countries = this.states;\n" +
                         code.innerText.replace(/\(([a-zA-Z0-9$_ ]+,)*([a-zA-Z0-9$_ ]+)?\)\s*=>\s*{/g, "function($1$2) {"),
                     {states: states, colors: colors}
                 );

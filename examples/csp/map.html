@@ -166,14 +166,14 @@
 	    <summary>Constraints</summary>
 	    <pre style="margin: 0pt; padding 0pt; border-top-right-radius: 10pt; border-bottom-right-radius: 10pt; position: relative; top: 0pt; width: 60ex;">
 <code class="language-javascript" id="code" contenteditable="true">
-states.forEach((state) => {
-  always: { state.getColor().is in colors }
+countries.forEach((country) => {
+  always: { country.getColor().is in colors }
 });
 
-states.forEachPair((state1, state2) => {
-  if (state1.neighborOf(state2)) {
+countries.forEachPair((c1, c2) => {
+  if (c1.neighborOf(c2)) {
     always: {
-      !state1.getColor().equals(state2.getColor())
+      !c1.getColor().equals(c2.getColor())
     }
   }
 });</code>
